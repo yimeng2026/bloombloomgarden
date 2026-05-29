@@ -149,6 +149,13 @@ export class InterventionService extends EventEmitter {
     this.initDefaultRules();
   }
 
+  // ── 查询 ────────────────────────────────────────────
+  getQueue(): InterventionRecord[] {
+    return Array.from(this.records.values()).sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
   // ── 单Agent操作 ───────────────────────────────────────
 
   async pause(agentId: string, requesterId: string): Promise<InterventionRecord> {

@@ -62,7 +62,7 @@ export interface ScheduleOptions {
   executeAt?: Date;
 }
 
-class TaskService {
+export class TaskService {
   private tasks: Map<string, Task> = new Map();
   private maxConcurrent = 3;
   private runningCount = 0;

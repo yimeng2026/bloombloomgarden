@@ -82,6 +82,44 @@ app.use('/api/processes', processesRouter);           // 进程监控
 app.use('/api/external', externalRouter);             // 外部平台
 app.use('/api/security', securityRouter);             // 安全中心
 
+// ─── Dashboard 聚合端点（ Coordinator 要求）─────────────
+app.get('/api/dashboard/state', async (_req, res) => {
+  const { getAgentService } = await import('./services');
+  const { getMonitorService } = await import('./services');
+  const { getTaskService } = await import('./services');
+  const agentSvc = getAgentService();
+  const monitorSvc = getMonitorService();
+  const taskSvc = getTaskService();
+  const [agents, stats, taskData] = await Promise.all([
+    agentSvc.list(),
+    Promise.resolve(monitorSvc.getStats()),
+    taskSvc.listTasks(),
+  ]);
+  res.json({
+    success: true,
+    data: {
+      agents: { count: agents.length, items: agents.slice(0, 10) },
+      system: stats,
+      tasks: { count: taskData.total, recent: taskData.tasks.slice(-5) },
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+// ─── Intervention 状态汇总端点（Coordinator 要求）──────
+app.get('/api/intervention/status', async (_req, res) => {
+  const { getInterventionService, InterventionStatus } = await import('./services/CollabFramework');
+  const svc = getInterventionService();
+  const queue = await svc.getQueue();
+  const stats = {
+    pending: queue.filter((r: any) => r.status === InterventionStatus.PENDING).length,
+    approved: queue.filter((r: any) => r.status === InterventionStatus.APPROVED).length,
+    rejected: queue.filter((r: any) => r.status === InterventionStatus.REJECTED).length,
+    total: queue.length,
+  };
+  res.json({ success: true, data: { status: 'active', stats, queue: queue.slice(-10) } });
+});
+
 // ─── 全局错误处理 ─────────────────────────────────────
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

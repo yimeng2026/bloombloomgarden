@@ -18,6 +18,8 @@ import { MonitorService } from './MonitorService';
 import { BlueprintService } from './BlueprintService';
 import { SettingsService } from './SettingsService';
 
+import { TaskService } from './TaskService';
+
 export * from './AgentService';
 export * from './GroupService';
 export * from './DialogService';
@@ -29,6 +31,7 @@ export * from './IntegrationService';
 export * from './MonitorService';
 export * from './BlueprintService';
 export * from './SettingsService';
+export * from './TaskService';
 
 // ─── 进程级单例（自动注入 Prisma） ────────────────────
 
@@ -43,10 +46,16 @@ let integrationServiceInstance: IntegrationService | null = null;
 let monitorServiceInstance: MonitorService | null = null;
 let blueprintServiceInstance: BlueprintService | null = null;
 let settingsServiceInstance: SettingsService | null = null;
+let taskServiceInstance: TaskService | null = null;
 
 function getPrisma(): PrismaClient | undefined {
   // 如果 prisma 模块导出的是有效实例则返回，否则 undefined（回退到内存）
   return prisma || undefined;
+}
+
+export function getTaskService(): TaskService {
+  if (!taskServiceInstance) taskServiceInstance = new TaskService();
+  return taskServiceInstance;
 }
 
 export function getAgentService(): AgentService {
