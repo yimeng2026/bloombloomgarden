@@ -1,0 +1,75 @@
+{
+  "name": "thousand-realms-garden-electron",
+  "version": "1.0.0",
+  "description": "千界花园 — 桌面端 Electron 壳",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "dist": "electron-builder --publish=never",
+    "dist:win": "electron-builder --win --x64 --publish=never",
+    "pack": "electron-builder --dir"
+  },
+  "build": {
+    "appId": "com.thousandrealms.garden",
+    "productName": "千界花园",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "../backend/dist/**/*",
+      "../frontend/dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist",
+        "to": "backend"
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "frontend"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": ["AppImage", "deb", "rpm"],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "千界花园"
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "dependencies": {}
+}

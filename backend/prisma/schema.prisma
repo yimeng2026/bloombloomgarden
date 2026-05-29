@@ -1,0 +1,136 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Agent {
+  id              String   @id @default(uuid())
+  name            String
+  role            String
+  status          String   @default("active")
+  config          String   @default("{}") // JSON string
+  knowledgeBaseIds String   @default("[]")
+  skillIds        String   @default("[]")
+  workspaceId     String?
+  integrationIds  String   @default("[]")
+  groupId         String?
+  description     String?
+  avatar          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  group           Group?   @relation(fields: [groupId], references: [id])
+}
+
+model Group {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  parentId        String?
+  coordinatorId   String?
+  executionMode   String   @default("sequential")
+  status          String   @default("active")
+  maxDepth        Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  agents          Agent[]
+}
+
+model KnowledgeBase {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  documentIds     String   @default("[]")
+  embeddingModel  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Document {
+  id              String   @id @default(uuid())
+  kbId            String
+  title           String
+  content         String
+  metadata        String   @default("{}")
+  createdAt       DateTime @default(now())
+}
+
+model Skill {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  type            String   @default("custom")
+  config          String   @default("{}")
+  enabled         Boolean  @default(true)
+  version         String   @default("1.0")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Integration {
+  id              String   @id @default(uuid())
+  name            String
+  type            String
+  config          String   @default("{}")
+  enabled         Boolean  @default(true)
+  status          String   @default("disconnected")
+  lastTestedAt    DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Blueprint {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  steps           String   @default("[]") // JSON string
+  variables       String   @default("{}")
+  tags            String   @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Settings {
+  id              String   @id @default("default")
+  theme           String   @default("system")
+  language        String   @default("zh-CN")
+  maxConcurrentAgents Int  @default(10)
+  defaultTimeout  Int      @default(300000)
+  autoSave        Boolean  @default(true)
+  logLevel        String   @default("info")
+  features        String   @default("{}")
+}
+
+model ChatMessage {
+  id              String   @id @default(uuid())
+  agentId         String
+  role            String
+  content         String
+  attachments     String   @default("[]")
+  timestamp       DateTime @default(now())
+}
+
+model WorkspaceTask {
+  id              String   @id @default(uuid())
+  taskId          String   @unique
+  groupId         String
+  files           String   @default("{}") // JSON: path -> {content, mimeType}
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BackendConfig {
+  id              String   @id @default(uuid())
+  provider        String
+  name            String
+  baseUrl         String
+  apiKey          String?
+  model           String?
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}

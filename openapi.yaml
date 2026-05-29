@@ -1,0 +1,6488 @@
+openapi: 3.0.3
+info:
+  title: 千界花园 (Thousand Realms Garden) API
+  description: '群智协同操作系统 REST API — XYZ 三轴自由连接、多 Agent 编排、统一 LLM 适配
+
+
+    📊 自动扩展: 145 个新端点已从后端路由同步'
+  version: 1.0.0
+  contact:
+    name: Thousand Realms Garden Team
+  license:
+    name: MIT
+servers:
+- url: http://localhost:3001/api
+  description: 本地开发环境
+- url: https://thousand-realms-garden.onrender.com/api
+  description: 生产环境 (Render)
+tags:
+- name: Auth
+  description: 用户认证与授权
+- name: Agents
+  description: Agent 生命周期管理
+- name: Dialog
+  description: 对话与消息
+- name: Groups
+  description: 群组编排（sequential/parallel/hierarchical）
+- name: Tasks
+  description: 任务调度与执行
+- name: Knowledge
+  description: 知识库与 RAG
+- name: API Keys
+  description: LLM Provider API 密钥管理
+- name: Monitoring
+  description: 系统监控与用量统计
+- name: System
+  description: 系统健康与配置
+paths:
+  /auth/register:
+    post:
+      tags:
+      - Auth
+      summary: 用户注册
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - username
+              - email
+              - password
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+      responses:
+        201:
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          username:
+                            type: string
+                          email:
+                            type: string
+                          role:
+                            type: string
+        400:
+          description: 参数错误或用户已存在
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - username
+              - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/User'
+        401:
+          description: 认证失败
+  /auth/me:
+    get:
+      tags:
+      - Auth
+      summary: 获取当前用户信息
+      security:
+      - BearerAuth: []
+      responses:
+        200:
+          description: 当前用户信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+  /agents:
+    get:
+      tags:
+      - Agents
+      summary: 获取 Agent 列表
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - idle
+          - running
+          - error
+          - offline
+      - name: workspaceId
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: Agent 列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Agent'
+    post:
+      tags:
+      - Agents
+      summary: 创建 Agent
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentInput'
+      responses:
+        201:
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Agent'
+  /agents/{id}:
+    get:
+      tags:
+      - Agents
+      summary: 获取单个 Agent
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Agent 详情
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Agent'
+    put:
+      tags:
+      - Agents
+      summary: 更新 Agent
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAgentInput'
+      responses:
+        200:
+          description: 更新成功
+    delete:
+      tags:
+      - Agents
+      summary: 删除 Agent
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: 删除成功
+  /agents/{id}/chat:
+    post:
+      tags:
+      - Agents
+      - Dialog
+      summary: 与 Agent 对话
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - message
+              properties:
+                message:
+                  type: string
+                  description: 用户消息
+                stream:
+                  type: boolean
+                  default: false
+                model:
+                  type: string
+                  description: 指定模型，不指定则用默认
+      responses:
+        200:
+          description: 对话响应
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      response:
+                        type: string
+                      reasoning_content:
+                        type: string
+                      model:
+                        type: string
+                      tokens:
+                        type: object
+                        properties:
+                          prompt:
+                            type: integer
+                          completion:
+                            type: integer
+                          total:
+                            type: integer
+        202:
+          description: SSE 流式响应开始
+  /agents/{id}/context:
+    get:
+      tags:
+      - Agents
+      summary: 获取 Agent 上下文
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Agent 完整上下文
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      systemPrompt:
+                        type: string
+                      historyMessages:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ChatMessage'
+                      toolCalls:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ToolCall'
+                      knowledgeRefs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/KnowledgeRef'
+                      tokenUsage:
+                        type: object
+                        properties:
+                          prompt_tokens:
+                            type: integer
+                          completion_tokens:
+                            type: integer
+                          total_tokens:
+                            type: integer
+                          cost_usd:
+                            type: number
+                          model:
+                            type: string
+  /agents/{id}/context/stream:
+    get:
+      tags:
+      - Agents
+      summary: SSE 实时推送 Agent 上下文变更
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: SSE 事件流
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: 'event: context-update
+
+                  data: {"type": "message", "content": "..."}
+
+                  '
+  /apikeys:
+    get:
+      tags:
+      - API Keys
+      summary: 列出已保存的 API Key（脱敏）
+      security:
+      - BearerAuth: []
+      responses:
+        200:
+          description: API Key 列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/APIKey'
+    post:
+      tags:
+      - API Keys
+      summary: 保存新 API Key
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - provider
+              - apiKey
+              properties:
+                provider:
+                  type: string
+                  enum:
+                  - openai
+                  - azure
+                  - anthropic
+                  - deepseek
+                  - moonshot
+                  - kimi-code
+                  - qwen
+                  - gemini
+                  - glm
+                  - openrouter
+                apiKey:
+                  type: string
+                  description: 原始 API Key（AES-256-GCM 加密存储）
+                isActive:
+                  type: boolean
+                  default: true
+      responses:
+        201:
+          description: 保存成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/APIKey'
+  /apikeys/{id}:
+    delete:
+      tags:
+      - API Keys
+      summary: 删除 API Key
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: 删除成功
+  /apikeys/{id}/toggle:
+    patch:
+      tags:
+      - API Keys
+      summary: 切换 API Key 激活状态
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: 状态已更新
+  /apikeys/{id}/test:
+    post:
+      tags:
+      - API Keys
+      summary: 测试单个 API Key 连通性
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: 测试结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      valid:
+                        type: boolean
+                      latency:
+                        type: number
+                        description: 响应延迟(ms)
+                      model:
+                        type: string
+                      error:
+                        type: string
+  /apikeys/test-all:
+    post:
+      tags:
+      - API Keys
+      summary: 批量测试所有 API Key
+      security:
+      - BearerAuth: []
+      responses:
+        200:
+          description: 批量测试结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        provider:
+                          type: string
+                        valid:
+                          type: boolean
+                        latency:
+                          type: number
+  /dialog:
+    get:
+      tags:
+      - Dialog
+      summary: 获取对话会话列表
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: agentId
+        in: query
+        schema:
+          type: string
+      - name: workspaceId
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: 会话列表
+    post:
+      tags:
+      - Dialog
+      summary: 创建新会话
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - title
+              - agentId
+              properties:
+                title:
+                  type: string
+                agentId:
+                  type: string
+                workspaceId:
+                  type: string
+      responses:
+        201:
+          description: 创建成功
+  /groups:
+    get:
+      tags:
+      - Groups
+      summary: 获取群组列表
+      security:
+      - BearerAuth: []
+      responses:
+        200:
+          description: 群组列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
+    post:
+      tags:
+      - Groups
+      summary: 创建群组编排
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - mode
+              - agents
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                mode:
+                  type: string
+                  enum:
+                  - sequential
+                  - parallel
+                  - hierarchical
+                agents:
+                  type: array
+                  items:
+                    type: string
+                  description: Agent ID 列表
+      responses:
+        201:
+          description: 创建成功
+  /groups/{id}/execute:
+    post:
+      tags:
+      - Groups
+      summary: 执行群组编排
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - input
+              properties:
+                input:
+                  type: string
+                  description: 群组输入消息
+      responses:
+        200:
+          description: 执行结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      mode:
+                        type: string
+                      results:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            agentId:
+                              type: string
+                            agentName:
+                              type: string
+                            response:
+                              type: string
+                            latency:
+                              type: number
+  /tasks:
+    get:
+      tags:
+      - Tasks
+      summary: 获取任务列表
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - pending
+          - running
+          - completed
+          - failed
+          - cancelled
+      - name: agentId
+        in: query
+        schema:
+          type: string
+      - name: workspaceId
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: 任务列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+    post:
+      tags:
+      - Tasks
+      summary: 创建任务
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - payload
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                priority:
+                  type: string
+                  enum:
+                  - low
+                  - normal
+                  - high
+                  - urgent
+                  default: normal
+                agentId:
+                  type: string
+                workspaceId:
+                  type: string
+                payload:
+                  type: object
+                scheduledAt:
+                  type: string
+                  format: date-time
+      responses:
+        201:
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Task'
+  /tasks/{id}:
+    get:
+      tags:
+      - Tasks
+      summary: 获取任务详情
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: 任务详情
+    put:
+      tags:
+      - Tasks
+      summary: 更新任务
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                priority:
+                  type: string
+                status:
+                  type: string
+                payload:
+                  type: object
+      responses:
+        200:
+          description: 更新成功
+    delete:
+      tags:
+      - Tasks
+      summary: 删除任务
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: 删除成功
+  /tasks/{id}/execute:
+    post:
+      tags:
+      - Tasks
+      summary: 手动执行任务
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: 执行结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      result:
+                        type: object
+                      tokens:
+                        type: object
+                        properties:
+                          prompt:
+                            type: integer
+                          completion:
+                            type: integer
+                          total:
+                            type: integer
+  /knowledge:
+    get:
+      tags:
+      - Knowledge
+      summary: 获取知识库列表
+      security:
+      - BearerAuth: []
+      responses:
+        200:
+          description: 知识库列表
+    post:
+      tags:
+      - Knowledge
+      summary: 创建知识库
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                embeddingModel:
+                  type: string
+                  default: openai/text-embedding-3-small
+      responses:
+        201:
+          description: 创建成功
+  /knowledge/{id}/upload:
+    post:
+      tags:
+      - Knowledge
+      summary: 上传文档到知识库
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 支持 pdf/md/txt/docx
+      responses:
+        201:
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      fileId:
+                        type: string
+                      chunks:
+                        type: integer
+                      status:
+                        type: string
+  /knowledge/{id}/search:
+    post:
+      tags:
+      - Knowledge
+      summary: 语义检索
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - query
+              properties:
+                query:
+                  type: string
+                  description: 检索查询
+                topK:
+                  type: integer
+                  default: 5
+                threshold:
+                  type: number
+                  default: 0.7
+                  description: 相似度阈值
+      responses:
+        200:
+          description: 检索结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        chunk:
+                          type: string
+                        source:
+                          type: string
+                        relevance:
+                          type: number
+                        page:
+                          type: integer
+  /monitor/spend:
+    get:
+      tags:
+      - Monitoring
+      summary: 获取用量统计
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: period
+        in: query
+        schema:
+          type: string
+          enum:
+          - day
+          - week
+          - month
+          default: month
+      - name: provider
+        in: query
+        schema:
+          type: string
+      - name: userId
+        in: query
+        schema:
+          type: string
+      responses:
+        200:
+          description: 用量统计
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      totalCostUSD:
+                        type: number
+                      totalCostCNY:
+                        type: number
+                      totalRequests:
+                        type: integer
+                      totalTokens:
+                        type: object
+                        properties:
+                          prompt:
+                            type: integer
+                          completion:
+                            type: integer
+                          total:
+                            type: integer
+                      providers:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            provider:
+                              type: string
+                            requests:
+                              type: integer
+                            costUSD:
+                              type: number
+                            tokens:
+                              type: integer
+  /monitor/health:
+    get:
+      tags:
+      - Monitoring
+      - System
+      summary: 系统健康检查
+      responses:
+        200:
+          description: 系统状态
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  uptime:
+                    type: number
+                    description: 运行秒数
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                      llm_providers:
+                        type: string
+                      vector_db:
+                        type: string
+  /health:
+    get:
+      tags:
+      - System
+      summary: 简洁健康检查（用于 Docker/K8s 探针）
+      responses:
+        200:
+          description: 服务正常
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+  /agents/{id}/inject:
+    post:
+      tags:
+      - Agents
+      summary: POST /agents/{id}/inject
+      operationId: post_agents_id_inject
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /agents/{id}/isolate:
+    post:
+      tags:
+      - Agents
+      summary: POST /agents/{id}/isolate
+      operationId: post_agents_id_isolate
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /agents/{id}/pause:
+    post:
+      tags:
+      - Agents
+      summary: POST /agents/{id}/pause
+      operationId: post_agents_id_pause
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /agents/{id}/resume:
+    post:
+      tags:
+      - Agents
+      summary: POST /agents/{id}/resume
+      operationId: post_agents_id_resume
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /apikeys/providers:
+    get:
+      tags:
+      - API Keys
+      summary: GET /apikeys/providers
+      operationId: get_apikeys_providers
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /backups:
+    get:
+      tags:
+      - System
+      summary: GET /backups
+      operationId: get_backups
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - System
+      summary: POST /backups
+      operationId: post_backups
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /backups/{id}:
+    get:
+      tags:
+      - System
+      summary: GET /backups/{id}
+      operationId: get_backups_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - System
+      summary: DELETE /backups/{id}
+      operationId: delete_backups_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /backups/{id}/restore:
+    post:
+      tags:
+      - System
+      summary: POST /backups/{id}/restore
+      operationId: post_backups_id_restore
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /blueprints:
+    get:
+      tags:
+      - Blueprints
+      summary: GET /blueprints
+      operationId: get_blueprints
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - Blueprints
+      summary: POST /blueprints
+      operationId: post_blueprints
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /blueprints/presets:
+    get:
+      tags:
+      - Blueprints
+      summary: GET /blueprints/presets
+      operationId: get_blueprints_presets
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /blueprints/{id}:
+    get:
+      tags:
+      - Blueprints
+      summary: GET /blueprints/{id}
+      operationId: get_blueprints_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+      - Blueprints
+      summary: PUT /blueprints/{id}
+      operationId: put_blueprints_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - Blueprints
+      summary: DELETE /blueprints/{id}
+      operationId: delete_blueprints_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /blueprints/{id}/execute:
+    post:
+      tags:
+      - Blueprints
+      summary: POST /blueprints/{id}/execute
+      operationId: post_blueprints_id_execute
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /blueprints/{id}/executions:
+    get:
+      tags:
+      - Blueprints
+      summary: GET /blueprints/{id}/executions
+      operationId: get_blueprints_id_executions
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /blueprints/{id}/pause:
+    post:
+      tags:
+      - Blueprints
+      summary: POST /blueprints/{id}/pause
+      operationId: post_blueprints_id_pause
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /blueprints/{id}/resume:
+    post:
+      tags:
+      - Blueprints
+      summary: POST /blueprints/{id}/resume
+      operationId: post_blueprints_id_resume
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /coordinator/broadcast:
+    post:
+      tags:
+      - Coordinator
+      summary: POST /coordinator/broadcast
+      operationId: post_coordinator_broadcast
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /coordinator/chariot:
+    post:
+      tags:
+      - Coordinator
+      summary: POST /coordinator/chariot
+      operationId: post_coordinator_chariot
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /coordinator/chariot/{id}:
+    get:
+      tags:
+      - Coordinator
+      summary: GET /coordinator/chariot/{id}
+      operationId: get_coordinator_chariot_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - Coordinator
+      summary: DELETE /coordinator/chariot/{id}
+      operationId: delete_coordinator_chariot_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /coordinator/chariot/{id}/agents:
+    get:
+      tags:
+      - Coordinator
+      summary: GET /coordinator/chariot/{id}/agents
+      operationId: get_coordinator_chariot_id_agents
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /coordinator/chariot/{id}/children:
+    get:
+      tags:
+      - Coordinator
+      summary: GET /coordinator/chariot/{id}/children
+      operationId: get_coordinator_chariot_id_children
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /coordinator/chariot/{id}/execute:
+    post:
+      tags:
+      - Coordinator
+      summary: POST /coordinator/chariot/{id}/execute
+      operationId: post_coordinator_chariot_id_execute
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /coordinator/chariot/{id}/match:
+    get:
+      tags:
+      - Coordinator
+      summary: GET /coordinator/chariot/{id}/match
+      operationId: get_coordinator_chariot_id_match
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /coordinator/delegate:
+    post:
+      tags:
+      - Coordinator
+      summary: POST /coordinator/delegate
+      operationId: post_coordinator_delegate
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /coordinator/merge:
+    post:
+      tags:
+      - Coordinator
+      summary: POST /coordinator/merge
+      operationId: post_coordinator_merge
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /coordinator/split:
+    post:
+      tags:
+      - Coordinator
+      summary: POST /coordinator/split
+      operationId: post_coordinator_split
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /coordinator/tree:
+    get:
+      tags:
+      - Coordinator
+      summary: GET /coordinator/tree
+      operationId: get_coordinator_tree
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /dialog/agents:
+    get:
+      tags:
+      - Dialog
+      summary: GET /dialog/agents
+      operationId: get_dialog_agents
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /dialog/{agentId}/chat:
+    post:
+      tags:
+      - Dialog
+      summary: POST /dialog/{agentId}/chat
+      operationId: post_dialog_agentId_chat
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: agentId
+        in: path
+        required: true
+        schema:
+          type: string
+  /dialog/{agentId}/context:
+    get:
+      tags:
+      - Dialog
+      summary: GET /dialog/{agentId}/context
+      operationId: get_dialog_agentId_context
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: agentId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - Dialog
+      summary: DELETE /dialog/{agentId}/context
+      operationId: delete_dialog_agentId_context
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: agentId
+        in: path
+        required: true
+        schema:
+          type: string
+  /dialog/{agentId}/files:
+    post:
+      tags:
+      - Dialog
+      summary: POST /dialog/{agentId}/files
+      operationId: post_dialog_agentId_files
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: agentId
+        in: path
+        required: true
+        schema:
+          type: string
+  /dialog/{agentId}/stream:
+    get:
+      tags:
+      - Dialog
+      summary: GET /dialog/{agentId}/stream
+      operationId: get_dialog_agentId_stream
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: agentId
+        in: path
+        required: true
+        schema:
+          type: string
+  /events:
+    get:
+      tags:
+      - Events
+      summary: GET /events
+      operationId: get_events
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - Events
+      summary: POST /events
+      operationId: post_events
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /events/acknowledge-all:
+    patch:
+      tags:
+      - Events
+      summary: PATCH /events/acknowledge-all
+      operationId: patch_events_acknowledge-all
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /events/stream:
+    get:
+      tags:
+      - Events
+      summary: GET /events/stream
+      operationId: get_events_stream
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /events/{id}:
+    delete:
+      tags:
+      - Events
+      summary: DELETE /events/{id}
+      operationId: delete_events_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /events/{id}/acknowledge:
+    patch:
+      tags:
+      - Events
+      summary: PATCH /events/{id}/acknowledge
+      operationId: patch_events_id_acknowledge
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /external/platforms:
+    get:
+      tags:
+      - External
+      summary: GET /external/platforms
+      operationId: get_external_platforms
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /external/platforms/{id}:
+    get:
+      tags:
+      - External
+      summary: GET /external/platforms/{id}
+      operationId: get_external_platforms_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - External
+      summary: DELETE /external/platforms/{id}
+      operationId: delete_external_platforms_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /external/platforms/{id}/config:
+    post:
+      tags:
+      - External
+      summary: POST /external/platforms/{id}/config
+      operationId: post_external_platforms_id_config
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /external/platforms/{id}/test:
+    post:
+      tags:
+      - External
+      summary: POST /external/platforms/{id}/test
+      operationId: post_external_platforms_id_test
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /external/platforms/{id}/toggle:
+    post:
+      tags:
+      - External
+      summary: POST /external/platforms/{id}/toggle
+      operationId: post_external_platforms_id_toggle
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /groups/{id}:
+    get:
+      tags:
+      - Groups
+      summary: GET /groups/{id}
+      operationId: get_groups_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+      - Groups
+      summary: PUT /groups/{id}
+      operationId: put_groups_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - Groups
+      summary: DELETE /groups/{id}
+      operationId: delete_groups_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /groups/{id}/agents:
+    post:
+      tags:
+      - Groups
+      summary: POST /groups/{id}/agents
+      operationId: post_groups_id_agents
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /groups/{id}/agents/{agentId}:
+    delete:
+      tags:
+      - Groups
+      summary: DELETE /groups/{id}/agents/{agentId}
+      operationId: delete_groups_id_agents_agentId
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agentId
+        in: path
+        required: true
+        schema:
+          type: string
+  /groups/{id}/coordinator:
+    post:
+      tags:
+      - Groups
+      summary: POST /groups/{id}/coordinator
+      operationId: post_groups_id_coordinator
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /groups/{id}/nest:
+    post:
+      tags:
+      - Groups
+      summary: POST /groups/{id}/nest
+      operationId: post_groups_id_nest
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /handoff/chariot/{id}/stats:
+    get:
+      tags:
+      - Handoff
+      summary: GET /handoff/chariot/{id}/stats
+      operationId: get_handoff_chariot_id_stats
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /handoff/initiate:
+    post:
+      tags:
+      - Handoff
+      summary: POST /handoff/initiate
+      operationId: post_handoff_initiate
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /handoff/list:
+    get:
+      tags:
+      - Handoff
+      summary: GET /handoff/list
+      operationId: get_handoff_list
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /handoff/{id}/accept:
+    post:
+      tags:
+      - Handoff
+      summary: POST /handoff/{id}/accept
+      operationId: post_handoff_id_accept
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /handoff/{id}/cancel:
+    post:
+      tags:
+      - Handoff
+      summary: POST /handoff/{id}/cancel
+      operationId: post_handoff_id_cancel
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /handoff/{id}/complete:
+    post:
+      tags:
+      - Handoff
+      summary: POST /handoff/{id}/complete
+      operationId: post_handoff_id_complete
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /handoff/{id}/execute:
+    post:
+      tags:
+      - Handoff
+      summary: POST /handoff/{id}/execute
+      operationId: post_handoff_id_execute
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /handoff/{id}/reject:
+    post:
+      tags:
+      - Handoff
+      summary: POST /handoff/{id}/reject
+      operationId: post_handoff_id_reject
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /handoff/{id}/start:
+    post:
+      tags:
+      - Handoff
+      summary: POST /handoff/{id}/start
+      operationId: post_handoff_id_start
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /handoff/{id}/status:
+    get:
+      tags:
+      - Handoff
+      summary: GET /handoff/{id}/status
+      operationId: get_handoff_id_status
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /hierarchical/alerts:
+    get:
+      tags:
+      - Hierarchical
+      summary: GET /hierarchical/alerts
+      operationId: get_hierarchical_alerts
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /hierarchical/alerts/{id}/acknowledge:
+    post:
+      tags:
+      - Hierarchical
+      summary: POST /hierarchical/alerts/{id}/acknowledge
+      operationId: post_hierarchical_alerts_id_acknowledge
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /hierarchical/approvals:
+    get:
+      tags:
+      - Hierarchical
+      summary: GET /hierarchical/approvals
+      operationId: get_hierarchical_approvals
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /hierarchical/approvals/{id}:
+    get:
+      tags:
+      - Hierarchical
+      summary: GET /hierarchical/approvals/{id}
+      operationId: get_hierarchical_approvals_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+      - Hierarchical
+      summary: POST /hierarchical/approvals/{id}
+      operationId: post_hierarchical_approvals_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /hierarchical/intervene:
+    post:
+      tags:
+      - Hierarchical
+      summary: POST /hierarchical/intervene
+      operationId: post_hierarchical_intervene
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /hierarchical/stats:
+    get:
+      tags:
+      - Hierarchical
+      summary: GET /hierarchical/stats
+      operationId: get_hierarchical_stats
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /hierarchical/status:
+    get:
+      tags:
+      - Hierarchical
+      summary: GET /hierarchical/status
+      operationId: get_hierarchical_status
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /hierarchical/tree:
+    get:
+      tags:
+      - Hierarchical
+      summary: GET /hierarchical/tree
+      operationId: get_hierarchical_tree
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /integrations:
+    get:
+      tags:
+      - Integrations
+      summary: GET /integrations
+      operationId: get_integrations
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - Integrations
+      summary: POST /integrations
+      operationId: post_integrations
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /integrations/types:
+    get:
+      tags:
+      - Integrations
+      summary: GET /integrations/types
+      operationId: get_integrations_types
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /integrations/{id}:
+    put:
+      tags:
+      - Integrations
+      summary: PUT /integrations/{id}
+      operationId: put_integrations_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - Integrations
+      summary: DELETE /integrations/{id}
+      operationId: delete_integrations_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /integrations/{id}/test:
+    post:
+      tags:
+      - Integrations
+      summary: POST /integrations/{id}/test
+      operationId: post_integrations_id_test
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/agent-isolate:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/agent-isolate
+      operationId: post_intervention_agent-isolate
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /intervention/agent/{id}/emergency-stop:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/agent/{id}/emergency-stop
+      operationId: post_intervention_agent_id_emergency-stop
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/agent/{id}/history:
+    get:
+      tags:
+      - Intervention
+      summary: GET /intervention/agent/{id}/history
+      operationId: get_intervention_agent_id_history
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/agent/{id}/pause:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/agent/{id}/pause
+      operationId: post_intervention_agent_id_pause
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/agent/{id}/resume:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/agent/{id}/resume
+      operationId: post_intervention_agent_id_resume
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/agent/{id}/terminate:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/agent/{id}/terminate
+      operationId: post_intervention_agent_id_terminate
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/global-pause:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/global-pause
+      operationId: post_intervention_global-pause
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /intervention/global-resume:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/global-resume
+      operationId: post_intervention_global-resume
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /intervention/group-reorg:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/group-reorg
+      operationId: post_intervention_group-reorg
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /intervention/inject-message:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/inject-message
+      operationId: post_intervention_inject-message
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /intervention/list:
+    get:
+      tags:
+      - Intervention
+      summary: GET /intervention/list
+      operationId: get_intervention_list
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /intervention/request:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/request
+      operationId: post_intervention_request
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /intervention/rules:
+    get:
+      tags:
+      - Intervention
+      summary: GET /intervention/rules
+      operationId: get_intervention_rules
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/rules
+      operationId: post_intervention_rules
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /intervention/rules/{id}:
+    delete:
+      tags:
+      - Intervention
+      summary: DELETE /intervention/rules/{id}
+      operationId: delete_intervention_rules_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/tool-review:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/tool-review
+      operationId: post_intervention_tool-review
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /intervention/{id}/approve:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/{id}/approve
+      operationId: post_intervention_id_approve
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/{id}/execute:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/{id}/execute
+      operationId: post_intervention_id_execute
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /intervention/{id}/reject:
+    post:
+      tags:
+      - Intervention
+      summary: POST /intervention/{id}/reject
+      operationId: post_intervention_id_reject
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /kimi-cluster/endpoints:
+    post:
+      tags:
+      - Kimi Cluster
+      summary: POST /kimi-cluster/endpoints
+      operationId: post_kimi-cluster_endpoints
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /kimi-cluster/endpoints/{id}:
+    delete:
+      tags:
+      - Kimi Cluster
+      summary: DELETE /kimi-cluster/endpoints/{id}
+      operationId: delete_kimi-cluster_endpoints_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /kimi-cluster/load-balance:
+    post:
+      tags:
+      - Kimi Cluster
+      summary: POST /kimi-cluster/load-balance
+      operationId: post_kimi-cluster_load-balance
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /kimi-cluster/patterns:
+    get:
+      tags:
+      - Kimi Cluster
+      summary: GET /kimi-cluster/patterns
+      operationId: get_kimi-cluster_patterns
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /kimi-cluster/status:
+    get:
+      tags:
+      - Kimi Cluster
+      summary: GET /kimi-cluster/status
+      operationId: get_kimi-cluster_status
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /knowledge/{id}:
+    get:
+      tags:
+      - Knowledge
+      summary: GET /knowledge/{id}
+      operationId: get_knowledge_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+      - Knowledge
+      summary: PUT /knowledge/{id}
+      operationId: put_knowledge_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - Knowledge
+      summary: DELETE /knowledge/{id}
+      operationId: delete_knowledge_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /knowledge/{id}/documents:
+    post:
+      tags:
+      - Knowledge
+      summary: POST /knowledge/{id}/documents
+      operationId: post_knowledge_id_documents
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /knowledge/{id}/documents/:docId:
+    delete:
+      tags:
+      - Knowledge
+      summary: DELETE /knowledge/{id}/documents/:docId
+      operationId: delete_knowledge_id_documents_:docId
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /monitor/agents:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /monitor/agents
+      operationId: get_monitor_agents
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /monitor/groups:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /monitor/groups
+      operationId: get_monitor_groups
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /monitor/logs:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /monitor/logs
+      operationId: get_monitor_logs
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /monitor/performance:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /monitor/performance
+      operationId: get_monitor_performance
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /monitor/stats:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /monitor/stats
+      operationId: get_monitor_stats
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /platforms:
+    get:
+      tags:
+      - External
+      summary: GET /platforms
+      operationId: get_platforms
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /processes:
+    get:
+      tags:
+      - System
+      summary: GET /processes
+      operationId: get_processes
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /processes/stats/overview:
+    get:
+      tags:
+      - System
+      summary: GET /processes/stats/overview
+      operationId: get_processes_stats_overview
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /processes/{pid}:
+    get:
+      tags:
+      - System
+      summary: GET /processes/{pid}
+      operationId: get_processes_pid
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: pid
+        in: path
+        required: true
+        schema:
+          type: string
+  /processes/{pid}/restart:
+    post:
+      tags:
+      - System
+      summary: POST /processes/{pid}/restart
+      operationId: post_processes_pid_restart
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: pid
+        in: path
+        required: true
+        schema:
+          type: string
+  /processes/{pid}/stop:
+    post:
+      tags:
+      - System
+      summary: POST /processes/{pid}/stop
+      operationId: post_processes_pid_stop
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: pid
+        in: path
+        required: true
+        schema:
+          type: string
+  /registry:
+    get:
+      tags:
+      - Registry
+      summary: GET /registry
+      operationId: get_registry
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /registry/axis/{x}/{y}/{z}:
+    get:
+      tags:
+      - Registry
+      summary: GET /registry/axis/{x}/{y}/{z}
+      operationId: get_registry_axis_x_y_z
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /registry/search:
+    get:
+      tags:
+      - Registry
+      summary: GET /registry/search
+      operationId: get_registry_search
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /registry/stats/overview:
+    get:
+      tags:
+      - Registry
+      summary: GET /registry/stats/overview
+      operationId: get_registry_stats_overview
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /registry/{id}:
+    get:
+      tags:
+      - Registry
+      summary: GET /registry/{id}
+      operationId: get_registry_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /registry/{id}/heartbeat:
+    post:
+      tags:
+      - Registry
+      summary: POST /registry/{id}/heartbeat
+      operationId: post_registry_id_heartbeat
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /security/audit-log:
+    get:
+      tags:
+      - Security
+      summary: GET /security/audit-log
+      operationId: get_security_audit-log
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /security/blocked-ips:
+    get:
+      tags:
+      - Security
+      summary: GET /security/blocked-ips
+      operationId: get_security_blocked-ips
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - Security
+      summary: POST /security/blocked-ips
+      operationId: post_security_blocked-ips
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /security/blocked-ips/{ip}:
+    delete:
+      tags:
+      - Security
+      summary: DELETE /security/blocked-ips/{ip}
+      operationId: delete_security_blocked-ips_ip
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: ip
+        in: path
+        required: true
+        schema:
+          type: string
+  /security/events:
+    get:
+      tags:
+      - Security
+      summary: GET /security/events
+      operationId: get_security_events
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /security/events/{id}/resolve:
+    patch:
+      tags:
+      - Security
+      summary: PATCH /security/events/{id}/resolve
+      operationId: patch_security_events_id_resolve
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /security/overview:
+    get:
+      tags:
+      - Security
+      summary: GET /security/overview
+      operationId: get_security_overview
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /settings:
+    get:
+      tags:
+      - System
+      summary: GET /settings
+      operationId: get_settings
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /settings/language:
+    put:
+      tags:
+      - System
+      summary: PUT /settings/language
+      operationId: put_settings_language
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /settings/languages:
+    get:
+      tags:
+      - System
+      summary: GET /settings/languages
+      operationId: get_settings_languages
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /settings/theme:
+    put:
+      tags:
+      - System
+      summary: PUT /settings/theme
+      operationId: put_settings_theme
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /settings/themes:
+    get:
+      tags:
+      - System
+      summary: GET /settings/themes
+      operationId: get_settings_themes
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /settings/{key}:
+    put:
+      tags:
+      - System
+      summary: PUT /settings/{key}
+      operationId: put_settings_key
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+  /skills:
+    get:
+      tags:
+      - Skills
+      summary: GET /skills
+      operationId: get_skills
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - Skills
+      summary: POST /skills
+      operationId: post_skills
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /skills/{id}:
+    delete:
+      tags:
+      - Skills
+      summary: DELETE /skills/{id}
+      operationId: delete_skills_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /skills/{id}/config:
+    put:
+      tags:
+      - Skills
+      summary: PUT /skills/{id}/config
+      operationId: put_skills_id_config
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /skills/{id}/status:
+    get:
+      tags:
+      - Skills
+      summary: GET /skills/{id}/status
+      operationId: get_skills_id_status
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /spend/budget:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /spend/budget
+      operationId: get_spend_budget
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - Monitoring
+      summary: POST /spend/budget
+      operationId: post_spend_budget
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /spend/by-model:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /spend/by-model
+      operationId: get_spend_by-model
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /spend/by-provider:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /spend/by-provider
+      operationId: get_spend_by-provider
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /spend/history:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /spend/history
+      operationId: get_spend_history
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /spend/overview:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /spend/overview
+      operationId: get_spend_overview
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /spend/recent:
+    get:
+      tags:
+      - Monitoring
+      summary: GET /spend/recent
+      operationId: get_spend_recent
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /unified-api/config:
+    post:
+      tags:
+      - Unified API
+      summary: POST /unified-api/config
+      operationId: post_unified-api_config
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /unified-api/detect:
+    post:
+      tags:
+      - Unified API
+      summary: POST /unified-api/detect
+      operationId: post_unified-api_detect
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /unified-api/platforms:
+    get:
+      tags:
+      - Unified API
+      summary: GET /unified-api/platforms
+      operationId: get_unified-api_platforms
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+  /unified-api/{id}/chat:
+    post:
+      tags:
+      - Unified API
+      summary: POST /unified-api/{id}/chat
+      operationId: post_unified-api_id_chat
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /unified-api/{id}/stream:
+    post:
+      tags:
+      - Unified API
+      summary: POST /unified-api/{id}/stream
+      operationId: post_unified-api_id_stream
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /unified-api/{id}/validate:
+    get:
+      tags:
+      - Unified API
+      summary: GET /unified-api/{id}/validate
+      operationId: get_unified-api_id_validate
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /workspace/merge:
+    post:
+      tags:
+      - Workspace
+      summary: POST /workspace/merge
+      operationId: post_workspace_merge
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /workspace/tasks:
+    get:
+      tags:
+      - Workspace
+      summary: GET /workspace/tasks
+      operationId: get_workspace_tasks
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+    post:
+      tags:
+      - Workspace
+      summary: POST /workspace/tasks
+      operationId: post_workspace_tasks
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /workspace/tasks/{id}:
+    get:
+      tags:
+      - Workspace
+      summary: GET /workspace/tasks/{id}
+      operationId: get_workspace_tasks_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /workspace/tasks/{id}/download:
+    get:
+      tags:
+      - Workspace
+      summary: GET /workspace/tasks/{id}/download
+      operationId: get_workspace_tasks_id_download
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /workspace/tasks/{id}/files/*:
+    get:
+      tags:
+      - Workspace
+      summary: GET /workspace/tasks/{id}/files/*
+      operationId: get_workspace_tasks_id_files_*
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+      - Workspace
+      summary: PUT /workspace/tasks/{id}/files/*
+      operationId: put_workspace_tasks_id_files_*
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+      - Workspace
+      summary: DELETE /workspace/tasks/{id}/files/*
+      operationId: delete_workspace_tasks_id_files_*
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+  /workspace/tasks/{id}/import:
+    post:
+      tags:
+      - Workspace
+      summary: POST /workspace/tasks/{id}/import
+      operationId: post_workspace_tasks_id_import
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+        '400':
+          description: 参数错误
+        '401':
+          description: 未认证
+        '500':
+          description: 服务器错误
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum:
+          - admin
+          - user
+          - viewer
+          - agent
+        avatar:
+          type: string
+        lastLogin:
+          type: string
+          format: date-time
+        isAdmin:
+          type: boolean
+      required:
+      - id
+      - username
+      - email
+      - role
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        role:
+          type: string
+        model:
+          type: string
+        provider:
+          type: string
+        systemPrompt:
+          type: string
+        status:
+          type: string
+          enum:
+          - idle
+          - running
+          - error
+          - offline
+        workspaceId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - name
+      - model
+      - provider
+      - status
+    CreateAgentInput:
+      type: object
+      required:
+      - name
+      - model
+      - provider
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        role:
+          type: string
+        model:
+          type: string
+        provider:
+          type: string
+          enum:
+          - openai
+          - azure
+          - anthropic
+          - deepseek
+          - moonshot
+          - kimi-code
+          - qwen
+          - gemini
+          - glm
+          - openrouter
+          - ollama
+        systemPrompt:
+          type: string
+        workspaceId:
+          type: string
+    UpdateAgentInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        role:
+          type: string
+        model:
+          type: string
+        provider:
+          type: string
+        systemPrompt:
+          type: string
+        status:
+          type: string
+        workspaceId:
+          type: string
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+          enum:
+          - system
+          - user
+          - assistant
+        content:
+          type: string
+        reasoning_content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        model:
+          type: string
+        tokens:
+          type: integer
+    ToolCall:
+      type: object
+      properties:
+        id:
+          type: string
+        tool:
+          type: string
+        input:
+          type: object
+        output:
+          type: object
+        status:
+          type: string
+          enum:
+          - pending
+          - running
+          - success
+          - error
+        latency:
+          type: number
+    KnowledgeRef:
+      type: object
+      properties:
+        kbId:
+          type: string
+        chunk:
+          type: string
+        source:
+          type: string
+        relevance:
+          type: number
+        page:
+          type: integer
+    APIKey:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+        providerName:
+          type: string
+        maskedKey:
+          type: string
+        isActive:
+          type: boolean
+        isValid:
+          type: boolean
+          nullable: true
+        lastTestedAt:
+          type: string
+          format: date-time
+          nullable: true
+        latencyMs:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - provider
+      - providerName
+      - maskedKey
+      - isActive
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        mode:
+          type: string
+          enum:
+          - sequential
+          - parallel
+          - hierarchical
+        agents:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - name
+      - mode
+      - agents
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+          - pending
+          - running
+          - completed
+          - failed
+          - cancelled
+        priority:
+          type: string
+          enum:
+          - low
+          - normal
+          - high
+          - urgent
+        agentId:
+          type: string
+        workspaceId:
+          type: string
+        payload:
+          type: object
+        result:
+          type: object
+        error:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - id
+      - name
+      - status
+      - priority
+      - createdAt
+      - updatedAt
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 通过 /auth/login 获取的 JWT Token

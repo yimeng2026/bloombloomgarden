@@ -1,0 +1,138 @@
+-- CreateTable
+CREATE TABLE "Agent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "config" TEXT NOT NULL DEFAULT '{}',
+    "knowledgeBaseIds" TEXT NOT NULL DEFAULT '[]',
+    "skillIds" TEXT NOT NULL DEFAULT '[]',
+    "workspaceId" TEXT,
+    "integrationIds" TEXT NOT NULL DEFAULT '[]',
+    "groupId" TEXT,
+    "description" TEXT,
+    "avatar" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Agent_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Group" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "parentId" TEXT,
+    "coordinatorId" TEXT,
+    "executionMode" TEXT NOT NULL DEFAULT 'sequential',
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "maxDepth" INTEGER NOT NULL DEFAULT 1,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "KnowledgeBase" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "documentIds" TEXT NOT NULL DEFAULT '[]',
+    "embeddingModel" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Document" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "kbId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "metadata" TEXT NOT NULL DEFAULT '{}',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "Skill" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "type" TEXT NOT NULL DEFAULT 'custom',
+    "config" TEXT NOT NULL DEFAULT '{}',
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "version" TEXT NOT NULL DEFAULT '1.0',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Integration" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "config" TEXT NOT NULL DEFAULT '{}',
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "status" TEXT NOT NULL DEFAULT 'disconnected',
+    "lastTestedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Blueprint" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "steps" TEXT NOT NULL DEFAULT '[]',
+    "variables" TEXT NOT NULL DEFAULT '{}',
+    "tags" TEXT NOT NULL DEFAULT '[]',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Settings" (
+    "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
+    "theme" TEXT NOT NULL DEFAULT 'system',
+    "language" TEXT NOT NULL DEFAULT 'zh-CN',
+    "maxConcurrentAgents" INTEGER NOT NULL DEFAULT 10,
+    "defaultTimeout" INTEGER NOT NULL DEFAULT 300000,
+    "autoSave" BOOLEAN NOT NULL DEFAULT true,
+    "logLevel" TEXT NOT NULL DEFAULT 'info',
+    "features" TEXT NOT NULL DEFAULT '{}'
+);
+
+-- CreateTable
+CREATE TABLE "ChatMessage" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "agentId" TEXT NOT NULL,
+    "role" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "attachments" TEXT NOT NULL DEFAULT '[]',
+    "timestamp" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "WorkspaceTask" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "taskId" TEXT NOT NULL,
+    "groupId" TEXT NOT NULL,
+    "files" TEXT NOT NULL DEFAULT '{}',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "BackendConfig" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "provider" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "baseUrl" TEXT NOT NULL,
+    "apiKey" TEXT,
+    "model" TEXT,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "WorkspaceTask_taskId_key" ON "WorkspaceTask"("taskId");

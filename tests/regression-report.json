@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "suite": "ThousandRealmsGarden E2E Regression",
+    "timestamp": "2026-05-29T03:26:11.091Z",
+    "backendUrl": "http://localhost:3001",
+    "mode": "mock",
+    "total": 10,
+    "pass": 10,
+    "fail": 0
+  },
+  "results": [
+    {
+      "name": "Mock: 3DACP AxisMessage 格式校验",
+      "status": "PASS",
+      "ms": 1
+    },
+    {
+      "name": "Mock: Provider Registry 配置完整性",
+      "status": "PASS",
+      "ms": 0
+    },
+    {
+      "name": "Mock: App.tsx 路由数量校验",
+      "status": "PASS",
+      "ms": 11
+    },
+    {
+      "name": "Mock: 后端路由文件数量校验",
+      "status": "PASS",
+      "ms": 1
+    },
+    {
+      "name": "Mock: 前端页面文件完整性",
+      "status": "PASS",
+      "ms": 1
+    },
+    {
+      "name": "Mock: 服务文件数量校验",
+      "status": "PASS",
+      "ms": 0
+    },
+    {
+      "name": "Mock: OpenAPI YAML 存在性",
+      "status": "PASS",
+      "ms": 12
+    },
+    {
+      "name": "Mock: Electron 配置完整性",
+      "status": "PASS",
+      "ms": 0
+    },
+    {
+      "name": "Mock: Docker Compose 配置",
+      "status": "PASS",
+      "ms": 11
+    },
+    {
+      "name": "Mock: 10大Provider Python测试脚本存在",
+      "status": "PASS",
+      "ms": 12
+    }
+  ]
+}

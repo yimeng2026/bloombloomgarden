@@ -1,0 +1,17 @@
+{
+  "provider": "kimi-code",
+  "baseUrl": "https://api.kimi.com/coding/v1",
+  "models": [
+    "kimi-for-coding"
+  ],
+  "apiKeys": [
+    "REMOVED_FROM_HISTORY",
+    "REMOVED_FROM_HISTORY",
+    "REMOVED_FROM_HISTORY",
+    "REMOVED_FROM_HISTORY",
+    "REMOVED_FROM_HISTORY"
+  ],
+  "defaultModel": "kimi-for-coding",
+  "maxRetries": 3,
+  "timeout": 60000
+}

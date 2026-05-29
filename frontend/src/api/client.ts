@@ -1,0 +1,192 @@
+/* ── API Client — Unified Backend (v2) ── */
+
+const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:3001/api';
+
+async function get(path: string) {
+  const res = await fetch(`${API_BASE}${path}`);
+  if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
+  return res.json();
+}
+
+async function post(path: string, body: unknown) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`POST ${path} → ${res.status}`);
+  return res.json();
+}
+
+async function put(path: string, body: unknown) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`PUT ${path} → ${res.status}`);
+  return res.json();
+}
+
+async function del(path: string) {
+  const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`DELETE ${path} → ${res.status}`);
+  return res.json();
+}
+
+/* ── Health ── */
+export const fetchHealth = () => get('/health');
+
+/* ── Agents ── */
+export const fetchAgents = () => get('/agents');
+export const getAgent = (id: string) => get(`/agents/${id}`);
+export const createAgent = (data: any) => post('/agents', data);
+export const updateAgent = (id: string, data: any) => put(`/agents/${id}`, data);
+export const deleteAgent = (id: string) => del(`/agents/${id}`);
+export const startAgent = (id: string) => post(`/agents/${id}/start`, {});
+export const stopAgent = (id: string) => post(`/agents/${id}/stop`, {});
+
+/* ── Channels ── */
+export const fetchChannels = () => get('/channels');
+export const getChannel = (id: string) => get(`/channels/${id}`);
+export const createChannel = (data: any) => post('/channels', data);
+export const updateChannel = (id: string, data: any) => put(`/channels/${id}`, data);
+export const deleteChannel = (id: string) => del(`/channels/${id}`);
+export const toggleChannel = (id: string) => post(`/channels/${id}/toggle`, {});
+
+/* ── Platforms / Providers ── */
+export const fetchPlatforms = () => get('/platforms');
+export const fetchProviders = () => get('/platforms');
+export const getPlatform = (id: string) => get(`/platforms/${id}`);
+export const fetchProviderHealth = (id: string) => get(`/platforms/${id}/health`);
+export const createPlatform = (data: any) => post('/platforms', data);
+export const deletePlatform = (id: string) => del(`/platforms/${id}`);
+
+/* ── Models ── */
+export const fetchModels = () => get('/models');
+export const getModel = (id: string) => get(`/models/${id}`);
+
+/* ── Skills ── */
+export const fetchSkills = () => get('/skills');
+export const getSkill = (id: string) => get(`/skills/${id}`);
+export const createSkill = (data: any) => post('/skills', data);
+export const updateSkill = (id: string, data: any) => put(`/skills/${id}`, data);
+export const deleteSkill = (id: string) => del(`/skills/${id}`);
+
+/* ── Tasks ── */
+export const fetchTasks = () => get('/tasks');
+export const getTask = (id: string) => get(`/tasks/${id}`);
+export const createTask = (data: any) => post('/tasks', data);
+export const updateTask = (id: string, data: any) => put(`/tasks/${id}`, data);
+export const deleteTask = (id: string) => del(`/tasks/${id}`);
+export const sendTaskToAgent = (agentId: string, data: any) => post(`/agents/${agentId}/tasks`, data);
+
+/* ── Workspaces ── */
+export const fetchWorkspaces = () => get('/workspaces');
+export const getWorkspace = (id: string) => get(`/workspaces/${id}`);
+export const createWorkspace = (data: any) => post('/workspaces', data);
+export const deleteWorkspace = (id: string) => del(`/workspaces/${id}`);
+
+/* ── Knowledge Bases ── */
+export const fetchKnowledgeBases = () => get('/knowledge-bases');
+export const getKnowledgeBase = (id: string) => get(`/knowledge-bases/${id}`);
+export const createKnowledgeBase = (data: any) => post('/knowledge-bases', data);
+export const deleteKnowledgeBase = (id: string) => del(`/knowledge-bases/${id}`);
+
+/* ── Memories ── */
+export const fetchMemories = () => get('/memories');
+export const getMemory = (id: string) => get(`/memories/${id}`);
+export const createMemory = (data: any) => post('/memories', data);
+export const deleteMemory = (id: string) => del(`/memories/${id}`);
+export const exportMemories = () => post('/memories/export', {});
+
+/* ── Webhooks ── */
+export const fetchWebhooks = () => get('/webhooks');
+export const getWebhook = (id: string) => get(`/webhooks/${id}`);
+export const createWebhook = (data: any) => post('/webhooks', data);
+export const updateWebhook = (id: string, data: any) => put(`/webhooks/${id}`, data);
+export const deleteWebhook = (id: string) => del(`/webhooks/${id}`);
+export const toggleWebhook = (id: string) => post(`/webhooks/${id}/toggle`, {});
+
+/* ── Scheduler ── */
+export const fetchSchedulerTasks = () => get('/scheduler');
+export const createSchedulerTask = (data: any) => post('/scheduler', data);
+export const deleteSchedulerTask = (id: string) => del(`/scheduler/${id}`);
+
+/* ── Monitor ── */
+export const fetchMonitorData = () => get('/monitor');
+export const fetchSystemMetrics = () => get('/monitor/metrics');
+
+/* ── Settings ── */
+export const fetchSettings = () => get('/settings');
+export const updateSettings = (data: any) => put('/settings', data);
+
+/* ── Search ── */
+export const search = (query: string) => get(`/search?q=${encodeURIComponent(query)}`);
+
+/* ── Uploads ── */
+export const uploadFile = (formData: FormData) => {
+  return fetch(`${API_BASE}/uploads`, {
+    method: 'POST',
+    body: formData,
+  }).then(r => {
+    if (!r.ok) throw new Error(`POST /uploads → ${r.status}`);
+    return r.json();
+  });
+};
+
+/* ── Logs ── */
+export const fetchLogs = () => get('/logs');
+
+/* ── Registry ── */
+export const fetchRegistry = () => get('/registry');
+
+/* ── Ollama ── */
+export const fetchOllamaModels = () => get('/ollama/models');
+export const pullOllamaModel = (name: string) => post('/ollama/pull', { name });
+
+/* ── AI Search ── */
+export const aiSearch = (query: string) => post('/ai-search', { query });
+
+/* ── Groups / 协作组 ── */
+export const fetchGroups = () => get('/groups');
+export const createGroup = (data: any) => post('/groups', data);
+export const deleteGroup = (id: string) => del(`/groups/${id}`);
+export const getGroupStatus = (id: string) => get(`/groups/${id}/status`);
+export const updateGroupStatus = (id: string, data: any) => put(`/groups/${id}/status`, data);
+export const getGroupMeetings = (id: string) => get(`/groups/${id}/meetings`);
+export const startGroupMeeting = (id: string, data: any) => post(`/groups/${id}/meeting`, data);
+export const getGroupRelays = (id: string) => get(`/groups/${id}/relays`);
+export const startGroupRelay = (id: string, data: any) => post(`/groups/${id}/relay`, data);
+export const interruptGroup = (id: string) => post(`/groups/${id}/interrupt`, {});
+export const getGroupConflicts = (id: string) => get(`/groups/${id}/conflicts`);
+export const resolveGroupConflict = (id: string, data: any) => post(`/groups/${id}/resolve`, data);
+export const getGroupHealth = (id: string) => get(`/groups/${id}/health`);
+export const getGroupHierarchy = (id: string) => get(`/groups/${id}/hierarchy`);
+export const getGroupReorganization = (id: string) => get(`/groups/${id}/reorganization`);
+export const triggerGroupReorganize = (id: string, data: any) => post(`/groups/${id}/reorganize`, data);
+export const sendGroupMessage = (id: string, data: any) => post(`/groups/${id}/messages`, data);
+export const getGroupGovernance = (id: string) => get(`/groups/${id}/governance`);
+
+/* ── Swarm (fallback if backend doesn't have swarm route) ── */
+export const fetchSwarms = async () => {
+  try {
+    return await get('/swarm');
+  } catch {
+    // Fallback: aggregate agents into groups
+    const agents = await fetchAgents();
+    return {
+      data: [{
+        id: 'default',
+        name: '默认蜂群',
+        description: `${agents.data?.length || 0} 个智能体`,
+        status: 'healthy',
+        health_score: 85,
+        agent_count: agents.data?.length || 0,
+        active_tasks: 0,
+        total_tasks: 0,
+      }]
+    };
+  }
+};
+export const createSwarm = (data: any) => post('/swarm', data);

@@ -1,0 +1,101 @@
+{
+  "name": "thousand-realms-garden",
+  "version": "1.0.0",
+  "description": "千界花园 — 群智协同系统（双击即用版）",
+  "main": "electron/main.js",
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "build:backend": "cd backend && npx tsc --noEmitOnError false",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "dist:win": "npx electron-builder --win",
+    "dist:win:portable": "npx electron-builder --win portable",
+    "dist:mac": "npx electron-builder --mac",
+    "dist:linux": "npx electron-builder --linux",
+    "dev": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "test": "cd backend && npx tsx src/tests/kimi-full-ops.test.ts",
+    "test:llm": "python scripts/test_all_llm_providers.py",
+    "test:api": "node scripts/test-backend-api.js",
+    "test:frontend": "cd frontend && npm run test:integration",
+    "verify": "npm run build && npm run test:api"
+  },
+  "build": {
+    "appId": "com.thousandrealms.garden",
+    "productName": "千界花园",
+    "directories": {
+      "output": "dist",
+      "buildResources": "electron/build"
+    },
+    "files": [
+      "electron/**/*",
+      "backend/dist/**/*",
+      "backend/prisma/**/*",
+      "backend/.env",
+      "backend/package.json",
+      "frontend/dist/**/*",
+      "docs/**/*",
+      "README.md",
+      "BUILD_GUIDE.md",
+      "!frontend/dist/**/*.map",
+      "!**/*.ts"
+    ],
+    "extraResources": [
+      {
+        "from": "backend/dist",
+        "to": "backend/dist"
+      },
+      {
+        "from": "backend/prisma",
+        "to": "backend/prisma"
+      },
+      {
+        "from": "backend/.env",
+        "to": "backend/.env"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "electron/build/icon.png"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "electron/build/icon.png"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "electron/build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "千界花园"
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0"
+  }
+}
