@@ -36,7 +36,21 @@ const app = express();
 
 // ─── 全局中间件 ───────────────────────────────────────
 app.use(helmet());
-app.use(cors());
+
+// CORS 配置 — 允许 Vercel 前端 + 本地开发 + Railway 后端
+const corsOptions = {
+  origin: [
+    'https://bloombloomgarden.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://bloombloomgarden-production.up.railway.app',
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+app.use(cors(corsOptions));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
