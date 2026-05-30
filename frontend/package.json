@@ -12,6 +12,7 @@
     "test:integration": "node --import ./src/tests/integration.test.ts --test 2>/dev/null || echo 'Run integration tests via browser console: window.runIntegrationTests && runIntegrationTests()'"
   },
   "dependencies": {
+    "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^9.0.1",
@@ -70,6 +71,7 @@
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3",
     "vite": "^5.4.21"
   }
