@@ -31,6 +31,7 @@ import registryRouter from './routes/registry';
 import processesRouter from './routes/processes';
 import externalRouter from './routes/external';
 import securityRouter from './routes/security';
+import subtoolsRouter from './routes/subtools';
 
 const app = express();
 
@@ -95,6 +96,7 @@ app.use('/api/registry', registryRouter);             // 3DACP注册中心
 app.use('/api/processes', processesRouter);           // 进程监控
 app.use('/api/external', externalRouter);             // 外部平台
 app.use('/api/security', securityRouter);             // 安全中心
+app.use('/api/subtools', subtoolsRouter);             // 子工具/CLI Agent (3D坐标系 Z轴)
 
 // ─── Dashboard 聚合端点（ Coordinator 要求）─────────────
 app.get('/api/dashboard/state', async (_req, res) => {

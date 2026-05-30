@@ -1,7 +1,7 @@
 {
   "name": "thousand-realms-garden-backend",
-  "version": "0.3.0",
-  "description": "千界花园 — 群智协同系统后端",
+  "version": "1.0.0",
+  "description": "千界花园 — 群智协同系统后端 v1.0.0",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
