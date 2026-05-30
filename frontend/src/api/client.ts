@@ -1,12 +1,12 @@
-/* ── API Client — Unified Backend (v2) ── */
-// 分离部署：前端(Vercel) → 后端(Railway)
+/* ── API Client �?Unified Backend (v2) ── */
+// 分离部署：前�?Vercel) �?后端(Railway)
 // 优先从环境变量读取，否则回退到本地开发地址
 const API_BASE = import.meta.env.VITE_API_BASE_URL
   || (import.meta.env.PROD ? 'https://bloombloomgarden-production.up.railway.app/api' : 'http://localhost:3001/api');
 
 async function get(path: string) {
   const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
+  if (!res.ok) throw new Error(`GET ${path} �?${res.status}`);
   return res.json();
 }
 
@@ -16,7 +16,7 @@ async function post(path: string, body: unknown) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`POST ${path} → ${res.status}`);
+  if (!res.ok) throw new Error(`POST ${path} �?${res.status}`);
   return res.json();
 }
 
@@ -26,13 +26,13 @@ async function put(path: string, body: unknown) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PUT ${path} → ${res.status}`);
+  if (!res.ok) throw new Error(`PUT ${path} �?${res.status}`);
   return res.json();
 }
 
 async function del(path: string) {
   const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error(`DELETE ${path} → ${res.status}`);
+  if (!res.ok) throw new Error(`DELETE ${path} �?${res.status}`);
   return res.json();
 }
 
@@ -132,7 +132,7 @@ export const uploadFile = (formData: FormData) => {
     method: 'POST',
     body: formData,
   }).then(r => {
-    if (!r.ok) throw new Error(`POST /uploads → ${r.status}`);
+    if (!r.ok) throw new Error(`POST /uploads �?${r.status}`);
     return r.json();
   });
 };
@@ -150,7 +150,7 @@ export const pullOllamaModel = (name: string) => post('/ollama/pull', { name });
 /* ── AI Search ── */
 export const aiSearch = (query: string) => post('/ai-search', { query });
 
-/* ── Groups / 协作组 ── */
+/* ── Groups / 协作�?── */
 export const fetchGroups = () => get('/groups');
 export const createGroup = (data: any) => post('/groups', data);
 export const deleteGroup = (id: string) => del(`/groups/${id}`);
