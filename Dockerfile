@@ -20,6 +20,8 @@ COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install --legacy-peer-deps
 
 COPY frontend/ ./
+# ⚠️ 必须显式提供 postcss.config.js，否则 Railway 容器内 Vite 可能无法自动加载 Tailwind CSS
+RUN cat postcss.config.js || echo "postcss.config.js missing" && exit 1
 RUN npm run build
 
 # ── Stage 2: 构建后端 ──────────────────────────────────────────
