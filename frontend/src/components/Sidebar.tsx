@@ -42,6 +42,7 @@ const navItems: NavItem[] = [
   { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard, route: '/dashboard' },
   { id: 'platform', label: '平台中心', icon: Server, route: '/platform' },
   { id: 'platform-library', label: '平台库', icon: Layers, route: '/platform-library' },
+  { id: 'blueprints', label: '蓝图编排', icon: Workflow, route: '/blueprints' },
   { id: 'ecosystem', label: '3D生态坐标系', icon: Box, route: '/ecosystem' },
   { id: 'workspace', label: '工作空间', icon: FolderOpen, route: '/workspace' },
   { id: 'files', label: '文件浏览', icon: Files, route: '/files' },
