@@ -455,6 +455,103 @@ export default function Groups() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Management Actions */}
+                    <div className="card p-4">
+                      <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+                        <Zap className="w-4 h-4" /> 管理操作
+                      </h3>
+                      <div className="space-y-3">
+                        {/* Add Agent */}
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="Agent ID"
+                            value={agentIdInput}
+                            onChange={(e) => setAgentIdInput(e.target.value)}
+                            className="flex-1 px-3 py-2 rounded-lg border text-sm"
+                            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+                          />
+                          <button
+                            onClick={async () => {
+                              if (!agentIdInput.trim()) return
+                              try {
+                                await addAgentToGroup(selectedGroup.id, agentIdInput.trim())
+                                setAgentIdInput('')
+                                loadGroups()
+                              } catch (e: any) {
+                                setError(e?.message || '添加成员失败')
+                              }
+                            }}
+                            className="px-3 py-2 bg-[var(--sage-500)] text-white rounded-lg text-sm hover:bg-[var(--sage-600)] transition-colors"
+                          >
+                            添加成员
+                          </button>
+                        </div>
+
+                        {/* Assign Coordinator */}
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="协调员 Agent ID"
+                            value={coordinatorIdInput}
+                            onChange={(e) => setCoordinatorIdInput(e.target.value)}
+                            className="flex-1 px-3 py-2 rounded-lg border text-sm"
+                            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+                          />
+                          <button
+                            onClick={async () => {
+                              if (!coordinatorIdInput.trim()) return
+                              try {
+                                setAssigning(true)
+                                await assignCoordinator(selectedGroup.id, coordinatorIdInput.trim())
+                                setCoordinatorIdInput('')
+                                loadGroups()
+                              } catch (e: any) {
+                                setError(e?.message || '分配协调员失败')
+                              } finally {
+                                setAssigning(false)
+                              }
+                            }}
+                            disabled={assigning}
+                            className="px-3 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600 transition-colors disabled:opacity-50"
+                          >
+                            {assigning ? '分配中...' : '分配协调员'}
+                          </button>
+                        </div>
+
+                        {/* Nest Group */}
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="父群组 ID"
+                            value={parentIdInput}
+                            onChange={(e) => setParentIdInput(e.target.value)}
+                            className="flex-1 px-3 py-2 rounded-lg border text-sm"
+                            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+                          />
+                          <button
+                            onClick={async () => {
+                              if (!parentIdInput.trim()) return
+                              try {
+                                setNesting(true)
+                                await nestGroup(selectedGroup.id, parentIdInput.trim())
+                                setParentIdInput('')
+                                loadGroups()
+                              } catch (e: any) {
+                                setError(e?.message || '嵌套失败')
+                              } finally {
+                                setNesting(false)
+                              }
+                            }}
+                            disabled={nesting}
+                            className="px-3 py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 transition-colors disabled:opacity-50"
+                          >
+                            {nesting ? '嵌套中...' : '嵌套到父组'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 
