@@ -1,5 +1,6 @@
-# 千界花园 — Railway 部署版 Dockerfile v0.3.3
-# 前端在本地预构建（frontend/dist/），Railway 直接 COPY 避免容器内 OOM
+# 千界花园 — Railway 后端专用 Dockerfile v0.4.0
+# 分离部署：前端 → Vercel，后端 → Railway
+# 本 Dockerfile 只构建和运行后端 API
 
 # ── Stage 1: 构建后端 ──────────────────────────────────────────
 FROM node:20-slim AS backend-builder
@@ -25,9 +26,6 @@ COPY --from=backend-builder /app/backend/node_modules ./node_modules
 COPY --from=backend-builder /app/backend/prisma ./prisma
 COPY --from=backend-builder /app/backend/package.json ./
 
-# 复制前端预构建产物（从本地构建好的 dist 目录）
-COPY frontend/dist /app/frontend/dist
-
 # 创建持久化目录
 RUN mkdir -p /app/backend/uploads /app/backend/data
 
@@ -38,6 +36,8 @@ ENV NODE_ENV=production
 ENV PORT=3001
 ENV DATABASE_URL=file:/app/backend/data/dev.db
 ENV UPLOAD_DIR=/app/backend/uploads
+# CORS 允许 Vercel 前端域名（分离部署必需）
+ENV CORS_ORIGIN=*
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/api/health || exit 1
