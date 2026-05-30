@@ -65,6 +65,7 @@ const AgentContextPage       = lazy(() => import('@/pages/AgentContextPage'))
 const HierarchicalDashboard  = lazy(() => import('@/pages/HierarchicalDashboard'))
 const DialogCenter           = lazy(() => import('@/pages/DialogCenter'))
 const UnifiedGUI             = lazy(() => import('@/pages/UnifiedGUI'))
+const Ecosystem3D            = lazy(() => import('@/pages/Ecosystem3D'))
 
 /* ── Suspense fallback ───────────────────────────────────────── */
 
@@ -169,6 +170,7 @@ export default function App() {
           <Route path="/hierarchical" element={<HierarchicalDashboard />} />
           <Route path="/dialog-center" element={<DialogCenter />} />
           <Route path="/unified" element={<UnifiedGUI />} />
+          <Route path="/ecosystem" element={<Ecosystem3D />} />
           <Route path="*" element={<StubPage />} />
         </Routes>
       </Suspense>

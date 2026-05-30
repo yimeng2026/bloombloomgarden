@@ -26,6 +26,7 @@ import {
   HardDrive,
   Files,
   Layers,
+  Box,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 
@@ -41,6 +42,7 @@ const navItems: NavItem[] = [
   { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard, route: '/dashboard' },
   { id: 'platform', label: '平台中心', icon: Server, route: '/platform' },
   { id: 'platform-library', label: '平台库', icon: Layers, route: '/platform-library' },
+  { id: 'ecosystem', label: '3D生态坐标系', icon: Box, route: '/ecosystem' },
   { id: 'workspace', label: '工作空间', icon: FolderOpen, route: '/workspace' },
   { id: 'files', label: '文件浏览', icon: Files, route: '/files' },
   { id: 'knowledge', label: '知识库', icon: BookOpen, route: '/knowledge' },
