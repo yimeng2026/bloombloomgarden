@@ -39,6 +39,11 @@ import {
   getGroupHierarchy,
   getGroupGovernance,
   triggerGroupReorganize,
+  addAgentToGroup,
+  removeAgentFromGroup,
+  assignCoordinator,
+  nestGroup,
+  executeGroup,
 } from '@/api/client'
 
 /* ── Types ──────────────────────────────────────────────────────── */
@@ -90,9 +95,17 @@ export default function Groups() {
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
   const [governance, setGovernance] = useState<Governance | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'governance' | 'hierarchy' | 'health'>('overview')
+  const [executing, setExecuting] = useState(false)
+  const [nesting, setNesting] = useState(false)
+  const [assigning, setAssigning] = useState(false)
+  const [showAddAgent, setShowAddAgent] = useState(false)
+  const [agentIdInput, setAgentIdInput] = useState('')
+  const [coordinatorIdInput, setCoordinatorIdInput] = useState('')
+  const [parentIdInput, setParentIdInput] = useState('')
 
   /* Load groups */
   useEffect(() => {
@@ -102,13 +115,15 @@ export default function Groups() {
   async function loadGroups() {
     try {
       setLoading(true)
+      setError(null)
       const res = await fetchGroups()
       setGroups(res.data || [])
       if (res.data?.length > 0) {
         setSelectedGroup(res.data[0])
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
+      setError(e?.message || '加载协作组失败')
     } finally {
       setLoading(false)
     }
@@ -124,8 +139,9 @@ export default function Groups() {
     try {
       const res = await getGroupGovernance(groupId)
       setGovernance(res.data)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Governance load failed', e)
+      setError(e?.message || '加载治理信息失败')
     }
   }
 
@@ -166,6 +182,17 @@ export default function Groups() {
           新建协作组
         </button>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-red-500/10 text-red-600 rounded-card px-4 py-3 text-sm flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4" />
+          {error}
+          <button onClick={() => setError(null)} className="ml-auto text-red-500 hover:text-red-700">
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="flex gap-6">
         {/* Sidebar — Group List */}
@@ -250,11 +277,33 @@ export default function Groups() {
                     <button
                       onClick={async () => {
                         try {
+                          setExecuting(true)
+                          await executeGroup(selectedGroup.id)
+                          loadGroups()
+                        } catch (e: any) {
+                          console.error(e)
+                          setError(e?.message || '执行失败')
+                        } finally {
+                          setExecuting(false)
+                        }
+                      }}
+                      disabled={executing}
+                      className="p-2 text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"
+                      title="执行群组"
+                    >
+                      <Zap className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
                           await updateGroupStatus(selectedGroup.id, {
                             status: selectedGroup.status === 'active' ? 'paused' : 'active',
                           })
                           loadGroups()
-                        } catch (e) { console.error(e) }
+                        } catch (e: any) {
+                          console.error(e)
+                          setError(e?.message || '状态更新失败')
+                        }
                       }}
                       className={`p-2 rounded-lg transition-colors ${
                         selectedGroup.status === 'active'
@@ -270,7 +319,10 @@ export default function Groups() {
                         try {
                           await triggerGroupReorganize(selectedGroup.id, { strategy: 'auto' })
                           loadGovernance(selectedGroup.id)
-                        } catch (e) { console.error(e) }
+                        } catch (e: any) {
+                          console.error(e)
+                          setError(e?.message || '重组失败')
+                        }
                       }}
                       className="p-2 text-[var(--sage-500)] hover:text-[var(--sage-700)] hover:bg-[var(--sage-100)] rounded-lg transition-colors"
                       title="动态重组"

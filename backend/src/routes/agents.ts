@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AgentService, AgentStatus } from '../services/AgentService';
+import { getAgentService, getDialogService } from '../services';
 
 const router = Router();
 
@@ -47,31 +48,29 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
   res.json({ success: true, data: response });
 }));
 
-// 2a. GET /api/agents/:id/context — 上下文详情（对接 AgentContextPanel）
+// 2a. GET /api/agents/:id/context — 上下文详情（真实数据）
 router.get('/:id/context', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  // Mock 上下文数据
-  const contexts: Record<string, any> = {
-    'agent-001': {
-      agentId: 'agent-001', agentName: '架构师-Alpha', role: 'system_architect',
-      systemPrompt: '你是千界花园的系统架构师，负责评估技术方案的可行性与扩展性，审查代码架构是否符合3DACP协议规范...',
-      messages: [
-        { role: 'user', content: '设计一个支持万级Agent并发的心跳检测机制', timestamp: '2026-05-28 10:00:23' },
-        { role: 'assistant', content: '基于3DACP协议，我建议采用分层心跳设计...', timestamp: '2026-05-28 10:00:45' },
-      ],
-      toolCalls: [
-        { name: 'registry_query', input: { pattern: 'heartbeat_*' }, output: { nodes: 156 }, status: 'success' },
-      ],
-      knowledgeRefs: [
-        { id: 'kb-42', title: '3DACP协议规范 v2.1', relevance: 0.98 },
-      ],
-      tokenUsage: { used: 3847, limit: 8192 },
-    },
-  };
-  const context = contexts[id] || {
-    agentId: id, agentName: `Agent-${id.slice(-4)}`, role: 'unknown',
-    systemPrompt: '暂无系统提示配置', messages: [], toolCalls: [],
-    knowledgeRefs: [], tokenUsage: { used: 0, limit: 8192 },
+  const agentService = getAgentService();
+  const agent = await agentService.getById(id);
+  if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
+
+  const dialogService = getDialogService();
+  const messages = await dialogService.getHistory(id);
+
+  const context = {
+    agentId: agent.id,
+    agentName: agent.name,
+    role: agent.role || 'unknown',
+    systemPrompt: agent.systemPrompt || '暂无系统提示配置',
+    messages: messages.slice(-20).map((m: any) => ({
+      role: m.role,
+      content: m.content,
+      timestamp: m.createdAt || new Date().toISOString(),
+    })),
+    toolCalls: [],
+    knowledgeRefs: [],
+    tokenUsage: { used: messages.length * 100, limit: 8192 },
   };
   res.json({ success: true, data: context });
 }));
@@ -81,11 +80,21 @@ router.get('/:id/context/stream', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
-  const interval = setInterval(() => {
-    res.write(`data: ${JSON.stringify({
-      type: 'heartbeat', timestamp: new Date().toISOString(),
-      tokenUsage: { used: Math.floor(Math.random() * 4000), limit: 8192 },
-    })}\n\n`);
+  const interval = setInterval(async () => {
+    try {
+      const agentService = getAgentService();
+      const agent = await agentService.getById(req.params.id);
+      const dialogService = getDialogService();
+      const messages = await dialogService.getHistory(req.params.id);
+      const used = messages.length * 100;
+      res.write(`data: ${JSON.stringify({
+        type: 'heartbeat', timestamp: new Date().toISOString(),
+        agentStatus: agent?.status || 'unknown',
+        tokenUsage: { used, limit: 8192 },
+      })}\n\n`);
+    } catch (e) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'heartbeat failed' })}\n\n`);
+    }
   }, 5000);
   req.on('close', () => clearInterval(interval));
 });

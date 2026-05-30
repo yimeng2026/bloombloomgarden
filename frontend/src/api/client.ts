@@ -1,12 +1,12 @@
-/* ── API Client �?Unified Backend (v2) ── */
-// 分离部署：前�?Vercel) �?后端(Railway)
+/* ── API Client �?Unified Backend (v2) ── */
+// 分离部署：前�?Vercel) �?后端(Railway)
 // 优先从环境变量读取，否则回退到本地开发地址
 const API_BASE = import.meta.env.VITE_API_BASE_URL
   || (import.meta.env.PROD ? 'https://bloombloomgarden-production.up.railway.app/api' : 'http://localhost:3001/api');
 
 async function get(path: string) {
   const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) throw new Error(`GET ${path} �?${res.status}`);
+  if (!res.ok) throw new Error(`GET ${path} �?${res.status}`);
   return res.json();
 }
 
@@ -16,7 +16,7 @@ async function post(path: string, body: unknown) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`POST ${path} �?${res.status}`);
+  if (!res.ok) throw new Error(`POST ${path} �?${res.status}`);
   return res.json();
 }
 
@@ -26,13 +26,13 @@ async function put(path: string, body: unknown) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PUT ${path} �?${res.status}`);
+  if (!res.ok) throw new Error(`PUT ${path} �?${res.status}`);
   return res.json();
 }
 
 async function del(path: string) {
   const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error(`DELETE ${path} �?${res.status}`);
+  if (!res.ok) throw new Error(`DELETE ${path} �?${res.status}`);
   return res.json();
 }
 
@@ -48,7 +48,34 @@ export const deleteAgent = (id: string) => del(`/agents/${id}`);
 export const startAgent = (id: string) => post(`/agents/${id}/start`, {});
 export const stopAgent = (id: string) => post(`/agents/${id}/stop`, {});
 
-/* ── Channels ── */
+/* ── Groups ── */
+export const fetchGroups = () => get('/groups');
+export const getGroup = (id: string) => get(`/groups/${id}`);
+export const createGroup = (data: any) => post('/groups', data);
+export const updateGroup = (id: string, data: any) => put(`/groups/${id}`, data);
+export const deleteGroup = (id: string) => del(`/groups/${id}`);
+export const addAgentToGroup = (groupId: string, agentId: string) => post(`/groups/${groupId}/agents`, { agentId });
+export const removeAgentFromGroup = (groupId: string, agentId: string) => del(`/groups/${groupId}/agents/${agentId}`);
+export const assignCoordinator = (groupId: string, coordinatorId: string) => post(`/groups/${groupId}/coordinator`, { coordinatorId });
+export const nestGroup = (groupId: string, parentId: string) => post(`/groups/${groupId}/nest`, { parentId });
+export const executeGroup = (groupId: string, data?: any) => post(`/groups/${groupId}/execute`, data || {});
+
+/* ── Blueprints ── */
+export const fetchBlueprints = () => get('/blueprints');
+export const getBlueprint = (id: string) => get(`/blueprints/${id}`);
+export const createBlueprint = (data: any) => post('/blueprints', data);
+export const updateBlueprint = (id: string, data: any) => put(`/blueprints/${id}`, data);
+export const deleteBlueprint = (id: string) => del(`/blueprints/${id}`);
+export const executeBlueprint = (id: string, data?: any) => post(`/blueprints/${id}/execute`, data || {});
+export const getBlueprintExecutions = (id: string) => get(`/blueprints/${id}/executions`);
+export const getBlueprintPresets = () => get('/blueprints/presets');
+
+/* ── SubTools ── */
+export const fetchSubTools = () => get('/subtools');
+export const getSubTool = (id: string) => get(`/subtools/${id}`);
+export const installSubTool = (id: string) => post(`/subtools/${id}/install`, {});
+export const startSubTool = (id: string) => post(`/subtools/${id}/start`, {});
+export const stopSubTool = (id: string) => post(`/subtools/${id}/stop`, {});
 export const fetchChannels = () => get('/channels');
 export const getChannel = (id: string) => get(`/channels/${id}`);
 export const createChannel = (data: any) => post('/channels', data);
@@ -132,7 +159,7 @@ export const uploadFile = (formData: FormData) => {
     method: 'POST',
     body: formData,
   }).then(r => {
-    if (!r.ok) throw new Error(`POST /uploads �?${r.status}`);
+    if (!r.ok) throw new Error(`POST /uploads �?${r.status}`);
     return r.json();
   });
 };
@@ -150,7 +177,7 @@ export const pullOllamaModel = (name: string) => post('/ollama/pull', { name });
 /* ── AI Search ── */
 export const aiSearch = (query: string) => post('/ai-search', { query });
 
-/* ── Groups / 协作�?── */
+/* ── Groups / 协作�?── */
 export const fetchGroups = () => get('/groups');
 export const createGroup = (data: any) => post('/groups', data);
 export const deleteGroup = (id: string) => del(`/groups/${id}`);

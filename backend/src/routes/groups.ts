@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { GroupService, GroupStatus } from '../services/GroupService';
-import { getGroupService } from '../services';
+import { getGroupService, getAgentService } from '../services';
 
 const router = Router();
 
@@ -87,6 +87,33 @@ router.post('/:id/execute', asyncHandler(async (req, res) => {
   const service = getGroupService();
   const result = await service.execute(req.params.id, { mode, input });
   res.json({ success: true, data: result });
+}));
+
+// 6a. GET /api/groups/:id/agents — 获取组内 Agent 列表
+router.get('/:id/agents', asyncHandler(async (req, res) => {
+  const service = getGroupService();
+  const group = await service.getById(req.params.id);
+  if (!group) return res.status(404).json({ success: false, error: 'Group not found' });
+  const agentService = getAgentService();
+  const agents = await agentService.list();
+  const groupAgents = agents.filter((a: any) => group.agentIds?.includes(a.id));
+  res.json({ success: true, data: groupAgents, total: groupAgents.length });
+}));
+
+// 7. POST /api/groups/:id/pause — 暂停群组
+router.post('/:id/pause', asyncHandler(async (req, res) => {
+  const service = getGroupService();
+  const group = await service.update(req.params.id, { status: GroupStatus.PAUSED });
+  if (!group) return res.status(404).json({ success: false, error: 'Group not found' });
+  res.json({ success: true, data: group });
+}));
+
+// 8. POST /api/groups/:id/resume — 恢复群组
+router.post('/:id/resume', asyncHandler(async (req, res) => {
+  const service = getGroupService();
+  const group = await service.update(req.params.id, { status: GroupStatus.ACTIVE });
+  if (!group) return res.status(404).json({ success: false, error: 'Group not found' });
+  res.json({ success: true, data: group });
 }));
 
 export default router;
