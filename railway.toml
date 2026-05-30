@@ -1,0 +1,19 @@
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+startCommand = "node dist/server.js"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+
+[nixpacks]
+# 使用自定义 Dockerfile，跳过 Nixpacks 自动检测
+plan = "docker"
+
+[variables]
+NODE_ENV = "production"
+PORT = "3001"
+DATABASE_URL = "file:/app/backend/data/dev.db"
+UPLOAD_DIR = "/app/backend/uploads"
