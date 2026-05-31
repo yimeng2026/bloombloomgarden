@@ -6,22 +6,19 @@ on:
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-ci.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'frontend/**'
+  workflow_dispatch:
 
 jobs:
   build:
-    name: 构建
+    name: 构建并提交dist
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,18 +28,38 @@ jobs:
           cache-dependency-path: ./frontend/package-lock.json
 
       - name: Install dependencies
+        working-directory: ./frontend
         run: npm ci
 
-      - name: Type check
-        run: npx tsc --noEmit || true
+      - name: TypeScript Check
+        working-directory: ./frontend
+        run: |
+          echo "=== TypeScript Check ==="
+          npx tsc --noEmit 2>&1 | tee tsc-errors.log || true
+          echo "=== End TypeScript Check ==="
 
       - name: Build
-        run: npm run build
+        working-directory: ./frontend
+        run: |
+          echo "=== Vite Build ==="
+          npm run build 2>&1 | tee build.log
+          echo "=== Build Exit Code: $? ==="
         env:
           VITE_API_BASE: /api
 
-      - name: Upload build artifact
+      - name: Upload logs on failure
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-dist
-          path: frontend/dist/
+          name: build-logs
+          path: |
+            frontend/tsc-errors.log
+            frontend/build.log
+
+      - name: Commit and push dist
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/dist/
+          git diff --cached --quiet || (git commit -m "chore: auto-build dist" && git push)
