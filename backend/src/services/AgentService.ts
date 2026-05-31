@@ -23,6 +23,13 @@ export interface Agent {
   stats?: Record<string, unknown>;
   description?: string;
   avatar?: string;
+  // Protocol Layer System fields
+  protocolLevel?: number;
+  mode?: string;
+  parentPlatform?: string;
+  threadPlatforms?: string;
+  dashboardType?: string;
+  workFiles?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +44,13 @@ export interface CreateAgentInput {
   groupId?: string;
   description?: string;
   avatar?: string;
+  // Protocol Layer System fields
+  protocolLevel?: number;
+  mode?: string;
+  parentPlatform?: string;
+  threadPlatforms?: string;
+  dashboardType?: string;
+  workFiles?: string[];
 }
 
 function toAgent(raw: any): Agent {
@@ -46,6 +60,10 @@ function toAgent(raw: any): Agent {
     knowledgeBaseIds: JSON.parse(raw.knowledgeBaseIds || '[]'),
     skillIds: JSON.parse(raw.skillIds || '[]'),
     integrationIds: JSON.parse(raw.integrationIds || '[]'),
+    workFiles: JSON.parse(raw.workFiles || '[]'),
+    protocolLevel: raw.protocolLevel ?? 1,
+    mode: raw.mode ?? 'A',
+    dashboardType: raw.dashboardType ?? 'L1',
   };
 }
 
@@ -75,6 +93,12 @@ export class AgentService extends EventEmitter {
           groupId: data.groupId,
           description: data.description,
           avatar: data.avatar,
+          protocolLevel: data.protocolLevel ?? 1,
+          mode: data.mode ?? 'A',
+          parentPlatform: data.parentPlatform ?? null,
+          threadPlatforms: data.threadPlatforms ?? '[]',
+          dashboardType: data.dashboardType ?? 'L1',
+          workFiles: JSON.stringify(data.workFiles || []),
         },
       });
       const agent = toAgent(raw);
@@ -95,6 +119,12 @@ export class AgentService extends EventEmitter {
       groupId: data.groupId,
       description: data.description,
       avatar: data.avatar,
+      protocolLevel: data.protocolLevel ?? 1,
+      mode: data.mode ?? 'A',
+      parentPlatform: data.parentPlatform ?? undefined,
+      threadPlatforms: data.threadPlatforms ?? '[]',
+      dashboardType: data.dashboardType ?? 'L1',
+      workFiles: data.workFiles || [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };
