@@ -1,5 +1,5 @@
 [deploy]
-startCommand = "sh start.sh"
+startCommand = "npx prisma db push --accept-data-loss && npx prisma db seed && node dist/server.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
 healthcheckPath = "/api/health"
