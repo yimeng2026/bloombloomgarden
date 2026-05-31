@@ -33,34 +33,29 @@ jobs:
 
       - name: Build
         working-directory: ./frontend
-        id: vite-build
         run: |
-          npm run build 2>&1 | tee build-output.log
-          BUILD_EXIT=${PIPESTATUS[0]}
-          if [ $BUILD_EXIT -ne 0 ]; then
-            echo "BUILD_FAILED=true" >> $GITHUB_OUTPUT
-            echo "BUILD_EXIT=$BUILD_EXIT" >> $GITHUB_OUTPUT
+          set +e
+          npm run build 2>&1 | tee build.log
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            # Print errors as GitHub annotations
+            echo ""
+            echo "::error::Vite build failed with exit code $EXIT_CODE"
+            echo "::error::Last 15 lines of build output:"
+            tail -15 build.log | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            # Also print first 10 error lines
+            grep -i "error" build.log | head -10 | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit 1
           fi
-          exit $BUILD_EXIT
         env:
           VITE_API_BASE: /api
-        continue-on-error: true
-
-      - name: Debug Build Error
-        if: steps.vite-build.outputs.BUILD_FAILED == 'true'
-        working-directory: ./frontend
-        run: |
-          echo "========== BUILD ERROR DETAILS =========="
-          echo "Exit code: ${{ steps.vite-build.outputs.BUILD_EXIT }}"
-          echo ""
-          echo "=== Last 100 lines of build output ==="
-          tail -100 build-output.log
-          echo ""
-          echo "========================================"
-          exit 1
 
       - name: Commit and push dist
-        if: steps.vite-build.outputs.BUILD_FAILED != 'true'
+        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
