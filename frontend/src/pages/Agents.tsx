@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
+import { fetchAgents, deleteAgent } from '@/api/client';
 import { Link } from 'react-router-dom';
 import {
   Plus,
@@ -84,6 +85,16 @@ const FALLBACK_AGENTS: Agent[] = [
 
 export default function Agents() {
   const [agents, setAgents] = useState<Agent[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetchAgents()
+      .then(res => { if (!cancelled) setAgents(res.data || []); })
+      .catch(() => { /* keep default/mock */ })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
   const [view, setView] = useState<'grid' | 'table'>('grid');
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');

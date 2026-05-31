@@ -163,7 +163,17 @@ export default function ChatChannels() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={(e) => { e.stopPropagation(); toggleStatus(ch.id); }}
+                    onClick={(e) => { e.stopPropagation();
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetchChannels()
+      .then(res => { if (!cancelled) setChannels(res.data || []); })
+      .catch(() => { /* keep default/mock */ })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []); toggleStatus(ch.id); }}
                     className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 transition-colors ${
                       ch.status === 'connected'
                         ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20'

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { fetchSkills } from '@/api/client'
 import {
   Wrench, Plus, Search, Zap, Trash2, Copy, Check, X, Code,
   Terminal, Database, Globe, Mail, Image, BarChart3, Shield,
