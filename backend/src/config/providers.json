@@ -120,9 +120,9 @@
       "name": "OpenRouter",
       "category": "gateway",
       "baseUrl": "https://openrouter.ai/api/v1",
-      "defaultModel": "openai/gpt-4o",
+      "defaultModel": "deepseek/deepseek-chat-v3-0324",
       "apiKeySource": "env:OPENROUTER_API_KEY",
-      "models": ["auto-route", "anthropic/claude-3.5-sonnet", "openai/gpt-4o"],
+      "models": ["deepseek/deepseek-chat-v3-0324", "anthropic/claude-3.5-sonnet", "qwen/qwen3-235b-a22b", "google/gemini-2.5-pro-preview", "meta-llama/llama-4-maverick"],
       "extraHeaders": { "HTTP-Referer": "https://thousand-realms-garden.local", "X-Title": "Thousand Realms Garden" }
     },
     {

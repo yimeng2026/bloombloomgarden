@@ -39,7 +39,7 @@ export class KnowledgeService extends EventEmitter {
           embeddingModel: data.embeddingModel,
         },
       });
-      const kb = { ...raw, documentIds: [] };
+      const kb = { ...raw, documentIds: [], updatedAt: raw.updatedAt || new Date() };
       this.emit('kb:created', kb);
       return kb;
     }
@@ -62,7 +62,7 @@ export class KnowledgeService extends EventEmitter {
       const raw = await this.prisma.knowledgeBase.findUnique({ where: { id } });
       if (!raw) return undefined;
       const docs = await this.prisma.document.findMany({ where: { kbId: id } });
-      return { ...raw, documentIds: docs.map(d => d.id) };
+      return { ...raw, documentIds: docs.map(d => d.id), updatedAt: raw.updatedAt || new Date() };
     }
     return this.kbs.get(id);
   }
@@ -70,7 +70,7 @@ export class KnowledgeService extends EventEmitter {
   async listKBs(): Promise<KnowledgeBase[]> {
     if (this.prisma) {
       const raws = await this.prisma.knowledgeBase.findMany({ orderBy: { createdAt: 'desc' } });
-      return raws.map(raw => ({ ...raw, documentIds: [] }));
+      return raws.map(raw => ({ ...raw, documentIds: [], updatedAt: raw.updatedAt || new Date() }));
     }
     return Array.from(this.kbs.values());
   }
@@ -80,7 +80,7 @@ export class KnowledgeService extends EventEmitter {
       try {
         const { documentIds, ...prismaData } = data;
         const raw = await this.prisma.knowledgeBase.update({ where: { id }, data: prismaData as any });
-        return { ...raw, documentIds: [] };
+        return { ...raw, documentIds: [], updatedAt: raw.updatedAt || new Date() };
       } catch {
         return undefined;
       }

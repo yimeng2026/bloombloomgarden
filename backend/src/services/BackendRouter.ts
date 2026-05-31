@@ -63,8 +63,8 @@ export class BackendRouter {
         model: provider.defaultModel,
         apiKeyHeader: provider.apiKeyHeader,
         apiKeyPrefix: provider.apiKeyPrefix,
-        chatPath: '/v1/chat/completions',
-        modelsPath: '/v1/models',
+        chatPath: provider.baseUrl.includes('/v1') ? '/chat/completions' : '/v1/chat/completions',
+        modelsPath: provider.baseUrl.includes('/v1') ? '/models' : '/v1/models',
         extraHeaders: provider.extraHeaders,
       };
 

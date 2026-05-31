@@ -29,9 +29,9 @@ router.post('/', asyncHandler(async (req, res) => {
   res.json({ success: true, data: session });
 }));
 
-// 2. POST /api/dialog/:agentId/chat — 直接调用 Kimi API（非流式）
+// 2. POST /api/dialog/:agentId/chat — 调用 LLM API（非流式）
 router.post('/:agentId/chat', asyncHandler(async (req, res) => {
-  const { content, role = 'user' } = req.body;
+  const { content, role = 'user', platformId = 'openrouter', model = 'deepseek/deepseek-chat-v3-0324' } = req.body;
   const service = getDialogService();
 
   // 保存用户消息到上下文
@@ -44,11 +44,13 @@ router.post('/:agentId/chat', asyncHandler(async (req, res) => {
     content: m.content,
   }));
 
-  // 调用 Kimi Code API
-  const router = getBackendRouter();
-  const response = await router.chat('kimi-code', {
+  // 调用 LLM API（优先使用指定平台，回退到 OpenRouter）
+  const backendRouter = getBackendRouter();
+  const backendId = platformId || 'openrouter';
+  const chatModel = model || 'deepseek/deepseek-chat-v3-0324';
+  const response = await backendRouter.chat(backendId, {
     messages,
-    model: 'kimi-for-coding',
+    model: chatModel,
     temperature: 0.7,
   });
 
@@ -61,9 +63,9 @@ router.post('/:agentId/chat', asyncHandler(async (req, res) => {
   res.json({ success: true, data: response });
 }));
 
-// 3. GET /api/dialog/:agentId/stream — SSE 流式调用真实 Kimi API
+// 3. GET /api/dialog/:agentId/stream — SSE 流式调用 LLM API
 router.get('/:agentId/stream', asyncHandler(async (req, res) => {
-  const { message } = req.query;
+  const { message, platformId = 'openrouter', model = 'deepseek/deepseek-chat-v3-0324' } = req.query;
   const service = getDialogService();
 
   // 保存用户消息
@@ -84,12 +86,14 @@ router.get('/:agentId/stream', asyncHandler(async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
 
   try {
-    const router = getBackendRouter();
+    const backendRouter = getBackendRouter();
     let fullContent = '';
+    const backendId = (platformId as string) || 'openrouter';
+    const chatModel = (model as string) || 'deepseek/deepseek-chat-v3-0324';
 
-    for await (const chunk of router.chatStream('kimi-code', {
+    for await (const chunk of backendRouter.chatStream(backendId, {
       messages,
-      model: 'kimi-for-coding',
+      model: chatModel,
       temperature: 0.7,
     })) {
       fullContent += chunk.content;

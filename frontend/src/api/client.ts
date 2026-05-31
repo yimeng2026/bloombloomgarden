@@ -4,14 +4,21 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL
   || (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
 
+// Electron 环境检测：如果运行在 Electron 中，强制使用本地后端
+function isElectron() {
+  return !!(window && (window as any).electronAPI);
+}
+
+const EFFECTIVE_API_BASE = isElectron() ? 'http://localhost:3001/api' : API_BASE;
+
 async function get(path: string) {
-  const res = await fetch(`${API_BASE}${path}`);
+  const res = await fetch(`${EFFECTIVE_API_BASE}${path}`);
   if (!res.ok) throw new Error(`GET ${path} �?${res.status}`);
   return res.json();
 }
 
 async function post(path: string, body: unknown) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${EFFECTIVE_API_BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -21,7 +28,7 @@ async function post(path: string, body: unknown) {
 }
 
 async function put(path: string, body: unknown) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${EFFECTIVE_API_BASE}${path}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -31,7 +38,7 @@ async function put(path: string, body: unknown) {
 }
 
 async function del(path: string) {
-  const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
+  const res = await fetch(`${EFFECTIVE_API_BASE}${path}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`DELETE ${path} �?${res.status}`);
   return res.json();
 }
@@ -157,7 +164,7 @@ export const search = (query: string) => get(`/search?q=${encodeURIComponent(que
 
 /* ── Uploads ── */
 export const uploadFile = (formData: FormData) => {
-  return fetch(`${API_BASE}/uploads`, {
+  return fetch(`${EFFECTIVE_API_BASE}/uploads`, {
     method: 'POST',
     body: formData,
   }).then(r => {

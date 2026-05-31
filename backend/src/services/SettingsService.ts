@@ -39,11 +39,11 @@ export class SettingsService extends EventEmitter {
       this.cache = {
         theme: raw.theme as any,
         language: raw.language,
-        maxConcurrentAgents: raw.maxConcurrentAgents,
-        defaultTimeout: raw.defaultTimeout,
+        maxConcurrentAgents: (raw as any).maxConcurrentAgents || 10,
+        defaultTimeout: (raw as any).defaultTimeout || 300000,
         autoSave: raw.autoSave,
-        logLevel: raw.logLevel as any,
-        features: JSON.parse(raw.features || '{}'),
+        logLevel: ((raw as any).logLevel as any) || 'info',
+        features: JSON.parse((raw as any).features || '{}'),
       };
     }
   }

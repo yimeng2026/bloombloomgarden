@@ -21,9 +21,11 @@ function injectEnv() {
   process.env.KIMI_CODE_API_KEY_4 = KIMI_KEYS[3];
   process.env.KIMI_CODE_API_KEY_5 = KIMI_KEYS[4];
   process.env.KIMICODE_API_KEY = KIMI_KEYS[0];
+  process.env.OPENROUTER_API_KEY = 'OPENROUTER_API_KEY_PLACEHOLDER';
   process.env.ELECTRON_MODE = 'true';
   process.env.NODE_ENV = 'production';
   process.env.PORT = '3001';
+  process.env.DATABASE_URL = 'file:./prisma/dev.db';
 }
 
 function resolveBackendPath() {
@@ -87,7 +89,7 @@ function startBackend() {
     const checkInterval = setInterval(async () => {
       attempts++;
       try {
-        const res = await fetch('http://localhost:3001/api/health');
+        const res = await fetch('http://localhost:3001/health');
         if (res.ok) {
           clearInterval(checkInterval);
           console.log('[Backend] 健康检查通过');

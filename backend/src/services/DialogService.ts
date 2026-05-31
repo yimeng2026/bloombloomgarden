@@ -75,4 +75,10 @@ export class DialogService extends EventEmitter {
       lastMsg.attachments.push(fileId);
     }
   }
+
+  async getHistory(agentId: string, limit: number = 50): Promise<ChatMessage[]> {
+    const ctx = this.contexts.get(agentId);
+    if (!ctx) return [];
+    return ctx.messages.slice(-limit);
+  }
 }

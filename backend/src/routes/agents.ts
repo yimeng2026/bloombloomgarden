@@ -62,7 +62,7 @@ router.get('/:id/context', asyncHandler(async (req, res) => {
     agentId: agent.id,
     agentName: agent.name,
     role: agent.role || 'unknown',
-    systemPrompt: agent.systemPrompt || '暂无系统提示配置',
+    systemPrompt: (agent as any).systemPrompt || ((agent as any).config ? JSON.parse((agent as any).config || '{}').systemPrompt : null) || '暂无系统提示配置',
     messages: messages.slice(-20).map((m: any) => ({
       role: m.role,
       content: m.content,
