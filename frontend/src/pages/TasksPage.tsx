@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 
 interface Task {
@@ -155,11 +155,43 @@ const TYPE_CONFIG: Record<string, { color: string; bg: string; label: string }> 
 };
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // 加载真实任务列表
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetch('/api/tasks')
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        const data = json.data || json.tasks || json;
+        if (Array.isArray(data) && data.length > 0) {
+          if (!cancelled) setTasks(data);
+        } else {
+          // 后端无数据 → 回退到 MOCK
+          if (!cancelled) setTasks(MOCK_TASKS);
+        }
+      })
+      .catch((err) => {
+        console.warn('后端 /api/tasks 不可用，使用 MOCK:', err);
+        if (!cancelled) {
+          setTasks(MOCK_TASKS);
+          setError('后端不可用，显示模拟数据');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const filtered = tasks.filter(t => {
     if (statusFilter !== 'all' && t.status !== statusFilter) return false;
@@ -227,7 +259,9 @@ export default function TasksPage() {
           <div className="flex items-center justify-between mb-2">
             <div>
               <h1 className="text-xl font-bold text-white mb-1">深度任务管理</h1>
-              <p className="text-gray-500 text-sm">Agent任务、流水线执行与调度中心</p>
+              <p className="text-gray-500 text-sm">Agent任务、流水线执行与调度中心
+                {error && <span className="ml-2 text-yellow-400 text-xs">({error})</span>}
+              </p>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
@@ -277,6 +311,12 @@ export default function TasksPage() {
               </select>
             </div>
 
+            {loading && (
+              <div className="p-8 text-center text-gray-500">
+                <div className="w-6 h-6 border-2 border-gray-600 border-t-gray-300 rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm">加载任务列表...</p>
+              </div>
+            )}
             <div className="space-y-2">
               {filtered.map(task => {
                 const status = STATUS_CONFIG[task.status];
