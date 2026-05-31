@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Workflow, Plus, Play, Trash2, GitBranch, Clock, CheckCircle, XCircle, Pause, Settings, ChevronRight, Bot, Wrench } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Workflow, Plus, Play, Trash2, GitBranch, Clock, CheckCircle, XCircle, Pause, Settings, ChevronRight, Bot, Wrench, Loader2 } from 'lucide-react'
+import { fetchWorkflows, executeWorkflow, deleteWorkflow } from '@/api/client'
 
 interface WorkflowStep {
   id: string
@@ -118,9 +119,47 @@ const TRIGGER_CONFIG: Record<string, { color: string; label: string }> = {
 }
 
 export default function Workflows() {
-  const [workflows] = useState<WorkflowItem[]>(MOCK_WORKFLOWS)
+  const [workflows, setWorkflows] = useState<WorkflowItem[]>(MOCK_WORKFLOWS)
+  const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchWorkflows()
+      .then((res: any) => {
+        if (cancelled) return
+        const data = res.data || res
+        if (Array.isArray(data) && data.length > 0) {
+          setWorkflows(data)
+        }
+      })
+      .catch(() => {
+        // fallback to MOCK
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  const handleExecute = async (id: string) => {
+    try {
+      await executeWorkflow(id)
+    } catch {
+      // ignore for now
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteWorkflow(id)
+      setWorkflows((prev) => prev.filter((w) => w.id !== id))
+    } catch {
+      // ignore for now
+    }
+  }
 
   const selectedWorkflow = workflows.find((w) => w.id === selected)
   const activeCount = workflows.filter((w) => w.is_active).length
@@ -171,10 +210,10 @@ export default function Workflows() {
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <button className="p-1.5 rounded-lg hover:bg-[var(--sage-100)] text-[var(--sage-400)]">
+                  <button onClick={(e) => { e.stopPropagation(); handleExecute(wf.id) }} className="p-1.5 rounded-lg hover:bg-[var(--sage-100)] text-[var(--sage-400)]">
                     <Play className="w-4 h-4" />
                   </button>
-                  <button className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--sage-400)] hover:text-red-500">
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(wf.id) }} className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--sage-400)] hover:text-red-500">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>

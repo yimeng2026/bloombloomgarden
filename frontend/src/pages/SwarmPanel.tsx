@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Network, Cpu, Zap, Activity, Globe, ArrowRightLeft, Settings,
   Plus, Trash2, RefreshCw, ChevronDown, ChevronUp, Bot, Server,
   Leaf, Layers, Play, Pause, Power, Search, Filter, CheckCircle,
-  AlertTriangle, XCircle, Clock, BarChart3,
+  AlertTriangle, XCircle, Clock, BarChart3, Loader2,
 } from 'lucide-react'
+import { fetchSwarms, fetchAgents, fetchTasks } from '@/api/client'
 
 interface SwarmNode {
   id: string
@@ -66,14 +67,68 @@ const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
   error: { color: '#ef4444', label: '错误' },
 }
 
+const agentToNode = (agent: any): SwarmNode => ({
+  id: agent.id,
+  name: agent.name || agent.id,
+  type: 'worker',
+  status: agent.status === 'active' ? 'active' : 'idle',
+  load: Math.floor(Math.random() * 60) + 10,
+  tasks: agent.stats?.messageCount || 0,
+  memory: 2048,
+  uptime: '1d',
+  version: 'v2.0',
+  region: 'cn-north-1',
+  lastHeartbeat: '刚刚',
+})
+
+const taskToSwarmTask = (task: any): SwarmTask => ({
+  id: task.id,
+  name: task.name || task.id,
+  nodeId: task.agentId || task.assignedTo || 'n-1',
+  status: task.status === 'completed' ? 'completed' : task.status === 'failed' ? 'failed' : task.status === 'running' ? 'running' : 'pending',
+  priority: 'medium',
+  progress: task.status === 'completed' ? 100 : task.status === 'running' ? 50 : 0,
+  startedAt: '-',
+  estimatedDuration: '-',
+})
+
 export default function SwarmPanel() {
   const [nodes, setNodes] = useState<SwarmNode[]>(MOCK_NODES)
-  const [tasks] = useState<SwarmTask[]>(MOCK_TASKS)
+  const [tasks, setTasks] = useState<SwarmTask[]>(MOCK_TASKS)
+  const [loading, setLoading] = useState(false)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'nodes' | 'tasks' | 'topology'>('nodes')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    Promise.all([
+      fetchAgents().catch(() => null),
+      fetchTasks().catch(() => null),
+      fetchSwarms().catch(() => null),
+    ])
+      .then(([agentsRes, tasksRes, swarmsRes]) => {
+        if (cancelled) return
+        const agents = agentsRes?.data || agentsRes
+        const tasks = tasksRes?.data || tasksRes
+        if (Array.isArray(agents) && agents.length > 0) {
+          setNodes(agents.map(agentToNode))
+        }
+        if (Array.isArray(tasks) && tasks.length > 0) {
+          setTasks(tasks.map(taskToSwarmTask))
+        }
+      })
+      .catch(() => {
+        // fallback to MOCK
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
 
   const toggleNodeStatus = (id: string) => {
     setNodes(nodes.map((n) => {

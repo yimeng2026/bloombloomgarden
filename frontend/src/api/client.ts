@@ -196,6 +196,14 @@ export const triggerGroupReorganize = (id: string, data: any) => post(`/groups/$
 export const sendGroupMessage = (id: string, data: any) => post(`/groups/${id}/messages`, data);
 export const getGroupGovernance = (id: string) => get(`/groups/${id}/governance`);
 
+/* ── Workflows ── */
+export const fetchWorkflows = () => get('/workflows');
+export const getWorkflow = (id: string) => get(`/workflows/${id}`);
+export const createWorkflow = (data: any) => post('/workflows', data);
+export const updateWorkflow = (id: string, data: any) => put(`/workflows/${id}`, data);
+export const deleteWorkflow = (id: string) => del(`/workflows/${id}`);
+export const executeWorkflow = (id: string, data?: any) => post(`/workflows/${id}/execute`, data || {});
+
 /* ── Swarm (fallback if backend doesn't have swarm route) ── */
 export const fetchSwarms = async () => {
   try {

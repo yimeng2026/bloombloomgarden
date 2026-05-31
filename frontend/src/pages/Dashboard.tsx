@@ -5,7 +5,7 @@ import {
   AlertTriangle, MessageSquare, Bot, Layers, FileText, BarChart3,
   RefreshCw, ChevronRight,
 } from 'lucide-react'
-import { fetchAgents, fetchTasks, fetchChannels, fetchSkills, fetchMonitorData } from '@/api/client'
+import { fetchAgents, fetchTasks, fetchPlatforms, fetchChannels, fetchSkills, fetchMonitorData } from '@/api/client'
 
 interface StatCard {
   label: string
@@ -46,26 +46,35 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function load() {
+      setLoading(true)
       try {
-        const [agents, tasks, channels, skills, monitor] = await Promise.allSettled([
+        const [agents, tasks, platforms, channels, skills, monitor] = await Promise.allSettled([
           fetchAgents(),
           fetchTasks(),
+          fetchPlatforms(),
           fetchChannels(),
           fetchSkills(),
           fetchMonitorData(),
         ])
-        // Use API data if available, otherwise keep mock
+
+        const newStats = [...MOCK_STATS]
+
         if (agents.status === 'fulfilled' && agents.value?.data?.length > 0) {
-          setStats((prev) =>
-            prev.map((s) =>
-              s.label === '活跃智能体'
-                ? { ...s, value: agents.value.data.length.toString() }
-                : s
-            )
-          )
+          newStats[0] = { ...newStats[0], value: agents.value.data.length.toString() }
         }
+        if (tasks.status === 'fulfilled' && tasks.value?.data?.length > 0) {
+          newStats[1] = { ...newStats[1], value: tasks.value.data.length.toString() }
+        }
+        if (platforms.status === 'fulfilled' && platforms.value?.data?.length > 0) {
+          newStats[2] = { ...newStats[2], value: platforms.value.data.length.toString() }
+        }
+        if (channels.status === 'fulfilled' && channels.value?.data?.length > 0) {
+          newStats[3] = { ...newStats[3], value: channels.value.data.length.toString() }
+        }
+
+        setStats(newStats)
       } catch (e) {
-        // Keep mock data
+        // Keep mock data on error
       } finally {
         setLoading(false)
       }

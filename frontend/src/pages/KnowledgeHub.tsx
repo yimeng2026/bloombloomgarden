@@ -79,7 +79,7 @@ interface SearchResult {
 
 /* ──────────────────────── mock data ──────────────────────── */
 
-const knowledgeBases: KnowledgeBaseItem[] = [
+const MOCK_KB: KnowledgeBaseItem[] = [
   {
     id: 'kb-1', name: '技术文档库', description: 'API文档、开发规范、代码库说明和架构设计文档',
     type: 'technical', docCount: 156, tagCount: 12, indexedCount: 156, totalCount: 156,
@@ -112,7 +112,7 @@ const knowledgeBases: KnowledgeBaseItem[] = [
   },
 ];
 
-const documents: DocumentItem[] = [
+const MOCK_DOCS: DocumentItem[] = [
   { id: 'doc-1', name: 'authentication.md', type: 'md', size: '24 KB', chunks: 12, status: 'indexed', kb: '技术文档库', tags: ['API', '认证'], modifiedAt: '2小时前' },
   { id: 'doc-2', name: 'database-config.pdf', type: 'pdf', size: '1.2 MB', chunks: 34, status: 'indexed', kb: '技术文档库', tags: ['数据库', '配置'], modifiedAt: '1天前' },
   { id: 'doc-3', name: 'error-handling.md', type: 'md', size: '18 KB', chunks: 8, status: 'indexed', kb: '技术文档库', tags: ['错误', '最佳实践'], modifiedAt: '3小时前' },
@@ -219,6 +219,23 @@ export default function KnowledgeHub() {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [openMenuKb, setOpenMenuKb] = useState<string | null>(null);
+  const [kbData, setKbData] = useState<KnowledgeBaseItem[]>(MOCK_KB);
+  const [docData, setDocData] = useState<DocumentItem[]>(MOCK_DOCS);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetchKnowledgeBases()
+      .then(res => {
+        if (!cancelled && res.data?.length) {
+          setKbData(res.data);
+        }
+      })
+      .catch(() => { /* keep MOCK */ })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -230,7 +247,7 @@ export default function KnowledgeHub() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  const filteredDocs = documents.filter((d) => {
+  const filteredDocs = docData.filter((d) => {
     const matchesSearch = d.name.toLowerCase().includes(docSearchQuery.toLowerCase());
     const matchesFilter = docFilter === 'all' || d.status === docFilter;
     return matchesSearch && matchesFilter;
@@ -495,8 +512,8 @@ function KBGridSection({
   setSelectedTag: (tag: string | null) => void;
 }) {
   const filteredKBs = selectedTag
-    ? knowledgeBases.filter((kb) => kb.tags.includes(selectedTag))
-    : knowledgeBases;
+    ? kbData.filter((kb) => kb.tags.includes(selectedTag))
+    : kbData;
 
   return (
     <ContentCard
@@ -1150,7 +1167,7 @@ function SemanticSearchSection({
   const [resultCount, setResultCount] = useState(10);
   const [selectedKBs, setSelectedKBs] = useState<string[]>([]);
 
-  const kbOptions = knowledgeBases.map((kb) => kb.name);
+  const kbOptions = kbData.map((kb) => kb.name);
 
   const getSimilarityColor = (score: number) => {
     if (score >= 90) return 'var(--bloom-mint)';

@@ -66,6 +66,7 @@ const HierarchicalDashboard  = lazy(() => import('@/pages/HierarchicalDashboard'
 const DialogCenter           = lazy(() => import('@/pages/DialogCenter'))
 const UnifiedGUI             = lazy(() => import('@/pages/UnifiedGUI'))
 const Ecosystem3D            = lazy(() => import('@/pages/Ecosystem3D'))
+const ProtocolAdmin          = lazy(() => import('@/pages/ProtocolAdmin'))
 
 /* ── Suspense fallback ───────────────────────────────────────── */
 
@@ -171,6 +172,7 @@ export default function App() {
           <Route path="/dialog-center" element={<DialogCenter />} />
           <Route path="/unified" element={<UnifiedGUI />} />
           <Route path="/ecosystem" element={<Ecosystem3D />} />
+          <Route path="/protocol-admin" element={<ProtocolAdmin />} />
           <Route path="*" element={<StubPage />} />
         </Routes>
       </Suspense>
