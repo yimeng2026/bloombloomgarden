@@ -47,4 +47,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/api/health || exit 1
 
 EXPOSE 3001
-CMD cd backend && npx prisma migrate deploy && npx prisma db seed && node dist/server.js
+CMD npx prisma db push --accept-data-loss && npx prisma db seed && node dist/server.js
