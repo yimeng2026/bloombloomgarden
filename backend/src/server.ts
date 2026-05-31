@@ -8,28 +8,54 @@ import { PrismaService } from './services/PrismaService';
 const PORT = process.env.PORT || 3001;
 
 async function initDatabase() {
+  // 找到 prisma 目录
+  const possiblePrismaPaths = [
+    path.join(process.cwd(), 'prisma/schema.prisma'),
+    path.join(process.cwd(), 'backend/prisma/schema.prisma'),
+    path.join(__dirname, '../prisma/schema.prisma'),
+    path.join(__dirname, '../../prisma/schema.prisma'),
+  ];
+  let prismaDir: string | undefined;
+  for (const p of possiblePrismaPaths) {
+    if (fs.existsSync(p)) {
+      prismaDir = path.dirname(p);
+      break;
+    }
+  }
+  
+  if (!prismaDir) {
+    console.error('[DB] ERROR: prisma/schema.prisma not found in any of:', possiblePrismaPaths);
+    return;
+  }
+  
+  console.error('[DB] Found prisma dir:', prismaDir);
+  const cwd = path.dirname(prismaDir);
+  const prismaBin = path.join(cwd, 'node_modules/.bin/prisma');
+  const npxBin = path.join(cwd, 'node_modules/.bin/npx');
+  const prismaCmd = fs.existsSync(prismaBin) ? prismaBin : 'npx prisma';
+  const npxCmd = fs.existsSync(npxBin) ? npxBin : 'npx';
+  
+  console.error('[DB] Checking database tables...');
   try {
-    // 检查表是否存在
     await PrismaService.client.$queryRaw`SELECT 1 FROM Agent LIMIT 1`;
-    console.log('[DB] Tables already exist, skipping init');
+    console.error('[DB] Tables already exist, skipping init');
   } catch {
-    console.log('[DB] Tables not found, running migrations...');
-    const cwd = process.cwd();
+    console.error('[DB] Tables not found, running migrations from', cwd);
     try {
-      execSync('npx prisma migrate deploy', { cwd, stdio: 'inherit' });
-      console.log('[DB] Migrations complete');
+      execSync(`${prismaCmd} migrate deploy`, { cwd, stdio: 'inherit' });
+      console.error('[DB] Migrations complete');
     } catch (e) {
-      console.log('[DB] migrate deploy failed, trying db push...');
+      console.error('[DB] migrate deploy failed, trying db push...', e);
       try {
-        execSync('npx prisma db push', { cwd, stdio: 'inherit' });
-        console.log('[DB] DB push complete');
+        execSync(`${prismaCmd} db push`, { cwd, stdio: 'inherit' });
+        console.error('[DB] DB push complete');
       } catch (e2) {
         console.error('[DB] DB push also failed:', e2);
       }
     }
     try {
-      execSync('npx prisma db seed', { cwd, stdio: 'inherit' });
-      console.log('[DB] Seed complete');
+      execSync(`${npxCmd} prisma db seed`, { cwd, stdio: 'inherit' });
+      console.error('[DB] Seed complete');
     } catch (e) {
       console.error('[DB] Seed failed:', e);
     }
