@@ -31,17 +31,28 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Build with debug
+      - name: Build
         working-directory: ./frontend
         run: |
-          echo "=== Starting Vite Build ==="
-          npm run build 2>&1 || {
-            echo "=== BUILD FAILED ==="
-            echo "Exit code: $?"
+          npm run build 2>&1 | tee build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo ""
+            echo "========== BUILD FAILED =========="
+            echo "Last 80 lines of build output:"
+            tail -80 build.log
+            echo "=================================="
             exit 1
-          }
+          fi
         env:
           VITE_API_BASE: /api
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: frontend/build.log
 
       - name: Commit and push dist
         if: success()
