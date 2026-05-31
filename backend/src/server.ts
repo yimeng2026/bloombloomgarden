@@ -1,14 +1,45 @@
 import path from 'path';
 import fs from 'fs';
+import { execSync } from 'child_process';
 import express from 'express';
 import app from './app';
 import { PrismaService } from './services/PrismaService';
 
 const PORT = process.env.PORT || 3001;
 
+async function initDatabase() {
+  try {
+    // 检查表是否存在
+    await PrismaService.client.$queryRaw`SELECT 1 FROM Agent LIMIT 1`;
+    console.log('[DB] Tables already exist, skipping init');
+  } catch {
+    console.log('[DB] Tables not found, running migrations...');
+    const cwd = process.cwd();
+    try {
+      execSync('npx prisma migrate deploy', { cwd, stdio: 'inherit' });
+      console.log('[DB] Migrations complete');
+    } catch (e) {
+      console.log('[DB] migrate deploy failed, trying db push...');
+      try {
+        execSync('npx prisma db push', { cwd, stdio: 'inherit' });
+        console.log('[DB] DB push complete');
+      } catch (e2) {
+        console.error('[DB] DB push also failed:', e2);
+      }
+    }
+    try {
+      execSync('npx prisma db seed', { cwd, stdio: 'inherit' });
+      console.log('[DB] Seed complete');
+    } catch (e) {
+      console.error('[DB] Seed failed:', e);
+    }
+  }
+}
+
 async function main() {
   // 连接数据库
   await PrismaService.connect();
+  await initDatabase();
 
   // 无论 Electron 还是手动启动，只要前端构建产物存在，就 serve 它
   // Railway-safe: no Electron APIs used here
