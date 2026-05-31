@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Network, GitBranch, Terminal, Wrench, ArrowRightLeft, Shield,
   Maximize, Minimize, RefreshCw, Radio,

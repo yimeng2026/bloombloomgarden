@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useState } from 'react';
 import { Play, Pause, Square, Plus, ChevronRight, Clock, Bot, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

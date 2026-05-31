@@ -3,9 +3,10 @@ import {
   LayoutDashboard, TrendingUp, Users, Cpu, HardDrive, Globe,
   Zap, Activity, ArrowUpRight, ArrowDownRight, Clock, CheckCircle,
   AlertTriangle, MessageSquare, Bot, Layers, FileText, BarChart3,
-  RefreshCw, ChevronRight,
+  RefreshCw, ChevronRight, Settings,
 } from 'lucide-react'
 import { fetchAgents, fetchTasks, fetchPlatforms, fetchChannels, fetchSkills, fetchMonitorData } from '@/api/client'
+import { DASHBOARD_MAP } from '@/components/dashboard'
 
 interface StatCard {
   label: string
@@ -40,15 +41,25 @@ const MOCK_SERVICES = [
   { name: 'Agent Zero', status: 'idle', uptime: '2d 8h', load: 5 },
 ]
 
+interface AgentOption {
+  id: string
+  name: string
+  dashboardType?: string
+  protocolLevel?: number
+}
+
 export default function Dashboard() {
   const [stats, setStats] = useState<StatCard[]>(MOCK_STATS)
   const [loading, setLoading] = useState(true)
+  const [agents, setAgents] = useState<AgentOption[]>([])
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('')
+  const [selectedAgent, setSelectedAgent] = useState<AgentOption | null>(null)
 
   useEffect(() => {
     async function load() {
       setLoading(true)
       try {
-        const [agents, tasks, platforms, channels, skills, monitor] = await Promise.allSettled([
+        const [agentsRes, tasks, platforms, channels, skills, monitor] = await Promise.allSettled([
           fetchAgents(),
           fetchTasks(),
           fetchPlatforms(),
@@ -59,8 +70,19 @@ export default function Dashboard() {
 
         const newStats = [...MOCK_STATS]
 
-        if (agents.status === 'fulfilled' && agents.value?.data?.length > 0) {
-          newStats[0] = { ...newStats[0], value: agents.value.data.length.toString() }
+        if (agentsRes.status === 'fulfilled' && agentsRes.value?.data?.length > 0) {
+          newStats[0] = { ...newStats[0], value: agentsRes.value.data.length.toString() }
+          const agentList = agentsRes.value.data.map((a: any) => ({
+            id: a.id,
+            name: a.name,
+            dashboardType: a.dashboardType || 'L1',
+            protocolLevel: a.protocolLevel || 1,
+          }))
+          setAgents(agentList)
+          if (agentList.length > 0 && !selectedAgentId) {
+            setSelectedAgentId(agentList[0].id)
+            setSelectedAgent(agentList[0])
+          }
         }
         if (tasks.status === 'fulfilled' && tasks.value?.data?.length > 0) {
           newStats[1] = { ...newStats[1], value: tasks.value.data.length.toString() }
@@ -82,6 +104,16 @@ export default function Dashboard() {
     load()
   }, [])
 
+  const handleAgentSelect = (agentId: string) => {
+    setSelectedAgentId(agentId)
+    const agent = agents.find(a => a.id === agentId)
+    setSelectedAgent(agent || null)
+  }
+
+  // Determine which dashboard to render
+  const dashboardType = selectedAgent?.dashboardType || 'L1'
+  const SpecificDashboard = DASHBOARD_MAP[dashboardType] || DASHBOARD_MAP['L1']
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -93,10 +125,43 @@ export default function Dashboard() {
             <p className="text-sm text-[var(--sage-500)]">实时监控与系统概览</p>
           </div>
         </div>
-        <button className="p-2 rounded-lg hover:bg-[var(--sage-100)] text-[var(--sage-400)]">
-          <RefreshCw className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Agent Selector */}
+          {agents.length > 0 && (
+            <select
+              value={selectedAgentId}
+              onChange={(e) => handleAgentSelect(e.target.value)}
+              className="text-sm px-3 py-1.5 rounded-lg border border-[var(--sage-200)] bg-white text-[var(--sage-700)] focus:outline-none focus:ring-2 focus:ring-[var(--sage-300)]"
+            >
+              <option value="">系统概览</option>
+              {agents.map(a => (
+                <option key={a.id} value={a.id}>
+                  {a.name} (L{a.protocolLevel})
+                </option>
+              ))}
+            </select>
+          )}
+          <button className="p-2 rounded-lg hover:bg-[var(--sage-100)] text-[var(--sage-400)]">
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+
+      {/* Agent-specific Dashboard */}
+      {selectedAgent && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Settings className="w-4 h-4 text-[var(--sage-500)]" />
+            <h2 className="font-semibold text-sm text-[var(--sage-800)]">
+              {selectedAgent.name} 专用仪表盘
+              <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-500)]">
+                {dashboardType === 'L0' ? '基础设施' : dashboardType === 'L1' ? '单线程LLM' : dashboardType === 'L2' ? '多线程编排' : '网关聚合'}
+              </span>
+            </h2>
+          </div>
+          <SpecificDashboard agentId={selectedAgent.id} agentName={selectedAgent.name} />
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

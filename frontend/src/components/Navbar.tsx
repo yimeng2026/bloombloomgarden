@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { Search, Bell, Moon, Sun, Globe } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';

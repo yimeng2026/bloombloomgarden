@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { Shield, Pause, Play, Square, ChevronUp, ChevronDown, X, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

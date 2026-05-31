@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useEffect } from 'react';
 import { useAppStore } from '@/stores/appStore';
 import Sidebar from './Sidebar';

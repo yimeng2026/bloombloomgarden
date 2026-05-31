@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { Filter, Download, ScrollText, Pause, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
