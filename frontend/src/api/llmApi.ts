@@ -194,11 +194,13 @@ export async function* streamLLM(
 
         try {
           const data = JSON.parse(jsonStr)
-          const delta = data.choices?.[0]?.delta?.content || ''
+          const delta = data.choices?.[0]?.delta
+          // Handle both standard content and reasoning fields (e.g., OpenRouter kimi-k2.5)
+          const content = delta?.content || delta?.reasoning || ''
           const finishReason = data.choices?.[0]?.finish_reason
 
           yield {
-            content: delta,
+            content,
             done: !!finishReason,
             usage: data.usage
               ? {
@@ -260,7 +262,9 @@ export async function chatLLM(
   }
 
   const data = await response.json()
-  const content = data.choices?.[0]?.message?.content || ''
+  const msg = data.choices?.[0]?.message || {}
+  // Handle both content and reasoning fields (OpenRouter kimi-k2.5 etc.)
+  const content = msg.content || msg.reasoning || ''
 
   return {
     content,
@@ -301,6 +305,10 @@ export async function testLLMConnection(config?: Partial<LLMConfig>): Promise<{
   model?: string
 }> {
   const cfg = { ...loadLLMConfig(), ...config }
+  // Validate config before testing
+  if (!cfg.apiKey || cfg.apiKey.trim().length < 8) {
+    return { ok: false, latency: 0, error: 'API Key 未填写或格式不正确' }
+  }
   const start = performance.now()
 
   try {
