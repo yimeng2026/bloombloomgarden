@@ -1,29 +1,12 @@
 {
-  "version": 2,
-  "name": "thousand-realms-garden-frontend",
-  "builds": [
-    {
-      "src": "frontend/dist/**",
-      "use": "@vercel/static"
-    }
-  ],
+  "framework": "vite",
+  "rootDirectory": "frontend",
+  "outputDirectory": "dist",
+  "buildCommand": "npm run build",
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "https://bloombloomgarden-production.up.railway.app/api/$1"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "frontend/dist/$1"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/dist/index.html"
     }
   ]
 }
