@@ -31,13 +31,20 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Build
+      - name: Build with debug
         working-directory: ./frontend
-        run: npm run build
+        run: |
+          echo "=== Starting Vite Build ==="
+          npm run build 2>&1 || {
+            echo "=== BUILD FAILED ==="
+            echo "Exit code: $?"
+            exit 1
+          }
         env:
           VITE_API_BASE: /api
 
       - name: Commit and push dist
+        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
