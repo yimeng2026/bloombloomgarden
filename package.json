@@ -1,8 +1,0 @@
-{
-  "name": "bloombloomgarden-root",
-  "version": "2.0.0",
-  "private": true,
-  "scripts": {
-    "build": "cd frontend && npm install --registry https://registry.npmmirror.com && npm run build"
-  }
-}
