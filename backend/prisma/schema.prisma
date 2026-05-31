@@ -1,6 +1,6 @@
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = "file:./prisma/dev.db"
 }
 
 generator client {
@@ -48,7 +48,8 @@ model KnowledgeBase {
   documentIds     String   @default("[]")
   embeddingModel  String?
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+
+  @@map("knowledgeBases")
 }
 
 model Document {
@@ -99,11 +100,10 @@ model Settings {
   id              String   @id @default("default")
   theme           String   @default("system")
   language        String   @default("zh-CN")
-  maxConcurrentAgents Int  @default(10)
-  defaultTimeout  Int      @default(300000)
+  notifications   Boolean  @default(true)
   autoSave        Boolean  @default(true)
-  logLevel        String   @default("info")
-  features        String   @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model ChatMessage {
@@ -111,26 +111,28 @@ model ChatMessage {
   agentId         String
   role            String
   content         String
-  attachments     String   @default("[]")
-  timestamp       DateTime @default(now())
+  metadata        String   @default("{}")
+  createdAt       DateTime @default(now())
 }
 
 model WorkspaceTask {
   id              String   @id @default(uuid())
-  taskId          String   @unique
-  groupId         String
-  files           String   @default("{}") // JSON: path -> {content, mimeType}
+  title           String
+  description     String?
+  status          String   @default("pending")
+  priority        String   @default("medium")
+  assignee        String?
+  dueDate         DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
 
 model BackendConfig {
-  id              String   @id @default(uuid())
-  provider        String
-  name            String
-  baseUrl         String
-  apiKey          String?
+  id              String   @id @default("default")
+  name            String   @default("default")
   model           String?
-  enabled         Boolean  @default(true)
+  apiKey          String?
+  baseUrl         String?
   createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

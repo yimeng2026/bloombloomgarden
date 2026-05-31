@@ -5,89 +5,60 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding database...");
 
-  // ─── Seed 5 Platforms ──────────────────────────────────
-  const platforms = [
-    { name: "OpenAI",       provider: "openai",    tier: "cloud", baseUri: "https://api.openai.com",       apiKeyRequired: true,  authType: "bearer", status: "active" },
-    { name: "Anthropic",    provider: "anthropic", tier: "cloud", baseUri: "https://api.anthropic.com",    apiKeyRequired: true,  authType: "bearer", status: "active" },
-    { name: "Kimi",         provider: "kimi",      tier: "cloud", baseUri: "https://api.moonshot.cn",      apiKeyRequired: true,  authType: "bearer", status: "active" },
-    { name: "Ollama",       provider: "ollama",    tier: "local", baseUri: "http://localhost:11434",       apiKeyRequired: false, authType: "none",   status: "active" },
-    { name: "Azure OpenAI", provider: "azure",     tier: "cloud", baseUri: "https://azure.openai.com",     apiKeyRequired: true,  authType: "apikey", status: "active" },
+  // ─── Seed 2 Groups ─────────────────────────────────────
+  const groups = [
+    { id: "seed-group-1", name: "协作组 A", description: "通用协作智能体群组", parentId: null, coordinatorId: null, executionMode: "sequential", status: "active", maxDepth: 3 },
+    { id: "seed-group-2", name: "协作组 B", description: "数据处理与存储群组", parentId: null, coordinatorId: null, executionMode: "parallel", status: "active", maxDepth: 2 },
   ];
-
-  for (const p of platforms) {
-    await prisma.platform.upsert({
-      where: { id: `seed-${p.provider}` },
-      update: {},
-      create: { id: `seed-${p.provider}`, ...p },
-    });
+  for (const g of groups) {
+    await prisma.group.upsert({ where: { id: g.id }, update: {}, create: g });
   }
-  console.log(`Seeded ${platforms.length} platforms`);
+  console.log(`Seeded ${groups.length} groups`);
 
-  // ─── Seed 50 SubTools: X=15, Y=15, Z=20 ───────────────
-  const xCategories = ["REST", "SSE", "WebSocket", "gRPC", "GraphQL"];
-  const yCategories = ["core", "extension", "integration"];
-  const zCategories = ["data", "compute", "storage", "network", "ui", "security", "monitoring", "orchestration"];
-  const protocols = ["REST", "SSE", "WS", "3DACP", "gRPC", "HTTP"];
-  const statuses  = ["active", "beta", "planned"];
-  const colors    = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
-
-  const names = [
-    // X=REST (15)
-    "Agent REST API", "Task REST API", "Group REST API", "Blueprint REST API",
-    "Dialog REST API", "Knowledge REST API", "Skill REST API", "Monitor REST API",
-    "Platform REST API", "Preset REST API", "Handoff REST API", "Intervention REST API",
-    "Coordinator REST API", "System REST API", "Log REST API",
-    // Y=core (15)
-    "Agent Core Engine", "Task Scheduler Core", "Group Coordinator Core", "Blueprint Engine Core",
-    "Dialog Manager Core", "Knowledge Base Core", "Skill Registry Core", "Monitor Core",
-    "Platform Adapter Core", "Preset Manager Core", "Handoff Protocol Core", "Intervention Core",
-    "Coordinator Hierarchy Core", "System Manager Core", "Event Bus Core",
-    // Z=data (20)
-    "Data Store", "Cache Layer", "Index Engine", "Vector DB", "Document Parser",
-    "Embedding Service", "Search Engine", "Data Pipeline", "ETL Worker", "Sync Engine",
-    "Backup Service", "Migration Tool", "Data Validator", "Schema Manager", "Query Builder",
-    "Analytics Engine", "Metrics Collector", "Trace Logger", "Audit Trail", "Data Exporter",
+  // ─── Seed 4 Agents ─────────────────────────────────────
+  const agents = [
+    { id: "seed-agent-1", name: "通用助手", role: "general", status: "active", config: "{}", knowledgeBaseIds: "[]", skillIds: "[\"seed-skill-1\"]", workspaceId: null, integrationIds: "[]", groupId: "seed-group-1", description: "全能型AI助手", avatar: "Bot" },
+    { id: "seed-agent-2", name: "代码专家", role: "coder", status: "active", config: "{}", knowledgeBaseIds: "[]", skillIds: "[\"seed-skill-2\"]", workspaceId: null, integrationIds: "[]", groupId: "seed-group-1", description: "精通编程和代码审查", avatar: "Code" },
+    { id: "seed-agent-3", name: "创意写作", role: "creative", status: "active", config: "{}", knowledgeBaseIds: "[]", skillIds: "[\"seed-skill-3\"]", workspaceId: null, integrationIds: "[]", groupId: "seed-group-1", description: "擅长写作和创意生成", avatar: "Sparkles" },
+    { id: "seed-agent-4", name: "数据分析师", role: "analyst", status: "active", config: "{}", knowledgeBaseIds: "[]", skillIds: "[\"seed-skill-4\"]", workspaceId: null, integrationIds: "[]", groupId: "seed-group-2", description: "擅长数据分析和洞察提取", avatar: "BarChart" },
   ];
-
-  // Clear existing subtools for idempotent seeding
-  await prisma.subTool.deleteMany();
-
-  for (let i = 0; i < names.length; i++) {
-    let xCat: string, yCat: string, zCat: string;
-    if (i < 15) {
-      xCat = xCategories[i % 5];
-      yCat = yCategories[i % 3];
-      zCat = zCategories[i % 8];
-    } else if (i < 30) {
-      xCat = xCategories[(i + 2) % 5];
-      yCat = yCategories[(i + 1) % 3];
-      zCat = zCategories[(i + 3) % 8];
-    } else {
-      xCat = xCategories[(i + 4) % 5];
-      yCat = yCategories[(i + 2) % 3];
-      zCat = zCategories[(i + 5) % 8];
-    }
-
-    await prisma.subTool.create({
-      data: {
-        name: names[i],
-        description: `${names[i]} \u2014 part of the Sylva ecosystem coordinate system.`,
-        xCategory: xCat,
-        yCategory: yCat,
-        zCategory: zCat,
-        xPos: Math.floor(Math.random() * 100),
-        yPos: Math.floor(Math.random() * 100),
-        zPos: Math.floor(Math.random() * 100),
-        status: statuses[i % 3],
-        protocol: protocols[i % 6],
-        tags: JSON.stringify([xCat, yCat, zCat, protocols[i % 6]]),
-        icon: "box",
-        color: colors[i % 8],
-      },
-    });
+  for (const a of agents) {
+    await prisma.agent.upsert({ where: { id: a.id }, update: {}, create: a });
   }
+  console.log(`Seeded ${agents.length} agents`);
 
-  console.log(`Seeded ${names.length} subtools`);
+  // ─── Seed 2 Knowledge Bases ─────────────────────────────
+  const kbs = [
+    { id: "seed-kb-1", name: "技术文档库", description: "API 文档和技术参考", documentIds: "[]", embeddingModel: "text-embedding-3-small" },
+    { id: "seed-kb-2", name: "产品知识库", description: "产品功能和使用指南", documentIds: "[]", embeddingModel: "text-embedding-3-small" },
+  ];
+  for (const kb of kbs) {
+    await prisma.knowledgeBase.upsert({ where: { id: kb.id }, update: {}, create: kb });
+  }
+  console.log(`Seeded ${kbs.length} knowledge bases`);
+
+  // ─── Seed 4 Skills ─────────────────────────────────────
+  const skills = [
+    { id: "seed-skill-1", name: "通用对话", description: "基础对话和问答能力", type: "core", config: "{}", enabled: true, version: "1.0" },
+    { id: "seed-skill-2", name: "代码生成", description: "代码编写和调试能力", type: "development", config: "{}", enabled: true, version: "1.0" },
+    { id: "seed-skill-3", name: "创意写作", description: "文案和创意内容生成", type: "creative", config: "{}", enabled: true, version: "1.0" },
+    { id: "seed-skill-4", name: "数据分析", description: "数据处理和洞察提取", type: "analytics", config: "{}", enabled: true, version: "1.0" },
+  ];
+  for (const s of skills) {
+    await prisma.skill.upsert({ where: { id: s.id }, update: {}, create: s });
+  }
+  console.log(`Seeded ${skills.length} skills`);
+
+  // ─── Seed 2 Blueprints ───────────────────────────────────
+  const blueprints = [
+    { id: "seed-bp-1", name: "工作流模板", description: "标准智能体工作流", steps: "[]", variables: "{}", tags: "[\"工作流\",\"模板\"]" },
+    { id: "seed-bp-2", name: "数据管道", description: "ETL 数据处理管道", steps: "[]", variables: "{}", tags: "[\"数据\",\"管道\"]" },
+  ];
+  for (const bp of blueprints) {
+    await prisma.blueprint.upsert({ where: { id: bp.id }, update: {}, create: bp });
+  }
+  console.log(`Seeded ${blueprints.length} blueprints`);
+
   console.log("Seed complete.");
 }
 

@@ -11,7 +11,7 @@ function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
 // 1. GET /api/agents — 列表
 router.get('/', asyncHandler(async (req, res) => {
   const { groupId, status, role } = req.query;
-  const service = new AgentService();
+  const service = getAgentService();
   const agents = await service.list({
     groupId: groupId as string | undefined,
     status: status as AgentStatus | undefined,
@@ -22,7 +22,7 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // 2. GET /api/agents/:id — 详情
 router.get('/:id', asyncHandler(async (req, res) => {
-  const service = new AgentService();
+  const service = getAgentService();
   const agent = await service.getById(req.params.id);
   if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
   res.json({ success: true, data: agent });
@@ -101,14 +101,14 @@ router.get('/:id/context/stream', (req, res) => {
 
 // 3. POST /api/agents — 创建
 router.post('/', asyncHandler(async (req, res) => {
-  const service = new AgentService();
+  const service = getAgentService();
   const agent = await service.create(req.body);
   res.status(201).json({ success: true, data: agent });
 }));
 
 // 4. PUT /api/agents/:id — 更新
 router.put('/:id', asyncHandler(async (req, res) => {
-  const service = new AgentService();
+  const service = getAgentService();
   const agent = await service.update(req.params.id, req.body);
   if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
   res.json({ success: true, data: agent });
@@ -116,7 +116,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 
 // 5. DELETE /api/agents/:id — 删除
 router.delete('/:id', asyncHandler(async (req, res) => {
-  const service = new AgentService();
+  const service = getAgentService();
   const ok = await service.delete(req.params.id);
   if (!ok) return res.status(404).json({ success: false, error: 'Agent not found' });
   res.status(204).send();
@@ -124,7 +124,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 
 // 6. POST /api/agents/:id/pause — 暂停
 router.post('/:id/pause', asyncHandler(async (req, res) => {
-  const service = new AgentService();
+  const service = getAgentService();
   const agent = await service.pause(req.params.id);
   if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
   res.json({ success: true, data: agent });
@@ -132,7 +132,7 @@ router.post('/:id/pause', asyncHandler(async (req, res) => {
 
 // 7. POST /api/agents/:id/resume — 恢复
 router.post('/:id/resume', asyncHandler(async (req, res) => {
-  const service = new AgentService();
+  const service = getAgentService();
   const agent = await service.resume(req.params.id);
   if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
   res.json({ success: true, data: agent });
@@ -140,7 +140,7 @@ router.post('/:id/resume', asyncHandler(async (req, res) => {
 
 // 8. POST /api/agents/:id/isolate — 隔离
 router.post('/:id/isolate', asyncHandler(async (req, res) => {
-  const service = new AgentService();
+  const service = getAgentService();
   const agent = await service.isolate(req.params.id);
   if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
   res.json({ success: true, data: agent });
@@ -149,7 +149,7 @@ router.post('/:id/isolate', asyncHandler(async (req, res) => {
 // 9. POST /api/agents/:id/inject — 消息注入
 router.post('/:id/inject', asyncHandler(async (req, res) => {
   const { message } = req.body;
-  const service = new AgentService();
+  const service = getAgentService();
   await service.injectMessage(req.params.id, message);
   res.json({ success: true, data: { injected: true } });
 }));

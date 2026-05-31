@@ -39,8 +39,12 @@ ENV UPLOAD_DIR=/app/backend/uploads
 # CORS 允许 Vercel 前端域名（分离部署必需）
 ENV CORS_ORIGIN=*
 
+# 复制启动脚本
+COPY --from=backend-builder /app/backend/start.sh ./start.sh
+RUN chmod +x start.sh
+
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/api/health || exit 1
 
 EXPOSE 3001
-CMD ["node", "dist/server.js"]
+CMD ["sh", "start.sh"]
