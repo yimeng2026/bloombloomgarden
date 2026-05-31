@@ -23,17 +23,17 @@ fi
 
 echo "✅ 找到 prisma 目录: $PRISMA_DIR"
 
-# 数据库迁移
-echo "📦 运行数据库迁移..."
+# 数据库初始化 — 使用 db push 直接创建表（不需要 migration 文件）
+echo "📦 运行数据库初始化（db push）..."
 if [ -f "node_modules/.bin/prisma" ]; then
   echo "使用本地 prisma CLI"
-  node_modules/.bin/prisma migrate deploy --schema="$PRISMA_DIR/schema.prisma" || true
+  node_modules/.bin/prisma db push --schema="$PRISMA_DIR/schema.prisma" --accept-data-loss || true
 elif [ -f "../node_modules/.bin/prisma" ]; then
   echo "使用上级目录 prisma CLI"
-  ../node_modules/.bin/prisma migrate deploy --schema="$PRISMA_DIR/schema.prisma" || true
+  ../node_modules/.bin/prisma db push --schema="$PRISMA_DIR/schema.prisma" --accept-data-loss || true
 else
   echo "尝试 npx prisma"
-  npx prisma migrate deploy --schema="$PRISMA_DIR/schema.prisma" || true
+  npx prisma db push --schema="$PRISMA_DIR/schema.prisma" --accept-data-loss || true
 fi
 
 # 数据库 seed
