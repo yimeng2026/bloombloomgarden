@@ -31,30 +31,11 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: TypeScript Check
-        working-directory: ./frontend
-        run: |
-          echo "=== TypeScript Check ==="
-          npx tsc --noEmit 2>&1 | tee tsc-errors.log || true
-          echo "=== End TypeScript Check ==="
-
       - name: Build
         working-directory: ./frontend
-        run: |
-          echo "=== Vite Build ==="
-          npm run build 2>&1 | tee build.log
-          echo "=== Build Exit Code: $? ==="
+        run: npm run build
         env:
           VITE_API_BASE: /api
-
-      - name: Upload logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: |
-            frontend/tsc-errors.log
-            frontend/build.log
 
       - name: Commit and push dist
         if: success()
