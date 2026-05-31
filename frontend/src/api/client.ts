@@ -69,6 +69,8 @@ export const deleteBlueprint = (id: string) => del(`/blueprints/${id}`);
 export const executeBlueprint = (id: string, data?: any) => post(`/blueprints/${id}/execute`, data || {});
 export const getBlueprintExecutions = (id: string) => get(`/blueprints/${id}/executions`);
 export const getBlueprintPresets = () => get('/blueprints/presets');
+export const pauseBlueprint = (id: string) => post(`/blueprints/${id}/pause`, {});
+export const resumeBlueprint = (id: string) => post(`/blueprints/${id}/resume`, {});
 
 /* ── SubTools ── */
 export const fetchSubTools = () => get('/subtools');
@@ -178,9 +180,6 @@ export const pullOllamaModel = (name: string) => post('/ollama/pull', { name });
 export const aiSearch = (query: string) => post('/ai-search', { query });
 
 /* ── Groups / 协作�?── */
-export const fetchGroups = () => get('/groups');
-export const createGroup = (data: any) => post('/groups', data);
-export const deleteGroup = (id: string) => del(`/groups/${id}`);
 export const getGroupStatus = (id: string) => get(`/groups/${id}/status`);
 export const updateGroupStatus = (id: string, data: any) => put(`/groups/${id}/status`, data);
 export const getGroupMeetings = (id: string) => get(`/groups/${id}/meetings`);
