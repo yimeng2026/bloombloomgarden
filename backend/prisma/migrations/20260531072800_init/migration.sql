@@ -1,4 +1,4 @@
--- CreateTable
+﻿-- CreateTable
 CREATE TABLE "Agent" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -32,14 +32,13 @@ CREATE TABLE "Group" (
 );
 
 -- CreateTable
-CREATE TABLE "KnowledgeBase" (
+CREATE TABLE "knowledgeBases" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "documentIds" TEXT NOT NULL DEFAULT '[]',
     "embeddingModel" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -95,11 +94,10 @@ CREATE TABLE "Settings" (
     "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
     "theme" TEXT NOT NULL DEFAULT 'system',
     "language" TEXT NOT NULL DEFAULT 'zh-CN',
-    "maxConcurrentAgents" INTEGER NOT NULL DEFAULT 10,
-    "defaultTimeout" INTEGER NOT NULL DEFAULT 300000,
+    "notifications" BOOLEAN NOT NULL DEFAULT true,
     "autoSave" BOOLEAN NOT NULL DEFAULT true,
-    "logLevel" TEXT NOT NULL DEFAULT 'info',
-    "features" TEXT NOT NULL DEFAULT '{}'
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateTable
@@ -108,31 +106,31 @@ CREATE TABLE "ChatMessage" (
     "agentId" TEXT NOT NULL,
     "role" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "attachments" TEXT NOT NULL DEFAULT '[]',
-    "timestamp" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "metadata" TEXT NOT NULL DEFAULT '{}',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
 CREATE TABLE "WorkspaceTask" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "taskId" TEXT NOT NULL,
-    "groupId" TEXT NOT NULL,
-    "files" TEXT NOT NULL DEFAULT '{}',
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "priority" TEXT NOT NULL DEFAULT 'medium',
+    "assignee" TEXT,
+    "dueDate" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateTable
 CREATE TABLE "BackendConfig" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "provider" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "baseUrl" TEXT NOT NULL,
-    "apiKey" TEXT,
+    "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
+    "name" TEXT NOT NULL DEFAULT 'default',
     "model" TEXT,
-    "enabled" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "apiKey" TEXT,
+    "baseUrl" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "WorkspaceTask_taskId_key" ON "WorkspaceTask"("taskId");
