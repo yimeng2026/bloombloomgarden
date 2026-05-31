@@ -7,6 +7,12 @@
       "use": "@vercel/static"
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://bloombloomgarden-production.up.railway.app/api/$1"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",

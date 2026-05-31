@@ -43,7 +43,7 @@ export interface LLMChunk {
 const DEFAULT_CONFIG: LLMConfig = {
   baseUrl: 'https://openrouter.ai/api/v1',
   apiKey: '',
-  model: 'moonshotai/kimi-k2-0712',
+  model: 'moonshotai/kimi-k2.5',
   temperature: 0.7,
   maxTokens: 4096,
   topP: 1.0,
@@ -94,7 +94,7 @@ export const PRESET_PROVIDERS: { label: string; value: LLMConfig['provider']; ba
     value: 'openrouter',
     baseUrl: 'https://openrouter.ai/api/v1',
     models: [
-      'moonshotai/kimi-k2-0712',
+      'moonshotai/kimi-k2.5',
       'openai/gpt-4o',
       'anthropic/claude-3.5-sonnet',
       'deepseek/deepseek-chat',
@@ -112,7 +112,7 @@ export const PRESET_PROVIDERS: { label: string; value: LLMConfig['provider']; ba
     label: 'Kimi (Moonshot)',
     value: 'kimi',
     baseUrl: 'https://api.moonshot.cn/v1',
-    models: ['kimi-k2-0712', 'kimi-latest', 'moonshot-v1-8k', 'moonshot-v1-128k'],
+    models: ['kimi-k2.5', 'kimi-latest', 'moonshot-v1-8k', 'moonshot-v1-128k'],
   },
   {
     label: 'Anthropic (Claude)',

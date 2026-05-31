@@ -2,7 +2,7 @@
 // 分离部署：前�?Vercel) �?后端(Railway)
 // 优先从环境变量读取，否则回退到本地开发地址
 const API_BASE = import.meta.env.VITE_API_BASE_URL
-  || (import.meta.env.PROD ? 'https://bloombloomgarden-production.up.railway.app/api' : 'http://localhost:3001/api');
+  || (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
 
 async function get(path: string) {
   const res = await fetch(`${API_BASE}${path}`);
