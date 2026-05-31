@@ -5,7 +5,6 @@ import {
   Terminal, Database, Globe, Mail, Image, BarChart3, Shield,
   Workflow, FileCode, FileText, Music, Video, MapPin, Calculator,
 } from 'lucide-react'
-import { fetchSkills, createSkill, updateSkill, deleteSkill } from '@/api/client'
 import { useToast } from '@/contexts/ToastContext'
 
 /* ── Types ──────────────────────────────────────────────────────── */

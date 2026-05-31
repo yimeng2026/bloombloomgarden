@@ -27,7 +27,7 @@ import {
   ArrowRight,
   Sparkles,
   FolderOpen,
-  CheckSquare,
+  CheckSquare2,
   Zap,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
@@ -276,7 +276,7 @@ function GroupCard({ group, index, onOpen, onDelete }: { group: AgentGroup; inde
         {/* Stats */}
         <div className="flex items-center gap-4 text-xs mb-4" style={{ color: 'var(--sage-400)' }}>
           <span className="flex items-center gap-1">
-            <CheckSquare size={12} /> {group.activeTasks}/{group.totalTasks} 任务
+            <CheckSquare2 size={12} /> {group.activeTasks}/{group.totalTasks} 任务
           </span>
           <span className="flex items-center gap-1">
             <Activity size={12} /> {group.uptime}

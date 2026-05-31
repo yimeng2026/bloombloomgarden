@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { fetchPlatforms, createPlatform, deletePlatform } from '@/api/client'
-import { fetchPlatforms } from '@/api/client'
 import { Globe, Plus, Power, Trash2, Settings, CheckCircle, XCircle, MessageSquare, Edit2, Eye } from 'lucide-react'
 
 interface Platform {

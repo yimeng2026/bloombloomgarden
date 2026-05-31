@@ -1,12 +1,12 @@
-﻿import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FolderOpen,
-  FolderClosed,
+  Folder,
   FileText,
   FileCode,
   FileJson,
-  FileType,
+  File,
   ChevronRight,
   ChevronDown,
   Search,
@@ -553,7 +553,7 @@ def read_jsonl(path: Path) -> list[dict]:
 
 const PLATFORM_META: Record<PlatformKey, { icon: typeof FileCode; color: string; label: string }> = {
   claudecode: { icon: FileCode, color: '#d97706', label: 'Claude Code' },
-  codex: { icon: FileType, color: '#1a56db', label: 'Codex' },
+  codex: { icon: File, color: '#1a56db', label: 'Codex' },
   hermes: { icon: FileText, color: '#10b981', label: 'Hermes' },
   opencode: { icon: FileJson, color: '#f59e0b', label: 'OpenCode' },
   shared: { icon: FolderOpen, color: '#64748b', label: 'Shared' },
@@ -574,7 +574,7 @@ function getFileIcon(filename: string) {
     case 'txt':
       return FileText
     default:
-      return FileType
+      return File
   }
 }
 

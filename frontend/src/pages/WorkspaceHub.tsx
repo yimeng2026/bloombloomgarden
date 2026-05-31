@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -34,7 +34,7 @@ import {
   FileSpreadsheet,
   FileCode,
   FileImage,
-  FileIcon,
+  File,
   Hash,
   Tag,
   Minus,
@@ -238,7 +238,7 @@ function FileTypeIcon({ type, size = 20 }: { type: string; size?: number }) {
     python: <Terminal size={size} />, image: <FileImage size={size} />, sql: <Database size={size} />,
     css: <Code size={size} />, typescript: <Code size={size} />, pdf: <File size={size} />,
     xlsx: <Table size={size} />, shell: <Terminal size={size} />, env: <FileText size={size} />,
-    docker: <HardDrive size={size} />, default: <FileIcon size={size} />,
+    docker: <HardDrive size={size} />, default: <File size={size} />,
   };
   return <span style={{ color }}>{iconMap[type] || iconMap.default}</span>;
 }

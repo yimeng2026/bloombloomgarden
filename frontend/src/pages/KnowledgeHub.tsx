@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -24,7 +24,7 @@ import {
   Clock,
   FolderOpen,
   Filter,
-  Grid3X3,
+  Grid3x3,
   List,
   File,
   FileCode,
@@ -36,6 +36,7 @@ import {
   Layers,
 } from 'lucide-react';
 import ContentCard from '@/components/ContentCard';
+import { fetchKnowledgeBases } from '@/api/client';
 
 /* ──────────────────────── types ──────────────────────── */
 
@@ -885,7 +886,7 @@ function DocumentsSection({
               className="p-1.5 transition-colors"
               style={{ backgroundColor: viewMode === 'grid' ? 'var(--sage-100)' : 'transparent', color: viewMode === 'grid' ? 'var(--sage-700)' : 'var(--sage-400)' }}
             >
-              <Grid3X3 size={16} />
+              <Grid3x3 size={16} />
             </button>
             <button
               onClick={() => setViewMode('list')}
@@ -1496,4 +1497,3 @@ function DocStatusBadgeSmall({ status }: { status: string }) {
   );
 }
 
-import { fetchKnowledgeBases } from '@/api/client';

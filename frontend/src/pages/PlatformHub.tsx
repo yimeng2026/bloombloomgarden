@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -847,7 +847,7 @@ function ApiTab({ t, searchQuery, apiKeys, loading, error }: { t: (zh: string, e
 function SkillsTab({ t, searchQuery }: { t: (zh: string, en: string) => string; searchQuery: string }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [skillSearch, setSkillSearch] = useState('');
-  const [skills, setSkills] = useState(skillsData);
+  const [skills, setSkills] = useState([] as any[]);
 
   const filtered = skills.filter((s) => {
     const matchCategory = activeCategory === 'all' || s.category === activeCategory;

@@ -13,7 +13,6 @@ import {
   Trash2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { fetchAgents } from '@/api/client';
 
 interface Agent {
   id: string;
@@ -211,7 +210,7 @@ export default function Agents() {
               key={agent.id}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 60 }}
+              transition={{ delay: idx * 0.06 }}
               className="card p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-3">
