@@ -167,6 +167,10 @@
     border: 1px solid var(--sage-200);
   }
 
+  .rounded-card { border-radius: 16px; }
+  .rounded-card-md { border-radius: 12px; }
+  .rounded-card-sm { border-radius: 8px; }
+
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -180,6 +184,22 @@
   }
   .btn-primary:hover {
     background-color: var(--sage-600);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--sage-100);
+    color: var(--sage-700);
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  .btn-secondary:hover {
+    background-color: var(--sage-200);
   }
 
   .select {

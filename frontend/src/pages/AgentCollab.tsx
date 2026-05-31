@@ -29,6 +29,20 @@ import {
   FolderOpen,
   CheckSquare2,
   Zap,
+  Clock,
+  Layers,
+  Network,
+  RefreshCw,
+  Radio,
+  CircleDot,
+  Route,
+  MessageSquare,
+  TreePine,
+  User,
+  GitBranch,
+  Workflow,
+  ScanEye,
+  Loader2,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 
@@ -834,11 +848,206 @@ function CreateGroupModal({ onClose }: { onClose: () => void }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Collaboration Mode Types & Data                                   */
+/* ------------------------------------------------------------------ */
+
+type CollabMode = 'sequential' | 'parallel' | 'hierarchical' | 'dynamic';
+
+const modeConfig: Record<CollabMode, { label: string; desc: string; icon: React.ElementType; color: string }> = {
+  sequential: { label: '顺序执行', desc: '按序依次处理', icon: Clock, color: '#7fa3b0' },
+  parallel:   { label: '并行执行', desc: '同时多路处理', icon: Layers, color: '#7fb89f' },
+  hierarchical: { label: '层级结构', desc: '上下级汇报链', icon: Network, color: '#a78b9a' },
+  dynamic:    { label: '动态重组', desc: '自适应调整', icon: RefreshCw, color: '#d4a373' },
+};
+
+interface HandoffStep {
+  id: string;
+  from: { id: string; name: string; color: string };
+  to: { id: string; name: string; color: string };
+  status: 'completed' | 'active' | 'pending';
+  message: string;
+  timestamp: string;
+}
+
+const mockHandoffFlow: HandoffStep[] = [
+  { id: 'h1', from: { id: 'a1', name: '需求分析', color: '#7fb89f' }, to: { id: 'a2', name: '代码助手', color: '#7fa3b0' }, status: 'completed', message: '需求文档已交付', timestamp: '09:30:15' },
+  { id: 'h2', from: { id: 'a2', name: '代码助手', color: '#7fa3b0' }, to: { id: 'a3', name: '测试工程师', color: '#c97b84' }, status: 'completed', message: '代码实现完成', timestamp: '09:45:22' },
+  { id: 'h3', from: { id: 'a3', name: '测试工程师', color: '#c97b84' }, to: { id: 'a4', name: '文档撰写', color: '#d4a373' }, status: 'active', message: '测试通过，交付文档', timestamp: '10:00:05' },
+  { id: 'h4', from: { id: 'a4', name: '文档撰写', color: '#d4a373' }, to: { id: 'a5', name: '部署专家', color: '#a78b9a' }, status: 'pending', message: '等待文档完成', timestamp: '' },
+];
+
+interface CollabAgent {
+  id: string;
+  name: string;
+  status: 'running' | 'idle' | 'error' | 'completed';
+  role: string;
+  progress: number;
+  currentTask: string;
+  color: string;
+  avatarType: string;
+}
+
+const mockCollabAgents: CollabAgent[] = [
+  { id: 'a1', name: '需求分析', status: 'completed', role: '分析', progress: 100, currentTask: '已完成', color: '#7fb89f', avatarType: 'leaf' },
+  { id: 'a2', name: '代码助手', status: 'completed', role: '开发', progress: 100, currentTask: '已实现', color: '#7fa3b0', avatarType: 'mushroom' },
+  { id: 'a3', name: '测试工程师', status: 'running', role: '测试', progress: 75, currentTask: '集成测试', color: '#c97b84', avatarType: 'flower' },
+  { id: 'a4', name: '文档撰写', status: 'idle', role: '文档', progress: 0, currentTask: '等待中', color: '#d4a373', avatarType: 'tree' },
+  { id: 'a5', name: '部署专家', status: 'idle', role: '运维', progress: 0, currentTask: '等待中', color: '#a78b9a', avatarType: 'vine' },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Handoff Flow Visualization                                        */
+/* ------------------------------------------------------------------ */
+
+function HandoffFlowViz({ steps }: { steps: HandoffStep[] }) {
+  return (
+    <div className="space-y-3">
+      {steps.map((step, i) => (
+        <motion.div
+          key={step.id}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: i * 0.1, ease: easeGentle }}
+          className="flex items-center gap-3"
+        >
+          {/* From Agent */}
+          <div className="flex flex-col items-center gap-1 w-20">
+            <AgentAvatar type="leaf" color={step.from.color} size={36} />
+            <span className="text-[10px] text-[var(--sage-600)] text-center truncate w-full">{step.from.name}</span>
+          </div>
+
+          {/* Connector */}
+          <div className="flex-1 flex flex-col items-center gap-1">
+            <div className="w-full h-8 relative flex items-center">
+              <div className="w-full h-[2px] rounded-full" style={{ backgroundColor: step.status === 'completed' ? 'var(--success)' : step.status === 'active' ? 'var(--sage-500)' : 'var(--sage-200)' }} />
+              <motion.div
+                className="absolute top-1/2 -translate-y-1/2"
+                animate={step.status === 'active' ? { left: ['0%', '80%', '0%'] } : {}}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                style={{ left: step.status === 'completed' ? '100%' : step.status === 'active' ? '50%' : '0%' }}
+              >
+                <div
+                  className="w-3 h-3 rounded-full border-2 border-white shadow"
+                  style={{ backgroundColor: step.status === 'completed' ? 'var(--success)' : step.status === 'active' ? 'var(--sage-500)' : 'var(--sage-300)' }}
+                />
+              </motion.div>
+              <ArrowRight
+                size={14}
+                className="absolute right-0 top-1/2 -translate-y-1/2"
+                style={{ color: step.status === 'completed' ? 'var(--success)' : step.status === 'active' ? 'var(--sage-500)' : 'var(--sage-300)' }}
+              />
+            </div>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+              step.status === 'completed' ? 'bg-green-500/10 text-green-600' :
+              step.status === 'active' ? 'bg-[var(--sage-100)] text-[var(--sage-600)]' :
+              'bg-gray-100 text-[var(--sage-400)]'
+            }`}>
+              {step.status === 'completed' ? '已完成' : step.status === 'active' ? '进行中' : '等待中'}
+            </span>
+          </div>
+
+          {/* To Agent */}
+          <div className="flex flex-col items-center gap-1 w-20">
+            <AgentAvatar type="leaf" color={step.to.color} size={36} />
+            <span className="text-[10px] text-[var(--sage-600)] text-center truncate w-full">{step.to.name}</span>
+          </div>
+
+          {/* Message */}
+          <div className="w-40 flex-shrink-0">
+            <div className="text-[11px] text-[var(--sage-600)] bg-[var(--sage-50)] rounded-lg px-2.5 py-1.5 truncate">
+              {step.message}
+            </div>
+            {step.timestamp && (
+              <div className="text-[10px] text-[var(--sage-400)] mt-0.5">{step.timestamp}</div>
+            )}
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Realtime Status Panel                                             */
+/* ------------------------------------------------------------------ */
+
+function RealtimeStatusPanel({ agents }: { agents: CollabAgent[] }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {agents.map((agent, i) => {
+        const sc = statusColor(agent.status);
+        return (
+          <motion.div
+            key={agent.id}
+            className="rounded-card p-4 transition-all duration-200"
+            style={{
+              backgroundColor: '#fff',
+              border: '1px solid var(--sage-200)',
+              boxShadow: 'var(--shadow-card)',
+            }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: i * 0.08, ease: easeGentle }}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <AgentAvatar type={agent.avatarType} color={agent.color} size={38} />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium" style={{ color: 'var(--sage-700)' }}>{agent.name}</div>
+                <div className="text-[11px]" style={{ color: 'var(--sage-400)' }}>{agent.role}</div>
+              </div>
+              <span
+                className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                style={{ backgroundColor: `${sc.text}15`, color: sc.text }}
+              >
+                {statusLabel(agent.status)}
+              </span>
+            </div>
+
+            {/* Progress */}
+            <div className="mb-2">
+              <div className="flex items-center justify-between text-[10px] mb-1" style={{ color: 'var(--sage-400)' }}>
+                <span>进度</span>
+                <span>{agent.progress}%</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--sage-100)' }}>
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: agent.status === 'completed' ? 'var(--success)' : agent.color }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${agent.progress}%` }}
+                  transition={{ duration: 0.8, ease: easeGentle }}
+                />
+              </div>
+            </div>
+
+            {/* Current Task */}
+            <div className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--sage-500)' }}>
+              {agent.status === 'running' && (
+                <Loader2 size={10} className="animate-spin" style={{ color: agent.color }} />
+              )}
+              {agent.status === 'completed' && <Check size={10} style={{ color: 'var(--success)' }} />}
+              {agent.status === 'idle' && <Clock size={10} />}
+              {agent.status === 'error' && <X size={10} style={{ color: 'var(--error)' }} />}
+              <span className="truncate">{agent.currentTask}</span>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Page Component                                                */
 /* ------------------------------------------------------------------ */
 
 export default function AgentCollab() {
-  const [activeTab, setActiveTab] = useState<'groups' | 'create' | 'templates'>('groups');
+  const [activeTab, setActiveTab] = useState<'groups' | 'create' | 'templates' | 'collab'>('groups');
+  const [collabMode, setCollabMode] = useState<CollabMode>('sequential');
+  const [showCreateWizard, setShowCreateWizard] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [groups, setGroups] = useState(agentGroups);
   const [showCreateWizard, setShowCreateWizard] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -860,6 +1069,7 @@ export default function AgentCollab() {
 
   const tabs = [
     { id: 'groups' as const, label: '协作组列表', icon: Users },
+    { id: 'collab' as const, label: '协作编排', icon: Workflow },
     { id: 'create' as const, label: '创建向导', icon: Plus },
     { id: 'templates' as const, label: '模板市场', icon: Layout },
   ];
@@ -1040,6 +1250,95 @@ export default function AgentCollab() {
                   }}
                 />
               ))}
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'collab' && (
+          <motion.div
+            key="collab"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: easeGentle }}
+            className="space-y-6"
+          >
+            {/* Mode Selection */}
+            <div
+              className="rounded-card p-5"
+              style={{ backgroundColor: '#fff', border: '1px solid var(--sage-200)', boxShadow: 'var(--shadow-card)' }}
+            >
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--sage-700)' }}>
+                <CircleDot size={16} style={{ color: 'var(--sage-500)' }} />
+                协作模式选择
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {(Object.entries(modeConfig) as [CollabMode, typeof modeConfig.sequential][]).map(([mode, cfg]) => {
+                  const Icon = cfg.icon;
+                  const isActive = collabMode === mode;
+                  return (
+                    <motion.button
+                      key={mode}
+                      className="relative flex flex-col items-center gap-2 p-4 rounded-card border-2 text-center transition-all duration-200"
+                      style={{
+                        borderColor: isActive ? cfg.color : 'var(--sage-200)',
+                        backgroundColor: isActive ? `${cfg.color}08` : '#fff',
+                      }}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setCollabMode(mode)}
+                    >
+                      {isActive && (
+                        <motion.div
+                          className="absolute top-2 right-2"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ ease: easeSpring }}
+                        >
+                          <Check size={14} style={{ color: cfg.color }} />
+                        </motion.div>
+                      )}
+                      <Icon size={24} style={{ color: isActive ? cfg.color : 'var(--sage-400)' }} />
+                      <div>
+                        <div className="text-sm font-medium" style={{ color: isActive ? 'var(--sage-700)' : 'var(--sage-600)' }}>{cfg.label}</div>
+                        <div className="text-[11px] mt-0.5" style={{ color: 'var(--sage-400)' }}>{cfg.desc}</div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 p-3 rounded-lg text-xs" style={{ backgroundColor: 'var(--sage-50)', color: 'var(--sage-500)' }}>
+                当前模式: <span className="font-semibold" style={{ color: modeConfig[collabMode].color }}>{modeConfig[collabMode].label}</span>
+                {' · '}
+                {collabMode === 'sequential' && '任务按固定顺序在智能体之间传递，每步完成后自动交接给下一个。'}
+                {collabMode === 'parallel' && '所有智能体同时执行任务，结果自动汇总。'}
+                {collabMode === 'hierarchical' && '按照组织架构自上而下分配任务，结果逐级上报。'}
+                {collabMode === 'dynamic' && '根据任务复杂度和智能体负载自动调整执行顺序和分配策略。'}
+              </div>
+            </div>
+
+            {/* Participating Agents */}
+            <div
+              className="rounded-card p-5"
+              style={{ backgroundColor: '#fff', border: '1px solid var(--sage-200)', boxShadow: 'var(--shadow-card)' }}
+            >
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--sage-700)' }}>
+                <Users size={16} style={{ color: 'var(--sage-500)' }} />
+                参与协作的 Agent
+              </h3>
+              <RealtimeStatusPanel agents={mockCollabAgents} />
+            </div>
+
+            {/* Handoff Flow Visualization */}
+            <div
+              className="rounded-card p-5"
+              style={{ backgroundColor: '#fff', border: '1px solid var(--sage-200)', boxShadow: 'var(--shadow-card)' }}
+            >
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--sage-700)' }}>
+                <Route size={16} style={{ color: 'var(--sage-500)' }} />
+                手递手（Handoff）流程
+              </h3>
+              <HandoffFlowViz steps={mockHandoffFlow} />
             </div>
           </motion.div>
         )}

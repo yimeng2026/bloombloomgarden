@@ -1,17 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users,
   Plus,
   Search,
-  Settings,
   Activity,
-  MessageSquare,
-  Zap,
-  GitMerge,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
   ChevronRight,
   ChevronDown,
   Trash2,
@@ -19,41 +13,37 @@ import {
   Pause,
   RefreshCw,
   Crown,
-  Shield,
-  Hammer,
-  BarChart3,
+  TreePine,
+  User,
+  Clock,
   Layers,
   Network,
+  Zap,
+  AlertTriangle,
+  X,
+  Check,
+  UserPlus,
+  Settings,
+  ArrowRight,
+  GitBranch,
 } from 'lucide-react'
 import {
   fetchGroups,
   createGroup,
   deleteGroup,
-  getGroupStatus,
-  updateGroupStatus,
-  getGroupMeetings,
-  startGroupMeeting,
-  getGroupConflicts,
-  resolveGroupConflict,
-  getGroupHealth,
-  getGroupHierarchy,
-  getGroupGovernance,
-  triggerGroupReorganize,
-  addAgentToGroup,
-  removeAgentFromGroup,
-  assignCoordinator,
-  nestGroup,
   executeGroup,
+  updateGroupStatus,
+  fetchAgents,
 } from '@/api/client'
 
 /* ── Types ──────────────────────────────────────────────────────── */
 
-interface GroupMember {
+interface GroupEntity {
   id: string
+  type: 'agent' | 'group'
   name: string
-  role: string
-  status: 'online' | 'offline' | 'busy'
-  avatarType?: string
+  role?: string
+  status?: 'online' | 'offline' | 'busy'
   accentColor?: string
 }
 
@@ -69,45 +59,364 @@ interface GroupTask {
 interface Group {
   id: string
   name: string
+  entityType: 'mixed' | 'agents' | 'groups'
   type: 'sequential' | 'parallel' | 'hierarchical' | 'dynamic'
   status: 'active' | 'paused' | 'completed'
   description: string
-  members: GroupMember[]
+  coordinatorId?: string
+  coordinatorName?: string
+  entityIds: string[]
+  entities?: GroupEntity[]
   tasks: GroupTask[]
+  children?: Group[]
   health?: { overall: string; issues: string[] }
-  hierarchy?: { level: number; children: string[] }
   accentColor?: string
+  createdAt?: string
 }
 
-interface Governance {
-  provinces: {
-    zhongshu: { name: string; subtitle: string; agents: any[]; stats: Record<string, any> }
-    menxia: { name: string; subtitle: string; agents: any[]; stats: Record<string, any> }
-    shangshu: { name: string; subtitle: string; agents: any[]; stats: Record<string, any> }
+/* ── Mock Data for Tree Demo ──────────────────────────────────── */
+
+const mockGroups: Group[] = [
+  {
+    id: 'g-1',
+    name: '产品研发总部',
+    entityType: 'mixed',
+    type: 'hierarchical',
+    status: 'active',
+    description: '负责全产品线的研发管理，包含前端、后端、测试、运维子团队',
+    coordinatorId: 'a-1',
+    coordinatorName: '张总监',
+    entityIds: ['a-1', 'g-2', 'g-3', 'g-4'],
+    entities: [
+      { id: 'a-1', type: 'agent', name: '张总监', role: '技术总监', status: 'online', accentColor: '#6b7a5a' },
+      { id: 'g-2', type: 'group', name: '前端开发组' },
+      { id: 'g-3', type: 'group', name: '后端开发组' },
+      { id: 'g-4', type: 'group', name: '测试运维组' },
+    ],
+    tasks: [
+      { id: 't1', title: '产品迭代规划', status: 'in_progress', assigneeId: 'a-1', priority: 'high', progress: 60 },
+    ],
+    children: [
+      {
+        id: 'g-2',
+        name: '前端开发组',
+        entityType: 'agents',
+        type: 'parallel',
+        status: 'active',
+        description: 'React/Vue前端开发团队',
+        coordinatorId: 'a-2',
+        coordinatorName: '李前端',
+        entityIds: ['a-2', 'a-3', 'a-4'],
+        entities: [
+          { id: 'a-2', type: 'agent', name: '李前端', role: '前端负责人', status: 'online', accentColor: '#7fb89f' },
+          { id: 'a-3', type: 'agent', name: '王组件', role: 'UI组件开发', status: 'busy', accentColor: '#7fa3b0' },
+          { id: 'a-4', type: 'agent', name: '赵页面', role: '页面开发', status: 'online', accentColor: '#d4a373' },
+        ],
+        tasks: [
+          { id: 't2', title: '设计系统升级', status: 'in_progress', assigneeId: 'a-3', priority: 'high', progress: 45 },
+          { id: 't3', title: '仪表盘重构', status: 'pending', assigneeId: 'a-4', priority: 'medium', progress: 0 },
+        ],
+      },
+      {
+        id: 'g-3',
+        name: '后端开发组',
+        entityType: 'agents',
+        type: 'sequential',
+        status: 'active',
+        description: 'API服务与数据库开发',
+        coordinatorId: 'a-5',
+        coordinatorName: '陈后端',
+        entityIds: ['a-5', 'a-6'],
+        entities: [
+          { id: 'a-5', type: 'agent', name: '陈后端', role: '后端负责人', status: 'online', accentColor: '#8f9a7d' },
+          { id: 'a-6', type: 'agent', name: '刘数据库', role: 'DBA', status: 'offline', accentColor: '#c97b84' },
+        ],
+        tasks: [
+          { id: 't4', title: 'API v2开发', status: 'in_progress', assigneeId: 'a-5', priority: 'high', progress: 70 },
+        ],
+      },
+      {
+        id: 'g-4',
+        name: '测试运维组',
+        entityType: 'agents',
+        type: 'dynamic',
+        status: 'paused',
+        description: '自动化测试与CI/CD运维',
+        coordinatorId: 'a-7',
+        coordinatorName: '周测试',
+        entityIds: ['a-7', 'a-8'],
+        entities: [
+          { id: 'a-7', type: 'agent', name: '周测试', role: '测试负责人', status: 'online', accentColor: '#a78b9a' },
+          { id: 'a-8', type: 'agent', name: '吴运维', role: 'DevOps', status: 'busy', accentColor: '#c9a96e' },
+        ],
+        tasks: [
+          { id: 't5', title: 'CI流水线优化', status: 'completed', assigneeId: 'a-8', priority: 'medium', progress: 100 },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'g-5',
+    name: '数据分析中心',
+    entityType: 'mixed',
+    type: 'sequential',
+    status: 'active',
+    description: '数据采集→清洗→分析→可视化',
+    coordinatorId: 'a-9',
+    coordinatorName: '郑分析',
+    entityIds: ['a-9', 'g-6'],
+    entities: [
+      { id: 'a-9', type: 'agent', name: '郑分析', role: '分析负责人', status: 'online', accentColor: '#7fb89f' },
+      { id: 'g-6', type: 'group', name: '数据工程组' },
+    ],
+    tasks: [],
+    children: [
+      {
+        id: 'g-6',
+        name: '数据工程组',
+        entityType: 'agents',
+        type: 'parallel',
+        status: 'active',
+        description: 'ETL管道与数据仓库',
+        coordinatorId: 'a-10',
+        coordinatorName: '孙工程',
+        entityIds: ['a-10', 'a-11'],
+        entities: [
+          { id: 'a-10', type: 'agent', name: '孙工程', role: '数据工程师', status: 'online', accentColor: '#7fa3b0' },
+          { id: 'a-11', type: 'agent', name: '钱ETL', role: 'ETL开发', status: 'busy', accentColor: '#d4a373' },
+        ],
+        tasks: [
+          { id: 't6', title: '实时数仓搭建', status: 'in_progress', assigneeId: 'a-10', priority: 'high', progress: 30 },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'g-7',
+    name: '内容创作团队',
+    entityType: 'agents',
+    type: 'dynamic',
+    status: 'active',
+    description: '研究→写作→翻译→审校',
+    coordinatorId: 'a-12',
+    coordinatorName: '林创作',
+    entityIds: ['a-12', 'a-13', 'a-14'],
+    entities: [
+      { id: 'a-12', type: 'agent', name: '林创作', role: '内容总监', status: 'online', accentColor: '#6b7a5a' },
+      { id: 'a-13', type: 'agent', name: '黄写作', role: '撰稿人', status: 'busy', accentColor: '#c97b84' },
+      { id: 'a-14', type: 'agent', name: '何翻译', role: '翻译员', status: 'online', accentColor: '#8f9a7d' },
+    ],
+    tasks: [
+      { id: 't7', title: '产品白皮书撰写', status: 'in_progress', assigneeId: 'a-13', priority: 'high', progress: 55 },
+    ],
+  },
+]
+
+/* ── Helpers ────────────────────────────────────────────────────── */
+
+const typeIcons: Record<string, React.ElementType> = {
+  sequential: Clock,
+  parallel: Layers,
+  hierarchical: Network,
+  dynamic: RefreshCw,
+}
+
+const typeLabels: Record<string, string> = {
+  sequential: '顺序',
+  parallel: '并行',
+  hierarchical: '层级',
+  dynamic: '动态',
+}
+
+/* ── Tree Node Component ────────────────────────────────────────── */
+
+function TreeNode({
+  group,
+  level,
+  expandedIds,
+  toggleExpand,
+  selectedId,
+  onSelect,
+  onDelete,
+  onExecute,
+  onToggleStatus,
+}: {
+  group: Group
+  level: number
+  expandedIds: Set<string>
+  toggleExpand: (id: string) => void
+  selectedId: string | null
+  onSelect: (g: Group) => void
+  onDelete: (id: string) => void
+  onExecute: (id: string) => void
+  onToggleStatus: (id: string, currentStatus: string) => void
+}) {
+  const isExpanded = expandedIds.has(group.id)
+  const isSelected = selectedId === group.id
+  const hasChildren = group.children && group.children.length > 0
+  const TypeIcon = typeIcons[group.type] || Users
+  const indent = level * 20
+
+  return (
+    <div>
+      <div
+        className={`group flex items-center gap-2 p-3 rounded-card-sm transition-all cursor-pointer ${
+          isSelected
+            ? 'bg-[var(--sage-500)] text-white'
+            : 'bg-white hover:bg-[var(--sage-100)]'
+        }`}
+        style={{ marginLeft: indent }}
+        onClick={() => onSelect(group)}
+      >
+        {/* Expand toggle */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleExpand(group.id)
+          }}
+          className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${
+            isSelected ? 'hover:bg-white/20' : 'hover:bg-[var(--sage-200)]'
+          }`}
+        >
+          {hasChildren ? (
+            isExpanded ? (
+              <ChevronDown className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5" />
+            )
+          ) : (
+            <div className="w-3.5 h-3.5" />
+          )}
+        </button>
+
+        {/* Icon */}
+        <TypeIcon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-white' : 'text-[var(--sage-500)]'}`} />
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-sm truncate">{group.name}</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                group.status === 'active'
+                  ? isSelected ? 'bg-green-500/30 text-white' : 'bg-green-500/15 text-green-600'
+                  : group.status === 'paused'
+                  ? isSelected ? 'bg-amber-500/30 text-white' : 'bg-amber-500/15 text-amber-600'
+                  : isSelected ? 'bg-white/20 text-white/80' : 'bg-[var(--sage-200)] text-[var(--sage-500)]'
+              }`}
+            >
+              {group.status === 'active' ? '运行中' : group.status === 'paused' ? '已暂停' : '已完成'}
+            </span>
+          </div>
+          <p className={`text-xs mt-0.5 truncate ${isSelected ? 'text-white/70' : 'text-[var(--sage-500)]'}`}>
+            {(group.entities?.length || group.entityIds?.length || 0)} 成员 · {typeLabels[group.type]}
+            {group.coordinatorName && ` · 协调: ${group.coordinatorName}`}
+          </p>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          <button
+            onClick={(e) => { e.stopPropagation(); onExecute(group.id) }}
+            className={`p-1.5 rounded transition-colors ${isSelected ? 'hover:bg-white/20 text-white/80' : 'hover:bg-[var(--sage-200)] text-[var(--sage-500)]'}`}
+            title="执行"
+          >
+            <Zap className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleStatus(group.id, group.status) }}
+            className={`p-1.5 rounded transition-colors ${isSelected ? 'hover:bg-white/20 text-white/80' : 'hover:bg-[var(--sage-200)] text-[var(--sage-500)]'}`}
+            title={group.status === 'active' ? '暂停' : '启动'}
+          >
+            {group.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(group.id) }}
+            className={`p-1.5 rounded transition-colors ${isSelected ? 'hover:bg-white/20 text-white/80' : 'hover:bg-red-100 text-red-400'}`}
+            title="删除"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Children */}
+      <AnimatePresence>
+        {hasChildren && isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1 space-y-1">
+              {group.children!.map((child) => (
+                <TreeNode
+                  key={child.id}
+                  group={child}
+                  level={level + 1}
+                  expandedIds={expandedIds}
+                  toggleExpand={toggleExpand}
+                  selectedId={selectedId}
+                  onSelect={onSelect}
+                  onDelete={onDelete}
+                  onExecute={onExecute}
+                  onToggleStatus={onToggleStatus}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/* ── Flatten groups for search ──────────────────────────────────── */
+
+function flattenGroups(groups: Group[]): Group[] {
+  const result: Group[] = []
+  function walk(list: Group[]) {
+    for (const g of list) {
+      result.push(g)
+      if (g.children) walk(g.children)
+    }
   }
-  ministries: Record<string, { name: string; subtitle: string; agents?: number; stats?: Record<string, any> }>
+  walk(groups)
+  return result
 }
 
-/* ── Component ──────────────────────────────────────────────────── */
+function searchGroups(groups: Group[], query: string): Group[] {
+  if (!query.trim()) return groups
+  const q = query.toLowerCase()
+  const all = flattenGroups(groups)
+  const matched = all.filter(
+    (g) =>
+      g.name.toLowerCase().includes(q) ||
+      g.description.toLowerCase().includes(q) ||
+      g.coordinatorName?.toLowerCase().includes(q)
+  )
+  // Return top-level groups that have matches in their tree
+  return groups.filter((g) => {
+    const flat = flattenGroups([g])
+    return flat.some((fg) => fg.name.toLowerCase().includes(q) || fg.description.toLowerCase().includes(q))
+  })
+}
+
+/* ── Main Component ─────────────────────────────────────────────── */
 
 export default function Groups() {
-  const [groups, setGroups] = useState<Group[]>([])
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
-  const [governance, setGovernance] = useState<Governance | null>(null)
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+  const [groups, setGroups] = useState<Group[]>(mockGroups)
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(mockGroups[0] || null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'governance' | 'hierarchy' | 'health'>('overview')
-  const [executing, setExecuting] = useState(false)
-  const [nesting, setNesting] = useState(false)
-  const [assigning, setAssigning] = useState(false)
-  const [showAddAgent, setShowAddAgent] = useState(false)
-  const [agentIdInput, setAgentIdInput] = useState('')
-  const [coordinatorIdInput, setCoordinatorIdInput] = useState('')
-  const [parentIdInput, setParentIdInput] = useState('')
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['g-1', 'g-5']))
+  const [executingId, setExecutingId] = useState<string | null>(null)
 
-  /* Load groups */
   useEffect(() => {
     loadGroups()
   }, [])
@@ -117,52 +426,89 @@ export default function Groups() {
       setLoading(true)
       setError(null)
       const res = await fetchGroups()
-      setGroups(res.data || [])
-      if (res.data?.length > 0) {
+      if (res.data && res.data.length > 0) {
+        setGroups(res.data)
         setSelectedGroup(res.data[0])
       }
     } catch (e: any) {
       console.error(e)
-      setError(e?.message || '加载协作组失败')
+      // Keep mock data on error
     } finally {
       setLoading(false)
     }
   }
 
-  /* Load governance when group selected */
-  useEffect(() => {
-    if (!selectedGroup) return
-    loadGovernance(selectedGroup.id)
-  }, [selectedGroup?.id])
+  function toggleExpand(id: string) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
-  async function loadGovernance(groupId: string) {
+  function handleSelect(group: Group) {
+    setSelectedGroup(group)
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('确定删除此协作组？')) return
     try {
-      const res = await getGroupGovernance(groupId)
-      setGovernance(res.data)
-    } catch (e: any) {
-      console.error('Governance load failed', e)
-      setError(e?.message || '加载治理信息失败')
+      await deleteGroup(id)
+      loadGroups()
+    } catch (e) {
+      console.error(e)
+      // Optimistic update
+      const removeGroup = (list: Group[]): Group[] =>
+        list
+          .filter((g) => g.id !== id)
+          .map((g) => ({
+            ...g,
+            children: g.children ? removeGroup(g.children) : undefined,
+          }))
+      setGroups((prev) => removeGroup(prev))
+      if (selectedGroup?.id === id) setSelectedGroup(null)
     }
   }
 
-  const filtered = groups.filter((g) =>
-    g.name.toLowerCase().includes(search.toLowerCase()) ||
-    g.description.toLowerCase().includes(search.toLowerCase())
-  )
-
-  const typeIcons: Record<string, React.ElementType> = {
-    sequential: Clock,
-    parallel: Layers,
-    hierarchical: Network,
-    dynamic: RefreshCw,
+  async function handleExecute(id: string) {
+    setExecutingId(id)
+    try {
+      await executeGroup(id)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setExecutingId(null)
+    }
   }
 
-  const typeLabels: Record<string, string> = {
-    sequential: '顺序',
-    parallel: '并行',
-    hierarchical: '层级',
-    dynamic: '动态',
+  async function handleToggleStatus(id: string, currentStatus: string) {
+    try {
+      await updateGroupStatus(id, {
+        status: currentStatus === 'active' ? 'paused' : 'active',
+      })
+      loadGroups()
+    } catch (e) {
+      console.error(e)
+      // Optimistic update
+      const updateStatus = (list: Group[]): Group[] =>
+        list.map((g) => {
+          if (g.id === id) {
+            return { ...g, status: g.status === 'active' ? 'paused' : 'active' as any }
+          }
+          return { ...g, children: g.children ? updateStatus(g.children) : undefined }
+        })
+      setGroups((prev) => updateStatus(prev))
+      if (selectedGroup?.id === id) {
+        setSelectedGroup((prev) =>
+          prev ? { ...prev, status: prev.status === 'active' ? 'paused' : 'active' as any } : null
+        )
+      }
+    }
   }
+
+  const filteredGroups = searchGroups(groups, search)
+  const totalCount = flattenGroups(groups).length
 
   return (
     <div className="space-y-6">
@@ -171,15 +517,12 @@ export default function Groups() {
         <div>
           <h1 className="text-2xl font-bold text-[var(--sage-800)]">协作组管理</h1>
           <p className="text-[var(--sage-500)] mt-1">
-            三省六部治理 · 动态重组 · 多等级层级
+            递归群组组合 · 树形层级 · {totalCount} 个群组
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="btn-primary flex items-center gap-2"
-        >
+        <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" />
-          新建协作组
+          创建群组
         </button>
       </div>
 
@@ -188,20 +531,19 @@ export default function Groups() {
         <div className="bg-red-500/10 text-red-600 rounded-card px-4 py-3 text-sm flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" />
           {error}
-          <button onClick={() => setError(null)} className="ml-auto text-red-500 hover:text-red-700">
-            ✕
-          </button>
+          <button onClick={() => setError(null)} className="ml-auto text-red-500 hover:text-red-700">✕</button>
         </div>
       )}
 
       <div className="flex gap-6">
-        {/* Sidebar — Group List */}
-        <div className="w-72 space-y-3 flex-shrink-0">
+        {/* Sidebar — Tree List */}
+        <div className="w-80 space-y-3 flex-shrink-0">
+          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--sage-400)]" />
             <input
               type="text"
-              placeholder="搜索协作组..."
+              placeholder="搜索群组..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-card border text-sm"
@@ -209,522 +551,355 @@ export default function Groups() {
             />
           </div>
 
+          {/* Expand/Collapse All */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const allIds = new Set(flattenGroups(groups).map((g) => g.id))
+                setExpandedIds(allIds)
+              }}
+              className="text-xs px-3 py-1.5 rounded-lg bg-white border text-[var(--sage-500)] hover:bg-[var(--sage-100)] transition-colors"
+              style={{ borderColor: 'var(--sage-200)' }}
+            >
+              展开全部
+            </button>
+            <button
+              onClick={() => setExpandedIds(new Set())}
+              className="text-xs px-3 py-1.5 rounded-lg bg-white border text-[var(--sage-500)] hover:bg-[var(--sage-100)] transition-colors"
+              style={{ borderColor: 'var(--sage-200)' }}
+            >
+              折叠全部
+            </button>
+          </div>
+
+          {/* Tree */}
           {loading ? (
             <div className="text-center py-8 text-[var(--sage-500)]">加载中...</div>
-          ) : filtered.length === 0 ? (
+          ) : filteredGroups.length === 0 ? (
             <div className="card text-center py-8">
               <Users className="w-10 h-10 text-[var(--sage-400)] mx-auto mb-2" />
               <p className="text-[var(--sage-500)]">暂无协作组</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {filtered.map((group) => {
-                const TypeIcon = typeIcons[group.type] || Users
-                const isSelected = selectedGroup?.id === group.id
-                return (
-                  <button
-                    key={group.id}
-                    onClick={() => setSelectedGroup(group)}
-                    className={`w-full text-left p-3 rounded-card-sm transition-all ${
-                      isSelected
-                        ? 'bg-[var(--sage-500)] text-white'
-                        : 'bg-white hover:bg-[var(--sage-100)]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <TypeIcon className="w-4 h-4" />
-                      <span className="font-medium text-sm">{group.name}</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.5 rounded-full ml-auto ${
-                          group.status === 'active'
-                            ? 'bg-green-500/20 text-green-600'
-                            : group.status === 'paused'
-                            ? 'bg-amber-500/20 text-amber-600'
-                            : 'bg-[var(--sage-200)] text-[var(--sage-500)]'
-                        }`}
-                      >
-                        {group.status === 'active' ? '运行中' : group.status === 'paused' ? '已暂停' : '已完成'}
-                      </span>
-                    </div>
-                    <p className={`text-xs mt-1 ${isSelected ? 'text-white/70' : 'text-[var(--sage-500)]'}`}>
-                      {group.members.length} 成员 · {group.tasks.length} 任务 · {typeLabels[group.type]}
-                    </p>
-                  </button>
-                )
-              })}
+            <div className="space-y-1">
+              {filteredGroups.map((group) => (
+                <TreeNode
+                  key={group.id}
+                  group={group}
+                  level={0}
+                  expandedIds={expandedIds}
+                  toggleExpand={toggleExpand}
+                  selectedId={selectedGroup?.id || null}
+                  onSelect={handleSelect}
+                  onDelete={handleDelete}
+                  onExecute={handleExecute}
+                  onToggleStatus={handleToggleStatus}
+                />
+              ))}
             </div>
           )}
         </div>
 
-        {/* Main Content */}
+        {/* Main Content — Group Preview */}
         <div className="flex-1 min-w-0">
           {selectedGroup ? (
-            <div className="space-y-4">
-              {/* Group Header Card */}
-              <div className="card p-5">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <Users className="w-6 h-6 text-[var(--sage-500)]" />
-                      <h2 className="text-lg font-bold text-[var(--sage-800)]">{selectedGroup.name}</h2>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]">
-                        {typeLabels[selectedGroup.type]}
-                      </span>
-                    </div>
-                    <p className="text-sm text-[var(--sage-500)] mt-1">{selectedGroup.description}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={async () => {
-                        try {
-                          setExecuting(true)
-                          await executeGroup(selectedGroup.id)
-                          loadGroups()
-                        } catch (e: any) {
-                          console.error(e)
-                          setError(e?.message || '执行失败')
-                        } finally {
-                          setExecuting(false)
-                        }
-                      }}
-                      disabled={executing}
-                      className="p-2 text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"
-                      title="执行群组"
-                    >
-                      <Zap className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await updateGroupStatus(selectedGroup.id, {
-                            status: selectedGroup.status === 'active' ? 'paused' : 'active',
-                          })
-                          loadGroups()
-                        } catch (e: any) {
-                          console.error(e)
-                          setError(e?.message || '状态更新失败')
-                        }
-                      }}
-                      className={`p-2 rounded-lg transition-colors ${
-                        selectedGroup.status === 'active'
-                          ? 'text-amber-500 hover:bg-amber-500/10'
-                          : 'text-green-500 hover:bg-green-500/10'
-                      }`}
-                      title={selectedGroup.status === 'active' ? '暂停' : '启动'}
-                    >
-                      {selectedGroup.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    </button>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await triggerGroupReorganize(selectedGroup.id, { strategy: 'auto' })
-                          loadGovernance(selectedGroup.id)
-                        } catch (e: any) {
-                          console.error(e)
-                          setError(e?.message || '重组失败')
-                        }
-                      }}
-                      className="p-2 text-[var(--sage-500)] hover:text-[var(--sage-700)] hover:bg-[var(--sage-100)] rounded-lg transition-colors"
-                      title="动态重组"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (!confirm('确定删除此协作组？')) return
-                        try {
-                          await deleteGroup(selectedGroup.id)
-                          loadGroups()
-                        } catch (e) { console.error(e) }
-                      }}
-                      className="p-2 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Quick Stats */}
-                <div className="grid grid-cols-4 gap-3 mt-4">
-                  {[
-                    { label: '成员', value: selectedGroup.members.length, icon: Users },
-                    { label: '任务', value: selectedGroup.tasks.length, icon: CheckCircle },
-                    { label: '运行中', value: selectedGroup.tasks.filter((t) => t.status === 'in_progress').length, icon: Activity },
-                    { label: '层级', value: selectedGroup.hierarchy?.level || 1, icon: Layers },
-                  ].map((stat) => (
-                    <div key={stat.label} className="bg-[var(--sage-50)] rounded-card-sm p-3 text-center">
-                      <stat.icon className="w-4 h-4 text-[var(--sage-400)] mx-auto mb-1" />
-                      <div className="text-lg font-bold text-[var(--sage-800)]">{stat.value}</div>
-                      <div className="text-xs text-[var(--sage-500)]">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tabs */}
-              <div className="flex gap-1 border-b">
-                {[
-                  { id: 'overview', label: '概览', icon: BarChart3 },
-                  { id: 'governance', label: '三省六部', icon: Crown },
-                  { id: 'hierarchy', label: '层级结构', icon: Network },
-                  { id: 'health', label: '健康', icon: Activity },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-[1px] ${
-                      activeTab === tab.id
-                        ? 'border-[var(--sage-500)] text-[var(--sage-700)]'
-                        : 'border-transparent text-[var(--sage-500)] hover:text-[var(--sage-600)]'
-                    }`}
-                  >
-                    <tab.icon className="w-4 h-4" />
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab Content */}
-              <AnimatePresence mode="wait">
-                {activeTab === 'overview' && (
-                  <motion.div
-                    key="overview"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="space-y-4"
-                  >
-                    {/* Members */}
-                    <div className="card p-4">
-                      <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
-                        <Users className="w-4 h-4" /> 成员
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedGroup.members.map((m) => (
-                          <div key={m.id} className="flex items-center gap-2 bg-[var(--sage-50)] rounded-lg px-3 py-2">
-                            <div
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                              style={{ backgroundColor: m.accentColor || 'var(--sage-500)' }}
-                            >
-                              {m.name[0]}
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-[var(--sage-800)]">{m.name}</div>
-                              <div className="text-[10px] text-[var(--sage-500)]">
-                                {m.role} · {m.status === 'online' ? '在线' : m.status === 'busy' ? '忙碌' : '离线'}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Tasks */}
-                    <div className="card p-4">
-                      <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" /> 任务
-                      </h3>
-                      <div className="space-y-2">
-                        {selectedGroup.tasks.map((task) => (
-                          <div key={task.id} className="flex items-center gap-3 bg-[var(--sage-50)] rounded-lg px-3 py-2">
-                            <div className={`w-2 h-2 rounded-full ${
-                              task.status === 'completed' ? 'bg-green-500' :
-                              task.status === 'in_progress' ? 'bg-amber-500' :
-                              'bg-[var(--sage-300)]'
-                            }`} />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm text-[var(--sage-800)] truncate">{task.title}</div>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <div className="flex-1 h-1 bg-[var(--sage-200)] rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full bg-[var(--sage-500)] rounded-full transition-all"
-                                    style={{ width: `${task.progress}%` }}
-                                  />
-                                </div>
-                                <span className="text-[10px] text-[var(--sage-500)]">{task.progress}%</span>
-                              </div>
-                            </div>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                              task.priority === 'high' ? 'bg-red-500/10 text-red-500' :
-                              task.priority === 'medium' ? 'bg-amber-500/10 text-amber-500' :
-                              'bg-[var(--sage-100)] text-[var(--sage-500)]'
-                            }`}>
-                              {task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Management Actions */}
-                    <div className="card p-4">
-                      <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
-                        <Zap className="w-4 h-4" /> 管理操作
-                      </h3>
-                      <div className="space-y-3">
-                        {/* Add Agent */}
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            placeholder="Agent ID"
-                            value={agentIdInput}
-                            onChange={(e) => setAgentIdInput(e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-lg border text-sm"
-                            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
-                          />
-                          <button
-                            onClick={async () => {
-                              if (!agentIdInput.trim()) return
-                              try {
-                                await addAgentToGroup(selectedGroup.id, agentIdInput.trim())
-                                setAgentIdInput('')
-                                loadGroups()
-                              } catch (e: any) {
-                                setError(e?.message || '添加成员失败')
-                              }
-                            }}
-                            className="px-3 py-2 bg-[var(--sage-500)] text-white rounded-lg text-sm hover:bg-[var(--sage-600)] transition-colors"
-                          >
-                            添加成员
-                          </button>
-                        </div>
-
-                        {/* Assign Coordinator */}
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            placeholder="协调员 Agent ID"
-                            value={coordinatorIdInput}
-                            onChange={(e) => setCoordinatorIdInput(e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-lg border text-sm"
-                            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
-                          />
-                          <button
-                            onClick={async () => {
-                              if (!coordinatorIdInput.trim()) return
-                              try {
-                                setAssigning(true)
-                                await assignCoordinator(selectedGroup.id, coordinatorIdInput.trim())
-                                setCoordinatorIdInput('')
-                                loadGroups()
-                              } catch (e: any) {
-                                setError(e?.message || '分配协调员失败')
-                              } finally {
-                                setAssigning(false)
-                              }
-                            }}
-                            disabled={assigning}
-                            className="px-3 py-2 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600 transition-colors disabled:opacity-50"
-                          >
-                            {assigning ? '分配中...' : '分配协调员'}
-                          </button>
-                        </div>
-
-                        {/* Nest Group */}
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            placeholder="父群组 ID"
-                            value={parentIdInput}
-                            onChange={(e) => setParentIdInput(e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-lg border text-sm"
-                            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
-                          />
-                          <button
-                            onClick={async () => {
-                              if (!parentIdInput.trim()) return
-                              try {
-                                setNesting(true)
-                                await nestGroup(selectedGroup.id, parentIdInput.trim())
-                                setParentIdInput('')
-                                loadGroups()
-                              } catch (e: any) {
-                                setError(e?.message || '嵌套失败')
-                              } finally {
-                                setNesting(false)
-                              }
-                            }}
-                            disabled={nesting}
-                            className="px-3 py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 transition-colors disabled:opacity-50"
-                          >
-                            {nesting ? '嵌套中...' : '嵌套到父组'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {activeTab === 'governance' && governance && (
-                  <motion.div
-                    key="governance"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="space-y-4"
-                  >
-                    {/* 三省 */}
-                    <div className="grid grid-cols-3 gap-4">
-                      {[
-                        {
-                          key: 'zhongshu',
-                          icon: Crown,
-                          title: governance.provinces.zhongshu.name,
-                          subtitle: governance.provinces.zhongshu.subtitle,
-                          color: '#8b5cf6',
-                          agents: governance.provinces.zhongshu.agents,
-                        },
-                        {
-                          key: 'menxia',
-                          icon: Shield,
-                          title: governance.provinces.menxia.name,
-                          subtitle: governance.provinces.menxia.subtitle,
-                          color: '#f59e0b',
-                          agents: governance.provinces.menxia.agents,
-                        },
-                        {
-                          key: 'shangshu',
-                          icon: Hammer,
-                          title: governance.provinces.shangshu.name,
-                          subtitle: governance.provinces.shangshu.subtitle,
-                          color: '#10b981',
-                          agents: governance.provinces.shangshu.agents,
-                        },
-                      ].map((province) => (
-                        <div key={province.key} className="card p-4">
-                          <div className="flex items-center gap-2 mb-3">
-                            <province.icon className="w-5 h-5" style={{ color: province.color }} />
-                            <div>
-                              <div className="font-semibold text-[var(--sage-800)]">{province.title}</div>
-                              <div className="text-xs text-[var(--sage-500)]">{province.subtitle}</div>
-                            </div>
-                          </div>
-                          <div className="space-y-1.5">
-                            {province.agents.map((a: any) => (
-                              <div key={a.id} className="flex items-center gap-2 text-sm">
-                                <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px]" style={{ backgroundColor: province.color }}>
-                                  {a.name[0]}
-                                </div>
-                                <span className="text-[var(--sage-700)]">{a.name}</span>
-                                <span className="text-[10px] text-[var(--sage-400)] ml-auto">{a.role}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* 六部 */}
-                    <div className="card p-4">
-                      <h3 className="font-semibold text-[var(--sage-800)] mb-3">六部职能映射</h3>
-                      <div className="grid grid-cols-3 gap-3">
-                        {Object.entries(governance.ministries).map(([key, ministry]: [string, any]) => (
-                          <div key={key} className="bg-[var(--sage-50)] rounded-card-sm p-3">
-                            <div className="font-medium text-sm text-[var(--sage-800)]">{ministry.name}</div>
-                            <div className="text-xs text-[var(--sage-500)]">{ministry.subtitle}</div>
-                            <div className="mt-2 text-xs text-[var(--sage-600)]">
-                              {ministry.agents !== undefined && <div>人员: {ministry.agents}</div>}
-                              {ministry.stats && Object.entries(ministry.stats).map(([k, v]) => (
-                                <div key={k}>{k}: {String(v)}</div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {activeTab === 'hierarchy' && (
-                  <motion.div
-                    key="hierarchy"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="card p-4"
-                  >
-                    <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
-                      <Network className="w-4 h-4" /> 多等级层级结构
-                    </h3>
-                    <div className="flex items-center justify-center py-8">
-                      <div className="text-center">
-                        <div className="w-16 h-16 rounded-full bg-[var(--sage-500)] text-white flex items-center justify-center mx-auto mb-2 text-lg font-bold">
-                          L{selectedGroup.hierarchy?.level || 1}
-                        </div>
-                        <div className="text-sm text-[var(--sage-800)] font-medium">{selectedGroup.name}</div>
-                        <div className="text-xs text-[var(--sage-500)] mt-1">
-                          当前层级: {selectedGroup.hierarchy?.level || 1}
-                          {selectedGroup.hierarchy?.children && selectedGroup.hierarchy.children.length > 0 &&
-                            ` · 子组: ${selectedGroup.hierarchy.children.length} 个`}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {activeTab === 'health' && (
-                  <motion.div
-                    key="health"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="card p-4"
-                  >
-                    <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
-                      <Activity className="w-4 h-4" /> 健康状态
-                    </h3>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`w-3 h-3 rounded-full ${
-                        selectedGroup.health?.overall === 'healthy' ? 'bg-green-500' :
-                        selectedGroup.health?.overall === 'warning' ? 'bg-amber-500' :
-                        'bg-red-500'
-                      }`} />
-                      <span className="text-sm text-[var(--sage-700)]">
-                        {selectedGroup.health?.overall === 'healthy' ? '健康' :
-                         selectedGroup.health?.overall === 'warning' ? '警告' : '异常'}
-                      </span>
-                    </div>
-                    {selectedGroup.health?.issues && selectedGroup.health.issues.length > 0 ? (
-                      <div className="space-y-2">
-                        {selectedGroup.health.issues.map((issue, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm text-amber-600 bg-amber-500/5 rounded-lg px-3 py-2">
-                            <AlertTriangle className="w-4 h-4" />
-                            {issue}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-green-600 bg-green-500/5 rounded-lg px-3 py-2 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" />
-                        所有系统正常运行
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <GroupPreview
+              group={selectedGroup}
+              onNavigate={(id) => navigate(`/groups/${id}`)}
+              onExecute={() => handleExecute(selectedGroup.id)}
+              onToggleStatus={() => handleToggleStatus(selectedGroup.id, selectedGroup.status)}
+              onDelete={() => handleDelete(selectedGroup.id)}
+              executing={executingId === selectedGroup.id}
+            />
           ) : (
             <div className="card text-center py-16">
               <Users className="w-12 h-12 text-[var(--sage-400)] mx-auto mb-3" />
-              <p className="text-[var(--sage-500)]">选择一个协作组查看详情</p>
+              <p className="text-[var(--sage-500)]">选择一个群组查看详情</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Create Modal */}
-      {showCreate && <CreateGroupModal onClose={() => setShowCreate(false)} onCreated={loadGroups} />}
+      <AnimatePresence>
+        {showCreate && (
+          <CreateGroupModal
+            onClose={() => setShowCreate(false)}
+            onCreated={() => {
+              loadGroups()
+              setShowCreate(false)
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
-/* ── Create Modal ───────────────────────────────────────────────── */
+/* ── Group Preview (right panel) ────────────────────────────────── */
+
+function GroupPreview({
+  group,
+  onNavigate,
+  onExecute,
+  onToggleStatus,
+  onDelete,
+  executing,
+}: {
+  group: Group
+  onNavigate: (id: string) => void
+  onExecute: () => void
+  onToggleStatus: () => void
+  onDelete: () => void
+  executing: boolean
+}) {
+  const TypeIcon = typeIcons[group.type] || Users
+  const memberCount = group.entities?.length || group.entityIds?.length || 0
+  const agentCount = group.entities?.filter((e) => e.type === 'agent').length || 0
+  const groupCount = group.entities?.filter((e) => e.type === 'group').length || 0
+
+  return (
+    <motion.div
+      key={group.id}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="space-y-4"
+    >
+      {/* Header Card */}
+      <div className="card p-5">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-card flex items-center justify-center"
+                style={{ backgroundColor: 'var(--sage-100)' }}
+              >
+                <TypeIcon className="w-5 h-5 text-[var(--sage-500)]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[var(--sage-800)]">{group.name}</h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]">
+                    {typeLabels[group.type]}
+                  </span>
+                  <span className="text-xs text-[var(--sage-400)]">·</span>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${
+                      group.status === 'active'
+                        ? 'bg-green-500/15 text-green-600'
+                        : group.status === 'paused'
+                        ? 'bg-amber-500/15 text-amber-600'
+                        : 'bg-[var(--sage-200)] text-[var(--sage-500)]'
+                    }`}
+                  >
+                    {group.status === 'active' ? '运行中' : group.status === 'paused' ? '已暂停' : '已完成'}
+                  </span>
+                  {group.entityType === 'mixed' && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
+                      混合
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-[var(--sage-500)] mt-2">{group.description}</p>
+          </div>
+
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={onExecute}
+              disabled={executing}
+              className="p-2 text-green-500 hover:bg-green-500/10 rounded-lg transition-colors"
+              title="执行群组"
+            >
+              <Zap className={`w-4 h-4 ${executing ? 'animate-pulse' : ''}`} />
+            </button>
+            <button
+              onClick={onToggleStatus}
+              className={`p-2 rounded-lg transition-colors ${
+                group.status === 'active'
+                  ? 'text-amber-500 hover:bg-amber-500/10'
+                  : 'text-green-500 hover:bg-green-500/10'
+              }`}
+              title={group.status === 'active' ? '暂停' : '启动'}
+            >
+              {group.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => onNavigate(group.id)}
+              className="p-2 text-[var(--sage-500)] hover:bg-[var(--sage-100)] rounded-lg transition-colors"
+              title="查看详情"
+            >
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onDelete}
+              className="p-2 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+              title="删除"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-4 gap-3 mt-4">
+          {[
+            { label: '成员', value: memberCount, icon: Users },
+            { label: 'Agent', value: agentCount, icon: User },
+            { label: '子群组', value: groupCount, icon: TreePine },
+            { label: '任务', value: group.tasks?.length || 0, icon: Activity },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-[var(--sage-50)] rounded-card-sm p-3 text-center">
+              <stat.icon className="w-4 h-4 text-[var(--sage-400)] mx-auto mb-1" />
+              <div className="text-lg font-bold text-[var(--sage-800)]">{stat.value}</div>
+              <div className="text-xs text-[var(--sage-500)]">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Members */}
+      <div className="card p-4">
+        <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+          <Users className="w-4 h-4" /> 成员列表
+        </h3>
+        <div className="space-y-2">
+          {group.entities?.map((entity) => (
+            <div
+              key={entity.id}
+              className="flex items-center gap-3 bg-[var(--sage-50)] rounded-lg px-3 py-2.5"
+            >
+              {entity.type === 'agent' ? (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                  style={{ backgroundColor: entity.accentColor || 'var(--sage-500)' }}
+                >
+                  {entity.name[0]}
+                </div>
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0"
+                >
+                  <TreePine className="w-4 h-4 text-purple-500" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-[var(--sage-800)]">{entity.name}</div>
+                <div className="text-[11px] text-[var(--sage-500)]">
+                  {entity.type === 'agent'
+                    ? `${entity.role || 'Agent'} · ${entity.status === 'online' ? '在线' : entity.status === 'busy' ? '忙碌' : '离线'}`
+                    : '嵌套群组'}
+                </div>
+              </div>
+              {entity.type === 'agent' && group.coordinatorId === entity.id && (
+                <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 flex-shrink-0">
+                  <Crown className="w-3 h-3" /> 协调员
+                </span>
+              )}
+              {entity.type === 'group' && (
+                <button
+                  onClick={() => onNavigate(entity.id)}
+                  className="text-xs px-2 py-1 rounded-lg bg-[var(--sage-100)] text-[var(--sage-500)] hover:bg-[var(--sage-200)] transition-colors flex-shrink-0"
+                >
+                  查看
+                </button>
+              )}
+            </div>
+          ))}
+          {(!group.entities || group.entities.length === 0) && (
+            <p className="text-sm text-[var(--sage-400)] text-center py-4">暂无成员</p>
+          )}
+        </div>
+      </div>
+
+      {/* Tasks */}
+      {group.tasks && group.tasks.length > 0 && (
+        <div className="card p-4">
+          <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+            <Activity className="w-4 h-4" /> 任务
+          </h3>
+          <div className="space-y-2">
+            {group.tasks.map((task) => (
+              <div key={task.id} className="flex items-center gap-3 bg-[var(--sage-50)] rounded-lg px-3 py-2">
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    task.status === 'completed'
+                      ? 'bg-green-500'
+                      : task.status === 'in_progress'
+                      ? 'bg-amber-500'
+                      : 'bg-[var(--sage-300)]'
+                  }`}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-[var(--sage-800)]">{task.title}</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex-1 h-1 bg-[var(--sage-200)] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[var(--sage-500)] rounded-full transition-all"
+                        style={{ width: `${task.progress}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-[var(--sage-500)]">{task.progress}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
+/* ── Create Group Modal ─────────────────────────────────────────── */
 
 function CreateGroupModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [name, setName] = useState('')
   const [type, setType] = useState<'sequential' | 'parallel' | 'hierarchical' | 'dynamic'>('parallel')
   const [desc, setDesc] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [availableAgents, setAvailableAgents] = useState<{ id: string; name: string }[]>([])
+  const [availableGroups, setAvailableGroups] = useState<{ id: string; name: string }[]>([])
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([])
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
+  const [coordinatorId, setCoordinatorId] = useState('')
+  const [activePicker, setActivePicker] = useState<'agents' | 'groups' | null>(null)
+
+  useEffect(() => {
+    fetchAgents().then((res) => {
+      if (res.data) setAvailableAgents(res.data.map((a: any) => ({ id: a.id, name: a.name })))
+    }).catch(() => {
+      // Mock fallback
+      setAvailableAgents([
+        { id: 'a-1', name: '张总监' },
+        { id: 'a-2', name: '李前端' },
+        { id: 'a-3', name: '王组件' },
+        { id: 'a-5', name: '陈后端' },
+        { id: 'a-7', name: '周测试' },
+      ])
+    })
+    fetchGroups().then((res) => {
+      if (res.data) setAvailableGroups(res.data.map((g: any) => ({ id: g.id, name: g.name })))
+    }).catch(() => {
+      setAvailableGroups([
+        { id: 'g-2', name: '前端开发组' },
+        { id: 'g-3', name: '后端开发组' },
+      ])
+    })
+  }, [])
+
+  const allSelectedEntities = [
+    ...selectedAgentIds.map((id) => {
+      const a = availableAgents.find((ag) => ag.id === id)
+      return { id, name: a?.name || id, type: 'agent' as const }
+    }),
+    ...selectedGroupIds.map((id) => {
+      const g = availableGroups.find((gr) => gr.id === id)
+      return { id, name: g?.name || id, type: 'group' as const }
+    }),
+  ]
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -735,11 +910,16 @@ function CreateGroupModal({ onClose, onCreated }: { onClose: () => void; onCreat
         name: name.trim(),
         type,
         description: desc.trim(),
-        members: [],
-        tasks: [],
+        entityType:
+          selectedAgentIds.length > 0 && selectedGroupIds.length > 0
+            ? 'mixed'
+            : selectedGroupIds.length > 0
+            ? 'groups'
+            : 'agents',
+        entityIds: [...selectedAgentIds, ...selectedGroupIds],
+        coordinatorId: coordinatorId || undefined,
       })
       onCreated()
-      onClose()
     } catch (err) {
       console.error(err)
       alert('创建失败')
@@ -749,54 +929,271 @@ function CreateGroupModal({ onClose, onCreated }: { onClose: () => void; onCreat
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-md p-6">
-        <h2 className="text-lg font-bold text-[var(--sage-800)] mb-4">新建协作组</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <motion.div
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto"
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-[var(--sage-800)]">创建群组</h2>
+          <button onClick={onClose} className="p-1.5 hover:bg-[var(--sage-100)] rounded-lg transition-colors">
+            <X className="w-4 h-4 text-[var(--sage-400)]" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Name */}
           <div>
-            <label className="block text-sm text-[var(--sage-600)] mb-1">名称</label>
+            <label className="block text-sm font-medium text-[var(--sage-700)] mb-1.5">群组名称 <span className="text-red-500">*</span></label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border text-sm"
+              className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none transition-all focus:border-[var(--sage-500)]"
               style={{ borderColor: 'var(--sage-200)' }}
-              placeholder="例如：数据分析蜂群"
+              placeholder="例如：产品研发总部"
               required
             />
           </div>
+
+          {/* Execution Mode */}
           <div>
-            <label className="block text-sm text-[var(--sage-600)] mb-1">类型</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-lg border text-sm"
-              style={{ borderColor: 'var(--sage-200)' }}
-            >
-              <option value="sequential">顺序执行</option>
-              <option value="parallel">并行执行</option>
-              <option value="hierarchical">层级结构</option>
-              <option value="dynamic">动态重组</option>
-            </select>
+            <label className="block text-sm font-medium text-[var(--sage-700)] mb-1.5">执行模式</label>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { id: 'sequential', label: '顺序执行', desc: '按序依次执行', icon: Clock },
+                { id: 'parallel', label: '并行执行', desc: '同时执行任务', icon: Layers },
+                { id: 'hierarchical', label: '层级结构', desc: '上下级汇报', icon: Network },
+                { id: 'dynamic', label: '动态重组', desc: '自动调整结构', icon: RefreshCw },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setType(opt.id)}
+                  className={`flex items-center gap-2.5 p-3 rounded-lg border-2 text-left transition-all ${
+                    type === opt.id
+                      ? 'border-[var(--sage-500)] bg-[var(--sage-50)]'
+                      : 'border-[var(--sage-200)] hover:border-[var(--sage-300)]'
+                  }`}
+                >
+                  <opt.icon className={`w-4 h-4 flex-shrink-0 ${type === opt.id ? 'text-[var(--sage-500)]' : 'text-[var(--sage-400)]'}`} />
+                  <div>
+                    <div className="text-sm font-medium text-[var(--sage-700)]">{opt.label}</div>
+                    <div className="text-[11px] text-[var(--sage-400)]">{opt.desc}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Description */}
           <div>
-            <label className="block text-sm text-[var(--sage-600)] mb-1">描述</label>
+            <label className="block text-sm font-medium text-[var(--sage-700)] mb-1.5">描述</label>
             <textarea
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border text-sm"
+              className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none transition-all focus:border-[var(--sage-500)] resize-y"
               style={{ borderColor: 'var(--sage-200)' }}
-              rows={3}
-              placeholder="描述此协作组的职责..."
+              rows={2}
+              placeholder="描述此群组的职责..."
             />
           </div>
+
+          {/* Member Selection */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--sage-700)] mb-1.5">成员选择</label>
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setActivePicker(activePicker === 'agents' ? null : 'agents')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  activePicker === 'agents'
+                    ? 'bg-[var(--sage-500)] text-white'
+                    : 'bg-[var(--sage-100)] text-[var(--sage-600)] hover:bg-[var(--sage-200)]'
+                }`}
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                添加 Agent
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivePicker(activePicker === 'groups' ? null : 'groups')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  activePicker === 'groups'
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                }`}
+              >
+                <GitBranch className="w-3.5 h-3.5" />
+                添加已有群组
+              </button>
+            </div>
+
+            {/* Agent Picker */}
+            <AnimatePresence>
+              {activePicker === 'agents' && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="border rounded-lg p-3 space-y-1.5 max-h-40 overflow-y-auto" style={{ borderColor: 'var(--sage-200)' }}>
+                    {availableAgents.map((agent) => {
+                      const isSelected = selectedAgentIds.includes(agent.id)
+                      return (
+                        <button
+                          key={agent.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedAgentIds((prev) =>
+                              prev.includes(agent.id) ? prev.filter((id) => id !== agent.id) : [...prev, agent.id]
+                            )
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors ${
+                            isSelected ? 'bg-[var(--sage-50)]' : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                              isSelected ? 'bg-[var(--sage-500)] border-[var(--sage-500)]' : 'border-[var(--sage-300)]'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <User className="w-4 h-4 text-[var(--sage-400)]" />
+                          <span className="text-sm text-[var(--sage-700)]">{agent.name}</span>
+                          <span className="text-[10px] text-[var(--sage-400)] ml-auto">{agent.id}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Group Picker */}
+            <AnimatePresence>
+              {activePicker === 'groups' && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="border rounded-lg p-3 space-y-1.5 max-h-40 overflow-y-auto" style={{ borderColor: 'var(--sage-200)' }}>
+                    {availableGroups.map((group) => {
+                      const isSelected = selectedGroupIds.includes(group.id)
+                      return (
+                        <button
+                          key={group.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedGroupIds((prev) =>
+                              prev.includes(group.id) ? prev.filter((id) => id !== group.id) : [...prev, group.id]
+                            )
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors ${
+                            isSelected ? 'bg-purple-50' : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                              isSelected ? 'bg-purple-500 border-purple-500' : 'border-[var(--sage-300)]'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <TreePine className="w-4 h-4 text-purple-400" />
+                          <span className="text-sm text-[var(--sage-700)]">{group.name}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Selected Entities Summary */}
+            {allSelectedEntities.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {allSelectedEntities.map((entity) => (
+                  <span
+                    key={`${entity.type}-${entity.id}`}
+                    className={`inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full ${
+                      entity.type === 'agent'
+                        ? 'bg-[var(--sage-100)] text-[var(--sage-600)]'
+                        : 'bg-purple-100 text-purple-600'
+                    }`}
+                  >
+                    {entity.type === 'agent' ? <User className="w-3 h-3" /> : <TreePine className="w-3 h-3" />}
+                    {entity.name}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (entity.type === 'agent') {
+                          setSelectedAgentIds((prev) => prev.filter((id) => id !== entity.id))
+                        } else {
+                          setSelectedGroupIds((prev) => prev.filter((id) => id !== entity.id))
+                        }
+                      }}
+                      className="hover:text-red-500 ml-0.5"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Coordinator */}
+          {selectedAgentIds.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--sage-700)] mb-1.5">协调员 Agent</label>
+              <select
+                value={coordinatorId}
+                onChange={(e) => setCoordinatorId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none transition-all focus:border-[var(--sage-500)]"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: '#fff' }}
+              >
+                <option value="">-- 选择协调员 --</option>
+                {selectedAgentIds.map((id) => {
+                  const agent = availableAgents.find((a) => a.id === id)
+                  return (
+                    <option key={id} value={id}>
+                      {agent?.name || id}
+                    </option>
+                  )
+                })}
+              </select>
+            </div>
+          )}
+
+          {/* Submit */}
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 btn-secondary">取消</button>
-            <button type="submit" disabled={submitting} className="flex-1 btn-primary">
+            <button type="button" onClick={onClose} className="flex-1 btn-secondary py-2.5 text-sm">
+              取消
+            </button>
+            <button
+              type="submit"
+              disabled={submitting || !name.trim()}
+              className="flex-1 btn-primary py-2.5 text-sm disabled:opacity-50"
+            >
               {submitting ? '创建中...' : '创建'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

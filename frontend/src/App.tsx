@@ -20,6 +20,7 @@ const AgentCollab    = lazy(() => import('@/pages/AgentCollab'))
 const AgentMonitor   = lazy(() => import('@/pages/AgentMonitor'))
 const Monitoring     = lazy(() => import('@/pages/Monitoring'))
 const Groups         = lazy(() => import('@/pages/Groups'))
+const GroupDetail    = lazy(() => import('@/pages/GroupDetail'))
 const Collaboration  = lazy(() => import('@/pages/Collaboration'))
 const SwarmPanel     = lazy(() => import('@/pages/SwarmPanel'))
 const SwarmArchitectures = lazy(() => import('@/pages/SwarmArchitectures'))
@@ -135,6 +136,7 @@ export default function App() {
 
           {/* Groups & Swarm */}
           <Route path="/groups" element={<Groups />} />
+          <Route path="/groups/:id" element={<GroupDetail />} />
           <Route path="/collaboration" element={<Collaboration />} />
           <Route path="/swarm" element={<SwarmPanel />} />
           <Route path="/swarm-architectures" element={<SwarmArchitectures />} />

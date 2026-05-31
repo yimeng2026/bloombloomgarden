@@ -20,10 +20,28 @@ model Agent {
   groupId         String?
   description     String?
   avatar          String?
+
+  // --- Protocol Layer System (连连看架构) ---
+  // protocolLevel: 0=infra, 1=single-thread-LLM, 2=multi-thread-orchestrator, 3=gateway
+  protocolLevel   Int      @default(1)
+  // parentPlatform: the L2/L3 platform that orchestrates this agent (for multi-thread mode)
+  parentPlatform  String?
+  // threadPlatforms: JSON array of {threadName, platformId, model} for L2 multi-thread agents
+  threadPlatforms String   @default("[]")
+  // dashboardType: which dashboard component to render (L0/L1/L2/L3)
+  dashboardType   String   @default("L1")
+  // mode: creation mode - A=single-thread, B=multi-thread, C=gateway-direct
+  mode            String   @default("A")
+  // workFiles: JSON array of file IDs (merged with memory hub)
+  workFiles       String   @default("[]")
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   group           Group?   @relation(fields: [groupId], references: [id])
+  @@index([protocolLevel])
+  @@index([status])
+  @@index([groupId])
 }
 
 model Group {
@@ -35,10 +53,22 @@ model Group {
   executionMode   String   @default("sequential")
   status          String   @default("active")
   maxDepth        Int      @default(1)
+
+  // --- Unified Entity System ---
+  // entityIds: JSON array of agentIds AND/OR nested groupIds
+  // All groups are treated as agents (can be nested into parent groups)
+  entityIds       String   @default("[]")
+  // entityType of members: 'mixed' | 'agents' | 'groups'
+  entityType      String   @default("agents")
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   agents          Agent[]
+
+  @@index([parentId])
+  @@index([status])
+  @@index([coordinatorId])
 }
 
 model KnowledgeBase {

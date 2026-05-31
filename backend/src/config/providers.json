@@ -3,13 +3,107 @@
   "description": "千界花园 — 50+ LLM Provider 统一配置",
   "providers": [
     {
+      "id": "cli",
+      "name": "命令行终端",
+      "category": "infra",
+      "baseUrl": "local://cli",
+      "defaultModel": "bash",
+      "apiKeySource": "none",
+      "models": [
+        "bash",
+        "zsh",
+        "powershell"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "code-exec",
+      "name": "代码执行器",
+      "category": "infra",
+      "baseUrl": "local://code",
+      "defaultModel": "python",
+      "apiKeySource": "none",
+      "models": [
+        "python",
+        "node",
+        "rust"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "filesystem",
+      "name": "文件系统",
+      "category": "infra",
+      "baseUrl": "local://fs",
+      "defaultModel": "fs",
+      "apiKeySource": "none",
+      "models": [
+        "fs"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "browser",
+      "name": "浏览器",
+      "category": "infra",
+      "baseUrl": "local://browser",
+      "defaultModel": "chromium",
+      "apiKeySource": "none",
+      "models": [
+        "chromium",
+        "firefox"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "sandbox",
+      "name": "沙箱环境",
+      "category": "infra",
+      "baseUrl": "local://sandbox",
+      "defaultModel": "docker",
+      "apiKeySource": "none",
+      "models": [
+        "docker"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "jupyter",
+      "name": "Jupyter",
+      "category": "infra",
+      "baseUrl": "http://localhost:8888",
+      "defaultModel": "python3",
+      "apiKeySource": "none",
+      "models": [
+        "python3"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
       "id": "kimi-code",
       "name": "Kimi Code",
       "category": "cloud",
       "baseUrl": "https://api.kimi.com/coding/v1",
       "defaultModel": "kimi-for-coding",
       "apiKeySource": "config",
-      "models": ["kimi-for-coding"]
+      "models": [
+        "kimi-for-coding"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "openai",
@@ -18,7 +112,15 @@
       "baseUrl": "https://api.openai.com",
       "defaultModel": "gpt-4o",
       "apiKeySource": "env:OPENAI_API_KEY",
-      "models": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"]
+      "models": [
+        "gpt-4o",
+        "gpt-4o-mini",
+        "gpt-4-turbo",
+        "gpt-3.5-turbo"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "claude",
@@ -29,8 +131,17 @@
       "apiKeyHeader": "x-api-key",
       "apiKeyPrefix": "",
       "apiKeySource": "env:CLAUDE_API_KEY",
-      "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
-      "extraHeaders": { "anthropic-version": "2023-06-01" }
+      "models": [
+        "claude-3-opus",
+        "claude-3-sonnet",
+        "claude-3-haiku"
+      ],
+      "extraHeaders": {
+        "anthropic-version": "2023-06-01"
+      },
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "deepseek",
@@ -39,7 +150,13 @@
       "baseUrl": "https://api.deepseek.com",
       "defaultModel": "deepseek-chat",
       "apiKeySource": "env:DEEPSEEK_API_KEY",
-      "models": ["deepseek-chat", "deepseek-coder"]
+      "models": [
+        "deepseek-chat",
+        "deepseek-coder"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "gemini",
@@ -50,7 +167,13 @@
       "apiKeyHeader": "x-goog-api-key",
       "apiKeyPrefix": "",
       "apiKeySource": "env:GEMINI_API_KEY",
-      "models": ["gemini-1.5-pro", "gemini-1.5-flash"]
+      "models": [
+        "gemini-1.5-pro",
+        "gemini-1.5-flash"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "grok",
@@ -59,7 +182,13 @@
       "baseUrl": "https://api.x.ai",
       "defaultModel": "grok-2",
       "apiKeySource": "env:GROK_API_KEY",
-      "models": ["grok-2", "grok-2-mini"]
+      "models": [
+        "grok-2",
+        "grok-2-mini"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "qwen",
@@ -68,7 +197,14 @@
       "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
       "defaultModel": "qwen-max",
       "apiKeySource": "env:QWEN_API_KEY",
-      "models": ["qwen-max", "qwen-plus", "qwen-turbo"]
+      "models": [
+        "qwen-max",
+        "qwen-plus",
+        "qwen-turbo"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "mistral",
@@ -77,7 +213,14 @@
       "baseUrl": "https://api.mistral.ai",
       "defaultModel": "mistral-large",
       "apiKeySource": "env:MISTRAL_API_KEY",
-      "models": ["mistral-large", "mistral-medium", "codestral"]
+      "models": [
+        "mistral-large",
+        "mistral-medium",
+        "codestral"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "cohere",
@@ -86,7 +229,13 @@
       "baseUrl": "https://api.cohere.com/v1",
       "defaultModel": "command-r-plus",
       "apiKeySource": "env:COHERE_API_KEY",
-      "models": ["command-r-plus", "command-r"]
+      "models": [
+        "command-r-plus",
+        "command-r"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "ai21",
@@ -95,7 +244,13 @@
       "baseUrl": "https://api.ai21.com/studio/v1",
       "defaultModel": "jurassic-2-ultra",
       "apiKeySource": "env:AI21_API_KEY",
-      "models": ["jurassic-2-ultra", "jurassic-2-mid"]
+      "models": [
+        "jurassic-2-ultra",
+        "jurassic-2-mid"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "together",
@@ -104,7 +259,13 @@
       "baseUrl": "https://api.together.xyz/v1",
       "defaultModel": "meta-llama/Llama-3-70B",
       "apiKeySource": "env:TOGETHER_API_KEY",
-      "models": ["meta-llama/Llama-3-70B", "Qwen/Qwen2-72B"]
+      "models": [
+        "meta-llama/Llama-3-70B",
+        "Qwen/Qwen2-72B"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "perplexity",
@@ -113,7 +274,14 @@
       "baseUrl": "https://api.perplexity.ai",
       "defaultModel": "sonar",
       "apiKeySource": "env:PERPLEXITY_API_KEY",
-      "models": ["sonar", "sonar-pro", "sonar-reasoning"]
+      "models": [
+        "sonar",
+        "sonar-pro",
+        "sonar-reasoning"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "openrouter",
@@ -122,8 +290,20 @@
       "baseUrl": "https://openrouter.ai/api/v1",
       "defaultModel": "deepseek/deepseek-chat-v3-0324",
       "apiKeySource": "env:OPENROUTER_API_KEY",
-      "models": ["deepseek/deepseek-chat-v3-0324", "anthropic/claude-3.5-sonnet", "qwen/qwen3-235b-a22b", "google/gemini-2.5-pro-preview", "meta-llama/llama-4-maverick"],
-      "extraHeaders": { "HTTP-Referer": "https://thousand-realms-garden.local", "X-Title": "Thousand Realms Garden" }
+      "models": [
+        "deepseek/deepseek-chat-v3-0324",
+        "anthropic/claude-3.5-sonnet",
+        "qwen/qwen3-235b-a22b",
+        "google/gemini-2.5-pro-preview",
+        "meta-llama/llama-4-maverick"
+      ],
+      "extraHeaders": {
+        "HTTP-Referer": "https://thousand-realms-garden.local",
+        "X-Title": "Thousand Realms Garden"
+      },
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "fireworks",
@@ -132,7 +312,13 @@
       "baseUrl": "https://api.fireworks.ai/inference/v1",
       "defaultModel": "accounts/fireworks/models/llama-v3p1-70b-instruct",
       "apiKeySource": "env:FIREWORKS_API_KEY",
-      "models": ["llama-v3p1-70b", "mixtral-8x22b"]
+      "models": [
+        "llama-v3p1-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "anyscale",
@@ -141,7 +327,13 @@
       "baseUrl": "https://api.endpoints.anyscale.com/v1",
       "defaultModel": "meta-llama/Llama-2-70b-chat-hf",
       "apiKeySource": "env:ANYSCALE_API_KEY",
-      "models": ["llama-3-70b", "mixtral-8x22b"]
+      "models": [
+        "llama-3-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "azure",
@@ -152,7 +344,13 @@
       "apiKeyHeader": "api-key",
       "apiKeyPrefix": "",
       "apiKeySource": "env:AZURE_OPENAI_API_KEY",
-      "models": ["gpt-4", "gpt-35-turbo"]
+      "models": [
+        "gpt-4",
+        "gpt-35-turbo"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "ollama",
@@ -161,7 +359,15 @@
       "baseUrl": "http://localhost:11434",
       "defaultModel": "llama3.2",
       "apiKeySource": "none",
-      "models": ["llama3.2", "qwen2.5", "deepseek-coder", "mistral"]
+      "models": [
+        "llama3.2",
+        "qwen2.5",
+        "deepseek-coder",
+        "mistral"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "lmstudio",
@@ -170,7 +376,12 @@
       "baseUrl": "http://localhost:1234/v1",
       "defaultModel": "loaded-model",
       "apiKeySource": "none",
-      "models": ["加载的模型"]
+      "models": [
+        "加载的模型"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "vllm",
@@ -179,7 +390,13 @@
       "baseUrl": "http://localhost:8000/v1",
       "defaultModel": "custom",
       "apiKeySource": "none",
-      "models": ["Llama-3.1-70B", "Qwen2.5-72B"]
+      "models": [
+        "Llama-3.1-70B",
+        "Qwen2.5-72B"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "localai",
@@ -188,7 +405,12 @@
       "baseUrl": "http://localhost:8080/v1",
       "defaultModel": "gpt-4",
       "apiKeySource": "env:LOCALAI_API_KEY",
-      "models": ["通用适配"]
+      "models": [
+        "通用适配"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "jan",
@@ -197,7 +419,12 @@
       "baseUrl": "http://localhost:1337/v1",
       "defaultModel": "jan-backend",
       "apiKeySource": "none",
-      "models": ["Jan Backend"]
+      "models": [
+        "Jan Backend"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "gpt4all",
@@ -206,7 +433,12 @@
       "baseUrl": "http://localhost:4891/v1",
       "defaultModel": "gpt4all-backend",
       "apiKeySource": "none",
-      "models": ["GPT4All Backend"]
+      "models": [
+        "GPT4All Backend"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "textgenwebui",
@@ -215,7 +447,12 @@
       "baseUrl": "http://localhost:5000/v1",
       "defaultModel": "custom",
       "apiKeySource": "none",
-      "models": ["自定义"]
+      "models": [
+        "自定义"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "groq",
@@ -224,7 +461,14 @@
       "baseUrl": "https://api.groq.com/openai/v1",
       "defaultModel": "llama-3.1-70b-versatile",
       "apiKeySource": "env:GROQ_API_KEY",
-      "models": ["llama-3.1-70b", "mixtral-8x7b", "gemma-2-9b"]
+      "models": [
+        "llama-3.1-70b",
+        "mixtral-8x7b",
+        "gemma-2-9b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "novita",
@@ -233,7 +477,13 @@
       "baseUrl": "https://api.novita.ai/v3/openai",
       "defaultModel": "meta-llama/llama-3.1-70b-instruct",
       "apiKeySource": "env:NOVITA_API_KEY",
-      "models": ["llama-3.1-70b", "mistral-8x22b"]
+      "models": [
+        "llama-3.1-70b",
+        "mistral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "siliconflow",
@@ -242,7 +492,14 @@
       "baseUrl": "https://api.siliconflow.cn/v1",
       "defaultModel": "deepseek-ai/DeepSeek-V3",
       "apiKeySource": "env:SILICONFLOW_API_KEY",
-      "models": ["DeepSeek-V3", "Qwen2.5-72B", "Meta-Llama-3.1-70B"]
+      "models": [
+        "DeepSeek-V3",
+        "Qwen2.5-72B",
+        "Meta-Llama-3.1-70B"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "zhipu",
@@ -252,7 +509,14 @@
       "defaultModel": "glm-4",
       "apiKeyHeader": "Authorization",
       "apiKeySource": "env:ZHIPU_API_KEY",
-      "models": ["glm-4", "glm-4-plus", "glm-4-flash"]
+      "models": [
+        "glm-4",
+        "glm-4-plus",
+        "glm-4-flash"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "baichuan",
@@ -261,7 +525,13 @@
       "baseUrl": "https://api.baichuan-ai.com/v1",
       "defaultModel": "Baichuan4",
       "apiKeySource": "env:BAICHUAN_API_KEY",
-      "models": ["Baichuan4", "Baichuan3-Turbo"]
+      "models": [
+        "Baichuan4",
+        "Baichuan3-Turbo"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "minimax",
@@ -270,7 +540,13 @@
       "baseUrl": "https://api.minimax.chat/v1",
       "defaultModel": "abab6.5s-chat",
       "apiKeySource": "env:MINIMAX_API_KEY",
-      "models": ["abab6.5s-chat", "abab6-chat"]
+      "models": [
+        "abab6.5s-chat",
+        "abab6-chat"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "hunyuan",
@@ -279,7 +555,14 @@
       "baseUrl": "https://hunyuan.tencentcloudapi.com",
       "defaultModel": "hunyuan-lite",
       "apiKeySource": "env:HUNYUAN_API_KEY",
-      "models": ["hunyuan-lite", "hunyuan-standard", "hunyuan-pro"]
+      "models": [
+        "hunyuan-lite",
+        "hunyuan-standard",
+        "hunyuan-pro"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "doubao",
@@ -288,7 +571,13 @@
       "baseUrl": "https://ark.cn-beijing.volces.com/api/v3",
       "defaultModel": "doubao-lite-4k",
       "apiKeySource": "env:DOUBAO_API_KEY",
-      "models": ["doubao-lite", "doubao-pro"]
+      "models": [
+        "doubao-lite",
+        "doubao-pro"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "wenxin",
@@ -297,7 +586,13 @@
       "baseUrl": "https://qianfan.baidubce.com/v2",
       "defaultModel": "ernie-4.0-turbo-8k",
       "apiKeySource": "env:WENXIN_API_KEY",
-      "models": ["ernie-4.0-turbo", "ernie-3.5"]
+      "models": [
+        "ernie-4.0-turbo",
+        "ernie-3.5"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "spark",
@@ -306,7 +601,14 @@
       "baseUrl": "https://spark-api-open.xf-yun.com/v1",
       "defaultModel": "generalv3.5",
       "apiKeySource": "env:SPARK_API_KEY",
-      "models": ["generalv3.5", "generalv3", "pro-128k"]
+      "models": [
+        "generalv3.5",
+        "generalv3",
+        "pro-128k"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "sensechat",
@@ -315,7 +617,13 @@
       "baseUrl": "https://api.sensenova.cn/v1",
       "defaultModel": "SenseChat-5",
       "apiKeySource": "env:SENSECHAT_API_KEY",
-      "models": ["SenseChat-5", "SenseChat-Turbo"]
+      "models": [
+        "SenseChat-5",
+        "SenseChat-Turbo"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "replicate",
@@ -324,7 +632,13 @@
       "baseUrl": "https://api.replicate.com/v1",
       "defaultModel": "meta/llama-2-70b-chat",
       "apiKeySource": "env:REPLICATE_API_KEY",
-      "models": ["llama-2-70b", "mistral-7b"]
+      "models": [
+        "llama-2-70b",
+        "mistral-7b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "lepton",
@@ -333,7 +647,13 @@
       "baseUrl": "https://api.lepton.ai",
       "defaultModel": "llama3-70b",
       "apiKeySource": "env:LEPTON_API_KEY",
-      "models": ["llama3-70b", "mixtral-8x7b"]
+      "models": [
+        "llama3-70b",
+        "mixtral-8x7b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "nvidia",
@@ -342,7 +662,13 @@
       "baseUrl": "https://integrate.api.nvidia.com/v1",
       "defaultModel": "meta/llama-3.1-70b-instruct",
       "apiKeySource": "env:NVIDIA_API_KEY",
-      "models": ["llama-3.1-70b", "mixtral-8x22b"]
+      "models": [
+        "llama-3.1-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "predibase",
@@ -351,7 +677,13 @@
       "baseUrl": "https://api.predibase.com/v1",
       "defaultModel": "llama-3-8b",
       "apiKeySource": "env:PREDIBASE_API_KEY",
-      "models": ["llama-3-8b", "mistral-7b"]
+      "models": [
+        "llama-3-8b",
+        "mistral-7b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "cloudflare",
@@ -360,7 +692,13 @@
       "baseUrl": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
       "defaultModel": "@cf/meta/llama-3.1-70b",
       "apiKeySource": "env:CLOUDFLARE_API_KEY",
-      "models": ["llama-3.1-70b", "mistral-7b"]
+      "models": [
+        "llama-3.1-70b",
+        "mistral-7b"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "poe",
@@ -369,7 +707,14 @@
       "baseUrl": "https://api.poe.com/v1",
       "defaultModel": "Claude-3.5-Sonnet",
       "apiKeySource": "env:POE_API_KEY",
-      "models": ["Claude-3.5-Sonnet", "GPT-4o", "Gemini-1.5-Pro"]
+      "models": [
+        "Claude-3.5-Sonnet",
+        "GPT-4o",
+        "Gemini-1.5-Pro"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "kimi-moonshot",
@@ -378,7 +723,14 @@
       "baseUrl": "https://api.moonshot.cn",
       "defaultModel": "moonshot-v1-8k",
       "apiKeySource": "env:MOONSHOT_API_KEY",
-      "models": ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"]
+      "models": [
+        "moonshot-v1-8k",
+        "moonshot-v1-32k",
+        "moonshot-v1-128k"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "stepfun",
@@ -387,7 +739,15 @@
       "baseUrl": "https://api.stepfun.com/v1",
       "defaultModel": "step-1-8k",
       "apiKeySource": "env:STEPFUN_API_KEY",
-      "models": ["step-1-8k", "step-1-32k", "step-1-128k", "step-1-flash"]
+      "models": [
+        "step-1-8k",
+        "step-1-32k",
+        "step-1-128k",
+        "step-1-flash"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "lambdalabs",
@@ -396,7 +756,13 @@
       "baseUrl": "https://api.lambdalabs.com/v1",
       "defaultModel": "hermes-3-llama-3.1-405b",
       "apiKeySource": "env:LAMBDA_API_KEY",
-      "models": ["hermes-3-405b", "llama-3.1-70b"]
+      "models": [
+        "hermes-3-405b",
+        "llama-3.1-70b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "samba",
@@ -405,7 +771,13 @@
       "baseUrl": "https://api.sambanova.ai/v1",
       "defaultModel": "Meta-Llama-3.1-70B-Instruct",
       "apiKeySource": "env:SAMBANOVA_API_KEY",
-      "models": ["Llama-3.1-70B", "Llama-3.1-8B"]
+      "models": [
+        "Llama-3.1-70B",
+        "Llama-3.1-8B"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "octoai",
@@ -414,7 +786,13 @@
       "baseUrl": "https://text.octoai.run/v1",
       "defaultModel": "meta_llama_3_70b_instruct",
       "apiKeySource": "env:OCTOAI_API_KEY",
-      "models": ["llama-3-70b", "mixtral-8x22b"]
+      "models": [
+        "llama-3-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "hyperbolic",
@@ -423,7 +801,13 @@
       "baseUrl": "https://api.hyperbolic.xyz/v1",
       "defaultModel": "meta-llama/Meta-Llama-3.1-70B-Instruct",
       "apiKeySource": "env:HYPERBOLIC_API_KEY",
-      "models": ["llama-3.1-70b", "mixtral-8x22b"]
+      "models": [
+        "llama-3.1-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "arctic",
@@ -432,7 +816,12 @@
       "baseUrl": "https://api.snowflake.com/v1",
       "defaultModel": "snowflake/arctic",
       "apiKeySource": "env:SNOWFLAKE_API_KEY",
-      "models": ["snowflake/arctic"]
+      "models": [
+        "snowflake/arctic"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "vertex-gemini",
@@ -441,7 +830,13 @@
       "baseUrl": "https://us-central1-aiplatform.googleapis.com/v1",
       "defaultModel": "gemini-1.5-pro-002",
       "apiKeySource": "env:VERTEX_API_KEY",
-      "models": ["gemini-1.5-pro", "gemini-1.5-flash"]
+      "models": [
+        "gemini-1.5-pro",
+        "gemini-1.5-flash"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "bedrock",
@@ -450,7 +845,14 @@
       "baseUrl": "https://bedrock-runtime.{region}.amazonaws.com",
       "defaultModel": "anthropic.claude-3-sonnet",
       "apiKeySource": "env:AWS_ACCESS_KEY_ID",
-      "models": ["claude-3-sonnet", "claude-3-haiku", "llama-3-70b"]
+      "models": [
+        "claude-3-sonnet",
+        "claude-3-haiku",
+        "llama-3-70b"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "sagemaker",
@@ -459,7 +861,12 @@
       "baseUrl": "https://runtime.sagemaker.{region}.amazonaws.com",
       "defaultModel": "custom",
       "apiKeySource": "env:AWS_ACCESS_KEY_ID",
-      "models": ["自定义端点"]
+      "models": [
+        "自定义端点"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
     },
     {
       "id": "friendliai",
@@ -468,7 +875,13 @@
       "baseUrl": "https://inference.friendli.ai/v1",
       "defaultModel": "meta-llama-3.1-70b-instruct",
       "apiKeySource": "env:FRIENDLI_API_KEY",
-      "models": ["llama-3.1-70b", "mixtral-8x22b"]
+      "models": [
+        "llama-3.1-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
     },
     {
       "id": "tencentcloud",
@@ -477,7 +890,111 @@
       "baseUrl": "https://ti-one.tencentcloudapi.com",
       "defaultModel": "llama-3.1-70b",
       "apiKeySource": "env:TENCENT_API_KEY",
-      "models": ["llama-3.1-70b", "qwen-72b"]
+      "models": [
+        "llama-3.1-70b",
+        "qwen-72b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "autogen",
+      "name": "AutoGen",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8080",
+      "defaultModel": "autogen",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "crewai",
+      "name": "CrewAI",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8081",
+      "defaultModel": "crew",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "openclaw",
+      "name": "OpenClaw",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8082",
+      "defaultModel": "openclaw",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "metagpt",
+      "name": "MetaGPT",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8083",
+      "defaultModel": "metagpt",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "chatdev",
+      "name": "ChatDev",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8084",
+      "defaultModel": "chatdev",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "dspy",
+      "name": "DSPy",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8085",
+      "defaultModel": "dspy",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "langgraph",
+      "name": "LangGraph",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8086",
+      "defaultModel": "langgraph",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
     }
   ]
 }

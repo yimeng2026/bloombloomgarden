@@ -95,6 +95,7 @@ export const toggleChannel = (id: string) => post(`/channels/${id}/toggle`, {});
 /* ── Platforms / Providers ── */
 export const fetchPlatforms = () => get('/platforms');
 export const fetchProviders = () => get('/platforms');
+export const fetchPlatformsByLevel = (level: number) => get(`/platforms?protocolLevel=${level}`);
 export const getPlatform = (id: string) => get(`/platforms/${id}`);
 export const fetchProviderHealth = (id: string) => get(`/platforms/${id}/health`);
 export const createPlatform = (data: any) => post('/platforms', data);
@@ -202,6 +203,9 @@ export const getGroupReorganization = (id: string) => get(`/groups/${id}/reorgan
 export const triggerGroupReorganize = (id: string, data: any) => post(`/groups/${id}/reorganize`, data);
 export const sendGroupMessage = (id: string, data: any) => post(`/groups/${id}/messages`, data);
 export const getGroupGovernance = (id: string) => get(`/groups/${id}/governance`);
+export const getGroupTree = (id: string) => get(`/groups/${id}/tree`);
+export const addEntityToGroup = (groupId: string, entityId: string, entityType?: string) =>
+  post(`/groups/${groupId}/entities`, { entityId, entityType: entityType || (entityId.startsWith('g-') ? 'group' : 'agent') });
 
 /* ── Workflows ── */
 export const fetchWorkflows = () => get('/workflows');
