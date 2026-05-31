@@ -33,12 +33,34 @@ jobs:
 
       - name: Build
         working-directory: ./frontend
-        run: npm run build
+        id: vite-build
+        run: |
+          npm run build 2>&1 | tee build-output.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "BUILD_FAILED=true" >> $GITHUB_OUTPUT
+            echo "BUILD_EXIT=$BUILD_EXIT" >> $GITHUB_OUTPUT
+          fi
+          exit $BUILD_EXIT
         env:
           VITE_API_BASE: /api
+        continue-on-error: true
+
+      - name: Debug Build Error
+        if: steps.vite-build.outputs.BUILD_FAILED == 'true'
+        working-directory: ./frontend
+        run: |
+          echo "========== BUILD ERROR DETAILS =========="
+          echo "Exit code: ${{ steps.vite-build.outputs.BUILD_EXIT }}"
+          echo ""
+          echo "=== Last 100 lines of build output ==="
+          tail -100 build-output.log
+          echo ""
+          echo "========================================"
+          exit 1
 
       - name: Commit and push dist
-        if: success()
+        if: steps.vite-build.outputs.BUILD_FAILED != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
