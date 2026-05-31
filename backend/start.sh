@@ -5,6 +5,11 @@ echo "🌸 千界花园后端启动中..."
 echo "PWD: $(pwd)"
 echo "LS: $(ls -la)"
 
+# 创建数据库目录（如果不存在）
+echo "📁 创建数据库目录..."
+mkdir -p data
+echo "✅ 数据库目录已创建"
+
 # 编译 TypeScript（确保 dist 是最新的）
 echo "🔨 编译 TypeScript..."
 npm run build || true
