@@ -7,11 +7,11 @@ let mainWindow;
 let backendProcess;
 
 const KIMI_KEYS = [
-  'KIMI_KEY_1_PLACEHOLDER',
-  'KIMI_KEY_2_PLACEHOLDER',
-  'KIMI_KEY_3_PLACEHOLDER',
-  'KIMI_KEY_4_PLACEHOLDER',
-  'KIMI_KEY_5_PLACEHOLDER',
+  process.env.KIMI_CODE_API_KEY_1 || '',
+  process.env.KIMI_CODE_API_KEY_2 || '',
+  process.env.KIMI_CODE_API_KEY_3 || '',
+  process.env.KIMI_CODE_API_KEY_4 || '',
+  process.env.KIMI_CODE_API_KEY_5 || '',
 ];
 
 function injectEnv() {
@@ -21,7 +21,7 @@ function injectEnv() {
   process.env.KIMI_CODE_API_KEY_4 = KIMI_KEYS[3];
   process.env.KIMI_CODE_API_KEY_5 = KIMI_KEYS[4];
   process.env.KIMICODE_API_KEY = KIMI_KEYS[0];
-  process.env.OPENROUTER_API_KEY = 'OPENROUTER_API_KEY_PLACEHOLDER';
+  process.env.OPENROUTER_API_KEY = '${OPENROUTER_API_KEY}';
   process.env.ELECTRON_MODE = 'true';
   process.env.NODE_ENV = 'production';
   process.env.PORT = '3001';
