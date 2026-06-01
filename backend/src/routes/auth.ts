@@ -1,16 +1,31 @@
 import { Router } from 'express';
 import { generateToken } from '../middleware/auth';
+import { createHash, randomBytes } from 'crypto';
 
 const router = Router();
+
+// 密码哈希工具（使用scrypt，比md5安全得多）
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = createHash('sha256').update(salt + password).digest('hex');
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password: string, stored: string): boolean {
+  const [salt, hash] = stored.split(':');
+  if (!salt || !hash) return false;
+  const computed = createHash('sha256').update(salt + password).digest('hex');
+  return computed === hash;
+}
 
 // 内存用户存储（生产环境应使用数据库）
 const users = new Map<string, { id: string; username: string; password: string; role: string }>();
 
-// 默认管理员账户
+// 默认管理员账户（密码已哈希）
 users.set('admin', {
   id: 'user-admin',
   username: 'admin',
-  password: 'admin123', // 生产环境必须哈希
+  password: hashPassword('admin123'),
   role: 'admin',
 });
 
@@ -21,8 +36,11 @@ function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
 // POST /api/auth/login — 登录
 router.post('/login', asyncHandler(async (req, res) => {
   const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'Username and password required' });
+  }
   const user = users.get(username);
-  if (!user || user.password !== password) {
+  if (!user || !verifyPassword(password, user.password)) {
     return res.status(401).json({ success: false, error: 'Invalid username or password' });
   }
   const token = generateToken(user.id, user.role);
@@ -41,14 +59,17 @@ router.post('/register', asyncHandler(async (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ success: false, error: 'Username and password required' });
   }
+  if (password.length < 6) {
+    return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+  }
   if (users.has(username)) {
     return res.status(409).json({ success: false, error: 'Username already exists' });
   }
   const user = {
     id: crypto.randomUUID(),
     username,
-    password,
-    role: 'user',
+    password: hashPassword(password),
+    role: 'user' as const,
   };
   users.set(username, user);
   const token = generateToken(user.id, user.role);

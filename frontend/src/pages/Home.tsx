@@ -48,10 +48,10 @@ function HeroSection() {
           transition: 'transform 2000ms var(--ease-gentle)',
         }}
       />
-      <div className="absolute inset-0" style={{ backgroundColor: 'rgba(26,31,24,0.55)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(10,14,26,0.85) 0%, rgba(15,23,42,0.75) 50%, rgba(10,14,26,0.85) 100%)' }} />
 
       {/* Floating particles */}
-      {mounted && [1,2,3,4,5,6].map((i) => (
+      {mounted && [1,2,3,4,5,6,7,8,9,10,11,12].map((i) => (
         <div
           key={i}
           className="absolute rounded-full pointer-events-none"
@@ -60,7 +60,7 @@ function HeroSection() {
             height: `${4 + i * 2}px`,
             left: `${10 + i * 15}%`,
             bottom: `${5 + (i % 3) * 10}%`,
-            backgroundColor: 'rgba(127,184,159,0.4)',
+            backgroundColor: i % 3 === 0 ? 'rgba(0,240,255,0.5)' : i % 3 === 1 ? 'rgba(168,85,247,0.4)' : 'rgba(34,197,94,0.4)',
             animation: `float ${8 + i * 2}s linear infinite`,
             animationDelay: `${i * -1.5}s`,
           }}

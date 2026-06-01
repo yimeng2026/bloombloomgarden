@@ -163,6 +163,23 @@ export class BackendRouter {
     const interval = setInterval(runCheck, 30000);
     this.healthChecks.set(id, interval);
   }
+
+  private stopHealthCheck(id: string): void {
+    const interval = this.healthChecks.get(id);
+    if (interval) {
+      clearInterval(interval);
+      this.healthChecks.delete(id);
+    }
+  }
+
+  destroy(): void {
+    for (const [id] of this.healthChecks) {
+      this.stopHealthCheck(id);
+    }
+    this.healthChecks.clear();
+    this.healthStatus.clear();
+    this.backends.clear();
+  }
 }
 
 // ─── 单例 ────────────────────────────────────────────

@@ -45,7 +45,7 @@ export default function Navbar() {
       style={{
         height: 'var(--topbar-height)',
         left: sidebarCollapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)',
-        backgroundColor: 'var(--sage-50)',
+        backgroundColor: 'rgba(246, 247, 244, 0.8)',
         borderColor: 'var(--sage-200)',
       }}
     >

@@ -113,7 +113,9 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
   }));
 
   const router = getBackendRouter();
-  const response = await router.chat('kimi-code', { messages, model: 'kimi-for-coding', temperature: 0.7 });
+  const platformId = req.body.platformId || 'openrouter';
+  const model = req.body.model || 'deepseek/deepseek-chat-v3-0324';
+  const response = await router.chat(platformId, { messages, model, temperature: 0.7 });
   await dialogService.sendMessage(req.params.id, { content: response.content, role: 'agent' });
   res.json({ success: true, data: response });
 }));
@@ -150,27 +152,29 @@ router.get('/:id/context/stream', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
+  let isClosed = false;
   const interval = setInterval(async () => {
+    if (isClosed) return;
     try {
       const agentService = getAgentService();
       const agent = await agentService.getById(req.params.id);
       const dialogService = getDialogService();
       const messages = await dialogService.getHistory(req.params.id);
       const used = messages.length * 100;
-      res.write(`data: ${JSON.stringify({
-        type: 'heartbeat', timestamp: new Date().toISOString(),
-        agentStatus: agent?.status || 'unknown',
-        tokenUsage: { used, limit: 8192 },
-      })}
-
-`);
+      if (!isClosed) {
+        res.write(`data: ${JSON.stringify({
+          type: 'heartbeat', timestamp: new Date().toISOString(),
+          agentStatus: agent?.status || 'unknown',
+          tokenUsage: { used, limit: 8192 },
+        })}\n\n`);
+      }
     } catch (e) {
-      res.write(`data: ${JSON.stringify({ type: 'error', message: 'heartbeat failed' })}
-
-`);
+      if (!isClosed) {
+        res.write(`data: ${JSON.stringify({ type: 'error', message: 'heartbeat failed' })}\n\n`);
+      }
     }
   }, 5000);
-  req.on('close', () => clearInterval(interval));
+  req.on('close', () => { isClosed = true; clearInterval(interval); });
 });
 
 // 3. POST /api/agents — 创建（支持协议分层新字段）

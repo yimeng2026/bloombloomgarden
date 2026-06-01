@@ -1048,10 +1048,6 @@ export default function AgentCollab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [groups, setGroups] = useState(agentGroups);
-  const [showCreateWizard, setShowCreateWizard] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [groups, setGroups] = useState(agentGroups);
 
   const filteredGroups = groups.filter(g => {
     const matchSearch = !searchQuery || g.name.toLowerCase().includes(searchQuery.toLowerCase());

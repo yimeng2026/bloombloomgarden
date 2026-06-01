@@ -5,8 +5,8 @@ node_modules/
 
 # 构建产物
 dist/
-**/dist/
-!frontend/dist/        # 保留前端构建产物供 Railway 部署
+dist/
+!frontend/dist/        # 保留前端构建产物供 Vercel/Railway 部署
 build/
 **/build/
 out/
