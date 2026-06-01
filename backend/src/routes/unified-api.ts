@@ -52,13 +52,17 @@ router.get('/platforms', asyncHandler(async (_req, res) => {
 router.post('/:id/chat', asyncHandler(async (req, res) => {
   const { messages, model, temperature, maxTokens } = req.body;
   const router = getBackendRouter();
-  const response = await router.chat(req.params.id, {
-    messages,
-    model,
-    temperature,
-    maxTokens,
-  });
-  res.json({ success: true, data: response });
+  try {
+    const response = await router.chat(req.params.id, {
+      messages,
+      model,
+      temperature,
+      maxTokens,
+    });
+    res.json({ success: true, data: response });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Chat failed' });
+  }
 }));
 
 // 5. POST /api/unified-api/:id/stream — 统一流式聊天（真实 SSE）

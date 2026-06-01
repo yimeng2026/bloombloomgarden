@@ -5,6 +5,18 @@ import express from 'express';
 import app from './app';
 import { PrismaService } from './services/PrismaService';
 
+
+// ─── 全局错误处理（防止进程崩溃） ──────────────────────
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled Rejection:', reason);
+  // 不退出进程，只记录错误
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('[FATAL] Uncaught Exception:', error);
+  // 不退出进程，只记录错误
+});
+
 const PORT = process.env.PORT || 3001;
 
 async function initDatabase() {

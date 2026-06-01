@@ -7,6 +7,13 @@ function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
   return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
 }
 
+// 0. GET /api/monitor — 总览
+router.get('/', asyncHandler(async (_req, res) => {
+  const service = getMonitorService();
+  const stats = service.getStats();
+  res.json({ success: true, data: stats });
+}));
+
 // 1. GET /api/monitor/agents — Agent 实时监控
 router.get('/agents', asyncHandler(async (_req, res) => {
   const service = getMonitorService();

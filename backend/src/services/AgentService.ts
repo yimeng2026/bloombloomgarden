@@ -84,7 +84,7 @@ export class AgentService extends EventEmitter {
         data: {
           id: crypto.randomUUID(),
           name: data.name,
-          role: data.role,
+      role: data.role || 'assistant',
           status: AgentStatus.ACTIVE,
           config,
           knowledgeBaseIds: kbs,
@@ -109,7 +109,7 @@ export class AgentService extends EventEmitter {
     const agent: Agent = {
       id: crypto.randomUUID(),
       name: data.name,
-      role: data.role,
+      role: data.role || 'assistant',
       status: AgentStatus.ACTIVE,
       config: data.config || {},
       knowledgeBaseIds: data.knowledgeBaseIds || [],

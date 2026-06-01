@@ -51,10 +51,8 @@ export class BackendRouter {
 
     for (const provider of openAICompatibleProviders) {
       const apiKey = this.resolveApiKey(provider.apiKeySource);
-      if (!apiKey && provider.apiKeySource !== 'none') {
-        // 未配置密钥，跳过注册（但保留配置信息）
-        continue;
-      }
+      // 即使没有API Key也注册后端（用户可以在设置页面配置）
+      // 只有没有apiKeySource的才跳过
 
       const config: OpenAICompatibleConfig = {
         provider: provider.id,
