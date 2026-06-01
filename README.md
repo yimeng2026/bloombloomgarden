@@ -1,6 +1,6 @@
 # 🌸 千界花园 — 群智协同系统 (Thousand Realms Garden)
 
-> 统一合并版 — 整合 Kimi + TOE Sʏʟᴠᴀ + 咨询师 + OpenClaw-5PW + Agent Ecosystem 全部产出
+> 统一合并版 — 整合 Kimi + TOE Sʏʟᴠᴀ + 咨询师 + OpenClaw-5PW + Agent Ecosystem 全部产出，
 
 ## 项目统计
 
