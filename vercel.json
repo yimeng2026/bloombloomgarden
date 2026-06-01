@@ -1,6 +1,5 @@
 {
   "framework": "vite",
-  "rootDirectory": "frontend",
   "outputDirectory": "dist",
   "rewrites": [
     {
