@@ -1,99 +1,170 @@
-datasource db {
-  provider = "sqlite"
-  url      = "file:./prisma/dev.db"
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
 model Agent {
-  id              String   @id @default(uuid())
+  id              String   @id @default(cuid())
   name            String
-  role            String
-  status          String   @default("active")
-  config          String   @default("{}") // JSON string
+  role            String   @default("assistant")
+  description     String?
+  avatar          String?
+  systemPrompt    String?
+  model           String   @default("gpt-4")
+  temperature     Float    @default(0.7)
+  maxTokens       Int      @default(2048)
+  status          String   @default("idle")
+  config          String   @default("{}")
   knowledgeBaseIds String   @default("[]")
   skillIds        String   @default("[]")
   workspaceId     String?
   integrationIds  String   @default("[]")
   groupId         String?
-  description     String?
-  avatar          String?
-
-  // --- Protocol Layer System (连连看架构) ---
-  // protocolLevel: 0=infra, 1=single-thread-LLM, 2=multi-thread-orchestrator, 3=gateway
-  protocolLevel   Int      @default(1)
-  // parentPlatform: the L2/L3 platform that orchestrates this agent (for multi-thread mode)
-  parentPlatform  String?
-  // threadPlatforms: JSON array of {threadName, platformId, model} for L2 multi-thread agents
-  threadPlatforms String   @default("[]")
-  // dashboardType: which dashboard component to render (L0/L1/L2/L3)
-  dashboardType   String   @default("L1")
-  // mode: creation mode - A=single-thread, B=multi-thread, C=gateway-direct
-  mode            String   @default("A")
-  // workFiles: JSON array of file IDs (merged with memory hub)
-  workFiles       String   @default("[]")
-
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // 协议分层字段
+  protocolLevel   Int      @default(1)
+  parentPlatform  String?
+  threadPlatforms String   @default("[]")
+  dashboardType   String   @default("L1")
+  mode            String   @default("A")  // A=single, B=multi, C=gateway
+  workFiles       String   @default("[]")
+
+  // 蜂群字段
+  swarmEnabled    Boolean  @default(false)
+  swarmMode       String?
+  roleInGroup     String   @default("solo")
+  coordinatorId   String?
+
   group           Group?   @relation(fields: [groupId], references: [id])
-  @@index([protocolLevel])
-  @@index([status])
-  @@index([groupId])
 }
 
 model Group {
-  id              String   @id @default(uuid())
-  name            String
-  description     String?
-  parentId        String?
-  coordinatorId   String?
-  executionMode   String   @default("sequential")
-  status          String   @default("active")
-  maxDepth        Int      @default(1)
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        String   @default("team")
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // --- Unified Entity System ---
-  // entityIds: JSON array of agentIds AND/OR nested groupIds
-  // All groups are treated as agents (can be nested into parent groups)
-  entityIds       String   @default("[]")
-  // entityType of members: 'mixed' | 'agents' | 'groups'
-  entityType      String   @default("agents")
+  // 蜂群/层级字段
+  parentId      String?
+  coordinatorId String?
+  executionMode String   @default("sequential")
+  maxDepth      Int      @default(1)
+  entityIds     String   @default("[]")
+  entityType    String   @default("agents")
+  swarmMode     String   @default("sequential")
+  healthScore   Int      @default(100)
+  taskStats     String   @default("{}")
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  agents        Agent[]
+}
 
-  agents          Agent[]
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("pending")
+  priority    Int      @default(1)
+  agentId     String?
+  groupId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
-  @@index([parentId])
-  @@index([status])
-  @@index([coordinatorId])
+model Blueprint {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  steps       String   @default("[]")
+  variables   String   @default("{}")
+  tags        String   @default("[]")
+  definition  String   @default("{}")
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Integration {
+  id            String   @id @default(cuid())
+  name          String
+  type          String
+  config        String   @default("{}")
+  enabled       Boolean  @default(true)
+  status        String   @default("disconnected")
+  lastTestedAt  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // ===== 变更点: 添加协议分层字段 =====
+  // 用于将集成实例与四层协议体系关联
+  protocolLevel Int      @default(1)   // 0=L0基础设施, 1=L1单线程LLM, 2=L2多线程编排, 3=L3网关聚合
+  threading     String   @default("single") // single/multi/gateway
+  protocol      String   @default("single-thread") // infra/single-thread/multi-thread/gateway
+  providerId    String   @default("")  // 关联 providers.json 中的平台 ID
+}
+
+model Memory {
+  id        String   @id @default(cuid())
+  content   String
+  type      String   @default("conversation")
+  tags      String   @default("[]")
+  agentId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model KnowledgeBase {
-  id              String   @id @default(uuid())
-  name            String
-  description     String?
-  documentIds     String   @default("[]")
-  embeddingModel  String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  documentIds String   @default("[]")
+  embeddingModel String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
-  @@map("knowledgeBases")
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  agents      String   @default("[]")
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Webhook {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  events      String   @default("[]")
+  secret      String?
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Document {
-  id              String   @id @default(uuid())
-  kbId            String
-  title           String
-  content         String
-  metadata        String   @default("{}")
-  createdAt       DateTime @default(now())
+  id          String   @id @default(cuid())
+  kbId        String
+  title       String
+  content     String
+  metadata    String   @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Skill {
-  id              String   @id @default(uuid())
+  id              String   @id @default(cuid())
   name            String
   description     String?
   type            String   @default("custom")
@@ -104,66 +175,16 @@ model Skill {
   updatedAt       DateTime @updatedAt
 }
 
-model Integration {
-  id              String   @id @default(uuid())
-  name            String
-  type            String
-  config          String   @default("{}")
-  enabled         Boolean  @default(true)
-  status          String   @default("disconnected")
-  lastTestedAt    DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model Blueprint {
-  id              String   @id @default(uuid())
-  name            String
-  description     String?
-  steps           String   @default("[]") // JSON string
-  variables       String   @default("{}")
-  tags            String   @default("[]")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
 model Settings {
-  id              String   @id @default("default")
-  theme           String   @default("system")
-  language        String   @default("zh-CN")
-  notifications   Boolean  @default(true)
-  autoSave        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                  String @id @default("default")
+  theme               String @default("system")
+  language            String @default("zh-CN")
+  maxConcurrentAgents Int    @default(10)
+  defaultTimeout      Int    @default(300000)
+  autoSave            Boolean @default(true)
+  logLevel            String @default("info")
+  features            String @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
-model ChatMessage {
-  id              String   @id @default(uuid())
-  agentId         String
-  role            String
-  content         String
-  metadata        String   @default("{}")
-  createdAt       DateTime @default(now())
-}
-
-model WorkspaceTask {
-  id              String   @id @default(uuid())
-  title           String
-  description     String?
-  status          String   @default("pending")
-  priority        String   @default("medium")
-  assignee        String?
-  dueDate         DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model BackendConfig {
-  id              String   @id @default("default")
-  name            String   @default("default")
-  model           String?
-  apiKey          String?
-  baseUrl         String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
