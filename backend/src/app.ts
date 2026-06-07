@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -20,6 +21,7 @@ import blueprintsRouter from './routes/blueprints';
 import settingsRouter from './routes/settings';
 import authRouter from './routes/auth';
 import tasksRouter from './routes/tasks';
+import platformDetailsRouter from './routes/platform-details';
 import platformsRouter from './routes/platforms';
 import kimiClusterRouter from './routes/kimi-cluster';
 import apiKeysRouter from './routes/apikeys';
@@ -35,10 +37,14 @@ import subtoolsRouter from './routes/subtools';
 
 const app = express();
 
-// ─── 全局中间件 ───────────────────────────────────────
-app.use(helmet());
+// ─── 全局中间件───────────────────────────────────────
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  }));
 
-// CORS 配置 — 允许 Vercel 前端 + 本地开发 + Railway 后端
+// CORS 配置
 const corsOptions = {
   origin: [
     'https://bloombloomgarden.vercel.app',
@@ -58,47 +64,52 @@ app.use(express.urlencoded({ extended: true }));
 // ─── 全局速率限制 ─────────────────────────────────────
 app.use(rateLimit({ windowMs: 60 * 1000, maxRequests: 100 }));
 
-// ─── 可选认证（解析用户信息但不强制） ──────────────────
+// ─── 可选认证（解析用户信息但不强制）──────────────────
 app.use(optionalAuth);
 
-// ─── 健康检查 ─────────────────────────────────────────
+// --- Health Check ---
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ─── 认证路由（无需认证） ─────────────────────────────
+// ─── 认证路由（无需认证）─────────────────────────────
 app.use('/api/auth', authRouter);
 
-// ─── API 路由挂载（20 模块 / 140+ 端点）─────────────────
-app.use('/api/agents', agentsRouter);           // Agent CRUD + 上下文
-app.use('/api/groups', groupsRouter);             // 群组编排
-app.use('/api/coordinator-hierarchy', coordinatorRouter); // 层级协调
-app.use('/api/handoff', handoffRouter);           // 交接机制
-app.use('/api/intervention', interventionRouter); // 干预系统
-app.use('/api/dialog', dialogRouter);             // 对话中心
-app.use('/api/unified-api', unifiedAPIRouter);    // 统一API
-app.use('/api/workspace', workspaceRouter);       // 工作区
-app.use('/api/knowledge-bases', knowledgeRouter); // 知识库
-app.use('/api/skills', skillsRouter);             // 技能
-app.use('/api/integrations', integrationsRouter); // 集成
-app.use('/api/monitor', monitorRouter);           // 监控
-app.use('/api/blueprints', blueprintsRouter);     // 蓝图
-app.use('/api/settings', settingsRouter);           // 设置
-app.use('/api/tasks', tasksRouter);                 // 任务
-app.use('/api/platforms', platformsRouter);         // 平台
-app.use('/api/kimi-cluster', kimiClusterRouter);      // KIMI集群
-app.use('/api/apikeys', apiKeysRouter);               // API密钥
-app.use('/api/agent-context', agentContextRouter);    // Agent上下文详情
-app.use('/api/spend', spendRouter);                   // 用量追踪
-app.use('/api/backups', backupsRouter);               // 备份管理
-app.use('/api/events', eventsRouter);                 // 系统事件
-app.use('/api/registry', registryRouter);             // 3DACP注册中心
-app.use('/api/processes', processesRouter);           // 进程监控
-app.use('/api/external', externalRouter);             // 外部平台
-app.use('/api/security', securityRouter);             // 安全中心
-app.use('/api/subtools', subtoolsRouter);             // 子工具/CLI Agent (3D坐标系 Z轴)
+// ─── API 路由挂载─────────────────────────────────────
+app.use('/api/agents', agentsRouter);
+app.use('/api/groups', groupsRouter);
+app.use('/api/coordinator-hierarchy', coordinatorRouter);
+app.use('/api/handoff', handoffRouter);
+app.use('/api/intervention', interventionRouter);
+app.use('/api/dialog', dialogRouter);
+app.use('/api/unified-api', unifiedAPIRouter);
+app.use('/api/workspace', workspaceRouter);
+app.use('/api/knowledge-bases', knowledgeRouter);
+app.use('/api/skills', skillsRouter);
+app.use('/api/integrations', integrationsRouter);
+app.use('/api/monitor', monitorRouter);
+app.use('/api/blueprints', blueprintsRouter);
+app.use('/api/settings', settingsRouter);
+app.use('/api/tasks', tasksRouter);
+app.use('/api/platform-details', platformDetailsRouter);
+app.use('/api/platforms', platformsRouter);
+app.use('/api/kimi-cluster', kimiClusterRouter);
+app.use('/api/apikeys', apiKeysRouter);
+app.use('/api/agent-context', agentContextRouter);
+app.use('/api/spend', spendRouter);
+app.use('/api/backups', backupsRouter);
+app.use('/api/events', eventsRouter);
+app.use('/api/registry', registryRouter);
+app.use('/api/processes', processesRouter);
+app.use('/api/external', externalRouter);
+app.use('/api/security', securityRouter);
+app.use('/api/subtools', subtoolsRouter);
 
-// ─── Dashboard 聚合端点（ Coordinator 要求）─────────────
+// ─── Dashboard 聚合端点─────────────────────────────────
 app.get('/api/dashboard/state', async (_req, res) => {
   const { getAgentService } = await import('./services');
   const { getMonitorService } = await import('./services');
@@ -122,7 +133,7 @@ app.get('/api/dashboard/state', async (_req, res) => {
   });
 });
 
-// ─── Intervention 状态汇总端点（Coordinator 要求）──────
+// ─── Intervention 状态汇总端点────────────────────────
 app.get('/api/intervention/status', async (_req, res) => {
   const { getInterventionService, InterventionStatus } = await import('./services/CollabFramework');
   const svc = getInterventionService();

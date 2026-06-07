@@ -1,0 +1,118 @@
+version: '3.8'
+# docker-compose.railway.yml - Railway平台专用配置
+# 精简版，只部署核心服务
+
+services:
+  # API网关/代理 - 统一入口
+  api-gateway:
+    image: nginx:alpine
+    container_name: api-gateway
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - open-webui
+      - dify-web
+      - flowise
+      - n8n
+    restart: unless-stopped
+
+  # 核心对话平台
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    environment:
+      - PORT=8080
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    volumes:
+      - open-webui-data:/app/backend/data
+    restart: unless-stopped
+
+  # Dify - LLM应用平台
+  dify-api:
+    image: langgenius/dify-api:latest
+    container_name: dify-api
+    environment:
+      - MODE=api
+      - SECRET_KEY=${DIFY_SECRET_KEY:-bloom-dify-secret}
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-dify123}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=dify
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  dify-web:
+    image: langgenius/dify-web:latest
+    container_name: dify-web
+    environment:
+      - CONSOLE_API_URL=http://dify-api:5001
+      - APP_API_URL=http://dify-api:5001
+    depends_on:
+      - dify-api
+    restart: unless-stopped
+
+  # Flowise - 可视化工作流
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: flowise
+    environment:
+      - FLOWISE_USERNAME=${FLOWISE_USER:-bloom}
+      - FLOWISE_PASSWORD=${FLOWISE_PASS:-bloom-flowise}
+      - DATABASE_PATH=/root/.flowise
+    volumes:
+      - flowise-data:/root/.flowise
+    restart: unless-stopped
+
+  # n8n - 自动化工作流
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-bloom}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASS:-bloom-n8n}
+      - WEBHOOK_URL=${RAILWAY_STATIC_URL:-http://localhost:5678}/
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-dify123}
+    volumes:
+      - n8n-data:/home/node/.n8n
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  # 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dify123}
+      - POSTGRES_DB=dify
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  open-webui-data:
+  flowise-data:
+  n8n-data:
+  postgres-data:
+  redis-data:

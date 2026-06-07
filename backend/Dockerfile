@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 千界花园后端 — Dockerfile
 # 多阶段构建，最小化镜像体积
 
@@ -54,3 +55,22 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 EXPOSE 3001
 
 CMD ["node", "dist/server.js"]
+=======
+FROM node:18-alpine
+
+WORKDIR /app
+
+# 安装依赖
+COPY package.json ./
+RUN npm install --production
+
+# 复制服务代码
+COPY services/ ./services/
+COPY deployments/ ./deployments/
+
+# 暴露端口
+EXPOSE 3001
+
+# 启动命令
+CMD ["node", "services/platformProxy.js"]
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393

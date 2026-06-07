@@ -74,13 +74,19 @@ export class OpenAICompatibleAdapter extends BaseBackendAdapter {
       max_tokens: request.maxTokens ?? 2048,
     };
 
-    const response = await fetch(this.getChatUrl(), {
+    const chatUrl = this.getChatUrl();
+    const headers = this.buildHeaders();
+    console.log('[Adapter] Chat request:', JSON.stringify({ url: chatUrl, model: payload.model, msgCount: payload.messages?.length, hasApiKey: !!(headers.Authorization || headers['x-api-key']) }));
+    
+    const response = await fetch(chatUrl, {
       method: 'POST',
-      headers: this.buildHeaders(),
+      headers,
       body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      console.error('[Adapter] Chat error:', response.status, errText.substring(0, 300));
       throw new Error(`${this.compatConfig.provider} API error: ${response.status} ${response.statusText}`);
     }
 
@@ -102,13 +108,19 @@ export class OpenAICompatibleAdapter extends BaseBackendAdapter {
       stream: true,
     };
 
-    const response = await fetch(this.getChatUrl(), {
+    const chatUrl = this.getChatUrl();
+    const headers = this.buildHeaders();
+    console.log('[Adapter] Chat request:', JSON.stringify({ url: chatUrl, model: payload.model, msgCount: payload.messages?.length, hasApiKey: !!(headers.Authorization || headers['x-api-key']) }));
+    
+    const response = await fetch(chatUrl, {
       method: 'POST',
-      headers: this.buildHeaders(),
+      headers,
       body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      console.error('[Adapter] Chat error:', response.status, errText.substring(0, 300));
       throw new Error(`${this.compatConfig.provider} API error: ${response.status} ${response.statusText}`);
     }
 

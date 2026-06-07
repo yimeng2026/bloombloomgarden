@@ -1,0 +1,257 @@
+# backend/deployments/docker-compose.yml
+# 全平台统一部署配置 - 一键启动所有可部署服务
+# 使用: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # ═══════════════════════════════════════════════════════════════
+  # X轴 - 客户端UI平台 (部署为Web服务)
+  # ═══════════════════════════════════════════════════════════════
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "8080:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - open-webui-data:/app/backend/data
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  librechat:
+    image: ghcr.io/danny-avila/librechat:latest
+    container_name: librechat
+    ports:
+      - "3080:3080"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3080
+      - MONGO_URI=mongodb://mongo:27017/LibreChat
+      - MEILI_HOST=http://meilisearch:7700
+    depends_on:
+      - mongo
+      - meilisearch
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  anythingllm:
+    image: mintplexlabs/anythingllm:latest
+    container_name: anythingllm
+    ports:
+      - "3001:3001"
+    environment:
+      - STORAGE_DIR=/app/server/storage
+      - JWT_SECRET=bloom-anythingllm-secret
+    volumes:
+      - anythingllm-data:/app/server/storage
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  lobechat:
+    image: lobehub/lobe-chat:latest
+    container_name: lobechat
+    ports:
+      - "3210:3210"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ACCESS_CODE=bloom-lobe
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  # ═══════════════════════════════════════════════════════════════
+  # Y轴 - 后端/推理平台
+  # ═══════════════════════════════════════════════════════════════
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - bloom-network
+    # GPU支持 (可选)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  localai:
+    image: localai/localai:latest-aio-cpu
+    container_name: localai
+    ports:
+      - "8081:8080"
+    environment:
+      - THREADS=4
+      - MODELS_PATH=/models
+    volumes:
+      - localai-models:/models
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  # ═══════════════════════════════════════════════════════════════
+  # 工作流/编排平台
+  # ═══════════════════════════════════════════════════════════════
+
+  dify:
+    image: langgenius/dify-api:latest
+    container_name: dify-api
+    ports:
+      - "80:5001"
+    environment:
+      - MODE=api
+      - SECRET_KEY=bloom-dify-secret
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=dify123
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=dify
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  dify-web:
+    image: langgenius/dify-web:latest
+    container_name: dify-web
+    ports:
+      - "81:3000"
+    environment:
+      - CONSOLE_API_URL=http://dify:5001
+      - APP_API_URL=http://dify:5001
+    depends_on:
+      - dify
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: flowise
+    ports:
+      - "3002:3000"
+    environment:
+      - FLOWISE_USERNAME=bloom
+      - FLOWISE_PASSWORD=bloom-flowise
+      - DATABASE_PATH=/root/.flowise
+    volumes:
+      - flowise-data:/root/.flowise
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=bloom
+      - N8N_BASIC_AUTH_PASSWORD=bloom-n8n
+      - WEBHOOK_URL=http://localhost:5678/
+    volumes:
+      - n8n-data:/home/node/.n8n
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  langgraph-studio:
+    image: langchain/langgraph-studio:latest
+    container_name: langgraph-studio
+    ports:
+      - "2024:2024"
+    environment:
+      - LANGGRAPH_API_KEY=${LANGGRAPH_API_KEY}
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  # ═══════════════════════════════════════════════════════════════
+  # 数据库/缓存 (依赖服务)
+  # ═══════════════════════════════════════════════════════════════
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=dify123
+      - POSTGRES_DB=dify
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: meilisearch
+    environment:
+      - MEILI_MASTER_KEY=bloom-meili-key
+    volumes:
+      - meili-data:/meili_data
+    restart: unless-stopped
+    networks:
+      - bloom-network
+
+# ═══════════════════════════════════════════════════════════════
+# 网络配置
+# ═══════════════════════════════════════════════════════════════
+
+networks:
+  bloom-network:
+    driver: bridge
+
+# ═══════════════════════════════════════════════════════════════
+# 数据卷
+# ═══════════════════════════════════════════════════════════════
+
+volumes:
+  open-webui-data:
+  anythingllm-data:
+  ollama-data:
+  localai-models:
+  flowise-data:
+  n8n-data:
+  postgres-data:
+  redis-data:
+  mongo-data:
+  meili-data:

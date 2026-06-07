@@ -1,0 +1,158 @@
+{
+  "test1": [
+    {
+      "agent": "协调员-悟空",
+      "status": "ok",
+      "latency": 5694,
+      "content": "你好！我是**蜂群协调员「悟空」**。\n\n当前时间：**2026年6月6日 17:17:43**\n\n我的核心职责与专长包括：\n\n- **任务拆解**：将复杂、模糊的大目标拆分为清晰可执行的子任务\n- **统筹调度**：根据各工作 Agent 的能力特点，",
+      "tokens": 262
+    },
+    {
+      "agent": "分析师-八戒",
+      "status": "ok",
+      "latency": 5665,
+      "content": "",
+      "tokens": 257
+    },
+    {
+      "agent": "研究员-沙僧",
+      "status": "ok",
+      "latency": 5552,
+      "content": "",
+      "tokens": 259
+    },
+    {
+      "agent": "工程师-白龙",
+      "status": "ok",
+      "latency": 5407,
+      "content": "",
+      "tokens": 261
+    },
+    {
+      "agent": "创意师-唐僧",
+      "status": "ok",
+      "latency": 5931,
+      "content": "",
+      "tokens": 259
+    }
+  ],
+  "test2": {
+    "status": "ok",
+    "latency": 5084,
+    "chunks": 0,
+    "content": "",
+    "hasChinese": false
+  },
+  "test3": {
+    "status": "ok",
+    "totalTime": 49688,
+    "subtasksText": "",
+    "workerResults": [
+      {
+        "agent": "分析师-八戒",
+        "content": "",
+        "tokens": 731
+      },
+      {
+        "agent": "研究员-沙僧",
+        "content": "",
+        "tokens": 736
+      },
+      {
+        "agent": "工程师-白龙",
+        "content": "",
+        "tokens": 740
+      },
+      {
+        "agent": "创意师-唐僧",
+        "content": "诸位施主，贫僧今日要念的，不是《心经》，而是2024年这卷“绿色国策”。\n\n这一年，政策的袈裟披在了",
+        "tokens": 736
+      }
+    ],
+    "summary": "",
+    "successCount": 4
+  },
+  "test4": {
+    "status": "ok",
+    "totalTime": 39002,
+    "results": [
+      {
+        "step": 1,
+        "agent": "分析师-八戒",
+        "status": "ok",
+        "latency": 9602,
+        "tokens": 457,
+        "output": ""
+      },
+      {
+        "step": 2,
+        "agent": "研究员-沙僧",
+        "status": "ok",
+        "latency": 9871,
+        "tokens": 456,
+        "output": "需求未提供，以下为通用高并发微服务架构参考：\n\n**接入层**：CDN + Nginx网关（限流/鉴权/WAF）；**应用层**：K8s 容器编排 + Spring Cloud/Dubbo 微服务，按业务域拆分；**数据层**：MySQL 主从读写分离 + Redis 集群抗热点 + RocketMQ/Kafka 异步解耦；"
+      },
+      {
+        "step": 3,
+        "agent": "工程师-白龙",
+        "status": "ok",
+        "latency": 7127,
+        "tokens": 540,
+        "output": ""
+      },
+      {
+        "step": 4,
+        "agent": "创意师-唐僧",
+        "status": "ok",
+        "latency": 12401,
+        "tokens": 457,
+        "output": "施主留步！你手中的`{prev}`乃是无字天书，贫僧纵有火眼金睛，也瞧不见真经代码。\n\n若施主能将代码展开，贫僧必为你设下三重试炼：**边界之境**（空值、极值、越界）、**因果之轮**（正反逻辑、有效/无效输入）、**异常苦海**（"
+      }
+    ]
+  },
+  "test5": {
+    "status": "ok",
+    "totalTime": 3824,
+    "successCount": 5,
+    "results": [
+      {
+        "agent": "协调员-悟空",
+        "status": "ok",
+        "content": "",
+        "tokens": 149
+      },
+      {
+        "agent": "分析师-八戒",
+        "status": "ok",
+        "content": "",
+        "tokens": 144
+      },
+      {
+        "agent": "研究员-沙僧",
+        "status": "ok",
+        "content": "",
+        "tokens": 146
+      },
+      {
+        "agent": "工程师-白龙",
+        "status": "ok",
+        "content": "",
+        "tokens": 148
+      },
+      {
+        "agent": "创意师-唐僧",
+        "status": "ok",
+        "content": "",
+        "tokens": 146
+      }
+    ]
+  },
+  "test6": {
+    "status": "ok",
+    "totalTime": 19848,
+    "routerTime": 1863,
+    "execTime": 17985,
+    "selectedAgent": "工程师-白龙",
+    "content": ""
+  }
+}

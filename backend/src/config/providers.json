@@ -94,12 +94,152 @@
     {
       "id": "kimi-code",
       "name": "Kimi Code",
-      "category": "cloud",
+      "category": "code-agent",
       "baseUrl": "https://api.kimi.com/coding/v1",
       "defaultModel": "kimi-for-coding",
       "apiKeySource": "config",
       "models": [
         "kimi-for-coding"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "openai-codex",
+      "name": "OpenAI Codex",
+      "category": "code-agent",
+      "baseUrl": "https://api.openai.com/v1/codex",
+      "defaultModel": "codex-latest",
+      "apiKeySource": "env:OPENAI_API_KEY",
+      "models": [
+        "codex-latest",
+        "codex-preview"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code (MCP)",
+      "category": "code-agent",
+      "baseUrl": "https://api.anthropic.com/v1/codex",
+      "defaultModel": "claude-code-20241022",
+      "apiKeyHeader": "x-api-key",
+      "apiKeyPrefix": "",
+      "apiKeySource": "env:CLAUDE_API_KEY",
+      "models": [
+        "claude-code-20241022",
+        "claude-3-5-sonnet-coding"
+      ],
+      "extraHeaders": {
+        "anthropic-version": "2023-06-01"
+      },
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "github-copilot",
+      "name": "GitHub Copilot",
+      "category": "code-agent",
+      "baseUrl": "https://api.githubcopilot.com/v1",
+      "defaultModel": "copilot-chat",
+      "apiKeySource": "env:GITHUB_COPILOT_TOKEN",
+      "models": [
+        "copilot-chat",
+        "copilot-completion"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "devin",
+      "name": "Devin (Cognition)",
+      "category": "code-agent",
+      "baseUrl": "https://api.cognition.ai/v1",
+      "defaultModel": "devin-v1",
+      "apiKeySource": "env:DEVIN_API_KEY",
+      "models": [
+        "devin-v1",
+        "devin-preview"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "codeium",
+      "name": "Codeium",
+      "category": "code-agent",
+      "baseUrl": "https://api.codeium.com/v1",
+      "defaultModel": "codeium-chat",
+      "apiKeySource": "env:CODEIUM_API_KEY",
+      "models": [
+        "codeium-chat",
+        "codeium-completion"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "category": "code-agent",
+      "baseUrl": "https://api.cursor.sh/v1",
+      "defaultModel": "cursor-fast",
+      "apiKeySource": "env:CURSOR_API_KEY",
+      "models": [
+        "cursor-fast",
+        "cursor-slow"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "windsurf",
+      "name": "Windsurf (Codeium)",
+      "category": "code-agent",
+      "baseUrl": "https://api.windsurf.com/v1",
+      "defaultModel": "windsurf-chat",
+      "apiKeySource": "env:WINDSURF_API_KEY",
+      "models": [
+        "windsurf-chat",
+        "windsurf-cascade"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "tabnine",
+      "name": "Tabnine",
+      "category": "code-agent",
+      "baseUrl": "https://api.tabnine.com/v1",
+      "defaultModel": "tabnine-pro",
+      "apiKeySource": "env:TABNINE_API_KEY",
+      "models": [
+        "tabnine-pro",
+        "tabnine-lite"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "sourcegraph-cody",
+      "name": "Sourcegraph Cody",
+      "category": "code-agent",
+      "baseUrl": "https://sourcegraph.com/.api/completions/stream",
+      "defaultModel": "claude-3-sonnet-cody",
+      "apiKeySource": "env:SOURCEGRAPH_TOKEN",
+      "models": [
+        "claude-3-sonnet-cody",
+        "claude-3-haiku-cody"
       ],
       "protocolLevel": 1,
       "protocol": "single-thread",
@@ -255,7 +395,7 @@
     {
       "id": "together",
       "name": "Together AI",
-      "category": "cloud",
+      "category": "gateway",
       "baseUrl": "https://api.together.xyz/v1",
       "defaultModel": "meta-llama/Llama-3-70B",
       "apiKeySource": "env:TOGETHER_API_KEY",
