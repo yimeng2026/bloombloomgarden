@@ -395,15 +395,7 @@
     {
       "id": "together",
       "name": "Together AI",
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "category": "gateway",
-=======
       "category": "cloud",
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
-=======
-      "category": "cloud",
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
       "baseUrl": "https://api.together.xyz/v1",
       "defaultModel": "meta-llama/Llama-3-70B",
       "apiKeySource": "env:TOGETHER_API_KEY",
@@ -1145,12 +1137,4 @@
       "threading": "multi"
     }
   ]
-<<<<<<< HEAD
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
-=======
-}
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393

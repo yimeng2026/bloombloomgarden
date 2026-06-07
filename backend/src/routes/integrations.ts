@@ -1,12 +1,5 @@
 import { Router } from 'express';
 import { getIntegrationService } from '../services';
-<<<<<<< HEAD
-<<<<<<< HEAD
-import prisma from '../config/prisma';
-=======
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
-=======
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
 const router = Router();
 
@@ -21,41 +14,10 @@ router.get('/', asyncHandler(async (_req, res) => {
   res.json({ success: true, data: integrations });
 }));
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-// 1b. GET /api/integrations/by-protocol/:level
-router.get('/by-protocol/:level', asyncHandler(async (req, res) => {
-  const level = parseInt(req.params.level, 10);
-  if (isNaN(level) || level < 0 || level > 3) {
-    return res.status(400).json({ success: false, error: 'Protocol level must be 0, 1, 2, or 3' });
-  }
-  const service = getIntegrationService();
-  const integrations = await service.getByProtocolLevel(level);
-  res.json({ success: true, data: integrations, total: integrations.length });
-}));
-
-// 2. POST /api/integrations — 创建
-router.post('/', asyncHandler(async (req, res) => {
-  const { name, type, config, enabled, protocolLevel, threading, protocol, providerId } = req.body;
-  const service = getIntegrationService();
-  const integration = await service.create({
-    name, type, config, enabled,
-    protocolLevel: protocolLevel ?? 1,
-    threading: threading ?? 'single',
-    protocol: protocol ?? 'single-thread',
-    providerId: providerId ?? '',
-  });
-=======
-=======
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 // 2. POST /api/integrations — 创建
 router.post('/', asyncHandler(async (req, res) => {
   const service = getIntegrationService();
   const integration = await service.create(req.body);
-<<<<<<< HEAD
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
-=======
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   res.status(201).json({ success: true, data: integration });
 }));
 
@@ -89,23 +51,4 @@ router.get('/types', asyncHandler(async (_req, res) => {
   res.json({ success: true, data: types });
 }));
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-// 7. POST /api/integrations/sync — 批量同步（协议分层）
-router.post('/sync', asyncHandler(async (req, res) => {
-  const { filter, protocolLevel } = req.body;
-  const service = getIntegrationService();
-  const all = await service.list();
-  const filtered = all.filter((i: any) => {
-    if (protocolLevel !== undefined && (i.protocolLevel ?? 1) !== protocolLevel) return false;
-    if (filter && filter.type && i.type !== filter.type) return false;
-    return true;
-  });
-  res.json({ success: true, data: filtered, total: filtered.length });
-}));
-
-=======
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
-=======
->>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 export default router;
