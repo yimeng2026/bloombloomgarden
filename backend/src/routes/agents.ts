@@ -16,7 +16,13 @@ function validateModeAndProtocolLevel(
 ): { valid: boolean; error?: string } {
   const modeToLevel: Record<string, number> = {
 <<<<<<< HEAD
+<<<<<<< HEAD
     A: 1, B: 2, C: 3,
+=======
+    A: 1, // 单线程 → L1
+    B: 2, // 多线程 → L2
+    C: 3, // 网关 → L3
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
     A: 1, // 单线程 → L1
     B: 2, // 多线程 → L2
@@ -27,6 +33,7 @@ function validateModeAndProtocolLevel(
   const expectedLevel = modeToLevel[mode];
   if (expectedLevel === undefined) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     return { valid: false, error: `Invalid mode "${mode}". Must be A, B, or C` };
   }
 
@@ -34,6 +41,8 @@ function validateModeAndProtocolLevel(
     const modeLabels: Record<string, string> = { A: 'single-thread (L1)', B: 'multi-thread (L2)', C: 'gateway (L3)' };
     return { valid: false, error: `Mode "${mode}" (${modeLabels[mode]}) requires protocolLevel ${expectedLevel}, but got ${protocolLevel}` };
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
     return { valid: false, error: `Invalid mode "${mode}". Must be A (single-thread), B (multi-thread), or C (gateway)` };
   }
 
@@ -47,6 +56,9 @@ function validateModeAndProtocolLevel(
       valid: false,
       error: `Mode "${mode}" (${modeLabels[mode]}) requires protocolLevel ${expectedLevel}, but got ${protocolLevel}`,
     };
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   }
 
@@ -54,6 +66,10 @@ function validateModeAndProtocolLevel(
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+// ─── 根据 protocolLevel 推导 dashboardType ───────────────
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // ─── 根据 protocolLevel 推导 dashboardType ───────────────
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -75,7 +91,11 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 1b. GET /api/agents/by-protocol/:level
+=======
+// 1b. GET /api/agents/by-protocol/:level — 按协议层级查询
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 1b. GET /api/agents/by-protocol/:level — 按协议层级查询
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -102,6 +122,10 @@ router.get('/by-protocol/:level', asyncHandler(async (req, res) => {
     }));
   } else {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    // 降级：从 service 获取全部再过滤
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
     // 降级：从 service 获取全部再过滤
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -122,7 +146,11 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 2b. POST /api/agents/:id/chat
+=======
+// 2b. POST /api/agents/:id/chat — 通过Agent对话（快捷方式，代理到dialog逻辑）
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 2b. POST /api/agents/:id/chat — 通过Agent对话（快捷方式，代理到dialog逻辑）
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -133,13 +161,19 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
   const dialogService = getDialogService();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   await dialogService.sendMessage(req.params.id, { content, role: 'user' });
 
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   // Save user message
   await dialogService.sendMessage(req.params.id, { content, role: 'user' });
 
   // Build messages for LLM - always include at least the user message
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   let messages: Array<{role: 'user' | 'assistant' | 'system'; content: string}> = [];
   try {
@@ -149,20 +183,30 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
       content: m.content || '',
     }));
 <<<<<<< HEAD
+<<<<<<< HEAD
   } catch { /* ignore */ }
 
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   } catch {
     // If context fails, just use the current message
   }
 
   // Fallback: ensure we have at least the user message
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   if (messages.length === 0) {
     messages = [{ role: 'user' as const, content }];
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+  // Get agent config for LLM settings
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   // Get agent config for LLM settings
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -181,6 +225,10 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
     res.json({ success: true, data: response });
   } catch (err: any) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    // If backend chat fails, try direct OpenRouter call as fallback
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
     // If backend chat fails, try direct OpenRouter call as fallback
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -190,7 +238,11 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 2a. GET /api/agents/:id/context
+=======
+// 2a. GET /api/agents/:id/context — 上下文详情（真实数据）
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 2a. GET /api/agents/:id/context — 上下文详情（真实数据）
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -221,7 +273,11 @@ router.get('/:id/context', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 2b. GET /api/agents/:id/context/stream — SSE
+=======
+// 2b. GET /api/agents/:id/context/stream — SSE 实时推送
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 2b. GET /api/agents/:id/context/stream — SSE 实时推送
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -244,6 +300,7 @@ router.get('/:id/context/stream', (req, res) => {
           agentStatus: agent?.status || 'unknown',
           tokenUsage: { used, limit: 8192 },
 <<<<<<< HEAD
+<<<<<<< HEAD
         })}
 \n\n`);
       }
@@ -252,11 +309,16 @@ router.get('/:id/context/stream', (req, res) => {
         res.write(`data: ${JSON.stringify({ type: 'error', message: 'heartbeat failed' })}
 \n\n`);
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
         })}\n\n`);
       }
     } catch (e) {
       if (!isClosed) {
         res.write(`data: ${JSON.stringify({ type: 'error', message: 'heartbeat failed' })}\n\n`);
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
       }
     }
@@ -265,7 +327,11 @@ router.get('/:id/context/stream', (req, res) => {
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 3. POST /api/agents — 创建
+=======
+// 3. POST /api/agents — 创建（支持协议分层新字段）
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 3. POST /api/agents — 创建（支持协议分层新字段）
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -274,6 +340,10 @@ router.post('/', asyncHandler(async (req, res) => {
     name, role, config, knowledgeBaseIds, skillIds, workspaceId,
     groupId, description, avatar,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    // ─── 协议分层新字段 ───────────────────────────
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
     // ─── 协议分层新字段 ───────────────────────────
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -284,6 +354,10 @@ router.post('/', asyncHandler(async (req, res) => {
     dashboardType: reqDashboardType,
     workFiles,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    // ─── 蜂群配置字段 ────────────────────────────
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
     // ─── 蜂群配置字段 ────────────────────────────
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -294,16 +368,22 @@ router.post('/', asyncHandler(async (req, res) => {
   } = req.body;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   const protocolLevel = reqProtocolLevel ?? 1;
   const mode = reqMode ?? 'A';
 
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   // 默认值
   const protocolLevel = reqProtocolLevel ?? 1;
   const mode = reqMode ?? 'A';
 
   // ── 校验 mode 与 protocolLevel 一致性 ──
   // protocolLevel=0 时跳过 mode 校验（基础设施层无特定mode要求）
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   if (protocolLevel > 0) {
     const validation = validateModeAndProtocolLevel(mode, protocolLevel);
@@ -313,7 +393,13 @@ router.post('/', asyncHandler(async (req, res) => {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   const service = getAgentService();
+=======
+  // ── Step 1: 创建基础 Agent ──
+  const service = getAgentService();
+  // Extract llmConfig from request and merge into config
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   // ── Step 1: 创建基础 Agent ──
   const service = getAgentService();
@@ -338,13 +424,19 @@ router.post('/', asyncHandler(async (req, res) => {
   });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   if (prisma) {
     const dashboardType = reqDashboardType || getDashboardType(protocolLevel);
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   // ── Step 2: 更新协议分层字段（直接走 Prisma）──
   if (prisma) {
     const dashboardType = reqDashboardType || getDashboardType(protocolLevel);
 
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
     await prisma.agent.update({
       where: { id: baseAgent.id },
@@ -356,6 +448,10 @@ router.post('/', asyncHandler(async (req, res) => {
         dashboardType,
         workFiles: JSON.stringify(workFiles || []),
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        // 蜂群配置
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
         // 蜂群配置
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -368,6 +464,10 @@ router.post('/', asyncHandler(async (req, res) => {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+  // ── Step 3: 返回完整 Agent ──
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   // ── Step 3: 返回完整 Agent ──
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -376,7 +476,11 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 4. PUT /api/agents/:id — 更新
+=======
+// 4. PUT /api/agents/:id — 更新（支持协议分层新字段）
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 4. PUT /api/agents/:id — 更新（支持协议分层新字段）
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -389,6 +493,10 @@ router.put('/:id', asyncHandler(async (req, res) => {
     dashboardType: reqDashboardType,
     workFiles,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    // ─── 蜂群配置字段 ────────────────────────────
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
     // ─── 蜂群配置字段 ────────────────────────────
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -401,6 +509,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 
   const service = getAgentService();
 <<<<<<< HEAD
+<<<<<<< HEAD
   const agent = await service.update(req.params.id, legacyFields);
   if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
 
@@ -410,6 +519,8 @@ router.put('/:id', asyncHandler(async (req, res) => {
     if (reqMode !== undefined) {
       prismaUpdate.mode = reqMode;
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
   // ── Step 1: 更新旧字段 ──
   const agent = await service.update(req.params.id, legacyFields);
@@ -425,6 +536,9 @@ router.put('/:id', asyncHandler(async (req, res) => {
     if (reqMode !== undefined) {
       prismaUpdate.mode = reqMode;
       // 如果同时更新了 mode 和 protocolLevel，再次校验一致性
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
       const levelToCheck = reqProtocolLevel ?? (await prisma.agent.findUnique({ where: { id: req.params.id }, select: { protocolLevel: true } }))?.protocolLevel ?? 1;
       if (levelToCheck > 0) {
@@ -442,6 +556,10 @@ router.put('/:id', asyncHandler(async (req, res) => {
     }
     if (workFiles !== undefined) prismaUpdate.workFiles = JSON.stringify(workFiles);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    // 蜂群配置更新
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
     // 蜂群配置更新
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -452,12 +570,18 @@ router.put('/:id', asyncHandler(async (req, res) => {
 
     if (Object.keys(prismaUpdate).length > 0) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       await prisma.agent.update({ where: { id: req.params.id }, data: prismaUpdate });
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
       await prisma.agent.update({
         where: { id: req.params.id },
         data: prismaUpdate,
       });
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
     }
   }
@@ -467,7 +591,11 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 5. DELETE /api/agents/:id
+=======
+// 5. DELETE /api/agents/:id — 删除
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 5. DELETE /api/agents/:id — 删除
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -479,7 +607,11 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 6. POST /api/agents/:id/pause
+=======
+// 6. POST /api/agents/:id/pause — 暂停
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 6. POST /api/agents/:id/pause — 暂停
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -491,7 +623,11 @@ router.post('/:id/pause', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 7. POST /api/agents/:id/resume
+=======
+// 7. POST /api/agents/:id/resume — 恢复
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 7. POST /api/agents/:id/resume — 恢复
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -503,7 +639,11 @@ router.post('/:id/resume', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 8. POST /api/agents/:id/isolate
+=======
+// 8. POST /api/agents/:id/isolate — 隔离
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 8. POST /api/agents/:id/isolate — 隔离
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -515,7 +655,11 @@ router.post('/:id/isolate', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 9. POST /api/agents/:id/inject
+=======
+// 9. POST /api/agents/:id/inject — 消息注入
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 9. POST /api/agents/:id/inject — 消息注入
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393

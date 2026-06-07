@@ -10,6 +10,10 @@ function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+// ─── 辅助：递归构建群组树 ──────────────────────────────
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // ─── 辅助：递归构建群组树 ──────────────────────────────
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -17,6 +21,7 @@ async function buildGroupTree(
   groupId: string,
   visited: Set<string> = new Set()
 ): Promise<any | null> {
+<<<<<<< HEAD
 <<<<<<< HEAD
   if (visited.has(groupId)) return null;
   visited.add(groupId);
@@ -26,6 +31,8 @@ async function buildGroupTree(
     group = await prisma.group.findUnique({ where: { id: groupId }, include: { agents: true } });
   }
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   if (visited.has(groupId)) return null; // 防止循环引用
   visited.add(groupId);
 
@@ -38,6 +45,9 @@ async function buildGroupTree(
     });
   }
 
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   if (!group) return null;
 
@@ -46,6 +56,7 @@ async function buildGroupTree(
 
   for (const entityId of entityIds) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (prisma) {
       const agent = await prisma.agent.findUnique({ where: { id: entityId } });
       if (agent) {
@@ -53,6 +64,8 @@ async function buildGroupTree(
         continue;
       }
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
     // 尝试作为 Agent 查找
     if (prisma) {
       const agent = await prisma.agent.findUnique({ where: { id: entityId } });
@@ -72,14 +85,20 @@ async function buildGroupTree(
 
     // 尝试作为 Group 查找（递归）
     if (prisma) {
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
       const childGroup = await prisma.group.findUnique({ where: { id: entityId } });
       if (childGroup) {
         const subtree = await buildGroupTree(entityId, new Set(visited));
         if (subtree) {
 <<<<<<< HEAD
+<<<<<<< HEAD
           children.push({ type: 'group', id: childGroup.id, name: childGroup.name, status: childGroup.status, children: subtree.children || [] });
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
           children.push({
             type: 'group',
             id: childGroup.id,
@@ -87,11 +106,15 @@ async function buildGroupTree(
             status: childGroup.status,
             children: subtree.children || [],
           });
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
         }
         continue;
       }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
     children.push({ type: 'unknown', id: entityId });
   }
@@ -100,6 +123,8 @@ async function buildGroupTree(
 }
 
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
     // 未知实体
     children.push({ type: 'unknown', id: entityId });
@@ -123,6 +148,9 @@ async function buildGroupTree(
 }
 
 // ─── 辅助：确定实体类型 ────────────────────────────────
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 async function detectEntityType(entityId: string): Promise<'agent' | 'group' | null> {
   if (!prisma) return null;
@@ -134,7 +162,10 @@ async function detectEntityType(entityId: string): Promise<'agent' | 'group' | n
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 // ─── 辅助：计算 entityType ─────────────────────────────
 function computeEntityType(
   currentIds: string[],
@@ -146,6 +177,9 @@ function computeEntityType(
   return currentType as any;
 }
 
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 // 1. GET /api/groups — 列表
 router.get('/', asyncHandler(async (_req, res) => {
@@ -154,6 +188,7 @@ router.get('/', asyncHandler(async (_req, res) => {
   res.json({ success: true, data: groups, total: groups.length });
 }));
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 // 2. POST /api/groups — 创建
 router.post('/', asyncHandler(async (req, res) => {
@@ -172,6 +207,8 @@ router.post('/', asyncHandler(async (req, res) => {
       else if (etype === 'group') { groups.push(eid); await prisma.group.update({ where: { id: eid }, data: { parentId: group.id } }); }
     }
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 // 2. POST /api/groups — 创建（支持 entityIds 代替 agentIds）
 router.post('/', asyncHandler(async (req, res) => {
   const {
@@ -214,6 +251,9 @@ router.post('/', asyncHandler(async (req, res) => {
     }
 
     // 确定 entityType
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
     let entityType = 'agents';
     if (agents.length > 0 && groups.length > 0) entityType = 'mixed';
@@ -222,13 +262,19 @@ router.post('/', asyncHandler(async (req, res) => {
     await prisma.group.update({
       where: { id: group.id },
 <<<<<<< HEAD
+<<<<<<< HEAD
       data: { entityIds: JSON.stringify(finalEntityIds), entityType, swarmMode: swarmMode || 'sequential' },
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
       data: {
         entityIds: JSON.stringify(finalEntityIds),
         entityType,
         swarmMode: swarmMode || 'sequential',
       },
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
     });
   }
@@ -238,7 +284,11 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 3. GET /api/groups/:id
+=======
+// 3. GET /api/groups/:id — 详情
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 3. GET /api/groups/:id — 详情
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -250,7 +300,11 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 4. PUT /api/groups/:id
+=======
+// 4. PUT /api/groups/:id — 更新
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 4. PUT /api/groups/:id — 更新
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -262,7 +316,11 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 5. DELETE /api/groups/:id
+=======
+// 5. DELETE /api/groups/:id — 删除
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 5. DELETE /api/groups/:id — 删除
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -274,7 +332,11 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 6. POST /api/groups/:id/agents
+=======
+// 6. POST /api/groups/:id/agents — 添加 Agent（保持兼容）
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 6. POST /api/groups/:id/agents — 添加 Agent（保持兼容）
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -283,6 +345,7 @@ router.post('/:id/agents', asyncHandler(async (req, res) => {
   const service = getGroupService();
   const group = await service.addAgent(req.params.id, agentId);
   if (!group) return res.status(404).json({ success: false, error: 'Group not found' });
+<<<<<<< HEAD
 <<<<<<< HEAD
   if (prisma) {
     const raw = await prisma.group.findUnique({ where: { id: req.params.id }, select: { entityIds: true } });
@@ -318,6 +381,8 @@ router.post('/:id/entities', asyncHandler(async (req, res) => {
   let entityType = rawGroup?.entityType || 'agents';
   const hasAgents = await Promise.all(currentIds.map(async (id) => detectEntityType(id)));
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
   // 同步更新 entityIds
   if (prisma) {
@@ -383,6 +448,9 @@ router.post('/:id/entities', asyncHandler(async (req, res) => {
   const hasAgents = await Promise.all(
     currentIds.map(async (id) => detectEntityType(id))
   );
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   const typeSet = new Set(hasAgents.filter(Boolean));
   if (typeSet.has('agent') && typeSet.has('group')) entityType = 'mixed';
@@ -390,12 +458,15 @@ router.post('/:id/entities', asyncHandler(async (req, res) => {
   else entityType = 'agents';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   const updated = await prisma.group.update({ where: { id: req.params.id }, data: { entityIds: JSON.stringify(currentIds), entityType } });
   res.json({ success: true, data: updated });
 }));
 
 // 6c. GET /api/groups/:id/tree
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   const updated = await prisma.group.update({
     where: { id: req.params.id },
     data: {
@@ -408,11 +479,15 @@ router.post('/:id/entities', asyncHandler(async (req, res) => {
 }));
 
 // 6c. GET /api/groups/:id/tree — 递归树
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 router.get('/:id/tree', asyncHandler(async (req, res) => {
   const service = getGroupService();
   const group = await service.getById(req.params.id);
   if (!group) return res.status(404).json({ success: false, error: 'Group not found' });
+<<<<<<< HEAD
 <<<<<<< HEAD
   const tree = await buildGroupTree(req.params.id);
   if (!tree) return res.status(500).json({ success: false, error: 'Failed to build tree' });
@@ -421,6 +496,8 @@ router.get('/:id/tree', asyncHandler(async (req, res) => {
 
 // 7. DELETE /api/groups/:id/agents/:agentId
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
   const tree = await buildGroupTree(req.params.id);
   if (!tree) return res.status(500).json({ success: false, error: 'Failed to build tree' });
@@ -429,11 +506,15 @@ router.get('/:id/tree', asyncHandler(async (req, res) => {
 }));
 
 // 7. DELETE /api/groups/:id/agents/:agentId — 移除 Agent
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 router.delete('/:id/agents/:agentId', asyncHandler(async (req, res) => {
   const service = getGroupService();
   const group = await service.removeAgent(req.params.id, req.params.agentId);
   if (!group) return res.status(404).json({ success: false, error: 'Group not found' });
+<<<<<<< HEAD
 <<<<<<< HEAD
   if (prisma) {
     const raw = await prisma.group.findUnique({ where: { id: req.params.id }, select: { entityIds: true } });
@@ -448,6 +529,8 @@ router.delete('/:id/agents/:agentId', asyncHandler(async (req, res) => {
 
 // 8. POST /api/groups/:id/coordinator
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
   // 同步更新 entityIds
   if (prisma) {
@@ -469,6 +552,9 @@ router.delete('/:id/agents/:agentId', asyncHandler(async (req, res) => {
 }));
 
 // 8. POST /api/groups/:id/coordinator — 指定协调员
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 router.post('/:id/coordinator', asyncHandler(async (req, res) => {
   const { agentId } = req.body;
@@ -479,7 +565,11 @@ router.post('/:id/coordinator', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 9. POST /api/groups/:id/nest
+=======
+// 额外：POST /api/groups/:id/nest — 嵌套子群组
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 额外：POST /api/groups/:id/nest — 嵌套子群组
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -494,7 +584,11 @@ router.post('/:id/nest', asyncHandler(async (req, res) => {
 // ─── 蜂群模式端点 ─────────────────────────────────────
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // POST /api/groups/:id/swarm-mode
+=======
+// POST /api/groups/:id/swarm-mode — 切换蜂群模式
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // POST /api/groups/:id/swarm-mode — 切换蜂群模式
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -504,6 +598,7 @@ router.post('/:id/swarm-mode', asyncHandler(async (req, res) => {
   if (!swarmMode || !validModes.includes(swarmMode)) {
     return res.status(400).json({ success: false, error: `swarmMode must be one of ${validModes.join(', ')}` });
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
   if (!prisma) return res.status(500).json({ success: false, error: 'Prisma not available' });
   const group = await prisma.group.findUnique({ where: { id: req.params.id } });
@@ -524,6 +619,8 @@ router.get('/:id/swarm-status', asyncHandler(async (req, res) => {
     data: {
       groupId: group.id, groupName: group.name,
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   if (!prisma) {
     return res.status(500).json({ success: false, error: 'Prisma not available' });
   }
@@ -560,6 +657,9 @@ router.get('/:id/swarm-status', asyncHandler(async (req, res) => {
     data: {
       groupId: group.id,
       groupName: group.name,
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
       swarmMode: group.swarmMode || group.executionMode || 'sequential',
       healthScore: (group as any).healthScore ?? 100,
@@ -572,7 +672,11 @@ router.get('/:id/swarm-status', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // POST /api/groups/:id/swarm-execute
+=======
+// POST /api/groups/:id/swarm-execute — 启动蜂群执行
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // POST /api/groups/:id/swarm-execute — 启动蜂群执行
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -587,7 +691,11 @@ router.post('/:id/swarm-execute', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 10. POST /api/groups/:id/execute
+=======
+// 9. POST /api/groups/:id/execute — 执行群组编排
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 9. POST /api/groups/:id/execute — 执行群组编排
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -599,7 +707,11 @@ router.post('/:id/execute', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 11. GET /api/groups/:id/agents
+=======
+// 10. GET /api/groups/:id/agents — 获取组内 Agent 列表
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 10. GET /api/groups/:id/agents — 获取组内 Agent 列表
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -607,6 +719,7 @@ router.get('/:id/agents', asyncHandler(async (req, res) => {
   const service = getGroupService();
   const group = await service.getById(req.params.id);
   if (!group) return res.status(404).json({ success: false, error: 'Group not found' });
+<<<<<<< HEAD
 <<<<<<< HEAD
   let agentIds: string[] = [];
   if (prisma) {
@@ -616,6 +729,8 @@ router.get('/:id/agents', asyncHandler(async (req, res) => {
   }
   if (agentIds.length === 0) agentIds = (group as any).agentIds || [];
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
   // 从 entityIds 中解析出 agents
   let agentIds: string[] = [];
@@ -638,6 +753,9 @@ router.get('/:id/agents', asyncHandler(async (req, res) => {
     agentIds = (group as any).agentIds || [];
   }
 
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   const agentService = getAgentService();
   const agents = await agentService.list();
@@ -646,7 +764,11 @@ router.get('/:id/agents', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 12. POST /api/groups/:id/pause
+=======
+// 11. POST /api/groups/:id/pause — 暂停群组
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 11. POST /api/groups/:id/pause — 暂停群组
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -658,7 +780,11 @@ router.post('/:id/pause', asyncHandler(async (req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 13. POST /api/groups/:id/resume
+=======
+// 12. POST /api/groups/:id/resume — 恢复群组
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // 12. POST /api/groups/:id/resume — 恢复群组
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393

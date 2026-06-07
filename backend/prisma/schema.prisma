@@ -1,7 +1,11 @@
 datasource db {
   provider = "sqlite"
 <<<<<<< HEAD
+<<<<<<< HEAD
   url      = env("DATABASE_URL")
+=======
+  url      = "file:./prisma/dev.db"
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   url      = "file:./prisma/dev.db"
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -12,6 +16,7 @@ generator client {
 }
 
 model Agent {
+<<<<<<< HEAD
 <<<<<<< HEAD
   id              String   @id @default(cuid())
   name            String
@@ -25,17 +30,23 @@ model Agent {
   status          String   @default("active")
   config          String   @default("{}")
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   id              String   @id @default(uuid())
   name            String
   role            String
   status          String   @default("active")
   config          String   @default("{}") // JSON string
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   knowledgeBaseIds String   @default("[]")
   skillIds        String   @default("[]")
   workspaceId     String?
   integrationIds  String   @default("[]")
   groupId         String?
+<<<<<<< HEAD
 <<<<<<< HEAD
   
   // 协议分层
@@ -48,6 +59,8 @@ model Agent {
   
   // 蜂群
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   description     String?
   avatar          String?
 
@@ -66,6 +79,9 @@ model Agent {
   workFiles       String   @default("[]")
 
   // --- Swarm System ---
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   swarmEnabled    Boolean  @default(false)
   swarmMode       String?
@@ -83,7 +99,11 @@ model Agent {
 
 model Group {
 <<<<<<< HEAD
+<<<<<<< HEAD
   id              String   @id @default(cuid())
+=======
+  id              String   @id @default(uuid())
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   id              String   @id @default(uuid())
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -94,6 +114,7 @@ model Group {
   executionMode   String   @default("sequential")
   status          String   @default("active")
   maxDepth        Int      @default(1)
+<<<<<<< HEAD
 <<<<<<< HEAD
   
   entityIds       String   @default("[]")
@@ -109,6 +130,8 @@ model Group {
   agents          Agent[]
   
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
   // --- Unified Entity System ---
   // entityIds: JSON array of agentIds AND/OR nested groupIds
@@ -127,6 +150,9 @@ model Group {
 
   agents          Agent[]
 
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   @@index([parentId])
   @@index([status])
@@ -135,7 +161,11 @@ model Group {
 
 model KnowledgeBase {
 <<<<<<< HEAD
+<<<<<<< HEAD
   id              String   @id @default(cuid())
+=======
+  id              String   @id @default(uuid())
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   id              String   @id @default(uuid())
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -143,6 +173,7 @@ model KnowledgeBase {
   description     String?
   documentIds     String   @default("[]")
   embeddingModel  String?
+<<<<<<< HEAD
 <<<<<<< HEAD
   status          String   @default("active")
   createdAt       DateTime @default(now())
@@ -153,12 +184,21 @@ model KnowledgeBase {
   updatedAt       DateTime @updatedAt
 
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   @@map("knowledgeBases")
 }
 
 model Document {
 <<<<<<< HEAD
+<<<<<<< HEAD
   id              String   @id @default(cuid())
+=======
+  id              String   @id @default(uuid())
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   id              String   @id @default(uuid())
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -168,16 +208,22 @@ model Document {
   metadata        String   @default("{}")
   createdAt       DateTime @default(now())
 <<<<<<< HEAD
+<<<<<<< HEAD
   updatedAt       DateTime @updatedAt
 }
 
 model Skill {
   id              String   @id @default(cuid())
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 }
 
 model Skill {
   id              String   @id @default(uuid())
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   name            String
   description     String?
@@ -191,7 +237,11 @@ model Skill {
 
 model Integration {
 <<<<<<< HEAD
+<<<<<<< HEAD
   id              String   @id @default(cuid())
+=======
+  id              String   @id @default(uuid())
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   id              String   @id @default(uuid())
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -203,6 +253,7 @@ model Integration {
   lastTestedAt    DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+<<<<<<< HEAD
 <<<<<<< HEAD
   
   // 协议分层增强
@@ -222,6 +273,8 @@ model Blueprint {
   definition      String   @default("{}")
   status          String   @default("draft")
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 }
 
 model Blueprint {
@@ -231,11 +284,15 @@ model Blueprint {
   steps           String   @default("[]") // JSON string
   variables       String   @default("{}")
   tags            String   @default("[]")
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 model Memory {
   id        String   @id @default(cuid())
@@ -270,6 +327,8 @@ model Webhook {
 
 =======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 model Settings {
   id              String   @id @default("default")
   theme           String   @default("system")
@@ -277,10 +336,13 @@ model Settings {
   notifications   Boolean  @default(true)
   autoSave        Boolean  @default(true)
 <<<<<<< HEAD
+<<<<<<< HEAD
   maxConcurrentAgents Int @default(10)
   defaultTimeout  Int      @default(300000)
   logLevel        String   @default("info")
   features        String   @default("{}")
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   createdAt       DateTime @default(now())
@@ -289,7 +351,11 @@ model Settings {
 
 model ChatMessage {
 <<<<<<< HEAD
+<<<<<<< HEAD
   id              String   @id @default(cuid())
+=======
+  id              String   @id @default(uuid())
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   id              String   @id @default(uuid())
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -302,7 +368,11 @@ model ChatMessage {
 
 model WorkspaceTask {
 <<<<<<< HEAD
+<<<<<<< HEAD
   id              String   @id @default(cuid())
+=======
+  id              String   @id @default(uuid())
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
   id              String   @id @default(uuid())
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393

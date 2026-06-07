@@ -396,7 +396,11 @@
       "id": "together",
       "name": "Together AI",
 <<<<<<< HEAD
+<<<<<<< HEAD
       "category": "gateway",
+=======
+      "category": "cloud",
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
       "category": "cloud",
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -1142,7 +1146,11 @@
     }
   ]
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 }
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393

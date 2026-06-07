@@ -38,7 +38,11 @@ import subtoolsRouter from './routes/subtools';
 const app = express();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ─── 全局中间件───────────────────────────────────────
+=======
+// ─── 全局中间�?───────────────────────────────────────
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // ─── 全局中间�?───────────────────────────────────────
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -49,7 +53,11 @@ app.use(helmet({
   }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // CORS 配置
+=======
+// CORS 配置 �?允许 Vercel 前端 + 本地开�?+ Railway 后端
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // CORS 配置 �?允许 Vercel 前端 + 本地开�?+ Railway 后端
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -73,21 +81,31 @@ app.use(express.urlencoded({ extended: true }));
 app.use(rateLimit({ windowMs: 60 * 1000, maxRequests: 100 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ─── 可选认证（解析用户信息但不强制）──────────────────
 app.use(optionalAuth);
 
 // --- Health Check ---
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 // ─── 可选认证（解析用户信息但不强制�?──────────────────
 app.use(optionalAuth);
 
 // --- Health Check (Railway /api/health) ---
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+// --- Health Check (root path compatible) ---
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // --- Health Check (root path compatible) ---
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -95,6 +113,7 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 // ─── 认证路由（无需认证）─────────────────────────────
 app.use('/api/auth', authRouter);
@@ -131,6 +150,8 @@ app.use('/api/subtools', subtoolsRouter);
 
 // ─── Dashboard 聚合端点─────────────────────────────────
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 // ─── 认证路由（无需认证�?─────────────────────────────
 app.use('/api/auth', authRouter);
 
@@ -165,6 +186,9 @@ app.use('/api/security', securityRouter);             // 安全中心
 app.use('/api/subtools', subtoolsRouter);             // 子工�?CLI Agent (3D坐标�?Z�?
 
 // ─── Dashboard 聚合端点�?Coordinator 要求）─────────────
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 app.get('/api/dashboard/state', async (_req, res) => {
   const { getAgentService } = await import('./services');
@@ -190,7 +214,11 @@ app.get('/api/dashboard/state', async (_req, res) => {
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ─── Intervention 状态汇总端点────────────────────────
+=======
+// ─── Intervention 状态汇总端点（Coordinator 要求）──────
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 // ─── Intervention 状态汇总端点（Coordinator 要求）──────
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
@@ -219,6 +247,11 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 
 export default app;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 
 

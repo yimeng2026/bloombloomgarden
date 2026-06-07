@@ -1,5 +1,6 @@
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
   "name": "thousand-realms-garden-backend",
   "version": "1.0.0",
   "description": "千界花园 — 群智协同系统后端 v1.0.0",
@@ -30,6 +31,8 @@
   "prisma": {
     "seed": "tsx prisma/seed.ts"
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   "name": "bloom-bloomgarden-backend",
   "version": "1.0.0",
   "description": "Bloom Bloom Garden - 后端服务（平台代理 + 部署管理）",
@@ -51,6 +54,9 @@
   },
   "engines": {
     "node": ">=18.0.0"
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   }
 }

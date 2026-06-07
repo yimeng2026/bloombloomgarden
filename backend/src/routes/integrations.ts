@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { getIntegrationService } from '../services';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import prisma from '../config/prisma';
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
@@ -18,6 +21,7 @@ router.get('/', asyncHandler(async (_req, res) => {
   res.json({ success: true, data: integrations });
 }));
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 // 1b. GET /api/integrations/by-protocol/:level
 router.get('/by-protocol/:level', asyncHandler(async (req, res) => {
@@ -42,10 +46,15 @@ router.post('/', asyncHandler(async (req, res) => {
     providerId: providerId ?? '',
   });
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 // 2. POST /api/integrations — 创建
 router.post('/', asyncHandler(async (req, res) => {
   const service = getIntegrationService();
   const integration = await service.create(req.body);
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   res.status(201).json({ success: true, data: integration });
 }));
@@ -81,6 +90,7 @@ router.get('/types', asyncHandler(async (_req, res) => {
 }));
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // 7. POST /api/integrations/sync — 批量同步（协议分层）
 router.post('/sync', asyncHandler(async (req, res) => {
   const { filter, protocolLevel } = req.body;
@@ -94,6 +104,8 @@ router.post('/sync', asyncHandler(async (req, res) => {
   res.json({ success: true, data: filtered, total: filtered.length });
 }));
 
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 =======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 export default router;
