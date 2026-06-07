@@ -11,12 +11,15 @@ export interface Integration {
   lastTestedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+<<<<<<< HEAD
 
   // 协议分层增强
   protocolLevel?: number;
   threading?: string;
   protocol?: string;
   providerId?: string;
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 }
 
 export class IntegrationService extends EventEmitter {
@@ -36,10 +39,13 @@ export class IntegrationService extends EventEmitter {
           config: JSON.stringify(data.config || {}),
           enabled: data.enabled,
           status: 'disconnected',
+<<<<<<< HEAD
           protocolLevel: (data as any).protocolLevel ?? 1,
           threading: (data as any).threading ?? 'single',
           protocol: (data as any).protocol ?? 'single-thread',
           providerId: (data as any).providerId ?? '',
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
         },
       });
       const integration: Integration = { ...raw, config: JSON.parse(raw.config || '{}'), status: raw.status as any };
@@ -68,6 +74,7 @@ export class IntegrationService extends EventEmitter {
     return Array.from(this.integrations.values());
   }
 
+<<<<<<< HEAD
   async getByProtocolLevel(level: number): Promise<Integration[]> {
     if (this.prisma) {
       const raws = await this.prisma.integration.findMany({ where: { protocolLevel: level }, orderBy: { createdAt: 'desc' } });
@@ -87,6 +94,15 @@ export class IntegrationService extends EventEmitter {
     if (data.threading !== undefined) updateData.threading = data.threading;
     if (data.protocol !== undefined) updateData.protocol = data.protocol;
     if (data.providerId !== undefined) updateData.providerId = data.providerId;
+=======
+  async update(id: string, data: Partial<Integration>): Promise<Integration | undefined> {
+    const updateData: any = { updatedAt: new Date() };
+    if (data.name) updateData.name = data.name;
+    if (data.type) updateData.type = data.type;
+    if (data.config) updateData.config = JSON.stringify(data.config);
+    if (data.enabled !== undefined) updateData.enabled = data.enabled;
+    if (data.status) updateData.status = data.status;
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 
     if (this.prisma) {
       try {
@@ -124,6 +140,10 @@ export class IntegrationService extends EventEmitter {
   }
 
   getTypes(): string[] {
+<<<<<<< HEAD
     return ['slack', 'discord', 'github', 'notion', 'webhook', 'email', 'sms', 'openai', 'claude', 'deepseek', 'kimi', 'kimi-code', 'openrouter', 'ollama', 'openclaw', 'auto', 'claude-code', 'cursor', 'windsurf', 'zhipu', 'baichuan', 'minimax', 'hunyuan', 'doubao', 'wenxin', 'spark', 'sensechat', 'kimi-moonshot', 'stepfun', 'groq', 'qwen', 'gemini', 'siliconflow', 'mistral', 'cohere', 'ai21', 'perplexity', 'fireworks', 'anyscale', 'azure', 'replicate', 'lepton', 'nvidia', 'predibase', 'cloudflare', 'poe', 'lambdalabs', 'sambanova', 'octoai', 'hyperbolic', 'arctic', 'vertex-gemini', 'bedrock', 'sagemaker', 'friendliai', 'tencentcloud', 'crewai', 'metagpt', 'chatdev', 'dspy', 'langgraph', 'autogen', 'novita', 'together', 'tabnine', 'sourcegraph-cody', 'codeium', 'devin', 'code-exec', 'filesystem', 'browser', 'sandbox', 'jupyter', 'lmstudio', 'vllm', 'localai', 'jan', 'gpt4all', 'textgenwebui', 'github-copilot', 'openai-codex'];
+=======
+    return ['slack', 'discord', 'github', 'notion', 'webhook', 'email', 'sms'];
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
   }
 }

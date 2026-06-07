@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # 千界花园后端 — Dockerfile
 # 多阶段构建，最小化镜像体积
 
@@ -56,6 +57,8 @@ EXPOSE 3001
 
 CMD ["node", "dist/server.js"]
 =======
+=======
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
 FROM node:18-alpine
 
 WORKDIR /app
@@ -73,4 +76,7 @@ EXPOSE 3001
 
 # 启动命令
 CMD ["node", "services/platformProxy.js"]
+<<<<<<< HEAD
+>>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
+=======
 >>>>>>> a83b659b1c1718f3a046b4befb9265461b588393
