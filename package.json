@@ -1,0 +1,13 @@
+{
+  "name": "bloombloomgarden",
+  "version": "1.0.0",
+  "description": "千界花园 — 分离部署后端",
+  "scripts": {
+    "build": "cd backend && npm install && npx prisma generate && npm run build",
+    "start": "cd backend && npx prisma db push --accept-data-loss && npx prisma db seed && node dist/server.js",
+    "postinstall": "cd backend && npm install"
+  },
+  "engines": {
+    "node": >=18"
+  }
+}
