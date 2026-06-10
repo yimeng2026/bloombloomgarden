@@ -215,7 +215,80 @@ export const updateWorkflow = (id: string, data: any) => put(`/workflows/${id}`,
 export const deleteWorkflow = (id: string) => del(`/workflows/${id}`);
 export const executeWorkflow = (id: string, data?: any) => post(`/workflows/${id}/execute`, data || {});
 
-/* ── Swarm (fallback if backend doesn't have swarm route) ── */
+/* ── Chariot / 战车 (Coordinator-Hierarchy) ── */
+export const fetchChariots = () => get('/coordinator-hierarchy/tree');
+export const getChariot = (id: string) => get(`/coordinator-hierarchy/chariot/${id}`);
+export const createChariot = (data: any) => post('/coordinator-hierarchy/chariot', data);
+export const deleteChariot = (id: string) => del(`/coordinator-hierarchy/chariot/${id}`);
+export const executeChariot = (id: string, task: any) => post(`/coordinator-hierarchy/chariot/${id}/execute`, { task });
+
+/**
+ * 流式执行战车任务（SSE）
+ * @param id 战车ID
+ * @param task 任务对象 { id, type, payload }
+ * @param onEvent 事件回调
+ * @returns 返回一个关闭函数
+ */
+export const executeChariotStream = (
+  id: string,
+  task: any,
+  onEvent: (event: any) => void,
+  onError?: (err: Error) => void,
+  onComplete?: () => void,
+): (() => void) => {
+  const ctrl = new AbortController();
+  const url = `${EFFECTIVE_API_BASE}/coordinator-hierarchy/chariot/${id}/execute/stream`;
+
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ task }),
+    signal: ctrl.signal,
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        throw new Error(`POST ${url} → ${res.status}`);
+      }
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data: ')) continue;
+          const data = trimmed.slice(6);
+          if (data === '[DONE]') {
+            onComplete?.();
+            return;
+          }
+          try {
+            const event = JSON.parse(data);
+            onEvent(event);
+          } catch {
+            // ignore parse errors
+          }
+        }
+      }
+      onComplete?.();
+    })
+    .catch((err) => {
+      if (err.name !== 'AbortError') {
+        onError?.(err);
+      }
+    });
+
+  return () => ctrl.abort();
+};
 export const fetchSwarms = async () => {
   try {
     return await get('/swarm');

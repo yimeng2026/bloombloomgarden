@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Network, Cpu, Zap, Activity, Globe, ArrowRightLeft, Settings,
   Plus, Trash2, RefreshCw, ChevronDown, ChevronUp, Bot, Server,
   Leaf, Layers, Play, Pause, Power, Search, Filter, CheckCircle,
-  AlertTriangle, XCircle, Clock, BarChart3, Loader2,
+  AlertTriangle, XCircle, Clock, BarChart3, Loader2, Send, Square,
+  Terminal, Sparkles,
 } from 'lucide-react'
-import { fetchSwarms, fetchAgents, fetchTasks } from '@/api/client'
+import { fetchSwarms, fetchAgents, fetchTasks, fetchChariots, executeChariotStream } from '@/api/client'
 
 interface SwarmNode {
   id: string
@@ -97,10 +98,19 @@ export default function SwarmPanel() {
   const [tasks, setTasks] = useState<SwarmTask[]>(MOCK_TASKS)
   const [loading, setLoading] = useState(false)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'nodes' | 'tasks' | 'topology'>('nodes')
+  const [activeTab, setActiveTab] = useState<'nodes' | 'tasks' | 'topology' | 'execute'>('nodes')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
+
+  // ─── 战车执行状态 ────────────────────────────────────
+  const [chariots, setChariots] = useState<any[]>([])
+  const [selectedChariotId, setSelectedChariotId] = useState<string>('')
+  const [taskInput, setTaskInput] = useState('')
+  const [executionEvents, setExecutionEvents] = useState<any[]>([])
+  const [isExecuting, setIsExecuting] = useState(false)
+  const [executionResult, setExecutionResult] = useState<any>(null)
+  const abortRef = React.useRef<(() => void) | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -109,16 +119,22 @@ export default function SwarmPanel() {
       fetchAgents().catch(() => null),
       fetchTasks().catch(() => null),
       fetchSwarms().catch(() => null),
+      fetchChariots().catch(() => null),
     ])
-      .then(([agentsRes, tasksRes, swarmsRes]) => {
+      .then(([agentsRes, tasksRes, swarmsRes, chariotsRes]) => {
         if (cancelled) return
         const agents = agentsRes?.data || agentsRes
         const tasks = tasksRes?.data || tasksRes
+        const chariotList = chariotsRes?.data || chariotsRes
         if (Array.isArray(agents) && agents.length > 0) {
           setNodes(agents.map(agentToNode))
         }
         if (Array.isArray(tasks) && tasks.length > 0) {
           setTasks(tasks.map(taskToSwarmTask))
+        }
+        if (Array.isArray(chariotList) && chariotList.length > 0) {
+          setChariots(chariotList)
+          if (!selectedChariotId) setSelectedChariotId(chariotList[0].id)
         }
       })
       .catch(() => {
@@ -136,6 +152,41 @@ export default function SwarmPanel() {
       const next = n.status === 'active' ? 'idle' : n.status === 'idle' ? 'offline' : 'active'
       return { ...n, status: next }
     }))
+  }
+
+  // ─── 战车执行 ────────────────────────────────────────
+  const handleExecute = () => {
+    if (!selectedChariotId || !taskInput.trim()) return
+
+    setExecutionEvents([])
+    setExecutionResult(null)
+    setIsExecuting(true)
+
+    const task = {
+      id: `task-${Date.now()}`,
+      type: 'execute',
+      payload: { content: taskInput.trim() },
+    }
+
+    const abort = executeChariotStream(
+      selectedChariotId,
+      task,
+      (event) => {
+        setExecutionEvents((prev) => [...prev, event])
+        if (event.type === 'complete') {
+          setExecutionResult(event.result)
+        }
+      },
+      (err) => {
+        setExecutionEvents((prev) => [...prev, { type: 'error', error: err.message }])
+        setIsExecuting(false)
+      },
+      () => {
+        setIsExecuting(false)
+      },
+    )
+
+    abortRef.current = abort
   }
 
   const filteredNodes = nodes.filter((n) => {
@@ -202,6 +253,7 @@ export default function SwarmPanel() {
           { id: 'nodes' as const, label: `节点 (${nodes.length})`, icon: Network },
           { id: 'tasks' as const, label: `任务 (${tasks.length})`, icon: Layers },
           { id: 'topology' as const, label: '拓扑', icon: Globe },
+          { id: 'execute' as const, label: '战车执行', icon: Play },
         ].map((tab) => {
           const Icon = tab.icon
           return (
@@ -478,6 +530,163 @@ export default function SwarmPanel() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Execute Tab */}
+      {activeTab === 'execute' && (
+        <div className="space-y-4">
+          {/* Chariot Selector */}
+          <div className="card p-4">
+            <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+              <Network className="w-4 h-4 text-[var(--sage-500)]" />
+              选择战车
+            </h3>
+            {chariots.length === 0 ? (
+              <p className="text-sm text-[var(--sage-400)]">暂无战车，请先创建</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {chariots.map((c: any) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedChariotId(c.id)}
+                    className={`p-3 rounded-card border text-left transition-all ${
+                      selectedChariotId === c.id
+                        ? 'border-[var(--sage-500)] bg-[var(--sage-50)] ring-1 ring-[var(--sage-500)]'
+                        : 'border-[var(--sage-200)] hover:border-[var(--sage-400)]'
+                    }`}
+                  >
+                    <p className="font-medium text-sm text-[var(--sage-800)]">{c.name}</p>
+                    <p className="text-xs text-[var(--sage-400)] mt-1">
+                      {c.executionMode} · {c.agentIds?.length || 0} 个Agent
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Task Input */}
+          <div className="card p-4">
+            <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-[var(--sage-500)]" />
+              任务输入
+            </h3>
+            <textarea
+              value={taskInput}
+              onChange={(e) => setTaskInput(e.target.value)}
+              placeholder="输入任务描述，例如：设计一个博客系统的技术方案..."
+              className="w-full h-32 p-3 rounded-card border text-sm resize-none"
+              style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+            />
+            <div className="flex items-center justify-between mt-3">
+              <p className="text-xs text-[var(--sage-400)]">
+                {taskInput.length} 字符 · 选中战车: {chariots.find((c) => c.id === selectedChariotId)?.name || '未选择'}
+              </p>
+              <div className="flex gap-2">
+                {isExecuting && (
+                  <button
+                    onClick={() => {
+                      abortRef.current?.();
+                      setIsExecuting(false);
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-card text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
+                  >
+                    <Square className="w-4 h-4" />
+                    停止
+                  </button>
+                )}
+                <button
+                  onClick={handleExecute}
+                  disabled={isExecuting || !selectedChariotId || !taskInput.trim()}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-card text-sm font-medium bg-[var(--sage-500)] text-white hover:bg-[var(--sage-600)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                  {isExecuting ? '执行中...' : '执行'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Execution Progress */}
+          {executionEvents.length > 0 && (
+            <div className="card p-4">
+              <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[var(--sage-500)]" />
+                执行进度
+              </h3>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {executionEvents.map((evt, idx) => (
+                  <div key={idx} className="flex items-start gap-2 text-sm">
+                    {evt.type === 'start' && (
+                      <>
+                        <Play className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                        <span className="text-[var(--sage-600)]">
+                          启动 {evt.mode} 模式，{evt.agentCount} 个Agent参与
+                        </span>
+                      </>
+                    )}
+                    {evt.type === 'subtask_start' && (
+                      <>
+                        <Loader2 className="w-4 h-4 text-amber-500 mt-0.5 shrink-0 animate-spin" />
+                        <span className="text-[var(--sage-600)]">
+                          Agent <span className="font-medium">{evt.agentId.slice(0, 8)}</span> 开始执行任务 {evt.index + 1}/{evt.total}
+                        </span>
+                      </>
+                    )}
+                    {evt.type === 'subtask_complete' && (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-[var(--sage-600)]">
+                            Agent <span className="font-medium">{evt.agentId.slice(0, 8)}</span> 完成
+                            <span className="text-xs text-[var(--sage-400)] ml-2">({evt.elapsedMs}ms)</span>
+                          </span>
+                          <p className="text-xs text-[var(--sage-400)] mt-1 line-clamp-3">{String(evt.data).slice(0, 200)}...</p>
+                        </div>
+                      </>
+                    )}
+                    {evt.type === 'subtask_error' && (
+                      <>
+                        <XCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                        <span className="text-red-600">
+                          Agent <span className="font-medium">{evt.agentId.slice(0, 8)}</span> 失败: {evt.error}
+                          {evt.willRetry && <span className="text-xs ml-2">(将重试)</span>}
+                        </span>
+                      </>
+                    )}
+                    {evt.type === 'complete' && (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                        <span className="text-green-600 font-medium">
+                          执行完成！总耗时 {evt.totalElapsedMs}ms
+                        </span>
+                      </>
+                    )}
+                    {evt.type === 'error' && (
+                      <>
+                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                        <span className="text-red-600">错误: {evt.error}</span>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Final Result */}
+          {executionResult && (
+            <div className="card p-4">
+              <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-[var(--sage-500)]" />
+                执行结果
+              </h3>
+              <pre className="text-xs text-[var(--sage-600)] bg-[var(--sage-50)] p-3 rounded-card overflow-auto max-h-64">
+                {JSON.stringify(executionResult, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       )}
     </div>
