@@ -2,12 +2,9 @@ import { Router } from 'express';
 import { AgentService, AgentStatus } from '../services/AgentService';
 import { getAgentService, getDialogService } from '../services';
 import prisma from '../config/prisma';
+import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
-
-function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
 
 // ─── Mode 与 ProtocolLevel 一致性校验 ───────────────────
 function validateModeAndProtocolLevel(

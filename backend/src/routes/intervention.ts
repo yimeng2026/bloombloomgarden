@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import {
+import { asyncHandler } from '../middleware/asyncHandler';
   getInterventionService,
   InterventionLevel,
   InterventionAction,
@@ -7,12 +8,6 @@ import {
 } from '../services/CollabFramework';
 
 const router = Router();
-
-function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-}
 
 // ─── 11 端点实现 ───────────────────────────────────────
 

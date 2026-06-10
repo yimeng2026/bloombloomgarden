@@ -1,11 +1,8 @@
 import { Router } from 'express';
 import { getMonitorService } from '../services';
+import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
-
-function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
 
 // 0. GET /api/monitor — 总览
 router.get('/', asyncHandler(async (_req, res) => {

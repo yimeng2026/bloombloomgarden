@@ -1,11 +1,8 @@
 import { Router } from 'express';
 import { getSkillService } from '../services';
+import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
-
-function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
 
 // 1. GET /api/skills — 列表
 router.get('/', asyncHandler(async (_req, res) => {

@@ -1,12 +1,9 @@
 import { Router } from 'express';
 import { getDialogService } from '../services';
 import { getBackendRouter } from '../services/BackendRouter';
+import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
-
-function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
 
 // 1. GET /api/dialog/agents — 可对话 Agent 列表
 router.get('/agents', asyncHandler(async (_req, res) => {

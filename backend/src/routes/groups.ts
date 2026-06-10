@@ -2,12 +2,9 @@ import { Router } from 'express';
 import { GroupService, GroupStatus } from '../services/GroupService';
 import { getGroupService, getAgentService } from '../services';
 import prisma from '../config/prisma';
+import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
-
-function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
 
 // ─── 辅助：递归构建群组树 ──────────────────────────────
 async function buildGroupTree(

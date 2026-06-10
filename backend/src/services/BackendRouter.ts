@@ -39,7 +39,29 @@ const KIMI_DEFAULT_MODEL = process.env.KIMI_CODE_DEFAULT_MODEL || 'kimi-for-codi
 const KIMI_MAX_RETRIES = parseInt(process.env.KIMI_CODE_MAX_RETRIES || '3', 10);
 const KIMI_TIMEOUT = parseInt(process.env.KIMI_CODE_TIMEOUT || '60000', 10);
 
-export interface BackendProfile {
+// ═══════════════════════════════════════════════════════════════
+// GLM-5.1 (智谱AI) API Keys — 从环境变量读取，支持10个Key轮询
+// 支持 GLM51_KEY_1 ~ GLM51_KEY_10
+// ═══════════════════════════════════════════════════════════════
+function getGLM51Keys(): string[] {
+  const keys: string[] = [];
+  for (let i = 1; i <= 10; i++) {
+    const key = process.env[`GLM51_KEY_${i}`];
+    if (key && key.includes('.')) {
+      keys.push(key);
+    }
+  }
+  if (keys.length === 0) {
+    console.warn('[BackendRouter] 未配置 GLM51_KEY_1~10 环境变量，GLM-5.1 适配器将不可用');
+  }
+  return keys;
+}
+
+const GLM51_KEYS = getGLM51Keys();
+const GLM51_BASE_URL = process.env.GLM51_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4';
+const GLM51_DEFAULT_MODEL = process.env.GLM51_DEFAULT_MODEL || 'glm-4';
+const GLM51_MAX_RETRIES = parseInt(process.env.GLM51_MAX_RETRIES || '3', 10);
+const GLM51_TIMEOUT = parseInt(process.env.GLM51_TIMEOUT || '60000', 10);
   id: string;
   provider: string;
   name: string;
@@ -80,7 +102,22 @@ export class BackendRouter {
       { provider: 'ollama', baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434', apiKey: '' },
     ));
 
-    // === 通用 OpenAI 兼容适配器（50+ 平台） ===
+    // GLM-5.1 (智谱AI) — 10个密钥轮询
+    if (GLM51_KEYS.length > 0) {
+      this.registerBackend('zhipu', new OpenAICompatibleAdapter({
+        provider: 'zhipu',
+        baseUrl: GLM51_BASE_URL,
+        apiKey: GLM51_KEYS[0],
+        model: GLM51_DEFAULT_MODEL,
+        apiKeyHeader: 'Authorization',
+        apiKeyPrefix: 'Bearer ',
+        chatPath: '/chat/completions',
+        modelsPath: '/models',
+      }));
+      console.log(`[BackendRouter] GLM-5.1 适配器已注册，${GLM51_KEYS.length} 个Key可用`);
+    } else {
+      console.warn('[BackendRouter] GLM-5.1 适配器未注册：未找到有效的 GLM51_KEY 环境变量');
+    }
 
     const openAICompatibleProviders = providersConfig.providers.filter(
       (p: any) => !['kimi-code', 'claude', 'ollama'].includes(p.id)

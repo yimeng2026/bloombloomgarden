@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { generateToken } from '../middleware/auth';
 import { createHash, randomBytes } from 'crypto';
+import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
 
@@ -28,10 +29,6 @@ users.set('admin', {
   password: hashPassword('admin123'),
   role: 'admin',
 });
-
-function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
 
 // POST /api/auth/login — 登录
 router.post('/login', asyncHandler(async (req, res) => {

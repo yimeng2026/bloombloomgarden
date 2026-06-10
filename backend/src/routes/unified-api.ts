@@ -1,12 +1,9 @@
 import { Router } from 'express';
 import { getUnifiedAPIService } from '../services';
 import { getBackendRouter } from '../services/BackendRouter';
+import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
-
-function asyncHandler(fn: (req: any, res: any, next: any) => Promise<void>) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
 
 // 1. POST /api/unified-api/detect — 自动检测 provider
 router.post('/detect', asyncHandler(async (req, res) => {

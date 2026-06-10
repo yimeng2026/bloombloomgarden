@@ -1,13 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getHandoffProtocol, getSwarmCoordinator, HandoffStatus } from '../services/CollabFramework';
+import { asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
-
-function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-}
 
 // ─── 8 端点实现 ────────────────────────────────────────
 
