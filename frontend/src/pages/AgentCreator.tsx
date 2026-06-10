@@ -1858,6 +1858,27 @@ export default function AgentCreator() {
 
     setIsSubmitting(true);
     try {
+      // Build llmConfig from wizard state
+      const platformId = wizardState.platformId;
+      const backendId = wizardState.gatewayBackendId;
+      const effectiveProvider = backendId || platformId || 'zhipu';
+
+      // Find model from selected platform
+      const allPlatforms = [...backendL1, ...backendL2, ...backendL3, ...l1Platforms, ...l2Platforms, ...l3Platforms];
+      const selectedPlatform = allPlatforms.find(p => p.id === effectiveProvider);
+
+      const llmConfig = {
+        provider: effectiveProvider,
+        model: selectedPlatform?.description?.split('·')[0]?.trim() || selectedPlatform?.description?.split(',')[0]?.trim() || 'glm-4',
+        temperature: wizardState.temperature,
+        maxTokens: wizardState.maxTokens,
+        topP: 1.0,
+        presencePenalty: 0,
+        frequencyPenalty: 0,
+        // Fallback chain: if primary fails, try these in order
+        fallbackProviders: ['zhipu', 'deepseek', 'openai'].filter(p => p !== effectiveProvider),
+      };
+
       // Build thread platforms for multi mode
       const threadPlatforms = wizardState.mode === 'multi'
         ? wizardState.threads
@@ -1869,7 +1890,13 @@ export default function AgentCreator() {
         name: wizardState.agentName,
         description: wizardState.agentDescription,
         avatar: wizardState.agentAvatar,
-        mode: wizardState.mode,
+        role: wizardState.rolePresetId || 'assistant',
+        config: {
+          systemPrompt: wizardState.systemPrompt,
+          llmConfig,
+        },
+        llmConfig, // Also pass at top level for Service to merge
+        mode: wizardState.mode === 'single' ? 'A' : wizardState.mode === 'multi' ? 'B' : 'C',
         protocolLevel: wizardState.mode === 'single' ? 1 : wizardState.mode === 'multi' ? 2 : 3,
         platformId: wizardState.platformId,
         systemPrompt: wizardState.systemPrompt,

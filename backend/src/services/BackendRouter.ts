@@ -6,62 +6,72 @@ import { OllamaAdapter } from '../adapters/OllamaAdapter';
 import providersConfig from '../config/providers.json';
 
 // ═══════════════════════════════════════════════════════════════
-// Kimi Code API Keys — 从环境变量读取，不再硬编码
-// 支持 KIMI_CODE_KEY_1 ~ KIMI_CODE_KEY_5
+// 通用多Key轮询读取器
+// 支持 {PREFIX}_API_KEY_1 ~ {PREFIX}_API_KEY_N 和 {PREFIX}_API_KEY（单Key）
 // ═══════════════════════════════════════════════════════════════
-function getKimiCodeKeys(): string[] {
+function getProviderKeys(prefix: string, maxKeys: number = 10): string[] {
   const keys: string[] = [];
-  for (let i = 1; i <= 5; i++) {
-    const key = process.env[`KIMI_CODE_KEY_${i}`];
-    if (key && key.startsWith('sk-')) {
-      keys.push(key);
-    }
+  // 多Key轮询: PROVIDER_API_KEY_1 ~ PROVIDER_API_KEY_N
+  for (let i = 1; i <= maxKeys; i++) {
+    const key = process.env[`${prefix}_API_KEY_${i}`];
+    if (key && key.length > 10) keys.push(key);
   }
-  // 兼容旧环境变量名
-  const legacyKeys = process.env.KIMI_CODE_API_KEYS;
+  // 单Key兼容: PROVIDER_API_KEY
+  const singleKey = process.env[`${prefix}_API_KEY`];
+  if (singleKey && singleKey.length > 10 && !keys.includes(singleKey)) {
+    keys.push(singleKey);
+  }
+  // 旧格式兼容: 逗号分隔
+  const legacyKeys = process.env[`${prefix}_API_KEYS`];
   if (legacyKeys) {
     legacyKeys.split(',').forEach(k => {
       const trimmed = k.trim();
-      if (trimmed.startsWith('sk-') && !keys.includes(trimmed)) {
+      if (trimmed.length > 10 && !keys.includes(trimmed)) {
         keys.push(trimmed);
       }
     });
   }
-  if (keys.length === 0) {
-    console.warn('[BackendRouter] ⚠️ 未配置 KIMI_CODE_KEY_1~5 环境变量，Kimi Code 适配器将不可用');
-  }
   return keys;
 }
 
-const KIMI_CODE_KEYS = getKimiCodeKeys();
+// ═══════════════════════════════════════════════════════════════
+// Kimi Code — 特殊适配器（自定义认证头）
+// ═══════════════════════════════════════════════════════════════
+const KIMI_KEYS = getProviderKeys('KIMI_CODE', 5);
 const KIMI_BASE_URL = process.env.KIMI_CODE_BASE_URL || 'https://api.kimi.com/coding/v1';
 const KIMI_DEFAULT_MODEL = process.env.KIMI_CODE_DEFAULT_MODEL || 'kimi-for-coding';
-const KIMI_MAX_RETRIES = parseInt(process.env.KIMI_CODE_MAX_RETRIES || '3', 10);
-const KIMI_TIMEOUT = parseInt(process.env.KIMI_CODE_TIMEOUT || '60000', 10);
 
 // ═══════════════════════════════════════════════════════════════
-// GLM-5.1 (智谱AI) API Keys — 从环境变量读取，支持10个Key轮询
-// 支持 GLM51_KEY_1 ~ GLM51_KEY_10
+// GLM-5.1 (智谱AI) — 特殊适配器（Bearer Token）
 // ═══════════════════════════════════════════════════════════════
-function getGLM51Keys(): string[] {
-  const keys: string[] = [];
-  for (let i = 1; i <= 10; i++) {
-    const key = process.env[`GLM51_KEY_${i}`];
-    if (key && key.includes('.')) {
-      keys.push(key);
-    }
-  }
-  if (keys.length === 0) {
-    console.warn('[BackendRouter] 未配置 GLM51_KEY_1~10 环境变量，GLM-5.1 适配器将不可用');
-  }
-  return keys;
-}
-
-const GLM51_KEYS = getGLM51Keys();
+const GLM51_KEYS = getProviderKeys('GLM51', 10);
 const GLM51_BASE_URL = process.env.GLM51_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4';
 const GLM51_DEFAULT_MODEL = process.env.GLM51_DEFAULT_MODEL || 'glm-4';
-const GLM51_MAX_RETRIES = parseInt(process.env.GLM51_MAX_RETRIES || '3', 10);
-const GLM51_TIMEOUT = parseInt(process.env.GLM51_TIMEOUT || '60000', 10);
+
+// ═══════════════════════════════════════════════════════════════
+// Claude — 特殊适配器（x-api-key 认证头）
+// ═══════════════════════════════════════════════════════════════
+const CLAUDE_KEYS = getProviderKeys('CLAUDE', 5);
+const CLAUDE_BASE_URL = process.env.CLAUDE_BASE_URL || 'https://api.anthropic.com';
+
+// ═══════════════════════════════════════════════════════════════
+// DeepSeek — OpenAI兼容
+// ═══════════════════════════════════════════════════════════════
+const DEEPSEEK_KEYS = getProviderKeys('DEEPSEEK', 5);
+const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
+
+// ═══════════════════════════════════════════════════════════════
+// OpenAI — OpenAI兼容
+// ═══════════════════════════════════════════════════════════════
+const OPENAI_KEYS = getProviderKeys('OPENAI', 5);
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.openai.com';
+
+// ═══════════════════════════════════════════════════════════════
+// Ollama — 本地部署
+// ═══════════════════════════════════════════════════════════════
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+
+export interface ProviderInfo {
   id: string;
   provider: string;
   name: string;
@@ -74,6 +84,7 @@ export class BackendRouter {
   private backends = new Map<string, BaseBackendAdapter>();
   private healthChecks = new Map<string, NodeJS.Timeout>();
   private healthStatus = new Map<string, { status: 'healthy' | 'unhealthy'; latency: number }>();
+  private keyIndices = new Map<string, number>(); // 轮询索引
 
   constructor() {
     this.initAllBackends();
@@ -82,27 +93,31 @@ export class BackendRouter {
   private initAllBackends(): void {
     // === 特殊适配器（需要自定义认证头或协议） ===
 
-    // Kimi Code — 从环境变量读取密钥，支持轮询
-    if (KIMI_CODE_KEYS.length > 0) {
+    // Kimi Code — 多Key轮询
+    if (KIMI_KEYS.length > 0) {
       this.registerBackend('kimi-code', new KimiAdapter(
-        { provider: 'kimi-code', baseUrl: KIMI_BASE_URL, apiKey: KIMI_CODE_KEYS[0] },
-        { baseUrl: KIMI_BASE_URL, apiKeys: KIMI_CODE_KEYS, defaultModel: KIMI_DEFAULT_MODEL, maxRetries: KIMI_MAX_RETRIES, timeout: KIMI_TIMEOUT },
+        { provider: 'kimi-code', baseUrl: KIMI_BASE_URL, apiKey: KIMI_KEYS[0] },
+        { baseUrl: KIMI_BASE_URL, apiKeys: KIMI_KEYS, defaultModel: KIMI_DEFAULT_MODEL, maxRetries: 3, timeout: 60000 },
       ));
     } else {
-      console.warn('[BackendRouter] Kimi Code 适配器未注册：未找到有效的 KIMI_CODE_KEY 环境变量');
+      console.warn('[BackendRouter] Kimi Code 适配器未注册：未找到有效的 KIMI_CODE_API_KEY 环境变量');
     }
 
-    // Claude — 特殊 x-api-key 认证头
-    this.registerBackend('claude', new ClaudeAdapter(
-      { provider: 'claude', baseUrl: 'https://api.anthropic.com', apiKey: process.env.CLAUDE_API_KEY || '' },
-    ));
+    // Claude — 多Key轮询
+    if (CLAUDE_KEYS.length > 0) {
+      this.registerBackend('claude', new ClaudeAdapter(
+        { provider: 'claude', baseUrl: CLAUDE_BASE_URL, apiKey: CLAUDE_KEYS[0] },
+      ));
+    } else {
+      console.warn('[BackendRouter] Claude 适配器未注册：未找到有效的 CLAUDE_API_KEY 环境变量');
+    }
 
     // Ollama — 本地部署，无认证
     this.registerBackend('ollama', new OllamaAdapter(
-      { provider: 'ollama', baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434', apiKey: '' },
+      { provider: 'ollama', baseUrl: OLLAMA_BASE_URL, apiKey: '' },
     ));
 
-    // GLM-5.1 (智谱AI) — 10个密钥轮询
+    // GLM-5.1 (智谱AI) — 多Key轮询
     if (GLM51_KEYS.length > 0) {
       this.registerBackend('zhipu', new OpenAICompatibleAdapter({
         provider: 'zhipu',
@@ -116,17 +131,43 @@ export class BackendRouter {
       }));
       console.log(`[BackendRouter] GLM-5.1 适配器已注册，${GLM51_KEYS.length} 个Key可用`);
     } else {
-      console.warn('[BackendRouter] GLM-5.1 适配器未注册：未找到有效的 GLM51_KEY 环境变量');
+      console.warn('[BackendRouter] GLM-5.1 适配器未注册：未找到有效的 GLM51_API_KEY 环境变量');
     }
 
+    // DeepSeek — 多Key轮询
+    if (DEEPSEEK_KEYS.length > 0) {
+      this.registerBackend('deepseek', new OpenAICompatibleAdapter({
+        provider: 'deepseek',
+        baseUrl: DEEPSEEK_BASE_URL,
+        apiKey: DEEPSEEK_KEYS[0],
+        model: 'deepseek-chat',
+        chatPath: '/chat/completions',
+        modelsPath: '/models',
+      }));
+      console.log(`[BackendRouter] DeepSeek 适配器已注册，${DEEPSEEK_KEYS.length} 个Key可用`);
+    }
+
+    // OpenAI — 多Key轮询
+    if (OPENAI_KEYS.length > 0) {
+      this.registerBackend('openai', new OpenAICompatibleAdapter({
+        provider: 'openai',
+        baseUrl: OPENAI_BASE_URL,
+        apiKey: OPENAI_KEYS[0],
+        model: 'gpt-4o',
+        chatPath: '/v1/chat/completions',
+        modelsPath: '/v1/models',
+      }));
+      console.log(`[BackendRouter] OpenAI 适配器已注册，${OPENAI_KEYS.length} 个Key可用`);
+    }
+
+    // === providers.json 中的其他 provider ===
     const openAICompatibleProviders = providersConfig.providers.filter(
-      (p: any) => !['kimi-code', 'claude', 'ollama'].includes(p.id)
+      (p: any) => !['kimi-code', 'claude', 'ollama', 'zhipu', 'deepseek', 'openai'].includes(p.id)
     );
 
     for (const provider of openAICompatibleProviders) {
       const apiKey = this.resolveApiKey(provider.apiKeySource);
       // 即使没有API Key也注册后端（用户可以在设置页面配置）
-      // 只有没有apiKeySource的才跳过
 
       const config: OpenAICompatibleConfig = {
         provider: provider.id,
@@ -151,7 +192,6 @@ export class BackendRouter {
       return process.env[envVar];
     }
     if (source === 'config') {
-      // 从 kimiConfig 等特殊配置读取
       return undefined;
     }
     return undefined;
@@ -162,8 +202,14 @@ export class BackendRouter {
     this.startHealthCheck(id, adapter);
   }
 
+  // ─── 动态注册/注销 ────────────────────────────────────
   register(id: string, adapter: BaseBackendAdapter): void {
     this.registerBackend(id, adapter);
+  }
+
+  unregister(id: string): boolean {
+    this.stopHealthCheck(id);
+    return this.backends.delete(id);
   }
 
   getBackend(id: string): BaseBackendAdapter | undefined {
@@ -190,10 +236,34 @@ export class BackendRouter {
     return results;
   }
 
-  async chat(backendId: string, request: ChatRequest): Promise<ChatResponse> {
+  // ─── 多Key轮询获取下一个Key ────────────────────────────
+  private getNextKey(providerId: string, keys: string[]): string {
+    const idx = this.keyIndices.get(providerId) || 0;
+    const nextIdx = (idx + 1) % keys.length;
+    this.keyIndices.set(providerId, nextIdx);
+    return keys[nextIdx];
+  }
+
+  // ─── 聊天（支持fallback）────────────────────────────────
+  async chat(backendId: string, request: ChatRequest, fallbackIds?: string[]): Promise<ChatResponse> {
     const backend = this.backends.get(backendId);
-    if (!backend) throw new Error(`Backend ${backendId} not found`);
-    return backend.chat(request);
+    if (!backend) {
+      // 尝试fallback
+      if (fallbackIds && fallbackIds.length > 0) {
+        return this.routeChat(request, fallbackIds);
+      }
+      throw new Error(`Backend ${backendId} not found`);
+    }
+    try {
+      return await backend.chat(request);
+    } catch (err: any) {
+      // 主provider失败，尝试fallback
+      if (fallbackIds && fallbackIds.length > 0) {
+        console.warn(`[BackendRouter] ${backendId} failed, trying fallback: ${fallbackIds.join(', ')}`);
+        return this.routeChat(request, fallbackIds);
+      }
+      throw err;
+    }
   }
 
   async *chatStream(backendId: string, request: ChatRequest): AsyncIterable<ChatChunk> {
@@ -202,8 +272,10 @@ export class BackendRouter {
     yield* backend.chatStream(request);
   }
 
+  // ─── 路由选择（支持fallback链）───────────────────────────
   async routeChat(request: ChatRequest, preferences?: string[]): Promise<{ backendId: string; response: ChatResponse }> {
     const candidates = preferences || Array.from(this.backends.keys());
+    const errors: string[] = [];
     for (const id of candidates) {
       const backend = this.backends.get(id);
       if (!backend) continue;
@@ -212,13 +284,15 @@ export class BackendRouter {
       try {
         const response = await backend.chat(request);
         return { backendId: id, response };
-      } catch {
+      } catch (err: any) {
+        errors.push(`${id}: ${err.message}`);
         continue;
       }
     }
-    throw new Error('All backends failed');
+    throw new Error(`All backends failed: ${errors.join('; ')}`);
   }
 
+  // ─── 健康检查 ─────────────────────────────────────────
   private startHealthCheck(id: string, adapter: BaseBackendAdapter): void {
     const runCheck = async () => {
       try {
