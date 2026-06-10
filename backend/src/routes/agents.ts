@@ -98,8 +98,12 @@ router.get('/:id', asyncHandler(async (req, res) => {
   res.json({ success: true, data: agent });
 }));
 
-// 2b. POST /api/agents/:id/chat — 通过Agent对话（快捷方式，代理到dialog逻辑）
+// 2b. POST /api/agents/:id/chat — 【已废弃】请使用 /api/dialog/:agentId/chat
+// 保留此端点用于向后兼容，内部转发到 dialog 服务
 router.post('/:id/chat', asyncHandler(async (req, res) => {
+  console.warn(`[DEPRECATED] POST /api/agents/${req.params.id}/chat 已废弃，请迁移到 POST /api/dialog/${req.params.id}/chat`);
+  
+  // 内部转发到 dialog 路由
   const content = req.body.content || req.body.message || '';
   const { getDialogService } = await import('../services');
   const { getBackendRouter } = await import('../services/BackendRouter');
@@ -108,7 +112,7 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
   // Save user message
   await dialogService.sendMessage(req.params.id, { content, role: 'user' });
 
-  // Build messages for LLM - always include at least the user message
+  // Build messages for LLM
   let messages: Array<{role: 'user' | 'assistant' | 'system'; content: string}> = [];
   try {
     const context = await dialogService.getContext(req.params.id);
@@ -120,12 +124,10 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
     // If context fails, just use the current message
   }
 
-  // Fallback: ensure we have at least the user message
   if (messages.length === 0) {
     messages = [{ role: 'user' as const, content }];
   }
 
-  // Get agent config for LLM settings
   const agentService = getAgentService();
   const agent = await agentService.getById(req.params.id);
   const agentConfig = (agent?.config as any) || {};
@@ -138,11 +140,12 @@ router.post('/:id/chat', asyncHandler(async (req, res) => {
   try {
     const response = await router.chat(platformId, { messages, model, temperature: 0.7 });
     await dialogService.sendMessage(req.params.id, { content: response.content, role: 'agent' });
-    res.json({ success: true, data: response });
+    res.setHeader('Deprecation', 'true');
+    res.setHeader('Sunset', 'Sat, 01 Aug 2026 00:00:00 GMT');
+    res.json({ success: true, data: response, deprecated: true, alternative: `/api/dialog/${req.params.id}/chat` });
   } catch (err: any) {
-    // If backend chat fails, try direct OpenRouter call as fallback
     console.error('[Chat] Backend error:', err.message);
-    res.status(502).json({ success: false, error: err.message || 'Chat failed' });
+    res.status(502).json({ success: false, error: err.message || 'Chat failed', deprecated: true });
   }
 }));
 

@@ -3,8 +3,41 @@ import { OpenAICompatibleAdapter, OpenAICompatibleConfig } from '../adapters/Ope
 import { KimiAdapter } from '../adapters/KimiAdapter';
 import { ClaudeAdapter } from '../adapters/ClaudeAdapter';
 import { OllamaAdapter } from '../adapters/OllamaAdapter';
-import kimiConfig from '../config/kimi.config.json';
 import providersConfig from '../config/providers.json';
+
+// ═══════════════════════════════════════════════════════════════
+// Kimi Code API Keys — 从环境变量读取，不再硬编码
+// 支持 KIMI_CODE_KEY_1 ~ KIMI_CODE_KEY_5
+// ═══════════════════════════════════════════════════════════════
+function getKimiCodeKeys(): string[] {
+  const keys: string[] = [];
+  for (let i = 1; i <= 5; i++) {
+    const key = process.env[`KIMI_CODE_KEY_${i}`];
+    if (key && key.startsWith('sk-')) {
+      keys.push(key);
+    }
+  }
+  // 兼容旧环境变量名
+  const legacyKeys = process.env.KIMI_CODE_API_KEYS;
+  if (legacyKeys) {
+    legacyKeys.split(',').forEach(k => {
+      const trimmed = k.trim();
+      if (trimmed.startsWith('sk-') && !keys.includes(trimmed)) {
+        keys.push(trimmed);
+      }
+    });
+  }
+  if (keys.length === 0) {
+    console.warn('[BackendRouter] ⚠️ 未配置 KIMI_CODE_KEY_1~5 环境变量，Kimi Code 适配器将不可用');
+  }
+  return keys;
+}
+
+const KIMI_CODE_KEYS = getKimiCodeKeys();
+const KIMI_BASE_URL = process.env.KIMI_CODE_BASE_URL || 'https://api.kimi.com/coding/v1';
+const KIMI_DEFAULT_MODEL = process.env.KIMI_CODE_DEFAULT_MODEL || 'kimi-for-coding';
+const KIMI_MAX_RETRIES = parseInt(process.env.KIMI_CODE_MAX_RETRIES || '3', 10);
+const KIMI_TIMEOUT = parseInt(process.env.KIMI_CODE_TIMEOUT || '60000', 10);
 
 export interface BackendProfile {
   id: string;
@@ -27,11 +60,15 @@ export class BackendRouter {
   private initAllBackends(): void {
     // === 特殊适配器（需要自定义认证头或协议） ===
 
-    // Kimi Code — 5 密钥轮询
-    this.registerBackend('kimi-code', new KimiAdapter(
-      { provider: 'kimi-code', baseUrl: kimiConfig.baseUrl, apiKey: kimiConfig.apiKeys[0] },
-      { baseUrl: kimiConfig.baseUrl, apiKeys: kimiConfig.apiKeys, defaultModel: kimiConfig.defaultModel, maxRetries: kimiConfig.maxRetries, timeout: kimiConfig.timeout },
-    ));
+    // Kimi Code — 从环境变量读取密钥，支持轮询
+    if (KIMI_CODE_KEYS.length > 0) {
+      this.registerBackend('kimi-code', new KimiAdapter(
+        { provider: 'kimi-code', baseUrl: KIMI_BASE_URL, apiKey: KIMI_CODE_KEYS[0] },
+        { baseUrl: KIMI_BASE_URL, apiKeys: KIMI_CODE_KEYS, defaultModel: KIMI_DEFAULT_MODEL, maxRetries: KIMI_MAX_RETRIES, timeout: KIMI_TIMEOUT },
+      ));
+    } else {
+      console.warn('[BackendRouter] Kimi Code 适配器未注册：未找到有效的 KIMI_CODE_KEY 环境变量');
+    }
 
     // Claude — 特殊 x-api-key 认证头
     this.registerBackend('claude', new ClaudeAdapter(

@@ -1,5 +1,13 @@
+/**
+ * platforms.ts — 平台管理路由
+ * 
+ * 【修复】2026-06-10: 移除默认 active/healthy 标记，改为从 BackendRouter 获取真实健康状态
+ * 平台列表不再返回模拟状态，而是基于 BackendRouter 的健康检查结果
+ */
+
 import { Router } from 'express';
 import providersData from '../config/providers.json';
+import { getBackendRouter } from '../services/BackendRouter';
 
 const router = Router();
 
@@ -19,23 +27,44 @@ interface Provider {
 const allProviders: Provider[] = (providersData as any).providers || [];
 
 // ─────────────────────────────────────────────
-// GET /api/platforms — 平台列表（支持过滤）
+// GET /api/platforms — 平台列表（真实健康状态）
 // ─────────────────────────────────────────────
-router.get('/', (_req, res) => {
-  let result = allProviders.map((p) => ({
-    id: p.id,
-    name: p.name,
-    status: 'active' as const,
-    healthy: true,
-    category: p.category,
-    protocolLevel: p.protocolLevel,
-    protocol: p.protocol,
-    threading: p.threading,
-    defaultModel: p.defaultModel,
-    models: p.models,
-  }));
+router.get('/', async (req, res) => {
+  // 获取 BackendRouter 的真实健康状态
+  let backendHealth: Map<string, { healthy: boolean; latency: number }> = new Map();
+  try {
+    const backendRouter = getBackendRouter();
+    const backends = await backendRouter.listBackendsDetailed();
+    for (const b of backends) {
+      backendHealth.set(b.id, { healthy: b.healthy, latency: b.latency });
+    }
+  } catch (err: any) {
+    console.warn('[Platforms] BackendRouter health check failed:', err.message);
+  }
 
-  const { protocolLevel, protocol, threading } = _req.query;
+  let result = allProviders.map((p) => {
+    const health = backendHealth.get(p.id);
+    const hasApiKey = p.apiKeySource !== 'none' && !!resolveApiKey(p.apiKeySource);
+    
+    return {
+      id: p.id,
+      name: p.name,
+      // 真实状态：基于 BackendRouter 健康检查 + API Key 配置
+      status: health ? (health.healthy ? 'active' : 'error') : (hasApiKey ? 'configured' : 'unconfigured'),
+      healthy: health?.healthy ?? null,
+      latency: health?.latency ?? null,
+      category: p.category,
+      protocolLevel: p.protocolLevel,
+      protocol: p.protocol,
+      threading: p.threading,
+      defaultModel: p.defaultModel,
+      models: p.models,
+      apiKeySource: p.apiKeySource,
+      apiKeyConfigured: hasApiKey,
+    };
+  });
+
+  const { protocolLevel, protocol, threading, healthy } = req.query;
 
   // 按 protocolLevel 数字过滤: ?protocolLevel=1
   if (protocolLevel !== undefined) {
@@ -68,10 +97,22 @@ router.get('/', (_req, res) => {
     result = result.filter((p) => p.threading === threading);
   }
 
+  // 按健康状态过滤: ?healthy=true|false
+  if (healthy !== undefined) {
+    const wantHealthy = healthy === 'true';
+    result = result.filter((p) => p.healthy === wantHealthy);
+  }
+
   res.json({
     success: true,
     data: result,
     total: result.length,
+    meta: {
+      healthyCount: result.filter(p => p.healthy === true).length,
+      unhealthyCount: result.filter(p => p.healthy === false).length,
+      unconfiguredCount: result.filter(p => p.status === 'unconfigured').length,
+      checkedAt: new Date().toISOString(),
+    },
   });
 });
 
@@ -135,5 +176,65 @@ router.get('/protocol-levels', (_req, res) => {
     data: levels,
   });
 });
+
+// ─────────────────────────────────────────────
+// GET /api/platforms/:id/health — 单个平台健康检查
+// ─────────────────────────────────────────────
+router.get('/:id/health', async (req, res) => {
+  const provider = allProviders.find(p => p.id === req.params.id);
+  if (!provider) {
+    return res.status(404).json({ success: false, error: 'Platform not found' });
+  }
+
+  try {
+    const backendRouter = getBackendRouter();
+    const backend = backendRouter.getBackend(req.params.id);
+    
+    if (!backend) {
+      return res.json({
+        success: true,
+        data: {
+          id: provider.id,
+          healthy: null,
+          status: 'not_registered',
+          message: '此平台未在 BackendRouter 中注册（可能缺少 API Key）',
+        },
+      });
+    }
+
+    const health = await backend.healthCheck();
+    res.json({
+      success: true,
+      data: {
+        id: provider.id,
+        healthy: health.status === 'healthy',
+        latency: health.latency,
+        status: health.status,
+        checkedAt: new Date().toISOString(),
+      },
+    });
+  } catch (err: any) {
+    res.json({
+      success: true,
+      data: {
+        id: provider.id,
+        healthy: false,
+        status: 'check_failed',
+        error: err.message,
+        checkedAt: new Date().toISOString(),
+      },
+    });
+  }
+});
+
+// 辅助函数：解析 API Key
+function resolveApiKey(source: string): string | undefined {
+  if (!source || source === 'none') return undefined;
+  if (source.startsWith('env:')) {
+    const envVar = source.slice(4);
+    return process.env[envVar];
+  }
+  return undefined;
+}
 
 export default router;

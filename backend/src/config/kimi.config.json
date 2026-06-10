@@ -1,15 +1,10 @@
 {
+  "_comment": "【安全修复】2026-06-10: API Keys 已移至环境变量 KIMI_CODE_KEY_1~5",
+  "_note": "此文件保留用于其他配置项，不再包含任何 API Key",
   "provider": "kimi-code",
   "baseUrl": "https://api.kimi.com/coding/v1",
   "models": [
     "kimi-for-coding"
-  ],
-  "apiKeys": [
-    "REMOVED_FROM_HISTORY",
-    "REMOVED_FROM_HISTORY",
-    "REMOVED_FROM_HISTORY",
-    "REMOVED_FROM_HISTORY",
-    "REMOVED_FROM_HISTORY"
   ],
   "defaultModel": "kimi-for-coding",
   "maxRetries": 3,

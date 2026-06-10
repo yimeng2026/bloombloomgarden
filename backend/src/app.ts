@@ -67,14 +67,16 @@ app.use(rateLimit({ windowMs: 60 * 1000, maxRequests: 100 }));
 // ─── 可选认证（解析用户信息但不强制�?──────────────────
 app.use(optionalAuth);
 
-// --- Health Check (Railway /api/health) ---
+// --- Health Check (统一入口) ---
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
 });
 
-// --- Health Check (root path compatible) ---
+// --- Health Check (向后兼容，已废弃，将在v2移除) ---
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.setHeader('Deprecation', 'true');
+  res.setHeader('Sunset', 'Sat, 01 Aug 2026 00:00:00 GMT');
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), note: '此端点已废弃，请使用 /api/health' });
 });
 
 // ─── 认证路由（无需认证�?─────────────────────────────
