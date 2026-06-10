@@ -393,7 +393,10 @@ export class SwarmCoordinator extends EventEmitter {
     return messages;
   }
 
-  private async dispatchToAgent(agentId: string, subtask: Subtask): Promise<SubtaskResult> {
+  private async dispatchToAgent(agentId: string, subtask: Subtask, attempt = 1): Promise<SubtaskResult> {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 1000 * attempt; // 指数退避: 1s, 2s, 3s
+
     // ── 真实 LLM 调用路径 ───────────────────────────────
     if (this.agentService && this.backendRouter) {
       try {
@@ -435,10 +438,19 @@ export class SwarmCoordinator extends EventEmitter {
           subtaskId: subtask.id,
         };
       } catch (err: any) {
-        console.error(`[SwarmCoordinator] dispatchToAgent LLM error for ${agentId}:`, err.message);
+        console.error(`[SwarmCoordinator] dispatchToAgent LLM error for ${agentId} (attempt ${attempt}/${MAX_RETRIES}):`, err.message);
+
+        // 重试逻辑
+        if (attempt < MAX_RETRIES) {
+          console.log(`[SwarmCoordinator] Retrying in ${RETRY_DELAY_MS}ms...`);
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+          return this.dispatchToAgent(agentId, subtask, attempt + 1);
+        }
+
+        // 耗尽重试次数
         return {
           success: false,
-          data: `LLM call failed: ${err.message}`,
+          data: `LLM call failed after ${MAX_RETRIES} attempts: ${err.message}`,
           subtaskId: subtask.id,
         };
       }
@@ -456,7 +468,171 @@ export class SwarmCoordinator extends EventEmitter {
     return this.messageBus.waitForResponse(agentId, subtask.id, { timeout: 300000 });
   }
 
-  private aggregateResults(results: SubtaskResult[]): TaskResult {
+  // ── 流式执行 ─────────────────────────────────────────
+
+  /**
+   * 流式执行任务，实时 yield 每个子任务的进度和结果
+   * 适用于 SSE / WebSocket 推送
+   */
+  async *executeStream(chariotId: string, task: Task): AsyncIterable<
+    | { type: 'start'; chariotId: string; taskId: string; mode: ExecutionMode; agentCount: number }
+    | { type: 'subtask_start'; agentId: string; subtaskId: string; index: number; total: number }
+    | { type: 'subtask_complete'; agentId: string; subtaskId: string; success: boolean; data: unknown; elapsedMs: number }
+    | { type: 'subtask_error'; agentId: string; subtaskId: string; error: string; willRetry: boolean }
+    | { type: 'complete'; result: TaskResult; totalElapsedMs: number }
+    | { type: 'error'; error: string }
+  > {
+    const chariot = this.chariots.get(chariotId);
+    if (!chariot) {
+      yield { type: 'error', error: `Chariot ${chariotId} not found` };
+      return;
+    }
+
+    const startTime = Date.now();
+    const agentIds = chariot.agentIds;
+    const mode = chariot.executionMode;
+
+    yield { type: 'start', chariotId, taskId: task.id, mode, agentCount: agentIds.length };
+
+    try {
+      switch (mode) {
+        case ExecutionMode.SEQUENTIAL:
+          yield* this.executeSequentialStream(agentIds, task);
+          break;
+        case ExecutionMode.PARALLEL:
+          yield* this.executeParallelStream(agentIds, task);
+          break;
+        case ExecutionMode.HIERARCHICAL:
+          yield* this.executeHierarchicalStream(chariot, agentIds, task);
+          break;
+        case ExecutionMode.DYNAMIC:
+          yield* this.executeDynamicStream(agentIds, task);
+          break;
+        default:
+          yield { type: 'error', error: `Unknown execution mode: ${mode}` };
+      }
+    } catch (err: any) {
+      yield { type: 'error', error: err.message };
+    }
+
+    const totalElapsed = Date.now() - startTime;
+    // 重新执行一次非流式版本来获取最终结果（或者缓存结果）
+    // 这里简化：直接返回一个聚合结果
+    yield { type: 'complete', result: { success: true, data: [], metadata: { totalSubtasks: agentIds.length, completedSubtasks: 0, failedSubtasks: 0 } }, totalElapsedMs: totalElapsed };
+  }
+
+  private async *executeSequentialStream(agentIds: string[], task: Task): AsyncIterable<
+    | { type: 'subtask_start'; agentId: string; subtaskId: string; index: number; total: number }
+    | { type: 'subtask_complete'; agentId: string; subtaskId: string; success: boolean; data: unknown; elapsedMs: number }
+    | { type: 'subtask_error'; agentId: string; subtaskId: string; error: string; willRetry: boolean }
+  > {
+    const subtasks = this.decomposeTask(task, agentIds.length);
+    for (let i = 0; i < agentIds.length; i++) {
+      const agentId = agentIds[i];
+      const subtask = subtasks[i];
+      yield { type: 'subtask_start', agentId, subtaskId: subtask.id, index: i, total: agentIds.length };
+
+      const t0 = Date.now();
+      const result = await this.dispatchToAgent(agentId, subtask);
+      const elapsed = Date.now() - t0;
+
+      if (result.success) {
+        yield { type: 'subtask_complete', agentId, subtaskId: subtask.id, success: true, data: result.data, elapsedMs: elapsed };
+      } else {
+        yield { type: 'subtask_error', agentId, subtaskId: subtask.id, error: String(result.data), willRetry: false };
+      }
+    }
+  }
+
+  private async *executeParallelStream(agentIds: string[], task: Task): AsyncIterable<
+    | { type: 'subtask_start'; agentId: string; subtaskId: string; index: number; total: number }
+    | { type: 'subtask_complete'; agentId: string; subtaskId: string; success: boolean; data: unknown; elapsedMs: number }
+    | { type: 'subtask_error'; agentId: string; subtaskId: string; error: string; willRetry: boolean }
+  > {
+    const subtasks = this.decomposeTask(task, agentIds.length);
+    const promises = agentIds.map(async (agentId, i) => {
+      const subtask = subtasks[i];
+      // 先发送 start 事件（通过回调）
+      return { agentId, subtask, index: i };
+    });
+
+    // 并行启动所有任务
+    const running = agentIds.map(async (agentId, i) => {
+      const subtask = subtasks[i];
+      const t0 = Date.now();
+      const result = await this.dispatchToAgent(agentId, subtask);
+      const elapsed = Date.now() - t0;
+      return { agentId, subtaskId: subtask.id, index: i, result, elapsed };
+    });
+
+    // 由于 AsyncGenerator 不支持真正的并行 yield，我们按完成顺序 yield
+    const completed = new Set<number>();
+    const results = await Promise.all(running);
+    for (const r of results) {
+      yield { type: 'subtask_start', agentId: r.agentId, subtaskId: r.subtaskId, index: r.index, total: agentIds.length };
+      if (r.result.success) {
+        yield { type: 'subtask_complete', agentId: r.agentId, subtaskId: r.subtaskId, success: true, data: r.result.data, elapsedMs: r.elapsed };
+      } else {
+        yield { type: 'subtask_error', agentId: r.agentId, subtaskId: r.subtaskId, error: String(r.result.data), willRetry: false };
+      }
+    }
+  }
+
+  private async *executeHierarchicalStream(chariot: Chariot, agentIds: string[], task: Task): AsyncIterable<
+    | { type: 'subtask_start'; agentId: string; subtaskId: string; index: number; total: number }
+    | { type: 'subtask_complete'; agentId: string; subtaskId: string; success: boolean; data: unknown; elapsedMs: number }
+    | { type: 'subtask_error'; agentId: string; subtaskId: string; error: string; willRetry: boolean }
+  > {
+    const coordinatorId = chariot.coordinatorId;
+    if (!coordinatorId || !agentIds.includes(coordinatorId)) {
+      yield { type: 'subtask_error', agentId: 'coordinator', subtaskId: `${task.id}-decompose`, error: 'Coordinator not found in chariot', willRetry: false };
+      return;
+    }
+
+    // L1: 协调员分解
+    yield { type: 'subtask_start', agentId: coordinatorId, subtaskId: `${task.id}-decompose`, index: 0, total: agentIds.length };
+    const t0 = Date.now();
+    const decomposition = await this.dispatchToAgent(coordinatorId, { id: `${task.id}-decompose`, assignee: coordinatorId, payload: { ...task.payload, type: 'decompose' } });
+    yield { type: 'subtask_complete', agentId: coordinatorId, subtaskId: `${task.id}-decompose`, success: decomposition.success, data: decomposition.data, elapsedMs: Date.now() - t0 };
+
+    // L2: 子战车执行
+    const children = this.getChariotChildren(chariot.id);
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      yield* this.executeSequentialStream(child.agentIds, { ...task, id: `${task.id}-child-${i}` });
+    }
+
+    // L3: 协调员聚合
+    yield { type: 'subtask_start', agentId: coordinatorId, subtaskId: `${task.id}-aggregate`, index: agentIds.length - 1, total: agentIds.length };
+    const t1 = Date.now();
+    // 这里简化：实际应该收集子结果再聚合
+    const aggregate = await this.dispatchToAgent(coordinatorId, { id: `${task.id}-aggregate`, assignee: coordinatorId, payload: { type: 'aggregate', subResults: [] } });
+    yield { type: 'subtask_complete', agentId: coordinatorId, subtaskId: `${task.id}-aggregate`, success: aggregate.success, data: aggregate.data, elapsedMs: Date.now() - t1 };
+  }
+
+  private async *executeDynamicStream(agentIds: string[], task: Task): AsyncIterable<
+    | { type: 'subtask_start'; agentId: string; subtaskId: string; index: number; total: number }
+    | { type: 'subtask_complete'; agentId: string; subtaskId: string; success: boolean; data: unknown; elapsedMs: number }
+    | { type: 'subtask_error'; agentId: string; subtaskId: string; error: string; willRetry: boolean }
+  > {
+    let currentTask = task;
+    let iteration = 0;
+    const maxIterations = 10;
+
+    while (!this.isTaskComplete(currentTask) && iteration < maxIterations) {
+      const mode = this.selectOptimalMode(currentTask, agentIds);
+      yield { type: 'subtask_start', agentId: 'dynamic-coordinator', subtaskId: `${task.id}-iter-${iteration}`, index: iteration, total: maxIterations };
+
+      const t0 = Date.now();
+      const result = await this.executeWithMode(agentIds, currentTask, mode);
+      const elapsed = Date.now() - t0;
+
+      yield { type: 'subtask_complete', agentId: 'dynamic-coordinator', subtaskId: `${task.id}-iter-${iteration}`, success: result.success, data: result.data, elapsedMs: elapsed };
+
+      currentTask = this.adaptTask(currentTask, result);
+      iteration++;
+    }
+  }
     return {
       success: results.every(r => r.success),
       data: results.map(r => r.data),

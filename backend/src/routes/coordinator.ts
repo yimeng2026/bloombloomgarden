@@ -98,11 +98,36 @@ router.get('/chariot/:id/agents', asyncHandler(async (req, res) => {
 
 // ─── 额外实用端点 ─────────────────────────────────────
 
-// POST /api/coordinator-hierarchy/chariot/:id/execute — 执行任务
+// POST /api/coordinator-hierarchy/chariot/:id/execute — 执行任务（非流式）
 router.post('/chariot/:id/execute', asyncHandler(async (req, res) => {
   const coordinator = getSwarmCoordinator();
   const result = await coordinator.execute(req.params.id, req.body.task);
   res.json({ success: true, data: result });
+}));
+
+// POST /api/coordinator-hierarchy/chariot/:id/execute/stream — 流式执行（SSE）
+router.post('/chariot/:id/execute/stream', asyncHandler(async (req, res) => {
+  const coordinator = getSwarmCoordinator();
+  const { task } = req.body;
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  try {
+    for await (const event of coordinator.executeStream(req.params.id, task)) {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+      // 如果是 complete 或 error，可以 flush 后结束
+      if (event.type === 'complete' || event.type === 'error') {
+        break;
+      }
+    }
+  } catch (err: any) {
+    res.write(`data: ${JSON.stringify({ type: 'error', error: err.message })}\n\n`);
+  } finally {
+    res.write('data: [DONE]\n\n');
+    res.end();
+  }
 }));
 
 // GET /api/coordinator-hierarchy/chariot/:id/match — 匹配评分
