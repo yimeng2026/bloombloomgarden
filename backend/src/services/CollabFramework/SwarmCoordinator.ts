@@ -1,4 +1,7 @@
 import { EventEmitter } from 'events';
+import type { AgentService } from '../AgentService';
+import type { DialogService } from '../DialogService';
+import type { BackendRouter } from '../BackendRouter';
 
 // ─── 类型定义 ───────────────────────────────────────────
 
@@ -126,6 +129,9 @@ export class SwarmCoordinator extends EventEmitter {
   constructor(
     private messageBus: SwarmMessageBus,
     private snapshotEngine: SnapshotEngine,
+    private agentService?: AgentService,
+    private dialogService?: DialogService,
+    private backendRouter?: BackendRouter,
   ) {
     super();
   }
@@ -344,15 +350,101 @@ export class SwarmCoordinator extends EventEmitter {
 
   // ── 工具方法 ─────────────────────────────────────────
 
-  private decomposeTask(task: Task, numAgents: number): Subtask[] {
-    return Array.from({ length: numAgents }, (_, i) => ({
-      id: `${task.id}-sub-${i}`,
-      assignee: '',
-      payload: { ...(task.payload as object), partIndex: i, totalParts: numAgents },
-    }));
+  /**
+   * 构建发送给 LLM 的消息数组
+   * 1. 注入 Agent 的 systemPrompt（如果有）
+   * 2. 追加历史对话上下文（最近 10 条）
+   * 3. 当前任务作为 user 消息
+   */
+  private async buildMessagesForAgent(agentId: string, subtask: Subtask): Promise<Array<{ role: 'system' | 'user' | 'assistant'; content: string }>> {
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
+
+    // 1. System prompt from agent config
+    if (this.agentService) {
+      const agent = await this.agentService.getById(agentId);
+      if (agent) {
+        const config = (agent.config as any) || {};
+        const systemPrompt = config.systemPrompt || agent.description;
+        if (systemPrompt) {
+          messages.push({ role: 'system', content: systemPrompt });
+        }
+      }
+    }
+
+    // 2. Historical context from DialogService
+    if (this.dialogService) {
+      try {
+        const history = await this.dialogService.getHistory(agentId, 10);
+        for (const msg of history) {
+          const role = msg.role === 'agent' ? 'assistant' : (msg.role as 'system' | 'user' | 'assistant');
+          messages.push({ role, content: msg.content });
+        }
+      } catch {
+        // ignore history fetch errors
+      }
+    }
+
+    // 3. Current task payload
+    const taskContent = typeof subtask.payload === 'string'
+      ? subtask.payload
+      : JSON.stringify(subtask.payload, null, 2);
+    messages.push({ role: 'user', content: `[Task ${subtask.id}]\n${taskContent}` });
+
+    return messages;
   }
 
   private async dispatchToAgent(agentId: string, subtask: Subtask): Promise<SubtaskResult> {
+    // ── 真实 LLM 调用路径 ───────────────────────────────
+    if (this.agentService && this.backendRouter) {
+      try {
+        // 1. 查 Agent 配置
+        const agent = await this.agentService.getById(agentId);
+        if (!agent) {
+          return { success: false, data: `Agent ${agentId} not found`, subtaskId: subtask.id };
+        }
+
+        const config = (agent.config as any) || {};
+        const llmConfig = config.llmConfig || {};
+        const provider = llmConfig.provider || 'zhipu';   // 默认 GLM-5.1
+        const model = llmConfig.model || 'glm-4';
+        const temperature = llmConfig.temperature ?? 0.7;
+
+        // 2. 构建消息
+        const messages = await this.buildMessagesForAgent(agentId, subtask);
+
+        // 3. 调用 BackendRouter（真实 HTTP 请求）
+        const response = await this.backendRouter.chat(provider, {
+          messages,
+          model,
+          temperature,
+          maxTokens: 4096,
+        });
+
+        // 4. 保存到 DialogService（形成上下文记忆）
+        if (this.dialogService) {
+          await this.dialogService.sendMessage(agentId, {
+            role: 'agent',
+            content: response.content,
+          });
+        }
+
+        // 5. 包装结果
+        return {
+          success: true,
+          data: response.content,
+          subtaskId: subtask.id,
+        };
+      } catch (err: any) {
+        console.error(`[SwarmCoordinator] dispatchToAgent LLM error for ${agentId}:`, err.message);
+        return {
+          success: false,
+          data: `LLM call failed: ${err.message}`,
+          subtaskId: subtask.id,
+        };
+      }
+    }
+
+    // ── 降级：纯消息总线（无 LLM，用于测试/离线模式）─
     const message: SwarmMessage = {
       type: 'task',
       sender: 'coordinator',

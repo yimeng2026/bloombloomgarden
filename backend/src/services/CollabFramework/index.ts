@@ -8,6 +8,8 @@
 import { SwarmCoordinator, SwarmMessageBus, SnapshotEngine } from './SwarmCoordinator';
 import { InterChariotHandoffProtocol } from './HandoffProtocol';
 import { InterventionService } from './InterventionService';
+import { getAgentService, getDialogService } from '../index';
+import { getBackendRouter } from '../BackendRouter';
 
 export * from './SwarmCoordinator';
 export * from './HandoffProtocol';
@@ -23,7 +25,13 @@ export function getSwarmCoordinator(): SwarmCoordinator {
   if (!swarmCoordinatorInstance) {
     const bus = new SwarmMessageBus();
     const snapshot = new SnapshotEngine();
-    swarmCoordinatorInstance = new SwarmCoordinator(bus, snapshot);
+    swarmCoordinatorInstance = new SwarmCoordinator(
+      bus,
+      snapshot,
+      getAgentService(),
+      getDialogService(),
+      getBackendRouter(),
+    );
   }
   return swarmCoordinatorInstance;
 }
