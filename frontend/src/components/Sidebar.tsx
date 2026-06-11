@@ -27,6 +27,8 @@ import {
   Files,
   Layers,
   Box,
+  Users,
+  Palette,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 
@@ -43,6 +45,10 @@ const navItems: NavItem[] = [
   { id: 'platform', label: '平台中心', icon: Server, route: '/platform' },
   { id: 'platform-library', label: '平台库', icon: Layers, route: '/platform-library' },
   { id: 'blueprints', label: '蓝图编排', icon: Workflow, route: '/blueprints' },
+  { id: 'frameworks', label: '框架市场', icon: Layers, route: '/frameworks' },
+  { id: 'engines', label: '引擎调度', icon: Cpu, route: '/engines' },
+  { id: 'teams', label: '团队管理', icon: Users, route: '/teams' },
+  { id: 'canvas', label: '协作画布', icon: Palette, route: '/canvas' },
   { id: 'ecosystem', label: '3D生态坐标系', icon: Box, route: '/ecosystem' },
   { id: 'workspace', label: '工作空间', icon: FolderOpen, route: '/workspace' },
   { id: 'files', label: '文件浏览', icon: Files, route: '/files' },

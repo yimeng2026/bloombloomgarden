@@ -6,6 +6,9 @@ import app from './app';
 import { PrismaService } from './services/PrismaService';
 
 
+import { syncProvidersToDatabase } from './services/InitService';
+
+
 // ─── 全局错误处理（防止进程崩溃） ──────────────────────
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[FATAL] Unhandled Rejection:', reason);
@@ -17,7 +20,7 @@ process.on('uncaughtException', (error) => {
   // 不退出进程，只记录错误
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 async function initDatabase() {
   // 找到 prisma 目录
@@ -79,6 +82,14 @@ async function main() {
   await PrismaService.connect();
   await initDatabase();
 
+  // 从 providers.json 同步 Framework 和 Engine 到数据库
+  try {
+    const syncStats = await syncProvidersToDatabase();
+    console.log(`[Init] Provider sync: ${syncStats.frameworks.created} frameworks created, ${syncStats.frameworks.updated} updated; ${syncStats.engines.created} engines created, ${syncStats.engines.updated} updated`);
+  } catch (err) {
+    console.error('[Init] Provider sync failed:', err);
+  }
+
   // 无论 Electron 还是手动启动，只要前端构建产物存在，就 serve 它
   // Railway-safe: no Electron APIs used here
   const staticCandidates = [
@@ -114,7 +125,7 @@ async function main() {
     console.warn('[Frontend] dist not found, backend only mode');
   }
 
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌸 Thousand Realms Garden backend running on port ${PORT}`);
     console.log(`📋 API docs: http://localhost:${PORT}/health`);
     console.log(`🔌 Database: SQLite (Prisma)`);

@@ -118,18 +118,20 @@ export class BackendRouter {
     ));
 
     // GLM-5.1 (智谱AI) — 多Key轮询
-    if (GLM51_KEYS.length > 0) {
+    // 智谱 API Key 格式: api_key.secret_key，但 Header 中只需传入 api_key 部分
+    const GLM51_API_KEYS = GLM51_KEYS.filter(k => k.length > 10);
+    if (GLM51_API_KEYS.length > 0) {
       this.registerBackend('zhipu', new OpenAICompatibleAdapter({
         provider: 'zhipu',
         baseUrl: GLM51_BASE_URL,
-        apiKey: GLM51_KEYS[0],
+        apiKey: GLM51_API_KEYS[0],
         model: GLM51_DEFAULT_MODEL,
         apiKeyHeader: 'Authorization',
         apiKeyPrefix: 'Bearer ',
         chatPath: '/chat/completions',
         modelsPath: '/models',
       }));
-      console.log(`[BackendRouter] GLM-5.1 适配器已注册，${GLM51_KEYS.length} 个Key可用`);
+      console.log(`[BackendRouter] GLM-5.1 适配器已注册，${GLM51_API_KEYS.length} 个Key可用`);
     } else {
       console.warn('[BackendRouter] GLM-5.1 适配器未注册：未找到有效的 GLM51_API_KEY 环境变量');
     }
@@ -167,7 +169,7 @@ export class BackendRouter {
 
     for (const provider of openAICompatibleProviders) {
       const apiKey = this.resolveApiKey(provider.apiKeySource);
-      // 即使没有API Key也注册后端（用户可以在设置页面配置）
+      const hasKey = !!apiKey && apiKey.length > 10;
 
       const config: OpenAICompatibleConfig = {
         provider: provider.id,
@@ -181,7 +183,11 @@ export class BackendRouter {
         extraHeaders: provider.extraHeaders,
       };
 
-      this.registerBackend(provider.id, new OpenAICompatibleAdapter(config));
+      // 只有有API Key的才启动健康检查，避免未配置provider拖垮系统
+      this.registerBackend(provider.id, new OpenAICompatibleAdapter(config), hasKey);
+      if (!hasKey) {
+        console.log(`[BackendRouter] ${provider.id} 已注册（未配置API Key，跳过健康检查）`);
+      }
     }
   }
 
@@ -197,14 +203,18 @@ export class BackendRouter {
     return undefined;
   }
 
-  private registerBackend(id: string, adapter: BaseBackendAdapter): void {
+  private registerBackend(id: string, adapter: BaseBackendAdapter, enableHealthCheck: boolean = true): void {
     this.backends.set(id, adapter);
-    this.startHealthCheck(id, adapter);
+    if (enableHealthCheck) {
+      this.startHealthCheck(id, adapter);
+    } else {
+      this.healthStatus.set(id, { status: 'healthy', latency: 0 });
+    }
   }
 
   // ─── 动态注册/注销 ────────────────────────────────────
-  register(id: string, adapter: BaseBackendAdapter): void {
-    this.registerBackend(id, adapter);
+  register(id: string, adapter: BaseBackendAdapter, enableHealthCheck: boolean = true): void {
+    this.registerBackend(id, adapter, enableHealthCheck);
   }
 
   unregister(id: string): boolean {
@@ -250,7 +260,8 @@ export class BackendRouter {
     if (!backend) {
       // 尝试fallback
       if (fallbackIds && fallbackIds.length > 0) {
-        return this.routeChat(request, fallbackIds);
+        const routed = await this.routeChat(request, fallbackIds);
+        return routed.response;
       }
       throw new Error(`Backend ${backendId} not found`);
     }
@@ -260,7 +271,8 @@ export class BackendRouter {
       // 主provider失败，尝试fallback
       if (fallbackIds && fallbackIds.length > 0) {
         console.warn(`[BackendRouter] ${backendId} failed, trying fallback: ${fallbackIds.join(', ')}`);
-        return this.routeChat(request, fallbackIds);
+        const routed = await this.routeChat(request, fallbackIds);
+        return routed.response;
       }
       throw err;
     }

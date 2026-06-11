@@ -34,6 +34,13 @@ import processesRouter from './routes/processes';
 import externalRouter from './routes/external';
 import securityRouter from './routes/security';
 import subtoolsRouter from './routes/subtools';
+import frameworksRouter from './routes/frameworks';
+import teamsRouter from './routes/teams';
+import rolesRouter from './routes/roles';
+import enginesRouter from './routes/engines';
+import swarmRouter from './routes/swarm';
+import canvasRouter from './routes/canvas';
+import workflowsRouter from './routes/workflows';
 
 const app = express();
 
@@ -46,12 +53,16 @@ app.use(helmet({
 
 // CORS 配置 �?允许 Vercel 前端 + 本地开�?+ Railway 后端
 const corsOptions = {
-  origin: [
-    'https://bloombloomgarden.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'https://bloombloomgarden-production.up.railway.app',
-  ],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (origin.match(/^http:\/\/(localhost|127\.0\.0\.1):\d+$/)) return callback(null, true);
+    const allowed = [
+      'https://bloombloomgarden.vercel.app',
+      'https://bloombloomgarden-production.up.railway.app',
+    ];
+    if (allowed.includes(origin)) return callback(null, true);
+    callback(new Error('CORS blocked: ' + origin));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -110,7 +121,17 @@ app.use('/api/registry', registryRouter);             // 3DACP注册中心
 app.use('/api/processes', processesRouter);           // 进程监控
 app.use('/api/external', externalRouter);             // 外部平台
 app.use('/api/security', securityRouter);             // 安全中心
-app.use('/api/subtools', subtoolsRouter);             // 子工�?CLI Agent (3D坐标�?Z�?
+app.use('/api/subtools', subtoolsRouter);             // 子工具CLI Agent
+
+// ─── v4.0 新路由 ──────────────────────────────────────
+app.use('/api/frameworks', frameworksRouter);       // 框架市场
+app.use('/api/teams', teamsRouter);                   // 团队管理
+app.use('/api/roles', rolesRouter);                   // 角色管理
+app.use('/api/engines', enginesRouter);               // 引擎调度             // 子工�?CLI Agent (3D坐标�?Z�?
+
+app.use('/api/swarm', swarmRouter);                   // 蜂群协调
+app.use('/api/canvas', canvasRouter);                 // 协作画布
+app.use('/api/workflows', workflowsRouter);           // 工作流
 
 // ─── Dashboard 聚合端点�?Coordinator 要求）─────────────
 app.get('/api/dashboard/state', async (_req, res) => {

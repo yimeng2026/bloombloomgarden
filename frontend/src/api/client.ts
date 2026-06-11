@@ -310,3 +310,99 @@ export const fetchSwarms = async () => {
   }
 };
 export const createSwarm = (data: any) => post('/swarm', data);
+
+/* ── v4.0 Frameworks ── */
+export const fetchFrameworks = () => get('/frameworks');
+export const getFramework = (id: string) => get(`/frameworks/${id}`);
+
+/* ── v4.0 Engines ── */
+export const fetchEngines = () => get('/engines');
+export const getEngine = (id: string) => get(`/engines/${id}`);
+export const createEngine = (data: any) => post('/engines', data);
+export const allocateEngine = (id: string, data?: any) => post(`/engines/${id}/allocate`, data || {});
+export const addEngineKey = (id: string, data: any) => post(`/engines/${id}/keys`, data);
+export const chatWithEngine = (id: string, messages: any[]) => post(`/engines/${id}/chat`, { messages });
+
+/**
+ * 流式与引擎对话（SSE）
+ * @param id 引擎ID
+ * @param messages 消息数组
+ * @param onEvent 事件回调
+ * @returns 返回一个关闭函数
+ */
+export const streamChatWithEngine = (
+  id: string,
+  messages: any[],
+  onEvent: (event: any) => void,
+  onError?: (err: Error) => void,
+  onComplete?: () => void,
+): (() => void) => {
+  const ctrl = new AbortController();
+  const url = `${EFFECTIVE_API_BASE}/engines/${id}/chat`;
+
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, stream: true }),
+    signal: ctrl.signal,
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        throw new Error(`POST ${url} → ${res.status}`);
+      }
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data: ')) continue;
+          const data = trimmed.slice(6);
+          if (data === '[DONE]') {
+            onComplete?.();
+            return;
+          }
+          try {
+            const event = JSON.parse(data);
+            onEvent(event);
+          } catch {
+            // ignore parse errors
+          }
+        }
+      }
+      onComplete?.();
+    })
+    .catch((err) => {
+      if (err.name !== 'AbortError') {
+        onError?.(err);
+      }
+    });
+
+  return () => ctrl.abort();
+};
+
+/* ── v4.0 Teams ── */
+export const fetchTeams = () => get('/teams');
+export const getTeam = (id: string) => get(`/teams/${id}`);
+export const createTeam = (data: any) => post('/teams', data);
+export const executeTeam = (id: string, data?: any) => post(`/teams/${id}/execute`, data || {});
+export const interveneTeam = (id: string, data: any) => post(`/teams/${id}/intervene`, data);
+
+/* ── v4.0 Roles ── */
+export const getRole = (id: string) => get(`/roles/${id}`);
+
+/* ── v4.0 Canvas ── */
+export const fetchCanvases = () => get('/canvas');
+export const getCanvas = (id: string) => get(`/canvas/${id}`);
+export const createCanvas = (data: any) => post('/canvas', data);
+export const deleteCanvas = (id: string) => del(`/canvas/${id}`);

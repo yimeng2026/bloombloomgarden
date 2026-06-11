@@ -35,6 +35,10 @@ const ContextMonitor = lazy(() => import('@/pages/ContextMonitor'))
 const ModelBrowser   = lazy(() => import('@/pages/ModelBrowser'))
 const Skills         = lazy(() => import('@/pages/Skills'))
 const Workflows      = lazy(() => import('@/pages/Workflows'))
+const Frameworks     = lazy(() => import('@/pages/Frameworks'))
+const Engines        = lazy(() => import('@/pages/Engines'))
+const Teams          = lazy(() => import('@/pages/Teams'))
+const CanvasPage     = lazy(() => import('@/pages/CanvasPage'))
 const WebhooksPage   = lazy(() => import('@/pages/WebhooksPage'))
 const APITest        = lazy(() => import('@/pages/APITest'))
 const StubPage       = lazy(() => import('@/pages/StubPage'))
@@ -130,6 +134,10 @@ export default function App() {
           <Route path="/model-browser" element={<ModelBrowser />} />
           <Route path="/skills" element={<Skills />} />
           <Route path="/workflows" element={<Workflows />} />
+          <Route path="/frameworks" element={<Frameworks />} />
+          <Route path="/engines" element={<Engines />} />
+          <Route path="/teams" element={<Teams />} />
+          <Route path="/canvas" element={<CanvasPage />} />
           <Route path="/scheduler" element={<TaskSchedulerPage />} />
           <Route path="/webhooks" element={<WebhooksPage />} />
           <Route path="/api-test" element={<APITest />} />

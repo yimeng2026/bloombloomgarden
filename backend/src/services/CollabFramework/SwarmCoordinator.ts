@@ -296,6 +296,47 @@ export class SwarmCoordinator extends EventEmitter {
     }
   }
 
+  /**
+   * Decompose a task into subtasks for each agent.
+   * Each subtask gets a portion of the task payload.
+   */
+  private decomposeTask(task: Task, count: number): Subtask[] {
+    const subtasks: Subtask[] = [];
+    const basePayload = (task.payload && typeof task.payload === 'object')
+      ? task.payload as Record<string, unknown>
+      : {} as Record<string, unknown>;
+    for (let i = 0; i < count; i++) {
+      subtasks.push({
+        id: `${task.id}-sub-${i}`,
+        assignee: '', // filled in by caller
+        payload: Object.assign({}, basePayload, {
+          _subtaskIndex: i,
+          _totalSubtasks: count,
+          _originalTaskId: task.id,
+          _originalTaskType: task.type,
+        }),
+      });
+    }
+    return subtasks;
+  }
+
+  /**
+   * Aggregate multiple subtask results into a single task result.
+   */
+  private aggregateResults(results: SubtaskResult[]): TaskResult {
+    const completed = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+    return {
+      success: failed.length === 0,
+      data: results.map(r => r.data),
+      metadata: {
+        totalSubtasks: results.length,
+        completedSubtasks: completed.length,
+        failedSubtasks: failed.length,
+      },
+    };
+  }
+
   private async executeSequential(agentIds: string[], task: Task): Promise<TaskResult> {
     const subtasks = this.decomposeTask(task, agentIds.length);
     const results: SubtaskResult[] = [];
@@ -592,7 +633,8 @@ export class SwarmCoordinator extends EventEmitter {
     // L1: 协调员分解
     yield { type: 'subtask_start', agentId: coordinatorId, subtaskId: `${task.id}-decompose`, index: 0, total: agentIds.length };
     const t0 = Date.now();
-    const decomposition = await this.dispatchToAgent(coordinatorId, { id: `${task.id}-decompose`, assignee: coordinatorId, payload: { ...task.payload, type: 'decompose' } });
+    const payload = (task.payload && typeof task.payload === 'object') ? task.payload as Record<string, unknown> : {};
+    const decomposition = await this.dispatchToAgent(coordinatorId, { id: `${task.id}-decompose`, assignee: coordinatorId, payload: { ...payload, type: 'decompose' } });
     yield { type: 'subtask_complete', agentId: coordinatorId, subtaskId: `${task.id}-decompose`, success: decomposition.success, data: decomposition.data, elapsedMs: Date.now() - t0 };
 
     // L2: 子战车执行
@@ -632,16 +674,6 @@ export class SwarmCoordinator extends EventEmitter {
       currentTask = this.adaptTask(currentTask, result);
       iteration++;
     }
-  }
-    return {
-      success: results.every(r => r.success),
-      data: results.map(r => r.data),
-      metadata: {
-        totalSubtasks: results.length,
-        completedSubtasks: results.filter(r => r.success).length,
-        failedSubtasks: results.filter(r => !r.success).length,
-      },
-    };
   }
 
   private isTaskComplete(task: Task): boolean {

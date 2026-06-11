@@ -37,7 +37,7 @@ export class OpenAICompatibleAdapter extends BaseBackendAdapter {
     };
 
     const keyHeader = this.compatConfig.apiKeyHeader || 'Authorization';
-    const keyPrefix = this.compatConfig.apiKeyPrefix || 'Bearer';
+    const keyPrefix = (this.compatConfig.apiKeyPrefix || 'Bearer').trim();
     
     if (keyHeader === 'x-api-key') {
       headers[keyHeader] = this.compatConfig.apiKey;

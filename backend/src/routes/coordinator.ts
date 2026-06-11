@@ -72,6 +72,13 @@ router.get('/tree', asyncHandler(async (req, res) => {
   res.json({ success: true, data: tree });
 }));
 
+// 7b. GET /api/coordinator-hierarchy/chariots — 获取所有战车列表
+router.get('/chariots', asyncHandler(async (req, res) => {
+  const coordinator = getSwarmCoordinator();
+  const chariots = coordinator.getChariots();
+  res.json({ success: true, data: chariots, total: chariots.length });
+}));
+
 // 8. GET /api/coordinator-hierarchy/chariot/:id — 战车详情
 router.get('/chariot/:id', asyncHandler(async (req, res) => {
   const coordinator = getSwarmCoordinator();

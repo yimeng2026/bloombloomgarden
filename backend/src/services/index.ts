@@ -113,6 +113,75 @@ export function getSettingsService(): SettingsService {
   return settingsServiceInstance;
 }
 
+import { FrameworkService } from './FrameworkService';
+import { TeamService } from './TeamService';
+import { RoleService } from './RoleService';
+import { EngineScheduler } from './EngineScheduler';
+import { GatewayService } from './GatewayService';
+import { SwarmCoordinator } from './SwarmCoordinator';
+import { CanvasService } from './CanvasService';
+import { WorkflowService } from './WorkflowService';
+
+export * from './FrameworkService';
+export * from './TeamService';
+// export * from './RoleService'; // Role 接口与 TeamService 冲突，单独导入
+export * from './EngineScheduler';
+export * from './GatewayService';
+export * from './SwarmCoordinator';
+export * from './CanvasService';
+export * from './WorkflowService';
+
+// ─── 进程级单例（自动注入 Prisma） ────────────────────
+
+let frameworkServiceInstance: FrameworkService | null = null;
+let teamServiceInstance: TeamService | null = null;
+let roleServiceInstance: RoleService | null = null;
+let engineSchedulerInstance: EngineScheduler | null = null;
+let gatewayServiceInstance: GatewayService | null = null;
+let swarmCoordinatorInstance: SwarmCoordinator | null = null;
+let canvasServiceInstance: CanvasService | null = null;
+let workflowServiceInstance: WorkflowService | null = null;
+
+export function getFrameworkService(): FrameworkService {
+  if (!frameworkServiceInstance) frameworkServiceInstance = new FrameworkService();
+  return frameworkServiceInstance;
+}
+
+export function getTeamService(): TeamService {
+  if (!teamServiceInstance) teamServiceInstance = new TeamService();
+  return teamServiceInstance;
+}
+
+export function getRoleService(): RoleService {
+  if (!roleServiceInstance) roleServiceInstance = new RoleService();
+  return roleServiceInstance;
+}
+
+export function getEngineScheduler(): EngineScheduler {
+  if (!engineSchedulerInstance) engineSchedulerInstance = new EngineScheduler();
+  return engineSchedulerInstance;
+}
+
+export function getGatewayService(): GatewayService {
+  if (!gatewayServiceInstance) gatewayServiceInstance = new GatewayService();
+  return gatewayServiceInstance;
+}
+
+export function getSwarmCoordinator(): SwarmCoordinator {
+  if (!swarmCoordinatorInstance) swarmCoordinatorInstance = new SwarmCoordinator();
+  return swarmCoordinatorInstance;
+}
+
+export function getCanvasService(): CanvasService {
+  if (!canvasServiceInstance) canvasServiceInstance = new CanvasService();
+  return canvasServiceInstance;
+}
+
+export function getWorkflowService(): WorkflowService {
+  if (!workflowServiceInstance) workflowServiceInstance = new WorkflowService();
+  return workflowServiceInstance;
+}
+
 // ─── 重置单例（仅用于测试） ───────────────────────────
 
 export function __resetAllServiceSingletons(): void {
@@ -127,4 +196,13 @@ export function __resetAllServiceSingletons(): void {
   monitorServiceInstance = null;
   blueprintServiceInstance = null;
   settingsServiceInstance = null;
+  taskServiceInstance = null;
+  frameworkServiceInstance = null;
+  teamServiceInstance = null;
+  roleServiceInstance = null;
+  engineSchedulerInstance = null;
+  gatewayServiceInstance = null;
+  swarmCoordinatorInstance = null;
+  canvasServiceInstance = null;
+  workflowServiceInstance = null;
 }
