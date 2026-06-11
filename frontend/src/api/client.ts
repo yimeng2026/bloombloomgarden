@@ -406,3 +406,12 @@ export const fetchCanvases = () => get('/canvas');
 export const getCanvas = (id: string) => get(`/canvas/${id}`);
 export const createCanvas = (data: any) => post('/canvas', data);
 export const deleteCanvas = (id: string) => del(`/canvas/${id}`);
+export const updateCanvas = (id: string, data: any) => put(`/canvas/${id}`, data);
+export const createCanvasRevision = (id: string, data: any) => post(`/canvas/${id}/revisions`, data);
+export const getCanvasRevisions = (id: string) => get(`/canvas/${id}/revisions`);
+export const restoreCanvasRevision = (id: string, revisionId: string) => post(`/canvas/${id}/restore`, { revisionId });
+
+/* ── Swarm Coordinator ── */
+export const batchChatSwarm = (data: any) => post('/swarm/batch-chat', data);
+export const coordinateSwarm = (data: any) => post('/swarm/coordinate', data);
+export const aggregateSwarm = (data: any) => post('/swarm/aggregate', data);

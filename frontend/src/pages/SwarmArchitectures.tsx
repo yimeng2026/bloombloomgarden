@@ -1,389 +1,907 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  GitBranch, Network, Layers, Shuffle, Route, Crown, TreePine,
-  RefreshCw, ArrowRightLeft, Workflow, Cpu, Zap, Settings,
-  Play, Pause, Trash2, Plus, ChevronDown, ChevronRight,
-  Activity, GitMerge, AlertTriangle, CheckCircle, HardDrive, Share2,
-  BookOpen, FileText, Terminal, Globe, ArrowUpRight, X,
+  Network, Cpu, Play, Loader2, CheckCircle, XCircle, Clock,
+  Layers, ArrowRight, Vote, History, AlertTriangle, Trash2,
+  BarChart3, Zap, GitMerge, RefreshCw, PanelLeft, X
 } from 'lucide-react'
+import { fetchEngines, streamChatWithEngine } from '@/api/client'
 
 /* ── Types ─────────────────────────────────────────────────────── */
 
-interface Architecture {
+interface Engine {
   id: string
-  name: string
-  nameEn: string
-  icon: any
-  source: string
-  description: string
-  features: string[]
-  status: 'active' | 'beta' | 'planned'
-  config: Record<string, any>
-  agents: { role: string; count: number; desc: string }[]
-  useCases: string[]
+  brand: string
+  model: string
+  tier: string
+  status: string
+  healthScore?: number
 }
 
-/* ── Data ──────────────────────────────────────────────────────── */
+type Strategy = 'parallel' | 'sequential' | 'vote'
 
-const ARCHITECTURES: Architecture[] = [
-  {
-    id: 'hierarchical',
-    name: '层级蜂群',
-    nameEn: 'HierarchicalSwarm',
-    icon: GitBranch,
-    source: 'CollabFramework',
-    description: 'Supervisor 管理 Worker 层级结构。任务从顶层分解，逐层下发到叶子节点执行，结果逐级聚合返回。适合复杂任务的分解与调度。',
-    features: ['任务分解与聚合', '层级负载均衡', '故障逐级上报', '权限层级隔离', '动态深度调整'],
-    status: 'active',
-    config: { maxDepth: 5, maxWorkersPerLevel: 16, timeoutMs: 30000 },
-    agents: [
-      { role: 'Supervisor', count: 1, desc: '顶层协调，任务分解与结果聚合' },
-      { role: 'Sub-Supervisor', count: 4, desc: '中间层调度，子任务管理' },
-      { role: 'Worker', count: 16, desc: '叶子节点，执行具体任务' },
-    ],
-    useCases: ['复杂文档生成', '多层数据分析', '分阶段代码审查'],
-  },
-  {
-    id: 'forest',
-    name: '森林蜂群',
-    nameEn: 'ForestSwarm',
-    icon: TreePine,
-    source: 'GitHub swarms',
-    description: '多棵独立树形结构并行运行，每棵树处理不同子任务，森林级协调器负责最终汇总。适合大规模并行计算场景。',
-    features: ['多树并行', '森林级协调', '树间负载均衡', '独立故障域', '弹性扩缩容'],
-    status: 'active',
-    config: { treeCount: 4, maxDepthPerTree: 3, crossTreeSync: true },
-    agents: [
-      { role: 'ForestCoordinator', count: 1, desc: '全局协调，结果汇总' },
-      { role: 'TreeRoot', count: 4, desc: '每棵树的根节点' },
-      { role: 'TreeNode', count: 12, desc: '树内工作节点' },
-    ],
-    useCases: ['大规模数据处理', '分布式计算', '批量任务执行'],
-  },
-  {
-    id: 'heavy',
-    name: '重型蜂群',
-    nameEn: 'HeavySwarm',
-    icon: HardDrive,
-    source: 'GitHub swarms',
-    description: '重型 Agent 专注单一复杂任务，配备专用工具链和上下文缓存。适合需要深度推理和长时运行的任务。',
-    features: ['专用工具链', '上下文缓存', '长时运行支持', '断点恢复', '资源独占'],
-    status: 'beta',
-    config: { maxRuntimeHours: 4, checkpointInterval: 300, dedicatedGPU: true },
-    agents: [
-      { role: 'HeavyAgent', count: 4, desc: '重型推理 Agent' },
-      { role: 'ToolProvider', count: 2, desc: '专用工具服务' },
-      { role: 'Monitor', count: 1, desc: '健康监控与资源调度' },
-    ],
-    useCases: ['深度学习训练', '复杂数学证明', '大规模仿真'],
-  },
-  {
-    id: 'router',
-    name: '蜂群路由',
-    nameEn: 'SwarmRouter',
-    icon: Route,
-    source: 'GitHub swarms',
-    description: '智能路由 Agent 根据任务特征动态选择最优执行路径和 Agent 组合。内置策略引擎支持自定义路由规则。',
-    features: ['智能任务分类', '动态路径选择', '策略引擎', 'A/B 测试支持', '性能反馈闭环'],
-    status: 'active',
-    config: { strategyPool: ['cost', 'speed', 'quality'], feedbackWindow: 100 },
-    agents: [
-      { role: 'Router', count: 2, desc: '任务分类与路径决策' },
-      { role: 'Executor', count: 8, desc: '多类型执行 Agent' },
-      { role: 'Evaluator', count: 2, desc: '结果评估与反馈' },
-    ],
-    useCases: ['多模型路由', '成本优化调度', '质量敏感任务'],
-  },
-  {
-    id: 'rearrange',
-    name: 'Agent 重排',
-    nameEn: 'AgentRearrange',
-    icon: Shuffle,
-    source: 'GitHub swarms',
-    description: '运行时动态重组 Agent 拓扑结构，根据负载和任务特征实时调整协作关系。支持热插拔 Agent 节点。',
-    features: ['运行时拓扑切换', 'Agent 动态增删', '负载感知重排', '策略自适应调整', '零停机重组'],
-    status: 'active',
-    config: { reorganizationInterval: 60, strategyPool: ['sequential', 'parallel', 'hierarchical'] },
-    agents: [
-      { role: 'Orchestrator', count: 1, desc: '全局编排与重组决策' },
-      { role: 'AdaptiveAgent', count: 8, desc: '自适应工作 Agent' },
-      { role: 'Observer', count: 2, desc: '负载监控与触发重组' },
-    ],
-    useCases: ['弹性伸缩场景', '突发流量应对', '多模式切换'],
-  },
-  {
-    id: 'ruflo',
-    name: 'Ruflo 女王/工蜂',
-    nameEn: 'Ruflo Queen/Worker',
-    icon: Crown,
-    source: 'GitHub swarms',
-    description: 'Queen Agent 负责协调与记忆管理，Worker Agent 执行任务并汇报。自学习机制防止上下文遗忘，经验回放池持续提升性能。',
-    features: ['Queen 协调中心', 'Worker 任务执行', '自学习记忆机制', '防遗忘上下文', '经验回放池'],
-    status: 'beta',
-    config: { memoryWindow: 10, experiencePoolSize: 1000, learningRate: 0.01 },
-    agents: [
-      { role: 'Queen', count: 1, desc: '全局协调与记忆管理' },
-      { role: 'Worker', count: 8, desc: '任务执行与经验积累' },
-      { role: 'Learner', count: 1, desc: '经验提炼与策略优化' },
-    ],
-    useCases: ['持续学习场景', '长对话管理', '知识积累任务'],
-  },
-  {
-    id: 'cross-repo',
-    name: '跨仓库蜂群',
-    nameEn: 'Multi-Repo Swarm',
-    icon: Share2,
-    source: 'GitHub swarms',
-    description: '跨多个代码仓库协作的蜂群架构，支持分布式代码审查、跨库依赖分析和统一发布管理。',
-    features: ['跨库代码审查', '依赖图分析', '统一发布管理', '变更传播追踪', '冲突自动解决'],
-    status: 'planned',
-    config: { maxRepos: 10, syncInterval: 300, conflictStrategy: 'auto' },
-    agents: [
-      { role: 'RepoManager', count: 1, desc: '仓库管理与同步' },
-      { role: 'CodeReviewer', count: 4, desc: '跨库代码审查' },
-      { role: 'DependencyAnalyzer', count: 2, desc: '依赖分析与冲突检测' },
-    ],
-    useCases: ['微服务治理', '多模块项目', '跨团队协作'],
-  },
-  {
-    id: 'sequential',
-    name: '顺序执行',
-    nameEn: 'Sequential',
-    icon: Workflow,
-    source: 'CollabFramework',
-    description: '严格顺序执行的蜂群模式，前一个 Agent 的输出作为后一个的输入。适合流水线式任务，保证数据一致性。',
-    features: ['严格顺序控制', '数据流管道', '中间结果缓存', '断点续传', '执行日志链'],
-    status: 'active',
-    config: { maxPipelineLength: 20, cacheIntermediate: true, retryFailed: true },
-    agents: [
-      { role: 'PipelineStarter', count: 1, desc: '流水线启动与监控' },
-      { role: 'StageAgent', count: 6, desc: '各阶段执行 Agent' },
-      { role: 'Validator', count: 1, desc: '最终结果验证' },
-    ],
-    useCases: ['CI/CD 流水线', '数据 ETL', '审批流程'],
-  },
-  {
-    id: 'parallel',
-    name: '并行执行',
-    nameEn: 'Parallel',
-    icon: Layers,
-    source: 'CollabFramework',
-    description: '完全并行执行的蜂群模式，所有 Agent 同时启动，结果通过聚合器合并。适合无依赖关系的批量任务。',
-    features: ['完全并行启动', '结果聚合器', '超时统一控制', '资源配额管理', '并发限流'],
-    status: 'active',
-    config: { maxConcurrency: 32, timeoutMs: 60000, resourceQuota: 'auto' },
-    agents: [
-      { role: 'Dispatcher', count: 1, desc: '任务分发与并发控制' },
-      { role: 'ParallelWorker', count: 16, desc: '并行工作 Agent' },
-      { role: 'Aggregator', count: 1, desc: '结果聚合与去重' },
-    ],
-    useCases: ['批量 API 调用', '并行搜索', '并发测试'],
-  },
-]
+interface EngineRunState {
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  content: string
+  error?: string
+  startTime?: number
+  endTime?: number
+}
+
+interface SwarmRun {
+  id: string
+  timestamp: number
+  strategy: Strategy
+  prompt: string
+  engineIds: string[]
+  results: Record<string, EngineRunState>
+  aggregate?: any
+}
+
+/* ── Helpers ───────────────────────────────────────────────────── */
+
+function extractContent(event: any): string {
+  return (
+    event.choices?.[0]?.delta?.content ||
+    event.choices?.[0]?.text ||
+    event.content ||
+    event.message?.content ||
+    ''
+  )
+}
+
+function analyzeVote(states: Record<string, EngineRunState>, engines: Engine[]) {
+  const responses = Object.entries(states)
+    .filter(([_, s]) => s.status === 'completed' && s.content.trim())
+    .map(([id, s]) => ({
+      id,
+      content: s.content,
+      engine: engines.find((e) => e.id === id),
+    }))
+    .filter((r): r is { id: string; content: string; engine: Engine } => !!r.engine)
+
+  if (responses.length === 0) return null
+
+  const avgLength = Math.round(
+    responses.reduce((sum, r) => sum + r.content.length, 0) / responses.length
+  )
+
+  // Simple word frequency analysis
+  const wordCounts: Record<string, number> = {}
+  responses.forEach((r) => {
+    const words = r.content
+      .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length >= 2)
+    words.forEach((w) => {
+      wordCounts[w] = (wordCounts[w] || 0) + 1
+    })
+  })
+
+  const commonWords = Object.entries(wordCounts)
+    .filter(([_, count]) => count >= responses.length * 0.5)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([word]) => word)
+
+  const consensusScore = Math.min(Math.round((commonWords.length / 10) * 100), 100)
+
+  return {
+    totalVotes: responses.length,
+    avgLength,
+    commonWords,
+    consensusScore,
+    responses,
+  }
+}
 
 /* ── Component ─────────────────────────────────────────────────── */
 
 export default function SwarmArchitectures() {
-  const [activeArch, setActiveArch] = useState<Architecture>(ARCHITECTURES[0])
-  const [running, setRunning] = useState<Record<string, boolean>>({})
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [engines, setEngines] = useState<Engine[]>([])
+  const [enginesLoading, setEnginesLoading] = useState(true)
+  const [selectedEngines, setSelectedEngines] = useState<string[]>([])
+  const [prompt, setPrompt] = useState('')
+  const [strategy, setStrategy] = useState<Strategy>('parallel')
+  const [isRunning, setIsRunning] = useState(false)
+  const [engineStates, setEngineStates] = useState<Record<string, EngineRunState>>({})
+  const [aggregateResult, setAggregateResult] = useState<any>(null)
+  const [history, setHistory] = useState<SwarmRun[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [showHistory, setShowHistory] = useState(false)
 
-  const toggleRun = (id: string) => {
-    setRunning((prev) => ({ ...prev, [id]: !prev[id] }))
+  const abortsRef = useRef<(() => void)[]>([])
+  const statesRef = useRef<Record<string, EngineRunState>>({})
+
+  // Sync ref with state
+  useEffect(() => {
+    statesRef.current = engineStates
+  }, [engineStates])
+
+  // Load engines
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      try {
+        setEnginesLoading(true)
+        const res: any = await fetchEngines()
+        const data = res.data || res
+        if (!cancelled) setEngines(Array.isArray(data) ? data : [])
+      } catch (e: any) {
+        if (!cancelled) setError('加载引擎列表失败：' + (e.message || '未知错误'))
+      } finally {
+        if (!cancelled) setEnginesLoading(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const toggleEngine = (id: string) => {
+    setSelectedEngines((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
   }
 
-  const toggleExpand = (id: string) => {
-    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }))
+  const selectAll = () => setSelectedEngines(engines.map((e) => e.id))
+  const clearSelection = () => setSelectedEngines([])
+
+  const updateEngineState = useCallback(
+    (engineId: string, patch: Partial<EngineRunState>) => {
+      setEngineStates((prev) => {
+        const next = { ...prev, [engineId]: { ...prev[engineId], ...patch } }
+        statesRef.current = next
+        return next
+      })
+    },
+    []
+  )
+
+  const resetStates = useCallback(() => {
+    const initial: Record<string, EngineRunState> = {}
+    selectedEngines.forEach((id) => {
+      initial[id] = { status: 'pending', content: '' }
+    })
+    setEngineStates(initial)
+    statesRef.current = initial
+    setAggregateResult(null)
+    setError(null)
+  }, [selectedEngines])
+
+  const addToHistory = useCallback(
+    (agg: any) => {
+      const run: SwarmRun = {
+        id: `swarm-${Date.now()}`,
+        timestamp: Date.now(),
+        strategy,
+        prompt,
+        engineIds: [...selectedEngines],
+        results: { ...statesRef.current },
+        aggregate: agg,
+      }
+      setHistory((prev) => [run, ...prev].slice(0, 20))
+    },
+    [strategy, prompt, selectedEngines]
+  )
+
+  const runParallel = useCallback(async () => {
+    resetStates()
+    setIsRunning(true)
+    const aborts: (() => void)[] = []
+
+    try {
+      const promises = selectedEngines.map((engineId) => {
+        return new Promise<void>((resolve) => {
+          const engine = engines.find((e) => e.id === engineId)
+          if (!engine) {
+            resolve()
+            return
+          }
+
+          updateEngineState(engineId, { status: 'running', startTime: Date.now() })
+
+          const abort = streamChatWithEngine(
+            engineId,
+            [{ role: 'user', content: prompt }],
+            (event) => {
+              const content = extractContent(event)
+              if (content) {
+                const current = statesRef.current[engineId]?.content || ''
+                updateEngineState(engineId, {
+                  status: 'running',
+                  content: current + content,
+                })
+              }
+            },
+            (err) => {
+              updateEngineState(engineId, {
+                status: 'failed',
+                error: err.message,
+                endTime: Date.now(),
+              })
+              resolve()
+            },
+            () => {
+              updateEngineState(engineId, {
+                status: 'completed',
+                endTime: Date.now(),
+              })
+              resolve()
+            }
+          )
+          aborts.push(abort)
+        })
+      })
+
+      await Promise.all(promises)
+
+      const completed = Object.values(statesRef.current).filter(
+        (s) => s.status === 'completed'
+      ).length
+
+      let agg: any
+      if (strategy === 'vote') {
+        agg = { mode: 'vote', ...analyzeVote(statesRef.current, engines) }
+      } else {
+        agg = {
+          mode: 'parallel',
+          completed,
+          total: selectedEngines.length,
+        }
+      }
+      setAggregateResult(agg)
+      addToHistory(agg)
+    } catch (e: any) {
+      setError('蜂群执行失败：' + (e.message || '未知错误'))
+    } finally {
+      setIsRunning(false)
+      abortsRef.current = aborts
+    }
+  }, [
+    selectedEngines,
+    engines,
+    prompt,
+    strategy,
+    resetStates,
+    updateEngineState,
+    addToHistory,
+  ])
+
+  const runSequential = useCallback(async () => {
+    resetStates()
+    setIsRunning(true)
+    const aborts: (() => void)[] = []
+
+    try {
+      for (const engineId of selectedEngines) {
+        const engine = engines.find((e) => e.id === engineId)
+        if (!engine) continue
+
+        updateEngineState(engineId, { status: 'running', startTime: Date.now() })
+
+        await new Promise<void>((resolve) => {
+          const abort = streamChatWithEngine(
+            engineId,
+            [{ role: 'user', content: prompt }],
+            (event) => {
+              const content = extractContent(event)
+              if (content) {
+                const current = statesRef.current[engineId]?.content || ''
+                updateEngineState(engineId, {
+                  status: 'running',
+                  content: current + content,
+                })
+              }
+            },
+            (err) => {
+              updateEngineState(engineId, {
+                status: 'failed',
+                error: err.message,
+                endTime: Date.now(),
+              })
+              resolve()
+            },
+            () => {
+              updateEngineState(engineId, {
+                status: 'completed',
+                endTime: Date.now(),
+              })
+              resolve()
+            }
+          )
+          aborts.push(abort)
+        })
+      }
+
+      const completed = Object.values(statesRef.current).filter(
+        (s) => s.status === 'completed'
+      ).length
+
+      const agg = {
+        mode: 'sequential',
+        completed,
+        total: selectedEngines.length,
+      }
+      setAggregateResult(agg)
+      addToHistory(agg)
+    } catch (e: any) {
+      setError('蜂群执行失败：' + (e.message || '未知错误'))
+    } finally {
+      setIsRunning(false)
+      abortsRef.current = aborts
+    }
+  }, [
+    selectedEngines,
+    engines,
+    prompt,
+    resetStates,
+    updateEngineState,
+    addToHistory,
+  ])
+
+  const handleStart = () => {
+    if (selectedEngines.length === 0) {
+      setError('请至少选择一个引擎')
+      return
+    }
+    if (!prompt.trim()) {
+      setError('请输入任务提示词')
+      return
+    }
+    setError(null)
+    if (strategy === 'sequential') {
+      runSequential()
+    } else {
+      runParallel()
+    }
   }
+
+  const handleStop = () => {
+    abortsRef.current.forEach((abort) => abort())
+    setIsRunning(false)
+    Object.entries(statesRef.current).forEach(([id, state]) => {
+      if (state.status === 'running') {
+        updateEngineState(id, {
+          status: 'failed',
+          error: '用户中断',
+          endTime: Date.now(),
+        })
+      }
+    })
+  }
+
+  const clearHistory = () => setHistory([])
+
+  const loadHistory = (run: SwarmRun) => {
+    setSelectedEngines(run.engineIds)
+    setPrompt(run.prompt)
+    setStrategy(run.strategy)
+    setEngineStates(run.results)
+    setAggregateResult(run.aggregate)
+    setShowHistory(false)
+  }
+
+  const statusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="w-4 h-4 text-[var(--sage-400)]" />
+      case 'running':
+        return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-500" />
+      case 'failed':
+        return <XCircle className="w-4 h-4 text-red-500" />
+      default:
+        return <Clock className="w-4 h-4 text-[var(--sage-400)]" />
+    }
+  }
+
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return '等待中'
+      case 'running':
+        return '执行中'
+      case 'completed':
+        return '已完成'
+      case 'failed':
+        return '失败'
+      default:
+        return '未知'
+    }
+  }
+
+  const statusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-[var(--sage-100)] text-[var(--sage-500)]'
+      case 'running':
+        return 'bg-blue-500/10 text-blue-600'
+      case 'completed':
+        return 'bg-green-500/10 text-green-600'
+      case 'failed':
+        return 'bg-red-500/10 text-red-600'
+      default:
+        return 'bg-[var(--sage-100)] text-[var(--sage-500)]'
+    }
+  }
+
+  const runningCount = Object.values(engineStates).filter((s) => s.status === 'running').length
+  const completedCount = Object.values(engineStates).filter((s) => s.status === 'completed').length
+  const failedCount = Object.values(engineStates).filter((s) => s.status === 'failed').length
+  const totalCount = selectedEngines.length
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Network className="w-6 h-6 text-[var(--sage-500)]" />
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--sage-800)]">蜂群架构</h1>
-          <p className="text-sm text-[var(--sage-500)]">{ARCHITECTURES.length} 种高级蜂群协作机制</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <Network className="w-6 h-6 text-[var(--sage-500)]" />
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--sage-800)]">蜂群协调器</h1>
+            <p className="text-sm text-[var(--sage-500)]">
+              多引擎协作 · {engines.length} 个引擎可用
+            </p>
+          </div>
         </div>
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          className="btn-secondary flex items-center gap-2"
+        >
+          <History className="w-4 h-4" />
+          历史记录 {history.length > 0 && `(${history.length})`}
+        </button>
       </div>
 
-      {/* Architecture Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {ARCHITECTURES.map((arch) => {
-          const Icon = arch.icon
-          const isActive = activeArch.id === arch.id
-          return (
-            <div
-              key={arch.id}
-              onClick={() => setActiveArch(arch)}
-              className={`card p-4 cursor-pointer transition-all hover:shadow-md ${
-                isActive ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''
-              }`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: 'var(--sage-100)' }}
-                  >
-                    <Icon
-                      className="w-5 h-5"
-                      style={{
-                        color:
-                          arch.status === 'active'
-                            ? '#10b981'
-                            : arch.status === 'beta'
-                              ? '#f59e0b'
-                              : 'var(--sage-500)',
-                      }}
-                    />
+      {/* Error Banner */}
+      {error && (
+        <div className="card p-3 flex items-center gap-2 bg-red-50 border-red-200">
+          <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+          <p className="text-sm text-red-600 flex-1">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="p-1 hover:bg-red-100 rounded transition-colors"
+          >
+            <X className="w-4 h-4 text-red-500" />
+          </button>
+        </div>
+      )}
+
+      {/* History Panel */}
+      {showHistory && (
+        <div className="card p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-[var(--sage-800)] flex items-center gap-2">
+              <History className="w-4 h-4 text-[var(--sage-500)]" />
+              执行历史
+            </h3>
+            {history.length > 0 && (
+              <button
+                onClick={clearHistory}
+                className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors"
+              >
+                <Trash2 className="w-3 h-3" /> 清空
+              </button>
+            )}
+          </div>
+          {history.length === 0 ? (
+            <p className="text-sm text-[var(--sage-400)]">暂无历史记录</p>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {history.map((run) => (
+                <div
+                  key={run.id}
+                  onClick={() => loadHistory(run)}
+                  className="p-3 rounded-card-md bg-[var(--sage-50)] hover:bg-[var(--sage-100)] cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-[var(--sage-700)]">
+                      {run.strategy === 'parallel'
+                        ? '并行'
+                        : run.strategy === 'sequential'
+                          ? '顺序'
+                          : '投票'}
+                    </span>
+                    <span className="text-[10px] text-[var(--sage-400)]">
+                      {new Date(run.timestamp).toLocaleString()}
+                    </span>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-sm text-[var(--sage-800)]">{arch.name}</h3>
-                    <p className="text-[10px] text-[var(--sage-400)]">{arch.nameEn}</p>
+                  <p className="text-xs text-[var(--sage-600)] line-clamp-1">{run.prompt}</p>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-[var(--sage-400)]">
+                    <span>{run.engineIds.length} 个引擎</span>
+                    <span>·</span>
+                    <span>
+                      {Object.values(run.results).filter((r) => r.status === 'completed').length}{' '}
+                      成功
+                    </span>
                   </div>
                 </div>
-                <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                    arch.status === 'active'
-                      ? 'bg-green-500/10 text-green-600'
-                      : arch.status === 'beta'
-                        ? 'bg-amber-500/10 text-amber-600'
-                        : 'bg-[var(--sage-100)] text-[var(--sage-500)]'
-                  }`}
-                >
-                  {arch.status === 'active' ? '已启用' : arch.status === 'beta' ? '测试版' : '计划中'}
-                </span>
-              </div>
-              <p className="text-xs text-[var(--sage-500)] line-clamp-2">{arch.description}</p>
-              <div className="flex items-center gap-1 mt-2 text-[10px] text-[var(--sage-400)]">
-                <span className="px-1.5 py-0.5 rounded bg-[var(--sage-100)]">{arch.source}</span>
-                <span>{arch.agents.reduce((s, a) => s + a.count, 0)} Agents</span>
-              </div>
+              ))}
             </div>
-          )
-        })}
-      </div>
+          )}
+        </div>
+      )}
 
-      {/* Detail Panel */}
-      <div className="card p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--sage-100)]">
-              {(() => {
-                const DetailIcon = activeArch.icon
-                return <DetailIcon className="w-6 h-6 text-[var(--sage-500)]" />
-              })()}
-            </div>
+      {/* Main Layout: Left config + Right results */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left: Configuration Panel */}
+        <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 space-y-4">
+          <div className="card p-4 space-y-4">
+            <h2 className="text-sm font-semibold text-[var(--sage-800)] flex items-center gap-2">
+              <PanelLeft className="w-4 h-4 text-[var(--sage-500)]" />
+              蜂群配置
+            </h2>
+
+            {/* Engine Selection */}
             <div>
-              <h2 className="text-lg font-bold text-[var(--sage-800)]">
-                {activeArch.name}
-                <span className="text-sm font-normal text-[var(--sage-400)] ml-2">{activeArch.nameEn}</span>
-              </h2>
-              <p className="text-xs text-[var(--sage-500)] mt-1">{activeArch.description}</p>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-medium text-[var(--sage-700)]">选择引擎</label>
+                <div className="flex gap-1">
+                  <button
+                    onClick={selectAll}
+                    className="text-[10px] text-[var(--sage-500)] hover:text-[var(--sage-700)] px-1.5 py-0.5 rounded bg-[var(--sage-100)] transition-colors"
+                  >
+                    全选
+                  </button>
+                  <button
+                    onClick={clearSelection}
+                    className="text-[10px] text-[var(--sage-500)] hover:text-[var(--sage-700)] px-1.5 py-0.5 rounded bg-[var(--sage-100)] transition-colors"
+                  >
+                    清空
+                  </button>
+                </div>
+              </div>
+              {enginesLoading ? (
+                <div className="flex items-center gap-2 py-4 text-[var(--sage-400)]">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-xs">加载引擎...</span>
+                </div>
+              ) : engines.length === 0 ? (
+                <p className="text-xs text-[var(--sage-400)] py-2">暂无可用引擎</p>
+              ) : (
+                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                  {engines.map((engine) => {
+                    const selected = selectedEngines.includes(engine.id)
+                    return (
+                      <label
+                        key={engine.id}
+                        className={`flex items-center gap-2 p-2 rounded-card-sm cursor-pointer transition-colors ${
+                          selected ? 'bg-[var(--sage-100)]' : 'hover:bg-[var(--sage-50)]'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleEngine(engine.id)}
+                          className="w-4 h-4 rounded border-[var(--sage-300)] text-[var(--sage-500)] focus:ring-[var(--sage-500)]"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <Cpu className="w-3 h-3 text-[var(--sage-400)]" />
+                            <span className="text-xs font-medium text-[var(--sage-700)] truncate">
+                              {engine.brand}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-[var(--sage-400)]">
+                            {engine.model}
+                          </span>
+                        </div>
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 ${
+                            engine.status === 'healthy' ? 'bg-green-500' : 'bg-amber-500'
+                          }`}
+                        />
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+              <p className="text-[10px] text-[var(--sage-400)] mt-1">
+                已选择 {selectedEngines.length} 个引擎
+              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
+
+            {/* Prompt Input */}
+            <div>
+              <label className="text-xs font-medium text-[var(--sage-700)] mb-1.5 block">
+                任务提示词
+              </label>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="输入任务描述，例如：分析以下代码的潜在问题..."
+                className="w-full h-28 p-3 rounded-card-md border text-sm resize-none"
+                style={{
+                  borderColor: 'var(--sage-200)',
+                  backgroundColor: 'var(--sage-50)',
+                }}
+              />
+              <p className="text-[10px] text-[var(--sage-400)] mt-1 text-right">
+                {prompt.length} 字符
+              </p>
+            </div>
+
+            {/* Strategy Selection */}
+            <div>
+              <label className="text-xs font-medium text-[var(--sage-700)] mb-2 block">
+                协调策略
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    { id: 'parallel' as Strategy, label: '并行', icon: Layers, desc: '同时执行' },
+                    { id: 'sequential' as Strategy, label: '顺序', icon: ArrowRight, desc: '依次执行' },
+                    { id: 'vote' as Strategy, label: '投票', icon: Vote, desc: '共识聚合' },
+                  ] as const
+                ).map((s) => {
+                  const Icon = s.icon
+                  const active = strategy === s.id
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setStrategy(s.id)}
+                      className={`flex flex-col items-center gap-1 p-2.5 rounded-card-md border text-xs transition-all ${
+                        active
+                          ? 'border-[var(--sage-500)] bg-[var(--sage-50)] text-[var(--sage-700)]'
+                          : 'border-[var(--sage-200)] text-[var(--sage-500)] hover:border-[var(--sage-300)]'
+                      }`}
+                    >
+                      <Icon
+                        className={`w-4 h-4 ${
+                          active ? 'text-[var(--sage-500)]' : 'text-[var(--sage-400)]'
+                        }`}
+                      />
+                      <span className="font-medium">{s.label}</span>
+                      <span className="text-[9px] opacity-70">{s.desc}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Start / Stop Button */}
             <button
-              onClick={() => toggleRun(activeArch.id)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${
-                running[activeArch.id]
-                  ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
+              onClick={isRunning ? handleStop : handleStart}
+              disabled={enginesLoading || selectedEngines.length === 0}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-card-md text-sm font-medium transition-colors ${
+                isRunning
+                  ? 'bg-red-500 text-white hover:bg-red-600'
                   : 'bg-[var(--sage-500)] text-white hover:bg-[var(--sage-600)]'
-              }`}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {running[activeArch.id] ? (
+              {isRunning ? (
                 <>
-                  <Pause className="w-4 h-4" /> 运行中
+                  <RefreshCw className="w-4 h-4" /> 停止执行
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4" /> 启动
+                  <Play className="w-4 h-4" /> 启动蜂群
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Features */}
-        <div className="mb-4">
-          <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-2 flex items-center gap-2">
-            <Zap className="w-4 h-4 text-[var(--sage-500)]" />
-            核心特性
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {activeArch.features.map((f) => (
-              <span
-                key={f}
-                className="text-xs px-2 py-1 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]"
-              >
-                {f}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Agents */}
-        <div className="mb-4">
-          <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-2 flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-[var(--sage-500)]" />
-            Agent 构成
-          </h3>
-          <div className="space-y-2">
-            {activeArch.agents.map((agent, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between p-2 rounded-lg bg-[var(--sage-50)]"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-[var(--sage-800)]">{agent.role}</span>
-                  <span className="text-[10px] text-[var(--sage-400)]">{agent.desc}</span>
+        {/* Right: Execution Results */}
+        <div className="flex-1 space-y-4 min-w-0">
+          {/* Progress Overview */}
+          {totalCount > 0 && (
+            <div className="card p-4">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <h3 className="text-sm font-semibold text-[var(--sage-800)] flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-[var(--sage-500)]" />
+                  执行进度
+                </h3>
+                <div className="flex items-center gap-3 text-xs flex-wrap">
+                  <span className="flex items-center gap-1 text-[var(--sage-500)]">
+                    <Loader2 className="w-3 h-3 animate-spin" /> {runningCount} 执行中
+                  </span>
+                  <span className="flex items-center gap-1 text-green-600">
+                    <CheckCircle className="w-3 h-3" /> {completedCount} 完成
+                  </span>
+                  {failedCount > 0 && (
+                    <span className="flex items-center gap-1 text-red-600">
+                      <XCircle className="w-3 h-3" /> {failedCount} 失败
+                    </span>
+                  )}
                 </div>
-                <span className="text-xs font-mono text-[var(--sage-500)]">x{agent.count}</span>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="h-2 rounded-full bg-[var(--sage-100)] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${totalCount > 0 ? ((completedCount + failedCount) / totalCount) * 100 : 0}%`,
+                    backgroundColor: failedCount > 0 ? '#f59e0b' : '#10b981',
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
-        {/* Use Cases */}
-        <div className="mb-4">
-          <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-2 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[var(--sage-500)]" />
-            适用场景
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {activeArch.useCases.map((uc) => (
-              <span
-                key={uc}
-                className="text-xs px-2 py-1 rounded-full bg-[var(--bloom-mint)]/10 text-[var(--sage-600)]"
-              >
-                {uc}
-              </span>
-            ))}
-          </div>
-        </div>
+          {/* Engine Status Cards */}
+          {selectedEngines.length > 0 && (
+            <div className="space-y-3">
+              {selectedEngines.map((engineId) => {
+                const engine = engines.find((e) => e.id === engineId)
+                const state = engineStates[engineId] || {
+                  status: 'pending',
+                  content: '',
+                }
+                if (!engine) return null
 
-        {/* Config */}
-        <div>
-          <button
-            onClick={() => toggleExpand(activeArch.id)}
-            className="flex items-center gap-1 text-xs text-[var(--sage-500)] hover:text-[var(--sage-700)]"
-          >
-            {expanded[activeArch.id] ? (
-              <ChevronDown className="w-3 h-3" />
-            ) : (
-              <ChevronRight className="w-3 h-3" />
-            )}
-            配置参数
-          </button>
-          {expanded[activeArch.id] && (
-            <div className="mt-2 p-3 rounded-lg bg-[var(--sage-50)] text-xs font-mono text-[var(--sage-600)] space-y-1">
-              {Object.entries(activeArch.config).map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between">
-                  <span>{k}</span>
-                  <span className="text-[var(--sage-400)]">{JSON.stringify(v)}</span>
+                return (
+                  <div key={engineId} className="card p-4">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-[var(--sage-100)] flex items-center justify-center">
+                          <Cpu className="w-4 h-4 text-[var(--sage-500)]" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-[var(--sage-800)]">
+                            {engine.brand}
+                          </h4>
+                          <span className="text-[10px] text-[var(--sage-400)]">
+                            {engine.model}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={`text-[10px] px-2 py-1 rounded-full flex items-center gap-1 ${statusColor(
+                          state.status
+                        )}`}
+                      >
+                        {statusIcon(state.status)}
+                        {statusLabel(state.status)}
+                      </span>
+                    </div>
+
+                    {/* Real-time Content */}
+                    <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-xs text-[var(--sage-700)] min-h-[60px] max-h-48 overflow-y-auto whitespace-pre-wrap">
+                      {state.content || (
+                        <span className="text-[var(--sage-400)] italic">
+                          {state.status === 'pending'
+                            ? '等待启动...'
+                            : state.status === 'running'
+                              ? '接收响应中...'
+                              : '无响应内容'}
+                        </span>
+                      )}
+                    </div>
+
+                    {state.error && (
+                      <p className="mt-2 text-xs text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> {state.error}
+                      </p>
+                    )}
+
+                    {state.endTime && state.startTime && (
+                      <p className="mt-2 text-[10px] text-[var(--sage-400)] text-right">
+                        耗时 {((state.endTime - state.startTime) / 1000).toFixed(1)}s
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Aggregate Result */}
+          {aggregateResult && (
+            <div className="card p-4">
+              <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+                {aggregateResult.mode === 'vote' ? (
+                  <Vote className="w-4 h-4 text-[var(--sage-500)]" />
+                ) : (
+                  <GitMerge className="w-4 h-4 text-[var(--sage-500)]" />
+                )}
+                {aggregateResult.mode === 'vote' ? '投票聚合结果' : '执行聚合结果'}
+              </h3>
+
+              {aggregateResult.mode === 'vote' && aggregateResult.totalVotes > 0 ? (
+                <div className="space-y-3">
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center">
+                      <p className="text-lg font-bold text-[var(--sage-800)]">
+                        {aggregateResult.totalVotes}
+                      </p>
+                      <p className="text-[10px] text-[var(--sage-500)]">参与投票</p>
+                    </div>
+                    <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center">
+                      <p className="text-lg font-bold text-[var(--sage-800)]">
+                        {aggregateResult.consensusScore}%
+                      </p>
+                      <p className="text-[10px] text-[var(--sage-500)]">共识度</p>
+                    </div>
+                    <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center">
+                      <p className="text-lg font-bold text-[var(--sage-800)]">
+                        {aggregateResult.avgLength}
+                      </p>
+                      <p className="text-[10px] text-[var(--sage-500)]">平均长度</p>
+                    </div>
+                    <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center">
+                      <p className="text-lg font-bold text-[var(--sage-800)]">
+                        {aggregateResult.commonWords?.length || 0}
+                      </p>
+                      <p className="text-[10px] text-[var(--sage-500)]">共同关键词</p>
+                    </div>
+                  </div>
+
+                  {/* Common Words */}
+                  {aggregateResult.commonWords?.length > 0 && (
+                    <div>
+                      <p className="text-xs text-[var(--sage-600)] mb-1.5">高频共识词</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {aggregateResult.commonWords.map((word: string) => (
+                          <span
+                            key={word}
+                            className="text-xs px-2 py-1 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]"
+                          >
+                            {word}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Per-engine summaries */}
+                  <div>
+                    <p className="text-xs text-[var(--sage-600)] mb-1.5">各引擎意见摘要</p>
+                    <div className="space-y-2">
+                      {aggregateResult.responses?.map(
+                        (r: { id: string; content: string; engine?: Engine }) => (
+                          <div
+                            key={r.id}
+                            className="p-2.5 rounded-card-md bg-[var(--sage-50)]"
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <Cpu className="w-3 h-3 text-[var(--sage-400)]" />
+                              <span className="text-xs font-medium text-[var(--sage-700)]">
+                                {r.engine?.brand || r.id}
+                              </span>
+                            </div>
+                            <p className="text-xs text-[var(--sage-600)] line-clamp-3">
+                              {r.content}
+                            </p>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ))}
+              ) : (
+                <div className="p-3 rounded-card-md bg-[var(--sage-50)]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <BarChart3 className="w-4 h-4 text-[var(--sage-500)]" />
+                    <span className="text-xs text-[var(--sage-700)]">
+                      {aggregateResult.mode === 'parallel' ? '并行执行' : '顺序执行'}完成
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-[var(--sage-600)]">
+                    <span>
+                      成功: {aggregateResult.completed} / {aggregateResult.total}
+                    </span>
+                    <span>
+                      成功率:{' '}
+                      {Math.round(
+                        (aggregateResult.completed / aggregateResult.total) * 100
+                      )}
+                      %
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {selectedEngines.length === 0 && !aggregateResult && (
+            <div className="card p-8 text-center">
+              <Network className="w-12 h-12 text-[var(--sage-300)] mx-auto mb-3" />
+              <p className="text-sm text-[var(--sage-500)]">
+                请在左侧选择引擎并配置任务
+              </p>
             </div>
           )}
         </div>
