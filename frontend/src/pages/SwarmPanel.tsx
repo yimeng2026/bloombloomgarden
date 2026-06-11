@@ -110,7 +110,7 @@ export default function SwarmPanel() {
   const [executionEvents, setExecutionEvents] = useState<any[]>([])
   const [isExecuting, setIsExecuting] = useState(false)
   const [executionResult, setExecutionResult] = useState<any>(null)
-  const abortRef = React.useRef<(() => void) | null>(null)
+  const abortRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     let cancelled = false

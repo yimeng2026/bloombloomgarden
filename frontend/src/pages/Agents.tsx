@@ -84,22 +84,13 @@ const FALLBACK_AGENTS: Agent[] = [
 
 export default function Agents() {
   const [agents, setAgents] = useState<Agent[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    fetchAgents()
-      .then(res => { if (!cancelled) setAgents(res.data || []); })
-      .catch(() => { /* keep default/mock */ })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, []);
   const [view, setView] = useState<'grid' | 'table'>('grid');
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
       try {
         setLoading(true);
@@ -107,13 +98,13 @@ export default function Agents() {
         const data = res.data || [];
         setAgents(data.length > 0 ? data : FALLBACK_AGENTS);
       } catch (e) {
-        console.error('Failed to load agents:', e);
-        setAgents(FALLBACK_AGENTS);
+        if (!cancelled) setAgents(FALLBACK_AGENTS);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+    return () => { cancelled = true; };
   }, []);
 
   const filtered = agents.filter((a) => {
@@ -247,7 +238,7 @@ export default function Agents() {
               <p className="text-xs text-[var(--sage-500)] mb-3">{agent.description}</p>
 
               <div className="flex flex-wrap gap-1 mb-3">
-                {agent.tags.map((tag) => (
+                {(agent.tags || []).map((tag) => (
                   <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--sage-50)] text-[var(--sage-500)]">
                     {tag}
                   </span>

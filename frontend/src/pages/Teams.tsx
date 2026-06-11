@@ -142,7 +142,9 @@ export default function Teams() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm text-[var(--sage-800)]">{team.name}</h3>
-                      <span className="text-[10px] text-[var(--sage-500)]">{team.framework}</span>
+                      <span className="text-[10px] text-[var(--sage-500)]">
+                        {typeof team.framework === 'string' ? team.framework : team.framework?.name || team.frameworkId || '未知框架'}
+                      </span>
                     </div>
                   </div>
                   <span
