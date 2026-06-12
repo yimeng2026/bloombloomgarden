@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
 import {
   Layers, Users, UserCog, Cpu, ChevronRight, ChevronLeft,
-  CheckCircle, Plus, X, Loader2, Sparkles, ArrowRight,
-  Search, MessageSquare, Play
+  CheckCircle, Plus, X, Loader2, Sparkles
 } from 'lucide-react'
 import {
-  fetchFrameworks, createTeam, createRole, fetchEngines,
-  chatWithRole
+  fetchFrameworks, createTeam, createRole, fetchEngines
 } from '@/api/client'
 
 /* ── Types ── */
@@ -36,11 +34,6 @@ interface RoleForm {
   roleType: string
   systemPrompt: string
   primaryEngine: string
-}
-
-interface ChatMessage {
-  role: 'user' | 'assistant'
-  content: string
 }
 
 /* ── Step Config ── */
@@ -81,12 +74,6 @@ export default function AgentCreatorV4() {
 
   // Step 3
   const [roles, setRoles] = useState<RoleForm[]>([])
-
-  // Step 4
-  const [chatRoleId, setChatRoleId] = useState<string | null>(null)
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-  const [chatInput, setChatInput] = useState('')
-  const [chatLoading, setChatLoading] = useState(false)
 
   // Load frameworks & engines on mount
   useEffect(() => {
@@ -185,31 +172,6 @@ export default function AgentCreatorV4() {
     } finally {
       setCreating(false)
     }
-  }
-
-  /* ── Step 4: Chat with Role ── */
-  const handleChatSend = async () => {
-    if (!chatRoleId || !chatInput.trim() || chatLoading) return
-    const userMsg: ChatMessage = { role: 'user', content: chatInput.trim() }
-    setChatMessages((prev) => [...prev, userMsg])
-    setChatInput('')
-    setChatLoading(true)
-    try {
-      const res: any = await chatWithRole(chatRoleId, userMsg.content)
-      const response = res.data?.response || res.response || '无响应'
-      setChatMessages((prev) => [...prev, { role: 'assistant', content: response }])
-    } catch (e) {
-      console.error('Chat error:', e)
-      setChatMessages((prev) => [...prev, { role: 'assistant', content: '对话出现错误，请稍后重试。' }])
-    } finally {
-      setChatLoading(false)
-    }
-  }
-
-  const openChat = (roleId: string) => {
-    setChatRoleId(roleId)
-    setChatMessages([])
-    setChatInput('')
   }
 
   /* ── Navigation ── */
@@ -492,159 +454,59 @@ export default function AgentCreatorV4() {
       {step === 4 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--sage-800)]">分配引擎 & 测试对话</h2>
+            <h2 className="text-lg font-semibold text-[var(--sage-800)]">分配引擎</h2>
             <span className="text-xs text-[var(--sage-500)]">
-              {engines.filter((e) => e.status === 'healthy').length} 个健康引擎
+              {engines.length} 个引擎可用
             </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Engine Assignment */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-[var(--sage-700)]">为角色分配引擎</h3>
-              {roles.map((role, idx) => {
-                const assignedEngine = engines.find((e) => e.id === role.primaryEngine)
-                return (
-                  <div key={role.id} className="card p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <UserCog className="w-4 h-4 text-[var(--sage-500)]" />
-                      <span className="text-sm font-medium text-[var(--sage-800)]">
-                        {role.name || `角色 #${idx + 1}`}
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-500)]">
-                        {ROLE_TYPES.find((t) => t.value === role.roleType)?.label || role.roleType}
-                      </span>
-                    </div>
-                    <select
-                      value={role.primaryEngine}
-                      onChange={(e) => updateRole(role.id, 'primaryEngine', e.target.value)}
-                      className="w-full px-3 py-2 rounded-card border text-sm mb-2"
-                      style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
-                    >
-                      <option value="">选择引擎...</option>
-                      {engines.map((e) => (
-                        <option key={e.id} value={e.id}>
-                          {e.brand} — {e.model} ({e.tier})
-                        </option>
-                      ))}
-                    </select>
-                    {assignedEngine && (
-                      <div className="flex items-center gap-2 text-xs text-[var(--sage-500)]">
-                        <span
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor:
-                              assignedEngine.status === 'healthy'
-                                ? '#10b981'
-                                : assignedEngine.status === 'unhealthy'
-                                ? '#f59e0b'
-                                : '#6b7280',
-                          }}
-                        />
-                        {assignedEngine.status === 'healthy' ? '健康' : assignedEngine.status === 'unhealthy' ? '异常' : '离线'}
-                        <span className="text-[var(--sage-400)]">· 健康分: {assignedEngine.healthScore}</span>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => openChat(role.id)}
-                      className="mt-2 w-full flex items-center justify-center gap-2 py-1.5 rounded-card-sm text-xs transition-colors hover:bg-[var(--sage-100)]"
-                      style={{ backgroundColor: 'var(--sage-50)', color: 'var(--sage-600)' }}
-                    >
-                      <MessageSquare className="w-3 h-3" />
-                      测试对话
-                    </button>
+          <div className="space-y-3 max-w-2xl">
+            {roles.map((role, idx) => {
+              const assignedEngine = engines.find((e) => e.id === role.primaryEngine)
+              return (
+                <div key={role.id} className="card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <UserCog className="w-4 h-4 text-[var(--sage-500)]" />
+                    <span className="text-sm font-medium text-[var(--sage-800)]">
+                      {role.name || `角色 #${idx + 1}`}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-500)]">
+                      {ROLE_TYPES.find((t) => t.value === role.roleType)?.label || role.roleType}
+                    </span>
                   </div>
-                )
-              })}
-            </div>
-
-            {/* Chat Panel */}
-            <div>
-              {chatRoleId ? (
-                <div className="card flex flex-col h-[500px]">
-                  <div className="flex items-center justify-between p-3 border-b" style={{ borderColor: 'var(--sage-200)' }}>
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-[var(--sage-500)]" />
-                      <span className="text-sm font-medium text-[var(--sage-800)]">
-                        测试: {roles.find((r) => r.id === chatRoleId)?.name || '角色'}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setChatRoleId(null)}
-                      className="p-1 rounded-lg hover:bg-[var(--sage-100)] text-[var(--sage-400)]"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                    {chatMessages.length === 0 && (
-                      <div className="text-center py-8 text-[var(--sage-400)] text-sm">
-                        开始测试对话...
-                      </div>
-                    )}
-                    {chatMessages.map((msg, i) => (
-                      <div
-                        key={i}
-                        className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        {msg.role === 'assistant' && (
-                          <div className="w-6 h-6 rounded-full bg-[var(--sage-100)] flex items-center justify-center flex-shrink-0">
-                            <Cpu className="w-3 h-3 text-[var(--sage-500)]" />
-                          </div>
-                        )}
-                        <div
-                          className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
-                            msg.role === 'user'
-                              ? 'bg-[var(--sage-500)] text-white'
-                              : 'bg-[var(--sage-50)] text-[var(--sage-700)]'
-                          }`}
-                        >
-                          {msg.content}
-                        </div>
-                      </div>
+                  <select
+                    value={role.primaryEngine}
+                    onChange={(e) => updateRole(role.id, 'primaryEngine', e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-card border text-sm"
+                    style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+                  >
+                    <option value="">选择引擎...</option>
+                    {engines.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.brand} — {e.model} ({e.tier})
+                      </option>
                     ))}
-                    {chatLoading && (
-                      <div className="flex gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[var(--sage-100)] flex items-center justify-center flex-shrink-0">
-                          <Cpu className="w-3 h-3 text-[var(--sage-500)]" />
-                        </div>
-                        <div className="bg-[var(--sage-50)] px-3 py-2 rounded-lg text-sm text-[var(--sage-500)] flex items-center gap-2">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          思考中...
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-3 border-t" style={{ borderColor: 'var(--sage-200)' }}>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
-                        placeholder="输入测试消息..."
-                        className="flex-1 px-3 py-2 rounded-card border text-sm"
-                        style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+                  </select>
+                  {assignedEngine && (
+                    <div className="flex items-center gap-2 mt-2 text-xs text-[var(--sage-500)]">
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor:
+                            assignedEngine.status === 'healthy'
+                              ? '#10b981'
+                              : assignedEngine.status === 'unhealthy'
+                              ? '#f59e0b'
+                              : '#6b7280',
+                        }}
                       />
-                      <button
-                        onClick={handleChatSend}
-                        disabled={chatLoading || !chatInput.trim()}
-                        className="px-3 py-2 rounded-card bg-[var(--sage-500)] text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
+                      {assignedEngine.status === 'healthy' ? '健康' : assignedEngine.status === 'unhealthy' ? '异常' : '离线'}
+                      <span className="text-[var(--sage-400)]">· 健康分: {assignedEngine.healthScore}</span>
                     </div>
-                  </div>
+                  )}
                 </div>
-              ) : (
-                <div className="card p-8 text-center h-[500px] flex flex-col items-center justify-center">
-                  <MessageSquare className="w-12 h-12 text-[var(--sage-300)] mb-3" />
-                  <p className="text-[var(--sage-500)] text-sm">点击角色卡片上的「测试对话」开始测试</p>
-                </div>
-              )}
-            </div>
+              )
+            })}
           </div>
 
           {/* Completion */}

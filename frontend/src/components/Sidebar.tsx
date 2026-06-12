@@ -100,8 +100,6 @@ const navItems: NavItem[] = [
       { id: 'workflows', label: '工作流', route: '/workflows' },
       { id: 'scheduler', label: '调度器', route: '/scheduler' },
       { id: 'webhooks', label: 'Webhooks', route: '/webhooks' },
-      { id: 'api-test', label: 'API测试', route: '/api-test' },
-      { id: 'api-keys', label: 'API密钥', route: '/api-keys' },
     ],
   },
   { id: 'admin', label: '管理面板', icon: Shield, route: '/admin' },

@@ -665,7 +665,6 @@ function ApiTab({ t, searchQuery, apiKeys, loading, error }: { t: (zh: string, e
   const [sortAsc, setSortAsc] = useState(true);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
-  const [testingId, setTestingId] = useState<string | null>(null);
 
   const filtered = apiKeys
     .filter((k) =>
@@ -694,11 +693,6 @@ function ApiTab({ t, searchQuery, apiKeys, loading, error }: { t: (zh: string, e
   const handleSort = (key: string) => {
     if (sortKey === key) setSortAsc(!sortAsc);
     else { setSortKey(key); setSortAsc(true); }
-  };
-
-  const testConnection = (id: string) => {
-    setTestingId(id);
-    setTimeout(() => setTestingId(null), 2000);
   };
 
   return (
@@ -743,7 +737,7 @@ function ApiTab({ t, searchQuery, apiKeys, loading, error }: { t: (zh: string, e
               {t(`已选择 ${selectedRows.size} 项`, `${selectedRows.size} selected`)}
             </span>
             <div className="flex items-center gap-2 ml-auto">
-              {['启用', '禁用', '测试连接', '删除'].map((a) => (
+              {['启用', '禁用', '删除'].map((a) => (
                 <button key={a} className="px-3 py-1 rounded-card-sm text-xs font-medium transition-colors hover:bg-[var(--sage-200)]" style={{ color: 'var(--sage-600)' }}>
                   {a}
                 </button>
@@ -816,15 +810,12 @@ function ApiTab({ t, searchQuery, apiKeys, loading, error }: { t: (zh: string, e
                 <td className="px-4 py-3.5">{key.modelCount}</td>
                 <td className="px-4 py-3.5"><StatusDot status={key.status} /></td>
                 <td className="px-4 py-3.5 text-xs" style={{ color: 'var(--sage-500)' }}>
-                  {testingId === key.id ? <Loader2 size={14} className="animate-spin" style={{ color: 'var(--sage-500)' }} /> : typeof key.latency === 'number' ? `${key.latency}ms` : key.latency}
+                  {typeof key.latency === 'number' ? `${key.latency}ms` : key.latency}
                 </td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-1">
                     <button className="p-1.5 rounded-card-sm hover:bg-[var(--sage-100)] transition-colors" style={{ color: 'var(--sage-500)' }} title="Edit">
                       <Edit3 size={14} />
-                    </button>
-                    <button onClick={() => testConnection(key.id)} className="p-1.5 rounded-card-sm hover:bg-[var(--sage-100)] transition-colors" style={{ color: 'var(--sage-500)' }} title="Test">
-                      <Play size={14} />
                     </button>
                     <button className="p-1.5 rounded-card-sm hover:bg-[var(--sage-100)] transition-colors" style={{ color: 'var(--sage-500)' }} title="Delete">
                       <Trash2 size={14} />
