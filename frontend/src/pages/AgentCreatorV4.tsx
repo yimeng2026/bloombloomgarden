@@ -122,9 +122,10 @@ export default function AgentCreatorV4() {
       setCreating(true)
       const res: any = await createTeam({
         name: teamForm.name,
-        framework: selectedFramework.id,
+        frameworkId: selectedFramework.id,
         collaborationMode: teamForm.collaborationMode,
         description: teamForm.description,
+        roles: [], // 角色在 Step 3 单独添加
       })
       setCreatedTeam(res.data || res)
       setStep(3)

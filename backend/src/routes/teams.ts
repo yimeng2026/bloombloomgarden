@@ -13,9 +13,6 @@ router.post('/', asyncHandler(async (req, res) => {
   if (!frameworkId) {
     return res.status(400).json({ success: false, error: 'Framework ID is required' });
   }
-  if (!roles || !Array.isArray(roles) || roles.length === 0) {
-    return res.status(400).json({ success: false, error: 'At least one role is required' });
-  }
 
   const service = getTeamService();
   const team = await service.create({
@@ -24,7 +21,7 @@ router.post('/', asyncHandler(async (req, res) => {
     frameworkId,
     collaborationMode,
     engineStrategy,
-    roles,
+    roles: roles || [],
   });
   res.status(201).json({ success: true, data: team });
 }));
