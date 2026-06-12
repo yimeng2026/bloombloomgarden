@@ -6,9 +6,7 @@ import Layout from '@/components/Layout'
 
 const Home           = lazy(() => import('@/pages/Home'))
 const Dashboard      = lazy(() => import('@/pages/Dashboard'))
-const PlatformHub    = lazy(() => import('@/pages/PlatformHub'))
-const PlatformLibrary = lazy(() => import('@/pages/PlatformLibrary'))
-const Platforms      = lazy(() => import('@/pages/Platforms'))
+const PlatformManager = lazy(() => import('@/pages/PlatformManager'))
 const WorkspaceHub   = lazy(() => import('@/pages/WorkspaceHub'))
 const FileWorkspace  = lazy(() => import('@/pages/FileWorkspace'))
 const KnowledgeHub   = lazy(() => import('@/pages/KnowledgeHub'))
@@ -96,13 +94,13 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* Platform */}
-          <Route path="/platform" element={<PlatformHub />} />
-          <Route path="/platform/api" element={<PlatformHub />} />
-          <Route path="/platform/skills" element={<PlatformHub />} />
-          <Route path="/platforms" element={<Platforms />} />
-          <Route path="/platforms/list" element={<Platforms />} />
-          <Route path="/platform-library" element={<PlatformLibrary />} />
+          {/* Platform — 统一管理 */}
+          <Route path="/platform" element={<PlatformManager />} />
+          <Route path="/platforms" element={<PlatformManager />} />
+          <Route path="/platform-library" element={<PlatformManager />} />
+          <Route path="/frameworks" element={<PlatformManager />} />
+          <Route path="/engines" element={<PlatformManager />} />
+          <Route path="/teams" element={<PlatformManager />} />
 
           {/* Workspace */}
           <Route path="/workspace" element={<WorkspaceHub />} />
@@ -134,9 +132,10 @@ export default function App() {
           <Route path="/model-browser" element={<ModelBrowser />} />
           <Route path="/skills" element={<Skills />} />
           <Route path="/workflows" element={<Workflows />} />
-          <Route path="/frameworks" element={<Frameworks />} />
-          <Route path="/engines" element={<Engines />} />
-          <Route path="/teams" element={<Teams />} />
+          {/* v4.0 路由已整合到 /platform */}
+          {/* <Route path="/frameworks" element={<Frameworks />} /> */}
+          {/* <Route path="/engines" element={<Engines />} /> */}
+          {/* <Route path="/teams" element={<Teams />} /> */}
           <Route path="/canvas" element={<CanvasPage />} />
           <Route path="/scheduler" element={<TaskSchedulerPage />} />
           <Route path="/webhooks" element={<WebhooksPage />} />
