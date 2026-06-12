@@ -10,9 +10,9 @@ async function resolveAgentPlatform(agentId: string): Promise<{ platformId: stri
   const agentService = getAgentService();
   const roleService = getRoleService();
 
-  // 特殊处理 'general' 通用助手
+  // 特殊处理 'general' 通用助手 — 使用智谱AI GLM-5.1
   if (agentId === 'general') {
-    return { platformId: 'openrouter', model: 'deepseek/deepseek-chat-v3-0324' };
+    return { platformId: 'zhipu', model: 'glm-5.1' };
   }
 
   // 1. 获取 Agent
