@@ -159,6 +159,7 @@ router.post('/', asyncHandler(async (req, res) => {
     groupId, description, avatar,
     protocolLevel, mode, parentPlatform, threadPlatforms,
     dashboardType, workFiles,
+    platformId, apiKeyId,
     swarmEnabled, swarmMode, roleInGroup, coordinatorId,
   } = req.body;
 
@@ -195,6 +196,8 @@ router.post('/', asyncHandler(async (req, res) => {
       threadPlatforms,
       dashboardType,
       workFiles,
+      platformId,
+      apiKeyId,
       swarmEnabled,
       swarmMode,
       roleInGroup,

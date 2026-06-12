@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchAgents, deleteAgent } from '@/api/client';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -11,6 +11,7 @@ import {
   Brain,
   Pencil,
   Trash2,
+  MessageSquare,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -83,6 +84,7 @@ const FALLBACK_AGENTS: Agent[] = [
 ];
 
 export default function Agents() {
+  const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [view, setView] = useState<'grid' | 'table'>('grid');
   const [filter, setFilter] = useState('all');
@@ -106,6 +108,10 @@ export default function Agents() {
     load();
     return () => { cancelled = true; };
   }, []);
+
+  const handleChat = (agentId: string) => {
+    navigate(`/chat?agentId=${agentId}`);
+  };
 
   const filtered = agents.filter((a) => {
     if (filter !== 'all' && a.status !== filter) return false;
@@ -264,6 +270,15 @@ export default function Agents() {
                 <span>最后活跃: {agent.lastActive}</span>
                 <span>{agent.model}</span>
               </div>
+
+              {/* Chat Button */}
+              <button
+                onClick={() => handleChat(agent.id)}
+                className="w-full mt-3 flex items-center justify-center gap-2 px-3 py-2 rounded-card bg-[var(--sage-500)] text-white text-sm hover:bg-[var(--sage-600)] transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" />
+                开始对话
+              </button>
             </motion.div>
           ))}
         </div>
@@ -312,6 +327,13 @@ export default function Agents() {
                   <td className="px-4 py-3">{agent.uptime}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
+                      <button
+                        onClick={() => handleChat(agent.id)}
+                        className="p-1 text-[var(--sage-400)] hover:text-[var(--sage-600)]"
+                        title="对话"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
                       <button className="p-1 text-[var(--sage-400)] hover:text-[var(--sage-600)]">
                         <Pencil className="w-4 h-4" />
                       </button>

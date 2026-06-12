@@ -35,6 +35,12 @@ model Agent {
   // workFiles: JSON array of file IDs (merged with memory hub)
   workFiles       String   @default("[]")
 
+  // --- Platform & API Binding ---
+  // platformId: the platform this agent uses for LLM calls
+  platformId      String?
+  // apiKeyId: the API key this agent uses (must belong to the platform)
+  apiKeyId        String?
+
   // --- Swarm System ---
   swarmEnabled    Boolean  @default(false)
   swarmMode       String?
@@ -143,7 +149,11 @@ model Role {
   teamId      String
   team        Team     @relation(fields: [teamId], references: [id])
   
-  // Engine allocation
+  // Platform & API binding — 平台与API绑定
+  platformId  String?  // 绑定的平台ID
+  apiKeyId    String?  // 绑定的API Key ID
+  
+  // Engine allocation (fallback if platform not set)
   primaryEngine   String   // Engine ID (e.g., 'openai-gpt-4o', 'zhipu-glm-4')
   secondaryEngine String?  // Fallback engine
   engineTier      String   @default("professional") // flagship | professional | standard
@@ -174,6 +184,7 @@ model Role {
   @@index([teamId])
   @@index([status])
   @@index([roleType])
+  @@index([platformId])
 }
 
 // --- Engine: LLM engine node in the resource pool ---

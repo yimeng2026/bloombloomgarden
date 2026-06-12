@@ -6,7 +6,7 @@ const router = Router();
 
 // POST /api/teams/:id/roles — 添加角色
 router.post('/:id/roles', asyncHandler(async (req, res) => {
-  const { name, roleType, primaryEngine, systemPrompt, authorizedTools } = req.body;
+  const { name, roleType, primaryEngine, systemPrompt, authorizedTools, platformId, apiKeyId } = req.body;
   if (!name || !name.trim()) {
     return res.status(400).json({ success: false, error: 'Role name is required' });
   }
@@ -21,6 +21,8 @@ router.post('/:id/roles', asyncHandler(async (req, res) => {
     primaryEngine,
     systemPrompt,
     authorizedTools,
+    platformId,
+    apiKeyId,
   });
   res.status(201).json({ success: true, data: role });
 }));

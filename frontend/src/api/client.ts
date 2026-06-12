@@ -43,6 +43,16 @@ async function del(path: string) {
   return res.json();
 }
 
+async function patch(path: string, body: unknown) {
+  const res = await fetch(`${EFFECTIVE_API_BASE}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`PATCH ${path} → ${res.status}`);
+  return res.json();
+}
+
 /* ── Health ── */
 export const fetchHealth = () => get('/health');
 
@@ -91,6 +101,13 @@ export const createChannel = (data: any) => post('/channels', data);
 export const updateChannel = (id: string, data: any) => put(`/channels/${id}`, data);
 export const deleteChannel = (id: string) => del(`/channels/${id}`);
 export const toggleChannel = (id: string) => post(`/channels/${id}/toggle`, {});
+
+/* ── API Keys ── */
+export const fetchApiKeys = () => get('/apikeys');
+export const createApiKey = (data: any) => post('/apikeys', data);
+export const deleteApiKey = (id: string) => del(`/apikeys/${id}`);
+export const toggleApiKey = (id: string) => patch(`/apikeys/${id}/toggle`, {});
+export const testApiKey = (id: string) => post(`/apikeys/${id}/test`, {});
 
 /* ── Platforms / Providers ── */
 export const fetchPlatforms = () => get('/platforms');

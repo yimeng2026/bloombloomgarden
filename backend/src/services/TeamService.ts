@@ -67,6 +67,9 @@ export interface CreateTeamInput {
     primaryEngine?: string;
     systemPrompt?: string;
     authorizedTools?: string[];
+    // Platform & API Binding
+    platformId?: string;
+    apiKeyId?: string;
   }>;
 }
 
@@ -122,6 +125,8 @@ export class TeamService extends EventEmitter {
             name: roleData.name,
             roleType: roleData.roleType,
             teamId: team.id,
+            platformId: roleData.platformId || null,
+            apiKeyId: roleData.apiKeyId || null,
             primaryEngine: roleData.primaryEngine || 'zhipu-glm-4',
             engineTier: 'professional',
             temperature: 0.7,

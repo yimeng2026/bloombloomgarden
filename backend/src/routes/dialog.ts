@@ -1,9 +1,47 @@
 import { Router } from 'express';
-import { getDialogService } from '../services';
+import { getDialogService, getAgentService, getRoleService } from '../services';
 import { getBackendRouter } from '../services/BackendRouter';
 import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
+
+// 辅助函数：获取 Agent 绑定的平台和模型
+async function resolveAgentPlatform(agentId: string): Promise<{ platformId: string; model: string; apiKeyId?: string }> {
+  const agentService = getAgentService();
+  const roleService = getRoleService();
+
+  // 1. 获取 Agent
+  const agent = await agentService.getById(agentId);
+  if (!agent) {
+    throw new Error(`Agent ${agentId} not found`);
+  }
+
+  // 2. 优先使用 Agent 绑定的平台
+  let platformId = agent.platformId;
+  let apiKeyId = agent.apiKeyId;
+  let model = agent.config?.model as string | undefined;
+
+  // 3. 如果 Agent 没有绑定平台，尝试从 Role 获取
+  if (!platformId && agent.role) {
+    // agent.role 可能是 roleId 或 roleName，先尝试作为 ID 查询
+    const role = await roleService.getById(agent.role);
+    if (role) {
+      platformId = role.platformId;
+      apiKeyId = role.apiKeyId;
+      model = role.primaryEngine;
+    }
+  }
+
+  // 4. 回退默认值
+  if (!platformId) {
+    platformId = 'openrouter';
+  }
+  if (!model) {
+    model = 'deepseek/deepseek-chat-v3-0324';
+  }
+
+  return { platformId, model, apiKeyId };
+}
 
 // 1. GET /api/dialog/agents — 可对话 Agent 列表
 router.get('/agents', asyncHandler(async (_req, res) => {
@@ -28,7 +66,7 @@ router.post('/', asyncHandler(async (req, res) => {
 
 // 2. POST /api/dialog/:agentId/chat — 调用 LLM API（非流式）
 router.post('/:agentId/chat', asyncHandler(async (req, res) => {
-  const { content, role = 'user', platformId = 'openrouter', model = 'deepseek/deepseek-chat-v3-0324' } = req.body;
+  const { content, role = 'user' } = req.body;
   const service = getDialogService();
 
   // 保存用户消息到上下文
@@ -41,13 +79,14 @@ router.post('/:agentId/chat', asyncHandler(async (req, res) => {
     content: m.content,
   }));
 
-  // 调用 LLM API（优先使用指定平台，回退到 OpenRouter）
+  // 解析 Agent 绑定的平台和模型
+  const { platformId, model } = await resolveAgentPlatform(req.params.agentId);
+
+  // 调用 LLM API（通过 Agent/Role 绑定的平台）
   const backendRouter = getBackendRouter();
-  const backendId = platformId || 'openrouter';
-  const chatModel = model || 'deepseek/deepseek-chat-v3-0324';
-  const response = await backendRouter.chat(backendId, {
+  const response = await backendRouter.chat(platformId, {
     messages,
-    model: chatModel,
+    model,
     temperature: 0.7,
   });
 
@@ -62,7 +101,7 @@ router.post('/:agentId/chat', asyncHandler(async (req, res) => {
 
 // 3. GET /api/dialog/:agentId/stream — SSE 流式调用 LLM API
 router.get('/:agentId/stream', asyncHandler(async (req, res) => {
-  const { message, platformId = 'openrouter', model = 'deepseek/deepseek-chat-v3-0324' } = req.query;
+  const { message } = req.query;
   const service = getDialogService();
 
   // 保存用户消息
@@ -83,14 +122,15 @@ router.get('/:agentId/stream', asyncHandler(async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
 
   try {
+    // 解析 Agent 绑定的平台和模型
+    const { platformId, model } = await resolveAgentPlatform(req.params.agentId);
+
     const backendRouter = getBackendRouter();
     let fullContent = '';
-    const backendId = (platformId as string) || 'openrouter';
-    const chatModel = (model as string) || 'deepseek/deepseek-chat-v3-0324';
 
-    for await (const chunk of backendRouter.chatStream(backendId, {
+    for await (const chunk of backendRouter.chatStream(platformId, {
       messages,
-      model: chatModel,
+      model,
       temperature: 0.7,
     })) {
       fullContent += chunk.content;

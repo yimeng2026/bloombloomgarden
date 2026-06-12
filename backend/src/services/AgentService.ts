@@ -30,6 +30,9 @@ export interface Agent {
   threadPlatforms?: string;
   dashboardType?: string;
   workFiles?: string[];
+  // Platform & API Binding
+  platformId?: string;
+  apiKeyId?: string;
   // Swarm System fields
   swarmEnabled?: boolean;
   swarmMode?: string;
@@ -56,6 +59,9 @@ export interface CreateAgentInput {
   threadPlatforms?: string[];
   dashboardType?: string;
   workFiles?: string[];
+  // Platform & API Binding
+  platformId?: string;
+  apiKeyId?: string;
   // Swarm System fields
   swarmEnabled?: boolean;
   swarmMode?: string;
@@ -116,6 +122,8 @@ function toAgent(raw: any): Agent {
     swarmMode: raw.swarmMode || undefined,
     roleInGroup: raw.roleInGroup || 'solo',
     coordinatorId: raw.coordinatorId || undefined,
+    platformId: raw.platformId || undefined,
+    apiKeyId: raw.apiKeyId || undefined,
   };
 }
 
@@ -185,6 +193,9 @@ export class AgentService extends EventEmitter {
       threadPlatforms: JSON.stringify(data.threadPlatforms || []),
       dashboardType,
       workFiles: JSON.stringify(data.workFiles || []),
+      // Platform & API Binding
+      platformId: data.platformId || null,
+      apiKeyId: data.apiKeyId || null,
       // Swarm
       swarmEnabled: data.swarmEnabled ?? false,
       swarmMode: data.swarmMode || null,
@@ -230,6 +241,8 @@ export class AgentService extends EventEmitter {
       threadPlatforms: JSON.stringify(data.threadPlatforms || []),
       dashboardType: dbData.dashboardType,
       workFiles: data.workFiles || [],
+      platformId: data.platformId,
+      apiKeyId: data.apiKeyId,
       swarmEnabled: dbData.swarmEnabled,
       swarmMode: data.swarmMode,
       roleInGroup: dbData.roleInGroup,

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
   Layers, Users, UserCog, Cpu, ChevronRight, ChevronLeft,
-  CheckCircle, Plus, X, Loader2, Sparkles, Search
+  CheckCircle, Plus, X, Loader2, Sparkles, Search, Server, Key
 } from 'lucide-react'
 import {
-  fetchFrameworks, createTeam, createRole, fetchEngines
+  fetchFrameworks, createTeam, createRole, fetchEngines,
+  fetchPlatforms, fetchApiKeys, createAgent
 } from '@/api/client'
 
 /* ── Types ── */
@@ -28,6 +29,30 @@ interface Engine {
   description?: string
 }
 
+interface Platform {
+  id: string
+  name: string
+  category: string
+  protocolLevel: number
+  protocol: string
+  threading: string
+  status: string
+  models: string[]
+  apiKeySource: string
+  apiKeyConfigured: boolean
+}
+
+interface ApiKey {
+  id: string
+  provider: string
+  providerName: string
+  displayName: string
+  maskedKey: string
+  isActive: boolean
+  isValid: boolean | null
+  baseUrl?: string
+}
+
 interface RoleForm {
   id: string
   name: string
@@ -41,7 +66,9 @@ const STEPS = [
   { id: 1, label: '选择框架', icon: Layers },
   { id: 2, label: '创建团队', icon: Users },
   { id: 3, label: '添加角色', icon: UserCog },
-  { id: 4, label: '分配引擎', icon: Cpu },
+  { id: 4, label: '选择平台', icon: Server },
+  { id: 5, label: '选择API', icon: Key },
+  { id: 6, label: '分配引擎', icon: Cpu },
 ]
 
 const ROLE_TYPES = [
@@ -53,12 +80,22 @@ const ROLE_TYPES = [
   { value: 'specialist', label: '专家', desc: '负责特定领域深度工作' },
 ]
 
+const PROTOCOL_LEVEL_LABELS: Record<number, string> = {
+  0: 'L0 基础设施',
+  1: 'L1 单线程',
+  2: 'L2 多线程',
+  3: 'L3 网关',
+}
+
 export default function AgentCreatorV4() {
   const [step, setStep] = useState(1)
   const [frameworks, setFrameworks] = useState<Framework[]>([])
   const [engines, setEngines] = useState<Engine[]>([])
+  const [platforms, setPlatforms] = useState<Platform[]>([])
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [creationSuccess, setCreationSuccess] = useState(false)
 
   // Step 1
   const [selectedFramework, setSelectedFramework] = useState<Framework | null>(null)
@@ -75,16 +112,28 @@ export default function AgentCreatorV4() {
   // Step 3
   const [roles, setRoles] = useState<RoleForm[]>([])
 
-  // Load frameworks & engines on mount
+  // Step 4
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
+  const [platformSearch, setPlatformSearch] = useState('')
+
+  // Step 5
+  const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null)
+  const [apiKeySearch, setApiKeySearch] = useState('')
+
+  // Load frameworks, engines, platforms & apiKeys on mount
   useEffect(() => {
     async function load() {
       try {
-        const [fwRes, engRes]: any = await Promise.all([
+        const [fwRes, engRes, platRes, keyRes]: any = await Promise.all([
           fetchFrameworks(),
           fetchEngines(),
+          fetchPlatforms(),
+          fetchApiKeys(),
         ])
         setFrameworks(Array.isArray(fwRes) ? fwRes : fwRes.data || [])
         setEngines(Array.isArray(engRes) ? engRes : engRes.data || [])
+        setPlatforms(Array.isArray(platRes) ? platRes : platRes.data || [])
+        setApiKeys(Array.isArray(keyRes) ? keyRes : keyRes.data || [])
       } catch (e) {
         console.error('Failed to load data:', e)
       }
@@ -158,14 +207,31 @@ export default function AgentCreatorV4() {
     try {
       setCreating(true)
       for (const role of validRoles) {
+        // 创建角色
         await createRole(createdTeam.id, {
           name: role.name,
           roleType: role.roleType,
           systemPrompt: role.systemPrompt,
           primaryEngine: role.primaryEngine || undefined,
+          platformId: selectedPlatform?.id,
+          apiKeyId: selectedApiKey?.id,
         })
+
+        // 创建对应 Agent（传递 platformId 和 apiKeyId）
+        try {
+          await createAgent({
+            name: role.name,
+            role: role.roleType,
+            description: role.systemPrompt,
+            platformId: selectedPlatform?.id,
+            apiKeyId: selectedApiKey?.id,
+            groupId: createdTeam.id,
+          })
+        } catch (agentErr) {
+          console.error(`Failed to create agent for role ${role.name}:`, agentErr)
+        }
       }
-      setStep(4)
+      setCreationSuccess(true)
     } catch (e) {
       console.error('Failed to create roles:', e)
       alert('创建角色失败，请重试')
@@ -174,13 +240,48 @@ export default function AgentCreatorV4() {
     }
   }
 
+  /* ── Step 4: Platform ── */
+  const filteredPlatforms = platforms.filter((p) => {
+    if (!platformSearch.trim()) return true
+    const q = platformSearch.toLowerCase()
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.category.toLowerCase().includes(q) ||
+      p.protocol.toLowerCase().includes(q)
+    )
+  })
+
+  const platformsByLevel = filteredPlatforms.reduce<Record<number, Platform[]>>((acc, p) => {
+    const level = p.protocolLevel ?? 0
+    if (!acc[level]) acc[level] = []
+    acc[level].push(p)
+    return acc
+  }, {})
+
+  /* ── Step 5: API Key ── */
+  const platformApiKeys = selectedPlatform
+    ? apiKeys.filter((k) => k.provider === selectedPlatform.id)
+    : []
+
+  const filteredApiKeys = platformApiKeys.filter((k) => {
+    if (!apiKeySearch.trim()) return true
+    const q = apiKeySearch.toLowerCase()
+    return (
+      k.displayName.toLowerCase().includes(q) ||
+      k.providerName.toLowerCase().includes(q) ||
+      k.maskedKey.toLowerCase().includes(q)
+    )
+  })
+
   /* ── Navigation ── */
   const canNext = () => {
     switch (step) {
       case 1: return !!selectedFramework
       case 2: return !!teamForm.name.trim() && !!selectedFramework
       case 3: return roles.some((r) => r.name.trim())
-      case 4: return true
+      case 4: return !!selectedPlatform
+      case 5: return !!selectedApiKey
+      case 6: return true
       default: return false
     }
   }
@@ -190,11 +291,11 @@ export default function AgentCreatorV4() {
       handleCreateTeam()
       return
     }
-    if (step === 3) {
+    if (step === 6) {
       handleCreateRoles()
       return
     }
-    if (step < 4) setStep(step + 1)
+    if (step < 6) setStep(step + 1)
   }
 
   const goBack = () => {
@@ -209,7 +310,7 @@ export default function AgentCreatorV4() {
         <Sparkles className="w-6 h-6 text-[var(--sage-500)]" />
         <div>
           <h1 className="text-2xl font-bold text-[var(--sage-800)]">创建智能体</h1>
-          <p className="text-sm text-[var(--sage-500)]">v4.0 架构 — 框架 → 团队 → 角色 → 引擎</p>
+          <p className="text-sm text-[var(--sage-500)]">v4.0 架构 — 框架 → 团队 → 角色 → 平台 → API → 引擎</p>
         </div>
       </div>
 
@@ -450,88 +551,274 @@ export default function AgentCreatorV4() {
         </div>
       )}
 
-      {/* ── Step 4: Assign Engines ── */}
+      {/* ── Step 4: Select Platform ── */}
       {step === 4 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--sage-800)]">分配引擎</h2>
+            <h2 className="text-lg font-semibold text-[var(--sage-800)]">选择平台</h2>
             <span className="text-xs text-[var(--sage-500)]">
-              {engines.length} 个引擎可用
+              {platforms.length} 个平台可用
             </span>
           </div>
 
-          <div className="space-y-3 max-w-2xl">
-            {roles.map((role, idx) => {
-              const assignedEngine = engines.find((e) => e.id === role.primaryEngine)
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--sage-400)]" />
+            <input
+              type="text"
+              value={platformSearch}
+              onChange={(e) => setPlatformSearch(e.target.value)}
+              placeholder="搜索平台..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-card border text-sm"
+              style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+            />
+          </div>
+
+          <div className="space-y-6">
+            {[0, 1, 2, 3].map((level) => {
+              const levelPlatforms = platformsByLevel[level] || []
+              if (levelPlatforms.length === 0) return null
               return (
-                <div key={role.id} className="card p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <UserCog className="w-4 h-4 text-[var(--sage-500)]" />
-                    <span className="text-sm font-medium text-[var(--sage-800)]">
-                      {role.name || `角色 #${idx + 1}`}
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-500)]">
-                      {ROLE_TYPES.find((t) => t.value === role.roleType)?.label || role.roleType}
-                    </span>
+                <div key={level} className="space-y-3">
+                  <h3 className="text-sm font-semibold text-[var(--sage-700)] flex items-center gap-2">
+                    <Server className="w-4 h-4 text-[var(--sage-500)]" />
+                    {PROTOCOL_LEVEL_LABELS[level] || `L${level}`}
+                    <span className="text-xs font-normal text-[var(--sage-400)]">({levelPlatforms.length})</span>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {levelPlatforms.map((plat) => {
+                      const isSelected = selectedPlatform?.id === plat.id
+                      return (
+                        <button
+                          key={plat.id}
+                          onClick={() => {
+                            setSelectedPlatform(plat)
+                            setSelectedApiKey(null)
+                          }}
+                          className={`card p-4 text-left transition-all hover:shadow-md ${
+                            isSelected ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
+                                <Server className="w-5 h-5 text-[var(--sage-500)]" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-sm text-[var(--sage-800)]">{plat.name}</h3>
+                                <span className="text-[10px] text-[var(--sage-500)]">{plat.category}</span>
+                              </div>
+                            </div>
+                            {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-[var(--sage-400)] mb-2">
+                            <span className="px-1.5 py-0.5 rounded bg-[var(--sage-100)]">{plat.protocol}</span>
+                            <span>{plat.threading}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-[var(--sage-400)]">
+                            <span>状态: {plat.status}</span>
+                            {plat.apiKeyConfigured && (
+                              <span className="text-[#10b981]">API已配置</span>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
-                  <select
-                    value={role.primaryEngine}
-                    onChange={(e) => updateRole(role.id, 'primaryEngine', e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-card border text-sm"
-                    style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
-                  >
-                    <option value="">选择引擎...</option>
-                    {engines.map((e) => (
-                      <option key={e.id} value={e.id}>
-                        {e.brand} — {e.model} ({e.tier})
-                      </option>
-                    ))}
-                  </select>
-                  {assignedEngine && (
-                    <div className="flex items-center gap-2 mt-2 text-xs text-[var(--sage-500)]">
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{
-                          backgroundColor:
-                            assignedEngine.status === 'healthy'
-                              ? '#10b981'
-                              : assignedEngine.status === 'unhealthy'
-                              ? '#f59e0b'
-                              : '#6b7280',
-                        }}
-                      />
-                      {assignedEngine.status === 'healthy' ? '健康' : assignedEngine.status === 'unhealthy' ? '异常' : '离线'}
-                      <span className="text-[var(--sage-400)]">· 健康分: {assignedEngine.healthScore}</span>
-                    </div>
-                  )}
                 </div>
               )
             })}
           </div>
 
-          {/* Completion */}
-          <div className="card p-6 text-center">
-            <CheckCircle className="w-10 h-10 text-[#10b981] mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-[var(--sage-800)] mb-1">创建完成！</h3>
-            <p className="text-sm text-[var(--sage-500)] mb-4">
-              团队「{createdTeam?.name || teamForm.name}」已创建，包含 {roles.length} 个角色
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <a
-                href="#/teams"
-                className="btn-primary flex items-center gap-2 text-sm"
-              >
-                <Users className="w-4 h-4" /> 查看团队
-              </a>
-              <a
-                href="#/engines"
-                className="px-4 py-2 rounded-card border text-sm flex items-center gap-2"
-                style={{ borderColor: 'var(--sage-200)', color: 'var(--sage-600)' }}
-              >
-                <Cpu className="w-4 h-4" /> 引擎调度
-              </a>
+          {filteredPlatforms.length === 0 && (
+            <div className="card text-center py-12">
+              <Server className="w-10 h-10 text-[var(--sage-400)] mx-auto mb-2" />
+              <p className="text-[var(--sage-500)] text-sm">暂无平台</p>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Step 5: Select API ── */}
+      {step === 5 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[var(--sage-800)]">选择 API</h2>
+            <span className="text-xs text-[var(--sage-500)]">
+              平台: {selectedPlatform?.name}
+            </span>
           </div>
+
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--sage-400)]" />
+            <input
+              type="text"
+              value={apiKeySearch}
+              onChange={(e) => setApiKeySearch(e.target.value)}
+              placeholder="搜索 API Key..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-card border text-sm"
+              style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+            />
+          </div>
+
+          <div className="space-y-3 max-w-2xl">
+            {filteredApiKeys.length === 0 && (
+              <div className="card text-center py-8">
+                <Key className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
+                <p className="text-[var(--sage-500)] text-sm">
+                  {selectedPlatform
+                    ? `平台「${selectedPlatform.name}」暂无 API Key`
+                    : '请先选择平台'}
+                </p>
+              </div>
+            )}
+
+            {filteredApiKeys.map((key) => {
+              const isSelected = selectedApiKey?.id === key.id
+              return (
+                <button
+                  key={key.id}
+                  onClick={() => setSelectedApiKey(key)}
+                  className={`w-full card p-4 text-left transition-all hover:shadow-md ${
+                    isSelected ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
+                        <Key className="w-5 h-5 text-[var(--sage-500)]" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm text-[var(--sage-800)]">{key.displayName}</h3>
+                        <span className="text-[10px] text-[var(--sage-500)]">{key.providerName}</span>
+                      </div>
+                    </div>
+                    {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-[var(--sage-400)]">
+                    <span className="px-1.5 py-0.5 rounded bg-[var(--sage-100)]">{key.maskedKey}</span>
+                    <span
+                      className="px-1.5 py-0.5 rounded"
+                      style={{
+                        backgroundColor: key.isActive ? '#dcfce7' : '#f3f4f6',
+                        color: key.isActive ? '#166534' : '#6b7280',
+                      }}
+                    >
+                      {key.isActive ? '已激活' : '未激活'}
+                    </span>
+                    {key.isValid === true && (
+                      <span className="px-1.5 py-0.5 rounded bg-[#dcfce7] text-[#166534]">有效</span>
+                    )}
+                    {key.isValid === false && (
+                      <span className="px-1.5 py-0.5 rounded bg-[#fee2e2] text-[#991b1b]">无效</span>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {selectedPlatform && platformApiKeys.length > 0 && (
+            <div className="text-xs text-[var(--sage-500)]">
+              已筛选出 {platformApiKeys.length} 个属于「{selectedPlatform.name}」的 API Key
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Step 6: Assign Engines ── */}
+      {step === 6 && (
+        <div className="space-y-4">
+          {!creationSuccess ? (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[var(--sage-800)]">分配引擎</h2>
+                <span className="text-xs text-[var(--sage-500)]">
+                  {engines.length} 个引擎可用
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 mb-2">
+                <div className="px-3 py-1 rounded-full bg-[var(--sage-100)] text-xs text-[var(--sage-600)]">
+                  平台: {selectedPlatform?.name}
+                </div>
+                <div className="px-3 py-1 rounded-full bg-[var(--sage-100)] text-xs text-[var(--sage-600)]">
+                  API: {selectedApiKey?.displayName}
+                </div>
+              </div>
+
+              <div className="space-y-3 max-w-2xl">
+                {roles.map((role, idx) => {
+                  const assignedEngine = engines.find((e) => e.id === role.primaryEngine)
+                  return (
+                    <div key={role.id} className="card p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <UserCog className="w-4 h-4 text-[var(--sage-500)]" />
+                        <span className="text-sm font-medium text-[var(--sage-800)]">
+                          {role.name || `角色 #${idx + 1}`}
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-500)]">
+                          {ROLE_TYPES.find((t) => t.value === role.roleType)?.label || role.roleType}
+                        </span>
+                      </div>
+                      <select
+                        value={role.primaryEngine}
+                        onChange={(e) => updateRole(role.id, 'primaryEngine', e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-card border text-sm"
+                        style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+                      >
+                        <option value="">选择引擎...</option>
+                        {engines.map((e) => (
+                          <option key={e.id} value={e.id}>
+                            {e.brand} — {e.model} ({e.tier})
+                          </option>
+                        ))}
+                      </select>
+                      {assignedEngine && (
+                        <div className="flex items-center gap-2 mt-2 text-xs text-[var(--sage-500)]">
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor:
+                                assignedEngine.status === 'healthy'
+                                  ? '#10b981'
+                                  : assignedEngine.status === 'unhealthy'
+                                  ? '#f59e0b'
+                                  : '#6b7280',
+                            }}
+                          />
+                          {assignedEngine.status === 'healthy' ? '健康' : assignedEngine.status === 'unhealthy' ? '异常' : '离线'}
+                          <span className="text-[var(--sage-400)]">· 健康分: {assignedEngine.healthScore}</span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="card p-6 text-center">
+              <CheckCircle className="w-10 h-10 text-[#10b981] mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-[var(--sage-800)] mb-1">创建完成！</h3>
+              <p className="text-sm text-[var(--sage-500)] mb-4">
+                团队「{createdTeam?.name || teamForm.name}」已创建，包含 {roles.length} 个角色
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <a
+                  href="#/teams"
+                  className="btn-primary flex items-center gap-2 text-sm"
+                >
+                  <Users className="w-4 h-4" /> 查看团队
+                </a>
+                <a
+                  href="#/engines"
+                  className="px-4 py-2 rounded-card border text-sm flex items-center gap-2"
+                  style={{ borderColor: 'var(--sage-200)', color: 'var(--sage-600)' }}
+                >
+                  <Cpu className="w-4 h-4" /> 引擎调度
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -539,14 +826,14 @@ export default function AgentCreatorV4() {
       <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--sage-200)' }}>
         <button
           onClick={goBack}
-          disabled={step === 1 || creating}
+          disabled={step === 1 || creating || (step === 6 && creationSuccess)}
           className="flex items-center gap-2 px-4 py-2 rounded-card border text-sm disabled:opacity-40"
           style={{ borderColor: 'var(--sage-200)', color: 'var(--sage-600)' }}
         >
           <ChevronLeft className="w-4 h-4" /> 上一步
         </button>
 
-        {step < 4 && (
+        {step < 6 && (
           <button
             onClick={goNext}
             disabled={!canNext() || creating}
@@ -556,13 +843,27 @@ export default function AgentCreatorV4() {
               <>
                 <Loader2 className="w-4 h-4 animate-spin" /> 处理中...
               </>
-            ) : step === 3 ? (
-              <>
-                <CheckCircle className="w-4 h-4" /> 确认创建
-              </>
             ) : (
               <>
                 下一步 <ChevronRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        )}
+
+        {step === 6 && !creationSuccess && (
+          <button
+            onClick={goNext}
+            disabled={!canNext() || creating}
+            className="btn-primary flex items-center gap-2 text-sm disabled:opacity-50"
+          >
+            {creating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> 处理中...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4" /> 确认创建
               </>
             )}
           </button>

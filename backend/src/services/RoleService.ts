@@ -6,6 +6,9 @@ export interface Role {
   name: string;
   roleType: string;
   teamId: string;
+  // Platform & API Binding
+  platformId?: string;
+  apiKeyId?: string;
   primaryEngine: string;
   secondaryEngine?: string;
   engineTier: string;
@@ -26,6 +29,8 @@ function toRole(raw: any): Role {
     authorizedTools: JSON.parse(raw.authorizedTools || '[]'),
     knowledgeBaseIds: JSON.parse(raw.knowledgeBaseIds || '[]'),
     roleConfig: JSON.parse(raw.roleConfig || '{}'),
+    platformId: raw.platformId || undefined,
+    apiKeyId: raw.apiKeyId || undefined,
   };
 }
 
@@ -41,6 +46,9 @@ export interface CreateRoleInput {
   authorizedTools?: string[];
   knowledgeBaseIds?: string[];
   roleConfig?: Record<string, unknown>;
+  // Platform & API Binding
+  platformId?: string;
+  apiKeyId?: string;
 }
 
 export class RoleService extends EventEmitter {
@@ -50,6 +58,8 @@ export class RoleService extends EventEmitter {
         name: data.name,
         roleType: data.roleType,
         teamId,
+        platformId: data.platformId || null,
+        apiKeyId: data.apiKeyId || null,
         primaryEngine: data.primaryEngine || 'zhipu-glm-4',
         secondaryEngine: data.secondaryEngine || null,
         engineTier: data.engineTier || 'professional',
