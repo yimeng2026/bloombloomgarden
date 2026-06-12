@@ -44,8 +44,7 @@ const navItems: NavItem[] = [
   { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard, route: '/dashboard' },
   { id: 'platform', label: '平台管理', icon: Server, route: '/platform' },
   { id: 'blueprints', label: '蓝图编排', icon: Workflow, route: '/blueprints' },
-  { id: 'canvas', label: '协作画布', icon: Palette, route: '/canvas' },
-  { id: 'ecosystem', label: '3D生态坐标系', icon: Box, route: '/ecosystem' },
+  { id: 'ecosystem',  label: '3D生态坐标系', icon: Box, route: '/ecosystem' },
   { id: 'workspace', label: '工作空间', icon: FolderOpen, route: '/workspace' },
   { id: 'files', label: '文件浏览', icon: Files, route: '/files' },
   { id: 'knowledge', label: '知识库', icon: BookOpen, route: '/knowledge' },
@@ -55,9 +54,9 @@ const navItems: NavItem[] = [
     label: '智能体',
     icon: Bot,
     children: [
-      { id: 'list', label: '列表', route: '/agents' },
+      { id: 'list',   label: '列表', route: '/agents' },
       { id: 'create', label: '创建', route: '/agents/create' },
-      { id: 'swarm', label: '蜂群', route: '/swarm' },
+      { id: 'swarm',  label: '蜂群', route: '/swarm' },
     ],
   },
   {

@@ -21,7 +21,9 @@ const Groups         = lazy(() => import('@/pages/Groups'))
 const GroupDetail    = lazy(() => import('@/pages/GroupDetail'))
 const Collaboration  = lazy(() => import('@/pages/Collaboration'))
 const SwarmPanel     = lazy(() => import('@/pages/SwarmPanel'))
-const SwarmArchitectures = lazy(() => import('@/pages/SwarmArchitectures'))
+const WebhooksPage   = lazy(() => import('@/pages/WebhooksPage'))
+const APITest        = lazy(() => import('@/pages/APITest'))
+const StubPage       = lazy(() => import('@/pages/StubPage'))
 const SettingsHub    = lazy(() => import('@/pages/SettingsHub'))
 const Admin          = lazy(() => import('@/pages/Admin'))
 const Chat           = lazy(() => import('@/pages/Chat'))
@@ -36,10 +38,6 @@ const Workflows      = lazy(() => import('@/pages/Workflows'))
 const Frameworks     = lazy(() => import('@/pages/Frameworks'))
 const Engines        = lazy(() => import('@/pages/Engines'))
 const Teams          = lazy(() => import('@/pages/Teams'))
-const CanvasPage     = lazy(() => import('@/pages/CanvasPage'))
-const WebhooksPage   = lazy(() => import('@/pages/WebhooksPage'))
-const APITest        = lazy(() => import('@/pages/APITest'))
-const StubPage       = lazy(() => import('@/pages/StubPage'))
 
 /* ── 3DACP 新頁面 ─────────────────────────────────────────────── */
 const UploadsPage            = lazy(() => import('@/pages/UploadsPage'))
@@ -136,7 +134,6 @@ export default function App() {
           {/* <Route path="/frameworks" element={<Frameworks />} /> */}
           {/* <Route path="/engines" element={<Engines />} /> */}
           {/* <Route path="/teams" element={<Teams />} /> */}
-          <Route path="/canvas" element={<CanvasPage />} />
           <Route path="/scheduler" element={<TaskSchedulerPage />} />
           <Route path="/webhooks" element={<WebhooksPage />} />
           <Route path="/api-test" element={<APITest />} />
@@ -146,7 +143,6 @@ export default function App() {
           <Route path="/groups/:id" element={<GroupDetail />} />
           <Route path="/collaboration" element={<Collaboration />} />
           <Route path="/swarm" element={<SwarmPanel />} />
-          <Route path="/swarm-architectures" element={<SwarmArchitectures />} />
 
           {/* Settings & Admin */}
           <Route path="/settings" element={<SettingsHub />} />
