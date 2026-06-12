@@ -10,6 +10,11 @@ async function resolveAgentPlatform(agentId: string): Promise<{ platformId: stri
   const agentService = getAgentService();
   const roleService = getRoleService();
 
+  // 特殊处理 'general' 通用助手
+  if (agentId === 'general') {
+    return { platformId: 'openrouter', model: 'deepseek/deepseek-chat-v3-0324' };
+  }
+
   // 1. 获取 Agent
   const agent = await agentService.getById(agentId);
   if (!agent) {

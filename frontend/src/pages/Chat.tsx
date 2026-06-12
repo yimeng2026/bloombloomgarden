@@ -227,6 +227,10 @@ export default function Chat() {
 
           try {
             const data = JSON.parse(dataStr)
+            // 处理错误事件
+            if (data.error) {
+              throw new Error(data.error)
+            }
             if (data.content) {
               fullContent += data.content
               setStreamingContent(fullContent)
@@ -238,8 +242,12 @@ export default function Chat() {
                 )
               )
             }
-          } catch {
-            // ignore parse errors
+          } catch (e) {
+            // 如果是我们抛出的错误，继续向上传播
+            if (e instanceof Error && e.message !== 'Unexpected end of JSON input') {
+              throw e
+            }
+            // 其他解析错误忽略
           }
         }
       }
