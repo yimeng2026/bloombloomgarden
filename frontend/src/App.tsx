@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from '@/components/Layout'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 /* ── Code Splitting — lazy load every page ─────────────────────── */
 
@@ -87,100 +88,102 @@ function PageLoader() {
 export default function App() {
   return (
     <Layout>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* Platform — 统一管理 */}
-          <Route path="/platform" element={<PlatformManager />} />
-          <Route path="/platforms" element={<PlatformManager />} />
-          <Route path="/platform-library" element={<PlatformManager />} />
-          <Route path="/frameworks" element={<PlatformManager />} />
-          <Route path="/engines" element={<PlatformManager />} />
-          <Route path="/teams" element={<PlatformManager />} />
+            {/* Platform — 统一管理 */}
+            <Route path="/platform" element={<PlatformManager />} />
+            <Route path="/platforms" element={<PlatformManager />} />
+            <Route path="/platform-library" element={<PlatformManager />} />
+            <Route path="/frameworks" element={<PlatformManager />} />
+            <Route path="/engines" element={<PlatformManager />} />
+            <Route path="/teams" element={<PlatformManager />} />
 
-          {/* Workspace */}
-          <Route path="/workspace" element={<WorkspaceHub />} />
-          <Route path="/files" element={<FileWorkspace />} />
+            {/* Workspace */}
+            <Route path="/workspace" element={<WorkspaceHub />} />
+            <Route path="/files" element={<FileWorkspace />} />
 
-          {/* Knowledge */}
-          <Route path="/knowledge" element={<KnowledgeHub />} />
-          <Route path="/memory" element={<Memory />} />
-          <Route path="/memory/export" element={<MemoryExport />} />
+            {/* Knowledge */}
+            <Route path="/knowledge" element={<KnowledgeHub />} />
+            <Route path="/memory" element={<Memory />} />
+            <Route path="/memory/export" element={<MemoryExport />} />
 
-          {/* Agents */}
-          <Route path="/agents" element={<Agents />} />
-          <Route path="/agents/create" element={<AgentCreator />} />
-          <Route path="/agents/collab" element={<AgentCollab />} />
-          <Route path="/agents/monitor" element={<AgentMonitor />} />
+            {/* Agents */}
+            <Route path="/agents" element={<Agents />} />
+            <Route path="/agents/create" element={<AgentCreator />} />
+            <Route path="/agents/collab" element={<AgentCollab />} />
+            <Route path="/agents/monitor" element={<AgentMonitor />} />
 
-          {/* Chat & Communication */}
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/chat/channels" element={<ChatChannels />} />
-          <Route path="/tasks" element={<TasksAndChat />} />
-          <Route path="/channels" element={<Channels />} />
-          <Route path="/sessions" element={<Sessions />} />
+            {/* Chat & Communication */}
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/chat/channels" element={<ChatChannels />} />
+            <Route path="/tasks" element={<TasksAndChat />} />
+            <Route path="/channels" element={<Channels />} />
+            <Route path="/sessions" element={<Sessions />} />
 
-          {/* Monitoring */}
-          <Route path="/monitoring" element={<Monitoring />} />
-          <Route path="/context" element={<ContextMonitor />} />
+            {/* Monitoring */}
+            <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/context" element={<ContextMonitor />} />
 
-          {/* Tools */}
-          <Route path="/model-browser" element={<ModelBrowser />} />
-          <Route path="/skills" element={<Skills />} />
-          <Route path="/workflows" element={<Workflows />} />
-          {/* v4.0 路由已整合到 /platform */}
-          {/* <Route path="/frameworks" element={<Frameworks />} /> */}
-          {/* <Route path="/engines" element={<Engines />} /> */}
-          {/* <Route path="/teams" element={<Teams />} /> */}
-          <Route path="/scheduler" element={<TaskSchedulerPage />} />
-          <Route path="/webhooks" element={<WebhooksPage />} />
-          <Route path="/api-test" element={<APITest />} />
+            {/* Tools */}
+            <Route path="/model-browser" element={<ModelBrowser />} />
+            <Route path="/skills" element={<Skills />} />
+            <Route path="/workflows" element={<Workflows />} />
+            {/* v4.0 路由已整合到 /platform */}
+            {/* <Route path="/frameworks" element={<Frameworks />} /> */}
+            {/* <Route path="/engines" element={<Engines />} /> */}
+            {/* <Route path="/teams" element={<Teams />} /> */}
+            <Route path="/scheduler" element={<TaskSchedulerPage />} />
+            <Route path="/webhooks" element={<WebhooksPage />} />
+            <Route path="/api-test" element={<APITest />} />
 
-          {/* Groups & Swarm */}
-          <Route path="/groups" element={<Groups />} />
-          <Route path="/groups/:id" element={<GroupDetail />} />
-          <Route path="/collaboration" element={<Collaboration />} />
-          <Route path="/swarm" element={<SwarmPanel />} />
+            {/* Groups & Swarm */}
+            <Route path="/groups" element={<Groups />} />
+            <Route path="/groups/:id" element={<GroupDetail />} />
+            <Route path="/collaboration" element={<Collaboration />} />
+            <Route path="/swarm" element={<SwarmPanel />} />
 
-          {/* Settings & Admin */}
-          <Route path="/settings" element={<SettingsHub />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/*" element={<Admin />} />
+            {/* Settings & Admin */}
+            <Route path="/settings" element={<SettingsHub />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/*" element={<Admin />} />
 
-          {/* Fallback */}
-          <Route path="/uploads" element={<UploadsPage />} />
-          <Route path="/intervention" element={<InterventionCenterPage />} />
-          <Route path="/integration-manager" element={<IntegrationManagerPage />} />
-          <Route path="/ai-search" element={<AiSearchPage />} />
-          <Route path="/events" element={<EventsMonitorPage />} />
-          <Route path="/events-page" element={<EventsPage />} />
-          <Route path="/scheduler" element={<TaskSchedulerPage />} />
-          <Route path="/scheduler-page" element={<SchedulerPage />} />
-          <Route path="/tasks-deep" element={<TasksDeepPage />} />
-          <Route path="/backups" element={<BackupManagerPage />} />
-          <Route path="/processes" element={<ProcessMonitorPage />} />
-          <Route path="/external-integrations" element={<ExternalIntegrationsPage />} />
-          <Route path="/registry" element={<RegistryViewPage />} />
-          <Route path="/blueprints" element={<BlueprintStudioPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/api-keys" element={<ApiKeysPage />} />
-          <Route path="/ollama" element={<OllamaSettingsPage />} />
-          <Route path="/workspaces" element={<WorkspacesPage />} />
-          <Route path="/security" element={<SecurityCenterPage />} />
-          <Route path="/task-manager" element={<TaskManagerPage />} />
-          <Route path="/spend" element={<SpendTrackerPage />} />
-          <Route path="/kimi-cluster" element={<KimiClusterPage />} />
-          <Route path="/agent-contexts" element={<AgentContextPage />} />
-          <Route path="/hierarchical" element={<HierarchicalDashboard />} />
-          <Route path="/dialog-center" element={<DialogCenter />} />
-          <Route path="/unified" element={<UnifiedGUI />} />
-          <Route path="/ecosystem" element={<Ecosystem3D />} />
-          <Route path="/protocol-admin" element={<ProtocolAdmin />} />
-          <Route path="*" element={<StubPage />} />
-        </Routes>
-      </Suspense>
+            {/* Fallback */}
+            <Route path="/uploads" element={<UploadsPage />} />
+            <Route path="/intervention" element={<InterventionCenterPage />} />
+            <Route path="/integration-manager" element={<IntegrationManagerPage />} />
+            <Route path="/ai-search" element={<AiSearchPage />} />
+            <Route path="/events" element={<EventsMonitorPage />} />
+            <Route path="/events-page" element={<EventsPage />} />
+            <Route path="/scheduler" element={<TaskSchedulerPage />} />
+            <Route path="/scheduler-page" element={<SchedulerPage />} />
+            <Route path="/tasks-deep" element={<TasksDeepPage />} />
+            <Route path="/backups" element={<BackupManagerPage />} />
+            <Route path="/processes" element={<ProcessMonitorPage />} />
+            <Route path="/external-integrations" element={<ExternalIntegrationsPage />} />
+            <Route path="/registry" element={<RegistryViewPage />} />
+            <Route path="/blueprints" element={<BlueprintStudioPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/api-keys" element={<ApiKeysPage />} />
+            <Route path="/ollama" element={<OllamaSettingsPage />} />
+            <Route path="/workspaces" element={<WorkspacesPage />} />
+            <Route path="/security" element={<SecurityCenterPage />} />
+            <Route path="/task-manager" element={<TaskManagerPage />} />
+            <Route path="/spend" element={<SpendTrackerPage />} />
+            <Route path="/kimi-cluster" element={<KimiClusterPage />} />
+            <Route path="/agent-contexts" element={<AgentContextPage />} />
+            <Route path="/hierarchical" element={<HierarchicalDashboard />} />
+            <Route path="/dialog-center" element={<DialogCenter />} />
+            <Route path="/unified" element={<UnifiedGUI />} />
+            <Route path="/ecosystem" element={<Ecosystem3D />} />
+            <Route path="/protocol-admin" element={<ProtocolAdmin />} />
+            <Route path="*" element={<StubPage />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </Layout>
   )
 }

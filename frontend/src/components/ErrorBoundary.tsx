@@ -1,89 +1,72 @@
-import React, { useState } from 'react';
-import { BarChart3, AlertTriangle, RefreshCw, ArrowLeft, Home } from 'lucide-react';
+import { Component, type ReactNode } from 'react'
 
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+interface Props {
+  children: ReactNode
+  fallback?: ReactNode
 }
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
+interface State {
+  hasError: boolean
+  error?: Error
 }
 
-/**
- * ErrorBoundary — React 错误边界组件
- * 捕获子组件渲染错误，防止白屏，提供友好的 fallback UI
- */
-export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = { hasError: false }
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught error:', error, errorInfo);
+    console.error('[ErrorBoundary] Caught error:', error)
+    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack)
   }
-
-  handleRefresh = () => {
-    window.location.reload();
-  };
-
-  handleGoHome = () => {
-    window.location.href = '/';
-  };
 
   render() {
     if (this.state.hasError) {
-      // Custom fallback UI
-      return this.props.fallback || (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white p-6">
-          <div className="max-w-md w-full text-center space-y-6">
-            <div className="w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-10 h-10 text-red-400" />
-            </div>
-
-            <div>
-              <h1 className="text-2xl font-bold mb-2">出错了</h1>
-              <p className="text-gray-400 text-sm">
-                页面渲染时发生异常，请刷新或返回首页重试。
-              </p>
-            </div>
-
-            {this.state.error && (
-              <div className="bg-[#12121a] border border-gray-800 rounded-lg p-3 text-left">
-                <p className="text-xs text-gray-500 mb-1 font-mono">错误详情：</p>
-                <code className="text-xs text-red-400 font-mono break-all block">
-                  {this.state.error.message}
-                </code>
+      if (this.props.fallback) {
+        return this.props.fallback
+      }
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[var(--sage-50)]">
+          <div className="max-w-md w-full mx-4 p-6 bg-white rounded-lg shadow-sm border border-[var(--sage-200)]">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
               </div>
+              <h2 className="text-lg font-semibold text-[var(--sage-900)]">页面出现错误</h2>
+            </div>
+            <p className="text-sm text-[var(--sage-600)] mb-4">
+              组件渲染过程中发生错误。请刷新页面重试，或返回首页。
+            </p>
+            {this.state.error && (
+              <pre className="text-xs bg-[var(--sage-50)] p-3 rounded border border-[var(--sage-200)] text-[var(--sage-700)] overflow-auto max-h-40 mb-4">
+                {this.state.error.message}
+              </pre>
             )}
-
-            <div className="flex gap-3 justify-center">
+            <div className="flex gap-2">
               <button
-                onClick={this.handleRefresh}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-[var(--sage-600)] text-white text-sm rounded-md hover:bg-[var(--sage-700)] transition-colors"
               >
-                <RefreshCw className="w-4 h-4" />
                 刷新页面
               </button>
               <button
-                onClick={this.handleGoHome}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#12121a] hover:bg-gray-800 border border-gray-800 rounded-lg text-sm transition-colors"
+                onClick={() => window.location.href = '/'}
+                className="px-4 py-2 bg-[var(--sage-100)] text-[var(--sage-700)] text-sm rounded-md hover:bg-[var(--sage-200)] transition-colors"
               >
-                <Home className="w-4 h-4" />
                 返回首页
               </button>
             </div>
           </div>
         </div>
-      );
+      )
     }
-
-    return this.props.children;
+    return this.props.children
   }
 }

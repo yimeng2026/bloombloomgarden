@@ -113,13 +113,35 @@ router.post('/:agentId/chat', asyncHandler(async (req, res) => {
 }));
 
 // 3. GET /api/dialog/:agentId/stream — SSE 流式调用 LLM API
+// ⚠️ DEPRECATED: 使用 GET 传递消息会暴露到 URL 和日志中。请改用 POST /:agentId/stream
 router.get('/:agentId/stream', asyncHandler(async (req, res) => {
   const { message } = req.query;
+  if (!message) {
+    return res.status(400).json({ success: false, error: 'Missing message query parameter' });
+  }
+  // 转发到 POST 处理逻辑
+  req.body = { message };
+  // 注意：这里不能直接调用下一个handler，所以我们手动复用逻辑
+  // 在 POST handler 中定义共享逻辑
+  return handleStream(req, res, message as string);
+}));
+
+// 3b. POST /api/dialog/:agentId/stream — SSE 流式调用 LLM API（安全版本）
+router.post('/:agentId/stream', asyncHandler(async (req, res) => {
+  const { message } = req.body;
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ success: false, error: 'Missing message in request body' });
+  }
+  return handleStream(req, res, message);
+}));
+
+// 共享的 SSE 流式处理逻辑
+async function handleStream(req: any, res: any, message: string) {
   const service = getDialogService();
 
   // 保存用户消息
   await service.sendMessage(req.params.agentId, {
-    content: message as string,
+    content: message,
     role: 'user',
   });
 
@@ -161,7 +183,7 @@ router.get('/:agentId/stream', asyncHandler(async (req, res) => {
     res.write(`event: error\ndata: ${JSON.stringify({ error: (err as Error).message })}\n\n`);
   }
   res.end();
-}));
+}
 
 // 4. POST /api/dialog/:agentId/files — 上传附件
 router.post('/:agentId/files', asyncHandler(async (req, res) => {

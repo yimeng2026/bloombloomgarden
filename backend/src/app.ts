@@ -54,14 +54,19 @@ app.use(helmet({
 // CORS 配置 �?允许 Vercel 前端 + 本地开�?+ Railway 后端
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (origin.match(/^http:\/\/(localhost|127\.0\.0\.1):\d+$/)) return callback(null, true);
-    const allowed = [
+    const allowedLocalPorts = [3000, 5173, 4173, 8080, 3001];
+    if (!origin) return callback(null, true); // 非浏览器请求（如 curl）
+    if (origin.match(/^http:\/\/(localhost|127\.0\.0\.1):(\d+)$/)) {
+      const port = parseInt(origin.match(/:(\d+)$/)?.[1] || '0', 10);
+      if (allowedLocalPorts.includes(port)) return callback(null, true);
+    }
+    const allowedProd = [
       'https://bloombloomgarden.vercel.app',
       'https://bloombloomgarden-production.up.railway.app',
     ];
-    if (allowed.includes(origin)) return callback(null, true);
-    callback(new Error('CORS blocked: ' + origin));
+    if (allowedProd.includes(origin)) return callback(null, true);
+    // 静默拒绝，不抛出错误，让浏览器自行阻止
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],

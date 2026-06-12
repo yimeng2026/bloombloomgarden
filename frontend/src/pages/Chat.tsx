@@ -195,10 +195,16 @@ export default function Chat() {
     ])
 
     try {
-      // 使用 SSE 流式调用后端 /api/dialog/:agentId/stream
-      const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/dialog/${agentId}/stream?message=${encodeURIComponent(text)}`
+      // 使用 SSE 流式调用后端 POST /api/dialog/:agentId/stream（安全版本，消息在body中）
+      const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/dialog/${agentId}/stream`
       
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: text }),
+      })
       if (!response.ok) {
         throw new Error(`对话请求失败: ${response.status}`)
       }
