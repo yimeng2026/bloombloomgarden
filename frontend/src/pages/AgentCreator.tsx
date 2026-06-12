@@ -113,18 +113,24 @@ export default function AgentCreator() {
   const l1Platforms = platforms.filter(
     (p) => p.protocolLevel === 1 && ['cloud', 'local', 'local-engine'].includes(p.category)
   )
+  const l2Platforms = platforms.filter(
+    (p) => p.protocolLevel === 2 && p.category === 'orchestrator'
+  )
+  const availablePlatforms = [...l1Platforms, ...l2Platforms]
 
   const platformApiKeys = selectedPlatform
     ? apiKeys.filter((k) => k.provider === selectedPlatform.id)
     : []
+
+  const isL2Platform = selectedPlatform?.protocolLevel === 2
 
   const canNext = () => {
     if (mode === 'agent') {
       switch (step) {
         case 1: return name.trim().length > 0
         case 2: return !!selectedPlatform
-        case 3: return !!selectedApiKey
-        case 4: return !!selectedEngine
+        case 3: return isL2Platform || !!selectedApiKey
+        case 4: return isL2Platform || !!selectedEngine
         default: return false
       }
     } else {
@@ -139,6 +145,11 @@ export default function AgentCreator() {
 
   const goNext = () => {
     if (mode === 'agent' && step === 4) {
+      handleCreateAgent()
+      return
+    }
+    if (mode === 'agent' && step === 2 && isL2Platform) {
+      // L2 orchestrators skip API & engine steps
       handleCreateAgent()
       return
     }
@@ -160,9 +171,9 @@ export default function AgentCreator() {
         name,
         description,
         platformId: selectedPlatform?.id,
-        apiKeyId: selectedApiKey?.id,
+        apiKeyId: selectedApiKey?.id || undefined,
         model: selectedModel || selectedPlatform?.models[0],
-        engineId: selectedEngine,
+        engineId: selectedEngine || undefined,
       })
       setCreationSuccess(true)
     } catch (e) {
@@ -283,7 +294,7 @@ export default function AgentCreator() {
             setName={setName}
             description={description}
             setDescription={setDescription}
-            platforms={l1Platforms}
+            platforms={availablePlatforms}
             selectedPlatform={selectedPlatform}
             setSelectedPlatform={setSelectedPlatform}
             selectedModel={selectedModel}
@@ -397,6 +408,9 @@ function AgentForm({
     const filtered = platforms.filter((p: Platform) =>
       !search || p.name.toLowerCase().includes(search.toLowerCase())
     )
+    const l1Filtered = filtered.filter((p: Platform) => p.protocolLevel === 1)
+    const l2Filtered = filtered.filter((p: Platform) => p.protocolLevel === 2)
+
     return (
       <div className="space-y-4">
         <div className="relative">
@@ -404,43 +418,46 @@ function AgentForm({
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="搜索平台..."
+            placeholder="搜索平台或编排器..."
             className="w-full pl-10 pr-4 py-2.5 rounded-card border text-sm"
             style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
           />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          {filtered.map((p: Platform) => {
-            const isSelected = selectedPlatform?.id === p.id
-            return (
-              <button
-                key={p.id}
-                onClick={() => {
-                  setSelectedPlatform(p)
-                  setSelectedModel(p.models[0] || '')
-                }}
-                className={`card p-4 text-left transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''}`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
-                      <Server className="w-5 h-5 text-[var(--sage-500)]" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-sm text-[var(--sage-800)]">{p.name}</h3>
-                      <span className="text-[10px] text-[var(--sage-500)]">{p.category}</span>
-                    </div>
-                  </div>
-                  {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
-                </div>
-                <div className="text-xs text-[var(--sage-400)]">
-                  {p.models.slice(0, 3).join(', ')}
-                  {p.models.length > 3 && ` +${p.models.length - 3}`}
-                </div>
-              </button>
-            )
-          })}
-        </div>
+
+        {/* L1 基础框架 */}
+        {l1Filtered.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">基础框架</span>
+              <span className="text-xs text-[var(--sage-400)]">{l1Filtered.length} 个平台</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {l1Filtered.map((p: Platform) => PlatformCard(p))}
+            </div>
+          </div>
+        )}
+
+        {/* L2 编排器 */}
+        {l2Filtered.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">编排器</span>
+              <span className="text-xs text-[var(--sage-400)]">{l2Filtered.length} 个</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {l2Filtered.map((p: Platform) => PlatformCard(p))}
+            </div>
+          </div>
+        )}
+
+        {filtered.length === 0 && (
+          <div className="card text-center py-8">
+            <Search className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
+            <p className="text-sm text-[var(--sage-500)]">未找到匹配的平台</p>
+            <p className="text-xs text-[var(--sage-400)] mt-1">尝试搜索其他关键词或查看所有平台</p>
+          </div>
+        )}
+
         {selectedPlatform && (
           <div className="pt-4 border-t" style={{ borderColor: 'var(--sage-200)' }}>
             <label className="block text-sm font-medium text-[var(--sage-700)] mb-2">选择模型</label>
@@ -465,7 +482,55 @@ function AgentForm({
     )
   }
 
+  function PlatformCard(p: Platform) {
+    const isSelected = selectedPlatform?.id === p.id
+    const isL2 = p.protocolLevel === 2
+    return (
+      <button
+        key={p.id}
+        onClick={() => {
+          setSelectedPlatform(p)
+          setSelectedModel(p.models[0] || '')
+        }}
+        className={`card p-4 text-left transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''}`}
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isL2 ? 'bg-amber-50' : 'bg-[var(--sage-100)]'}`}>
+              <Server className={`w-5 h-5 ${isL2 ? 'text-amber-500' : 'text-[var(--sage-500)]'}`} />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-[var(--sage-800)]">{p.name}</h3>
+              <span className="text-[10px] text-[var(--sage-500)]">{p.category}{isL2 ? ' · L2编排' : ' · L1基础'}</span>
+            </div>
+          </div>
+          {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
+        </div>
+        <div className="text-xs text-[var(--sage-400)]">
+          {p.models.slice(0, 3).join(', ')}
+          {p.models.length > 3 && ` +${p.models.length - 3}`}
+        </div>
+      </button>
+    )
+  }
+
   if (step === 3) {
+    const isL2 = selectedPlatform?.protocolLevel === 2
+    if (isL2) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-[var(--sage-700)]">选择 API Key</h3>
+            <span className="text-xs text-[var(--sage-500)]">平台: {selectedPlatform?.name}</span>
+          </div>
+          <div className="card text-center py-8">
+            <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+            <p className="text-sm text-[var(--sage-600)] font-medium">L2 编排器无需 API Key</p>
+            <p className="text-xs text-[var(--sage-400)] mt-1">{selectedPlatform?.name} 是编排器框架，不需要 API Key 配置</p>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -509,6 +574,22 @@ function AgentForm({
   }
 
   if (step === 4) {
+    const isL2 = selectedPlatform?.protocolLevel === 2
+    if (isL2) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-[var(--sage-700)]">分配引擎</h3>
+            <span className="text-xs text-[var(--sage-500)]">平台: {selectedPlatform?.name}</span>
+          </div>
+          <div className="card text-center py-8">
+            <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2" />
+            <p className="text-sm text-[var(--sage-600)] font-medium">L2 编排器无需分配引擎</p>
+            <p className="text-xs text-[var(--sage-400)] mt-1">{selectedPlatform?.name} 使用内部协议调度，不需要外部引擎</p>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
