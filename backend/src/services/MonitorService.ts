@@ -40,14 +40,25 @@ export class MonitorService extends EventEmitter {
     avgResponseTime: number;
     errorRate: number;
   } {
-    // 返回模拟统计数据
+    // 从实际日志和指标计算统计数据
+    const logs = this.getLogs();
+    const errorLogs = logs.filter(l => l.level === 'error');
+    const totalLogs = logs.length;
+    const errorRate = totalLogs > 0 ? errorLogs.length / totalLogs : 0;
+    
+    // 从指标计算平均响应时间
+    const responseMetrics = this.getMetrics('response_time') as MetricPoint[] || [];
+    const avgResponseTime = responseMetrics.length > 0
+      ? responseMetrics.reduce((sum, m) => sum + m.value, 0) / responseMetrics.length
+      : 0;
+    
     return {
-      agentCount: Math.floor(Math.random() * 50) + 10,
-      groupCount: Math.floor(Math.random() * 10) + 2,
-      taskCount: Math.floor(Math.random() * 200) + 50,
-      messageCount: Math.floor(Math.random() * 5000) + 1000,
-      avgResponseTime: Math.random() * 1000 + 200,
-      errorRate: Math.random() * 0.05,
+      agentCount: 0, // 需从 AgentService 获取
+      groupCount: 0, // 需从 GroupService 获取
+      taskCount: 0,  // 需从 TaskService 获取
+      messageCount: totalLogs,
+      avgResponseTime,
+      errorRate,
     };
   }
 
@@ -75,10 +86,14 @@ export class MonitorService extends EventEmitter {
   }
 
   getPerformance(): { cpu: number; memory: number; networkLatency: number } {
+    // 获取真实的系统性能数据
+    const memUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
+    
     return {
-      cpu: Math.random() * 60 + 10,
-      memory: Math.random() * 80 + 20,
-      networkLatency: Math.random() * 100 + 20,
+      cpu: cpuUsage.user / 1000000, // 转换为秒
+      memory: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
+      networkLatency: 0, // 需通过真实网络探测获取
     };
   }
 }

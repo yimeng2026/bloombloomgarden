@@ -69,82 +69,8 @@ export class TaskService {
   private schedulerInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    // Initialize mock data
-    this.seedMockData();
     // Start background scheduler
     this.startScheduler();
-  }
-
-  private seedMockData(): void {
-    const now = new Date();
-    const mockTasks: CreateTaskInput[] = [
-      {
-        name: '分析用户意图',
-        description: '解析自然语言输入，识别用户意图并提取关键参数',
-        priority: 'high',
-        agentId: 'agent-intent-001',
-        payload: { input: '帮我创建一个数据分析Agent', source: 'chat' },
-        maxRetries: 3,
-      },
-      {
-        name: '生成代码片段',
-        description: '根据需求描述生成可执行代码',
-        priority: 'normal',
-        agentId: 'agent-code-001',
-        payload: { language: 'python', requirement: '实现快速排序' },
-        maxRetries: 2,
-      },
-      {
-        name: '知识库索引更新',
-        description: '重新索引上传的文档，更新向量数据库',
-        priority: 'low',
-        workspaceId: 'ws-001',
-        payload: { files: ['doc1.pdf', 'doc2.md'], force: false },
-        maxRetries: 5,
-      },
-      {
-        name: '模型性能评测',
-        description: '对指定模型进行标准化 benchmark 测试',
-        priority: 'urgent',
-        agentId: 'agent-eval-001',
-        payload: { model: 'gpt-4o', datasets: ['mmlu', 'gsm8k'] },
-        maxRetries: 2,
-      },
-      {
-        name: '定时数据备份',
-        description: '每日自动备份系统数据到对象存储',
-        priority: 'normal',
-        payload: { type: 'daily_backup', destination: 's3' },
-        maxRetries: 5,
-      },
-    ];
-
-    mockTasks.forEach((input, idx) => {
-      const task = this.createTask(input);
-      // Simulate different statuses
-      if (idx === 0) {
-        task.status = 'completed';
-        task.startedAt = new Date(now.getTime() - 300000);
-        task.completedAt = new Date(now.getTime() - 120000);
-        task.result = { intent: 'create_agent', confidence: 0.94, params: { type: 'data_analysis' } };
-      } else if (idx === 1) {
-        task.status = 'running';
-        task.startedAt = new Date(now.getTime() - 60000);
-        this.runningCount++;
-      } else if (idx === 2) {
-        task.status = 'pending';
-        task.scheduledAt = new Date(now.getTime() + 300000);
-      } else if (idx === 3) {
-        task.status = 'failed';
-        task.startedAt = new Date(now.getTime() - 600000);
-        task.completedAt = new Date(now.getTime() - 580000);
-        task.error = '模型 API 返回 429 Rate Limited，建议降低并发或更换模型';
-        task.retryCount = 2;
-      } else {
-        task.status = 'pending';
-        task.scheduledAt = new Date(now.getTime() + 86400000);
-      }
-    });
   }
 
   // ========== CRUD ==========

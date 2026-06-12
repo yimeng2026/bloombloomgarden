@@ -95,10 +95,28 @@ export class IntegrationService extends EventEmitter {
   async testConnection(id: string): Promise<{ success: boolean; error?: string }> {
     const integration = await this.getById(id);
     if (!integration) return { success: false, error: 'Integration not found' };
-    const success = Math.random() > 0.2;
-    const status = success ? 'connected' : 'error';
-    await this.update(id, { status, lastTestedAt: new Date() });
-    return { success, error: success ? undefined : 'Connection refused (mock)' };
+    
+    // 执行真实连接测试
+    const config = integration.config || {};
+    const endpoint = config.endpoint || config.webhookUrl || config.url;
+    
+    if (!endpoint) {
+      await this.update(id, { status: 'error', lastTestedAt: new Date() });
+      return { success: false, error: '未配置 endpoint' };
+    }
+    
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(endpoint, { method: 'HEAD', signal: controller.signal });
+      clearTimeout(timeout);
+      const success = res.ok || res.status < 500;
+      await this.update(id, { status: success ? 'connected' : 'error', lastTestedAt: new Date() });
+      return { success, error: success ? undefined : `HTTP ${res.status}` };
+    } catch (err: any) {
+      await this.update(id, { status: 'error', lastTestedAt: new Date() });
+      return { success: false, error: err.message || 'Connection failed' };
+    }
   }
 
   getTypes(): string[] {

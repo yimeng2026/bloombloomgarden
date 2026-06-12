@@ -131,13 +131,14 @@ export class RoleService extends EventEmitter {
 
     this.emit('role:execute', { roleId: id, task, timestamp: new Date() });
 
-    // 返回模拟执行结果
+    // 返回任务已提交状态（实际执行由调度器处理）
     return {
       success: true,
       roleId: id,
       roleName: role.name,
       task,
-      result: `${role.name} 已完成任务: ${task.slice(0, 50)}...`,
+      status: 'submitted',
+      message: '任务已提交到执行队列',
       engine: role.primaryEngine,
       timestamp: new Date().toISOString(),
     };
@@ -149,16 +150,41 @@ export class RoleService extends EventEmitter {
 
     this.emit('role:chat', { roleId: id, message, timestamp: new Date() });
 
-    // 返回模拟对话响应
-    return {
-      success: true,
-      roleId: id,
-      roleName: role.name,
-      message,
-      response: `我是 ${role.name}，收到你的消息: ${message.slice(0, 50)}...`,
-      engine: role.primaryEngine,
-      timestamp: new Date().toISOString(),
-    };
+    // 通过绑定的平台和 API 进行真实对话
+    const { getBackendRouter } = await import('../services/BackendRouter');
+    const router = getBackendRouter();
+    const platformId = role.platformId || 'openrouter';
+    const model = role.primaryEngine || 'deepseek/deepseek-chat-v3-0324';
+
+    try {
+      const response = await router.chat(platformId, {
+        messages: [
+          { role: 'system', content: role.systemPrompt || '' },
+          { role: 'user', content: message },
+        ],
+        model,
+        temperature: 0.7,
+      });
+      return {
+        success: true,
+        roleId: id,
+        roleName: role.name,
+        message,
+        response: response.content,
+        engine: role.primaryEngine,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        roleId: id,
+        roleName: role.name,
+        message,
+        error: err.message || 'Chat failed',
+        engine: role.primaryEngine,
+        timestamp: new Date().toISOString(),
+      };
+    }
   }
 }
 
