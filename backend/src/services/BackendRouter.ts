@@ -118,7 +118,7 @@ export class BackendRouter {
     ));
 
     // GLM-5.1 (智谱AI) — 多Key轮询
-    // 智谱 API Key 格式: api_key.secret_key，但 Header 中只需传入 api_key 部分
+    // 智谱 API Key 格式: api_key.secret_key，Header 中使用完整 Key
     const GLM51_API_KEYS = GLM51_KEYS.filter(k => k.length > 10);
     if (GLM51_API_KEYS.length > 0) {
       this.registerBackend('zhipu', new OpenAICompatibleAdapter({

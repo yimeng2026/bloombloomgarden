@@ -91,9 +91,12 @@ export class OpenAICompatibleAdapter extends BaseBackendAdapter {
     }
 
     const data = await response.json() as any;
+    const message = data.choices?.[0]?.message || {};
+    // GLM-5.1 等模型可能返回 reasoning_content 而非 content
+    const content = message.content || message.reasoning_content || '';
     return {
       id: data.id || `${this.compatConfig.provider}-${Date.now()}`,
-      content: data.choices?.[0]?.message?.content || '',
+      content,
       usage: data.usage,
       finishReason: data.choices?.[0]?.finish_reason,
     };
@@ -147,11 +150,13 @@ export class OpenAICompatibleAdapter extends BaseBackendAdapter {
 
           try {
             const parsed = JSON.parse(data);
-            const delta = parsed.choices?.[0]?.delta?.content || '';
-            if (delta) {
+            const delta = parsed.choices?.[0]?.delta || {};
+            // GLM-5.1 等模型可能返回 reasoning_content 而非 content
+            const content = delta.content || delta.reasoning_content || '';
+            if (content) {
               yield {
                 id: parsed.id || `${this.compatConfig.provider}-${Date.now()}`,
-                content: delta,
+                content,
                 finishReason: parsed.choices?.[0]?.finish_reason,
               };
             }
