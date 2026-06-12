@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
-  Cpu, Plus, Search, MessageSquare, X, Send, Loader2,
-  CheckCircle, XCircle, Activity, User
+  Cpu, Plus, Search, Activity
 } from 'lucide-react'
-import { fetchEngines, chatWithEngine, streamChatWithEngine } from '@/api/client'
+import { fetchEngines } from '@/api/client'
 
 interface Engine {
   id: string
@@ -13,11 +12,6 @@ interface Engine {
   status: 'healthy' | 'unhealthy' | 'offline'
   healthScore: number
   description?: string
-}
-
-interface ChatMessage {
-  role: 'user' | 'assistant'
-  content: string
 }
 
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
@@ -30,11 +24,6 @@ export default function Engines() {
   const [engines, setEngines] = useState<Engine[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [chatEngine, setChatEngine] = useState<Engine | null>(null)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [input, setInput] = useState('')
-  const [chatLoading, setChatLoading] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function load() {
@@ -53,10 +42,6 @@ export default function Engines() {
     load()
   }, [])
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
   const filtered = engines.filter((e) => {
     if (!searchQuery.trim()) return true
     const q = searchQuery.toLowerCase()
@@ -68,32 +53,6 @@ export default function Engines() {
   })
 
   const healthyCount = engines.filter((e) => e.status === 'healthy').length
-
-  const handleSend = async () => {
-    if (!chatEngine || !input.trim() || chatLoading) return
-    const userMsg: ChatMessage = { role: 'user', content: input.trim() }
-    setMessages((prev) => [...prev, userMsg])
-    setInput('')
-    setChatLoading(true)
-
-    try {
-      const newMessages = [...messages, userMsg]
-      const res: any = await chatWithEngine(chatEngine.id, newMessages)
-      const assistantContent = res.data?.content || res.content || res.message || JSON.stringify(res)
-      setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }])
-    } catch (e) {
-      console.error('Chat error:', e)
-      setMessages((prev) => [...prev, { role: 'assistant', content: '抱歉，对话出现错误，请稍后重试。' }])
-    } finally {
-      setChatLoading(false)
-    }
-  }
-
-  const openChat = (engine: Engine) => {
-    setChatEngine(engine)
-    setMessages([])
-    setInput('')
-  }
 
   return (
     <div className="space-y-6">
@@ -126,7 +85,7 @@ export default function Engines() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16 text-[var(--sage-500)] gap-2">
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <div className="w-5 h-5 border-2 border-[var(--sage-300)] border-t-[var(--sage-500)] rounded-full animate-spin" />
           <span>加载中...</span>
         </div>
       ) : filtered.length === 0 ? (
@@ -160,116 +119,16 @@ export default function Engines() {
                 {engine.description && (
                   <p className="text-xs text-[var(--sage-500)] mb-3 line-clamp-2">{engine.description}</p>
                 )}
-                <div className="flex items-center justify-between text-xs text-[var(--sage-400)] mb-3">
+                <div className="flex items-center justify-between text-xs text-[var(--sage-400)]">
                   <span>层级: {engine.tier}</span>
                   <span className="flex items-center gap-1">
                     <Activity className="w-3 h-3" />
                     健康分: {engine.healthScore}
                   </span>
                 </div>
-                <button
-                  onClick={() => openChat(engine)}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-card-sm text-xs font-medium transition-colors hover:bg-[var(--sage-100)]"
-                  style={{ backgroundColor: 'var(--sage-50)', color: 'var(--sage-600)' }}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  与引擎对话
-                </button>
               </div>
             )
           })}
-        </div>
-      )}
-
-      {/* Chat Panel */}
-      {chatEngine && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="card w-[500px] max-w-[90vw] h-[600px] max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--sage-200)' }}>
-              <div className="flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-[var(--sage-500)]" />
-                <div>
-                  <h3 className="font-semibold text-sm text-[var(--sage-800)]">
-                    {chatEngine.brand} — {chatEngine.model}
-                  </h3>
-                  <span className="text-[10px] text-[var(--sage-500)]">引擎对话</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setChatEngine(null)}
-                className="p-1.5 rounded-lg hover:bg-[var(--sage-100)] text-[var(--sage-400)]"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.length === 0 && (
-                <div className="text-center py-8 text-[var(--sage-400)] text-sm">
-                  开始与 {chatEngine.brand} 对话...
-                </div>
-              )}
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.role === 'assistant' && (
-                    <div className="w-6 h-6 rounded-full bg-[var(--sage-100)] flex items-center justify-center flex-shrink-0">
-                      <Cpu className="w-3 h-3 text-[var(--sage-500)]" />
-                    </div>
-                  )}
-                  <div
-                    className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
-                      msg.role === 'user'
-                        ? 'bg-[var(--sage-500)] text-white'
-                        : 'bg-[var(--sage-50)] text-[var(--sage-700)]'
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
-                  {msg.role === 'user' && (
-                    <div className="w-6 h-6 rounded-full bg-[var(--sage-500)] flex items-center justify-center flex-shrink-0">
-                      <User className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                </div>
-              ))}
-              {chatLoading && (
-                <div className="flex gap-2">
-                  <div className="w-6 h-6 rounded-full bg-[var(--sage-100)] flex items-center justify-center flex-shrink-0">
-                    <Cpu className="w-3 h-3 text-[var(--sage-500)]" />
-                  </div>
-                  <div className="bg-[var(--sage-50)] px-3 py-2 rounded-lg text-sm text-[var(--sage-500)] flex items-center gap-2">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    思考中...
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            <div className="p-4 border-t" style={{ borderColor: 'var(--sage-200)' }}>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="输入消息..."
-                  className="flex-1 px-3 py-2 rounded-card border text-sm"
-                  style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={chatLoading || !input.trim()}
-                  className="px-3 py-2 rounded-card bg-[var(--sage-500)] text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>

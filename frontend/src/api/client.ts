@@ -338,34 +338,33 @@ export const getEngine = (id: string) => get(`/engines/${id}`);
 export const createEngine = (data: any) => post('/engines', data);
 export const allocateEngine = (id: string, data?: any) => post(`/engines/${id}/allocate`, data || {});
 export const addEngineKey = (id: string, data: any) => post(`/engines/${id}/keys`, data);
-export const chatWithEngine = (id: string, messages: any[]) => post(`/engines/${id}/chat`, { messages });
+// chatWithEngine 已移除 — 请使用 /api/dialog/:agentId/chat
+export const chatWithEngine = (id: string, messages: any[]) => {
+  console.warn('[DEPRECATED] chatWithEngine 已废弃，请使用 dialog API');
+  return post(`/dialog/${id}/chat`, { content: messages[messages.length - 1]?.content || '' });
+};
 
 /**
- * 流式与引擎对话（SSE）
- * @param id 引擎ID
+ * 流式与引擎对话（SSE）— 已迁移到 /api/dialog/:agentId/stream
+ * @param agentId Agent ID
  * @param messages 消息数组
  * @param onEvent 事件回调
  * @returns 返回一个关闭函数
  */
-export const streamChatWithEngine = (
-  id: string,
+export const streamChatWithAgent = (
+  agentId: string,
   messages: any[],
   onEvent: (event: any) => void,
   onError?: (err: Error) => void,
   onComplete?: () => void,
 ): (() => void) => {
   const ctrl = new AbortController();
-  const url = `${EFFECTIVE_API_BASE}/engines/${id}/chat`;
+  const url = `${EFFECTIVE_API_BASE}/dialog/${agentId}/stream?message=${encodeURIComponent(messages[messages.length - 1]?.content || '')}`;
 
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, stream: true }),
-    signal: ctrl.signal,
-  })
+  fetch(url, { signal: ctrl.signal })
     .then(async (res) => {
       if (!res.ok) {
-        throw new Error(`POST ${url} → ${res.status}`);
+        throw new Error(`GET ${url} → ${res.status}`);
       }
       const reader = res.body?.getReader();
       if (!reader) throw new Error('No response body');
@@ -421,7 +420,11 @@ export const createRole = (teamId: string, data: any) => post(`/teams/${teamId}/
 export const updateRole = (id: string, data: any) => put(`/roles/${id}`, data);
 export const deleteRole = (id: string) => del(`/roles/${id}`);
 export const executeRole = (id: string, task: string) => post(`/roles/${id}/execute`, { task });
-export const chatWithRole = (id: string, message: string) => post(`/roles/${id}/chat`, { message });
+// chatWithRole 已移除 — 请使用 /api/dialog/:agentId/chat
+export const chatWithRole = (id: string, message: string) => {
+  console.warn('[DEPRECATED] chatWithRole 已废弃，请使用 dialog API');
+  return post(`/dialog/${id}/chat`, { content: message });
+};
 
 /* ── v4.0 Canvas ── */
 export const fetchCanvases = () => get('/canvas');

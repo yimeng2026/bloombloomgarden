@@ -45,45 +45,26 @@ router.get('/platforms', asyncHandler(async (_req, res) => {
   res.json({ success: true, data: platforms, total: platforms.length });
 }));
 
-// 4. POST /api/unified-api/:id/chat — 统一聊天（真实后端调用）
+// 4. POST /api/unified-api/:id/chat — 【已移除】统一聊天已迁移到 /api/dialog/:agentId/chat
 router.post('/:id/chat', asyncHandler(async (req, res) => {
-  const { messages, model, temperature, maxTokens } = req.body;
-  const router = getBackendRouter();
-  try {
-    const response = await router.chat(req.params.id, {
-      messages,
-      model,
-      temperature,
-      maxTokens,
-    });
-    res.json({ success: true, data: response });
-  } catch (err: any) {
-    res.status(400).json({ success: false, error: err.message || 'Chat failed' });
-  }
+  res.status(410).json({
+    success: false,
+    error: '此端点已移除',
+    message: '统一API聊天已废弃，请通过 Agent 绑定平台进行对话',
+    alternative: '/api/dialog/:agentId/chat',
+    docs: '/api/dialog',
+  });
 }));
 
-// 5. POST /api/unified-api/:id/stream — 统一流式聊天（真实 SSE）
+// 5. POST /api/unified-api/:id/stream — 【已移除】统一流式聊天已迁移到 /api/dialog/:agentId/stream
 router.post('/:id/stream', asyncHandler(async (req, res) => {
-  const { messages, model, temperature, maxTokens } = req.body;
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-
-  try {
-    const router = getBackendRouter();
-    for await (const chunk of router.chatStream(req.params.id, {
-      messages,
-      model,
-      temperature,
-      maxTokens,
-    })) {
-      res.write(`event: chat_chunk\ndata: ${JSON.stringify(chunk)}\n\n`);
-    }
-    res.write(`event: chat_complete\ndata: {}\n\n`);
-  } catch (err) {
-    res.write(`event: error\ndata: ${JSON.stringify({ error: (err as Error).message })}\n\n`);
-  }
-  res.end();
+  res.status(410).json({
+    success: false,
+    error: '此端点已移除',
+    message: '统一API流式聊天已废弃，请通过 Agent 绑定平台进行对话',
+    alternative: '/api/dialog/:agentId/stream',
+    docs: '/api/dialog',
+  });
 }));
 
 // 6. GET /api/unified-api/:id/validate — 验证配置

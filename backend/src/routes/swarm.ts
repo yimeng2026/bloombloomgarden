@@ -4,16 +4,15 @@ import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
 
-// POST /api/swarm/batch-chat — 批量聊天（并行调用多个引擎）
+// POST /api/swarm/batch-chat — 【已移除】批量聊天已迁移到 /api/dialog/:agentId/chat
 router.post('/batch-chat', asyncHandler(async (req, res) => {
-  const { requests } = req.body;
-  if (!requests || !Array.isArray(requests) || requests.length === 0) {
-    return res.status(400).json({ success: false, error: 'Requests array is required' });
-  }
-
-  const coordinator = getSwarmCoordinator();
-  const results = await coordinator.batchChat(requests);
-  res.json({ success: true, data: results });
+  res.status(410).json({
+    success: false,
+    error: '此端点已移除',
+    message: '批量聊天已废弃，请通过 Agent 绑定平台进行对话',
+    alternative: '/api/dialog/:agentId/chat',
+    docs: '/api/dialog',
+  });
 }));
 
 // POST /api/swarm/coordinate — 协调蜂群执行

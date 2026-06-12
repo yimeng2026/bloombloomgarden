@@ -4,7 +4,7 @@ import {
   Layers, ArrowRight, Vote, History, AlertTriangle, Trash2,
   BarChart3, Zap, GitMerge, RefreshCw, PanelLeft, X
 } from 'lucide-react'
-import { fetchEngines, streamChatWithEngine } from '@/api/client'
+import { fetchEngines, streamChatWithAgent } from '@/api/client'
 
 /* ── Types ─────────────────────────────────────────────────────── */
 
@@ -201,7 +201,7 @@ export default function SwarmArchitectures() {
 
           updateEngineState(engineId, { status: 'running', startTime: Date.now() })
 
-          const abort = streamChatWithEngine(
+          const abort = streamChatWithAgent(
             engineId,
             [{ role: 'user', content: prompt }],
             (event) => {
@@ -281,7 +281,7 @@ export default function SwarmArchitectures() {
         updateEngineState(engineId, { status: 'running', startTime: Date.now() })
 
         await new Promise<void>((resolve) => {
-          const abort = streamChatWithEngine(
+          const abort = streamChatWithAgent(
             engineId,
             [{ role: 'user', content: prompt }],
             (event) => {

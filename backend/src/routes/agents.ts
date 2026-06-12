@@ -44,51 +44,15 @@ router.get('/:id', asyncHandler(async (req, res) => {
   res.json({ success: true, data: agent });
 }));
 
-// 2b. POST /api/agents/:id/chat — 【已废弃】请使用 /api/dialog/:agentId/chat
+// 2b. POST /api/agents/:id/chat — 【已移除】请使用 /api/dialog/:agentId/chat
 router.post('/:id/chat', asyncHandler(async (req, res) => {
-  console.warn(`[DEPRECATED] POST /api/agents/${req.params.id}/chat 已废弃，请迁移到 POST /api/dialog/${req.params.id}/chat`);
-
-  const content = req.body.content || req.body.message || '';
-  const { getDialogService } = await import('../services');
-  const { getBackendRouter } = await import('../services/BackendRouter');
-  const dialogService = getDialogService();
-
-  await dialogService.sendMessage(req.params.id, { content, role: 'user' });
-
-  let messages: Array<{role: 'user' | 'assistant' | 'system'; content: string}> = [];
-  try {
-    const context = await dialogService.getContext(req.params.id);
-    messages = (context?.messages || []).map((m: any) => ({
-      role: (m.role === 'agent' ? 'assistant' : m.role) as 'user' | 'assistant' | 'system',
-      content: m.content || '',
-    }));
-  } catch {
-    // If context fails, just use the current message
-  }
-
-  if (messages.length === 0) {
-    messages = [{ role: 'user' as const, content }];
-  }
-
-  const agentService = getAgentService();
-  const agent = await agentService.getById(req.params.id);
-  const agentConfig = (agent?.config as any) || {};
-  const llmConfig = agentConfig.llmConfig || {};
-
-  const router = getBackendRouter();
-  const platformId = llmConfig.provider || req.body.platformId || 'openrouter';
-  const model = llmConfig.model || req.body.model || 'deepseek/deepseek-chat-v3-0324';
-
-  try {
-    const response = await router.chat(platformId, { messages, model, temperature: 0.7 });
-    await dialogService.sendMessage(req.params.id, { content: response.content, role: 'agent' });
-    res.setHeader('Deprecation', 'true');
-    res.setHeader('Sunset', 'Sat, 01 Aug 2026 00:00:00 GMT');
-    res.json({ success: true, data: response, deprecated: true, alternative: `/api/dialog/${req.params.id}/chat` });
-  } catch (err: any) {
-    console.error('[Chat] Backend error:', err.message);
-    res.status(502).json({ success: false, error: err.message || 'Chat failed', deprecated: true });
-  }
+  res.status(410).json({
+    success: false,
+    error: '此端点已移除',
+    message: 'Agent 对话已统一迁移到 /api/dialog/:agentId/chat',
+    alternative: `/api/dialog/${req.params.id}/chat`,
+    docs: '/api/dialog',
+  });
 }));
 
 // 2a. GET /api/agents/:id/context — 上下文详情（真实数据）

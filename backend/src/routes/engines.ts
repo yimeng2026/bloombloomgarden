@@ -27,36 +27,15 @@ router.post('/', asyncHandler(async (req, res) => {
 
 // ─── 具体路由（必须放在 /:id 通配符之前）─────────────────
 
-// POST /api/engines/:id/chat — 与引擎对话
+// POST /api/engines/:id/chat — 【已移除】引擎对话已统一迁移到 /api/dialog/:agentId/chat
 router.post('/:id/chat', asyncHandler(async (req, res) => {
-  const { messages, stream } = req.body;
-  if (!messages || !Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ success: false, error: 'Messages are required' });
-  }
-  const scheduler = getEngineScheduler();
-  const engine = await scheduler.getById(req.params.id);
-  if (!engine) return res.status(404).json({ success: false, error: 'Engine not found' });
-
-  // 使用GatewayService进行聊天
-  const { GatewayService } = require('../services/GatewayService');
-  const gateway = new GatewayService();
-
-  if (stream) {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    await gateway.chatStream(
-      { engineId: req.params.id, messages },
-      (chunk: any) => {
-        res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-      }
-    );
-    res.end();
-  } else {
-    const result = await gateway.chat({ engineId: req.params.id, messages });
-    res.json({ success: true, data: result });
-  }
+  res.status(410).json({
+    success: false,
+    error: '此端点已移除',
+    message: '引擎独立对话已废弃，请通过 Agent 绑定平台进行对话',
+    alternative: '/api/dialog/:agentId/chat',
+    docs: '/api/dialog',
+  });
 }));
 
 // POST /api/engines/:id/allocate — 分配引擎

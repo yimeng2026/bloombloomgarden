@@ -62,15 +62,15 @@ router.post('/:id/execute', asyncHandler(async (req, res) => {
   res.json(result);
 }));
 
-// POST /api/roles/:id/chat — 与角色对话
+// POST /api/roles/:id/chat — 【已移除】角色对话已迁移到 /api/dialog/:agentId/chat
 router.post('/:id/chat', asyncHandler(async (req, res) => {
-  const { message } = req.body;
-  if (!message || !message.trim()) {
-    return res.status(400).json({ success: false, error: 'Message is required' });
-  }
-  const service = getRoleService();
-  const result = await service.chat(req.params.id, message);
-  res.json(result);
+  res.status(410).json({
+    success: false,
+    error: '此端点已移除',
+    message: '角色独立对话已废弃，请通过 Agent 绑定平台进行对话',
+    alternative: '/api/dialog/:agentId/chat',
+    docs: '/api/dialog',
+  });
 }));
 
 export default router;
