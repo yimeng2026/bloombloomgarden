@@ -1,8 +1,29 @@
 import { Router } from 'express';
 import { getTeamService } from '../services/TeamService';
+import { getRoleService } from '../services/RoleService';
 import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
+
+// POST /api/teams/:id/roles — 为团队添加角色
+router.post('/:id/roles', asyncHandler(async (req, res) => {
+  const { name, roleType, primaryEngine, systemPrompt, authorizedTools } = req.body;
+  if (!name || !name.trim()) {
+    return res.status(400).json({ success: false, error: 'Role name is required' });
+  }
+  if (!roleType) {
+    return res.status(400).json({ success: false, error: 'Role type is required' });
+  }
+  const service = getRoleService();
+  const role = await service.create(req.params.id, {
+    name: name.trim(),
+    roleType,
+    primaryEngine,
+    systemPrompt,
+    authorizedTools,
+  });
+  res.status(201).json({ success: true, data: role });
+}));
 
 // POST /api/teams — 创建团队
 router.post('/', asyncHandler(async (req, res) => {
