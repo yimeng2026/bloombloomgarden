@@ -14,7 +14,7 @@ const FileWorkspace  = lazy(() => import('@/pages/FileWorkspace'))
 const KnowledgeHub   = lazy(() => import('@/pages/KnowledgeHub'))
 const Memory         = lazy(() => import('@/pages/Memory'))
 const MemoryExport   = lazy(() => import('@/pages/MemoryExport'))
-const AgentCreator   = lazy(() => import('@/pages/AgentCreator'))
+const AgentCreatorV4   = lazy(() => import('@/pages/AgentCreatorV4'))
 const Agents         = lazy(() => import('@/pages/Agents'))
 const AgentCollab    = lazy(() => import('@/pages/AgentCollab'))
 const AgentMonitor   = lazy(() => import('@/pages/AgentMonitor'))
@@ -115,7 +115,7 @@ export default function App() {
 
           {/* Agents */}
           <Route path="/agents" element={<Agents />} />
-          <Route path="/agents/create" element={<AgentCreator />} />
+          <Route path="/agents/create" element={<AgentCreatorV4 />} />
           <Route path="/agents/collab" element={<AgentCollab />} />
           <Route path="/agents/monitor" element={<AgentMonitor />} />
 

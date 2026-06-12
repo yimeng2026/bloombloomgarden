@@ -400,6 +400,11 @@ export const interveneTeam = (id: string, data: any) => post(`/teams/${id}/inter
 
 /* ── v4.0 Roles ── */
 export const getRole = (id: string) => get(`/roles/${id}`);
+export const createRole = (teamId: string, data: any) => post(`/teams/${teamId}/roles`, data);
+export const updateRole = (id: string, data: any) => put(`/roles/${id}`, data);
+export const deleteRole = (id: string) => del(`/roles/${id}`);
+export const executeRole = (id: string, task: string) => post(`/roles/${id}/execute`, { task });
+export const chatWithRole = (id: string, message: string) => post(`/roles/${id}/chat`, { message });
 
 /* ── v4.0 Canvas ── */
 export const fetchCanvases = () => get('/canvas');
