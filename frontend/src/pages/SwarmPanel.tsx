@@ -977,7 +977,34 @@ export default function SwarmPage() {
               <p className="text-sm text-[var(--sage-500)]">{canvases.length} 个画布 · {activeCanvasCount} 活跃</p>
             </div>
           </div>
-          <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2"><Plus className="w-4 h-4" /> 新建画布</button>
+          <div className="flex items-center gap-2">
+            {/* Mode Toggle */}
+            <div className="flex items-center gap-1 bg-[var(--sage-100)] p-1 rounded-card">
+              <button
+                onClick={() => setMode('overview')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-medium transition-all ${
+                  mode === 'overview'
+                    ? 'bg-white text-[var(--sage-700)] shadow-sm'
+                    : 'text-[var(--sage-500)] hover:text-[var(--sage-700)]'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                概览
+              </button>
+              <button
+                onClick={() => setMode('orchestrate')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-medium transition-all ${
+                  mode === 'orchestrate'
+                    ? 'bg-white text-[var(--sage-700)] shadow-sm'
+                    : 'text-[var(--sage-500)] hover:text-[var(--sage-700)]'
+                }`}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                编排
+              </button>
+            </div>
+            <button onClick={() => setShowCreateModal(true)} className="btn-primary flex items-center gap-2"><Plus className="w-4 h-4" /> 新建画布</button>
+          </div>
         </div>
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--sage-400)]" />
@@ -1054,6 +1081,31 @@ export default function SwarmPage() {
             <h1 className="text-2xl font-bold text-[var(--sage-800)]">蜂群</h1>
             <p className="text-sm text-[var(--sage-500)]">{nodes.length} 个节点 · {activeNodeCount} 活跃 · {totalTasks} 任务 · 负载 {avgLoad}%</p>
           </div>
+        </div>
+        {/* Mode Toggle */}
+        <div className="flex items-center gap-1 bg-[var(--sage-100)] p-1 rounded-card">
+          <button
+            onClick={() => setMode('overview')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-medium transition-all ${
+              mode === 'overview'
+                ? 'bg-white text-[var(--sage-700)] shadow-sm'
+                : 'text-[var(--sage-500)] hover:text-[var(--sage-700)]'
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            概览
+          </button>
+          <button
+            onClick={() => setMode('orchestrate')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-medium transition-all ${
+              mode === 'orchestrate'
+                ? 'bg-white text-[var(--sage-700)] shadow-sm'
+                : 'text-[var(--sage-500)] hover:text-[var(--sage-700)]'
+            }`}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            编排
+          </button>
         </div>
       </div>
 
