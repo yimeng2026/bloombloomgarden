@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchAgents, deleteAgent } from '@/api/client';
+import { fetchAgents, deleteAgent, fetchAgentStats } from '@/api/client';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -12,84 +12,146 @@ import {
   Pencil,
   Trash2,
   MessageSquare,
+  Code,
+  PenTool,
+  BarChart3,
+  Palette,
+  Search,
+  Briefcase,
+  Eye,
+  Building2,
+  TestTube,
+  Server,
+  Headphones,
+  Shield,
+  Scale,
+  HeartPulse,
+  GraduationCap,
+  Gamepad2,
+  Megaphone,
+  Sparkles,
+  LayoutList,
+  Loader2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import * as LucideIcons from 'lucide-react';
 
-interface Agent {
+/* ── Type Icon & Color Maps ─────────────────────────────────────── */
+
+const typeIconMap: Record<string, React.ElementType> = {
+  coding: Code,
+  writing: PenTool,
+  analysis: BarChart3,
+  creative: Palette,
+  research: Search,
+  business: Briefcase,
+  reviewer: Eye,
+  architect: Building2,
+  qa: TestTube,
+  devops: Server,
+  'customer-service': Headphones,
+  security: Shield,
+  legal: Scale,
+  medical: HeartPulse,
+  education: GraduationCap,
+  entertainment: Gamepad2,
+  marketing: Megaphone,
+  general: Sparkles,
+};
+
+const typeColorMap: Record<string, string> = {
+  coding: '#3B82F6',
+  writing: '#8B5CF6',
+  analysis: '#10B981',
+  creative: '#F59E0B',
+  research: '#6366F1',
+  business: '#64748B',
+  reviewer: '#EC4899',
+  architect: '#0EA5E9',
+  qa: '#EF4444',
+  devops: '#14B8A6',
+  'customer-service': '#F97316',
+  security: '#DC2626',
+  legal: '#7C3AED',
+  medical: '#06B6D4',
+  education: '#FBBF24',
+  entertainment: '#D946EF',
+  marketing: '#FB923C',
+  general: '#6B7280',
+};
+
+const typeNameMap: Record<string, string> = {
+  coding: '编程',
+  writing: '写作',
+  analysis: '分析',
+  creative: '创意',
+  research: '研究',
+  business: '商业',
+  reviewer: '审查',
+  architect: '架构',
+  qa: '测试',
+  devops: 'DevOps',
+  'customer-service': '客服',
+  security: '安全',
+  legal: '法律',
+  medical: '医疗',
+  education: '教育',
+  entertainment: '娱乐',
+  marketing: '营销',
+  general: '通用',
+};
+
+/* ── Status Map ─────────────────────────────────────────────────── */
+
+const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+  active: { label: '在线', color: 'text-green-600', bg: 'bg-green-500/10' },
+  paused: { label: '离线', color: 'text-[var(--sage-500)]', bg: 'bg-[var(--sage-100)]' },
+  error: { label: '忙碌', color: 'text-amber-600', bg: 'bg-amber-500/10' },
+  isolated: { label: '忙碌', color: 'text-amber-600', bg: 'bg-amber-500/10' },
+  online: { label: '在线', color: 'text-green-600', bg: 'bg-green-500/10' },
+  offline: { label: '离线', color: 'text-[var(--sage-500)]', bg: 'bg-[var(--sage-100)]' },
+  busy: { label: '忙碌', color: 'text-amber-600', bg: 'bg-amber-500/10' },
+};
+
+/* ── Display Agent Interface ─────────────────────────────────────── */
+
+interface DisplayAgent {
   id: string;
   name: string;
-  avatar: string;
   status: 'online' | 'offline' | 'busy';
   type: string;
+  typeLabel: string;
   provider: string;
   model: string;
   description: string;
-  lastActive: string;
   messagesToday: number;
   tasksCompleted: number;
   uptime: string;
   tags: string[];
   accentColor: string;
+  iconName: string;
+  lastActive: string;
+  avatar: string;
 }
 
-const FALLBACK_AGENTS: Agent[] = [
-  {
-    id: 'agent-1',
-    name: '代码助手',
-    avatar: '💻',
-    status: 'online',
-    type: 'coding',
-    provider: 'OpenAI',
-    model: 'GPT-4',
-    description: '擅长代码编写、调试和技术咨询',
-    lastActive: '2分钟前',
-    messagesToday: 156,
-    tasksCompleted: 89,
-    uptime: '99.8%',
-    tags: ['代码', '调试', '审查'],
-    accentColor: '#3B82F6',
-  },
-  {
-    id: 'agent-2',
-    name: '数据分析',
-    avatar: '📊',
-    status: 'busy',
-    type: 'analysis',
-    provider: 'Claude',
-    model: 'Claude 3.5',
-    description: '数据处理和可视化专家',
-    lastActive: '5分钟前',
-    messagesToday: 89,
-    tasksCompleted: 67,
-    uptime: '99.5%',
-    tags: ['数据', '图表', '统计'],
-    accentColor: '#10B981',
-  },
-  {
-    id: 'agent-3',
-    name: '文档撰写',
-    avatar: '📝',
-    status: 'online',
-    type: 'writing',
-    provider: 'Kimi',
-    model: 'k1.5',
-    description: '技术文档、论文和报告撰写',
-    lastActive: '刚刚',
-    messagesToday: 234,
-    tasksCompleted: 120,
-    uptime: '99.9%',
-    tags: ['文档', '写作', '翻译'],
-    accentColor: '#8B5CF6',
-  },
-];
+interface AgentStats {
+  total: number;
+  online: number;
+  offline: number;
+  busy: number;
+  byType?: Record<string, number>;
+}
 
 export default function Agents() {
   const navigate = useNavigate();
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agents, setAgents] = useState<DisplayAgent[]>([]);
   const [view, setView] = useState<'grid' | 'table'>('grid');
-  const [filter, setFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<AgentStats>({ total: 0, online: 0, offline: 0, busy: 0 });
+  const [statsLoading, setStatsLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,10 +159,12 @@ export default function Agents() {
       try {
         setLoading(true);
         const res = await fetchAgents();
-        const data = res.data || [];
-        setAgents(data.length > 0 ? data : FALLBACK_AGENTS);
+        const data = res.data || res || [];
+        const mapped = (Array.isArray(data) ? data : []).map(mapBackendToDisplay);
+        if (!cancelled) setAgents(mapped);
       } catch (e) {
-        if (!cancelled) setAgents(FALLBACK_AGENTS);
+        console.error('Failed to load agents:', e);
+        if (!cancelled) setAgents([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -109,18 +173,56 @@ export default function Agents() {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        setStatsLoading(true);
+        const res = await fetchAgentStats();
+        const data = res.data || res || {};
+        setStats({
+          total: data.total || 0,
+          online: data.online || data.active || 0,
+          offline: data.offline || data.paused || 0,
+          busy: data.busy || data.error || 0,
+          byType: data.byType || {},
+        });
+      } catch (e) {
+        console.error('Failed to load agent stats:', e);
+      } finally {
+        setStatsLoading(false);
+      }
+    }
+    loadStats();
+  }, []);
+
   const handleChat = (agentId: string) => {
     navigate(`/chat?agentId=${agentId}`);
   };
 
+  const handleDelete = async (agentId: string) => {
+    if (!confirm('确定删除此智能体？')) return;
+    try {
+      await deleteAgent(agentId);
+      setAgents(prev => prev.filter(a => a.id !== agentId));
+    } catch (e) {
+      console.error('Failed to delete agent:', e);
+      alert('删除失败');
+    }
+  };
+
   const filtered = agents.filter((a) => {
-    if (filter !== 'all' && a.status !== filter) return false;
-    if (search && !a.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (statusFilter !== 'all' && a.status !== statusFilter) return false;
+    if (typeFilter !== 'all' && a.type !== typeFilter) return false;
+    if (search && !a.name.toLowerCase().includes(search.toLowerCase()) && !a.description.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
   const onlineCount = agents.filter((a) => a.status === 'online').length;
   const busyCount = agents.filter((a) => a.status === 'busy').length;
+  const offlineCount = agents.filter((a) => a.status === 'offline').length;
+
+  // Unique types for filter
+  const typeOptions = Array.from(new Set(agents.map(a => a.type))).filter(Boolean);
 
   return (
     <div className="space-y-5">
@@ -137,29 +239,71 @@ export default function Agents() {
         </Link>
       </div>
 
-      <div className="flex gap-3">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: '全部', value: agents.length, icon: LayoutGrid, color: 'bg-[var(--sage-500)]' },
-          { label: '在线', value: onlineCount, icon: CheckCircle2, color: 'bg-green-500' },
-          { label: '忙碌', value: busyCount, icon: Clock, color: 'bg-amber-500' },
+          { label: '全部', value: statsLoading ? '—' : stats.total, icon: LayoutGrid, color: 'bg-[var(--sage-500)]' },
+          { label: '在线', value: statsLoading ? '—' : stats.online, icon: CheckCircle2, color: 'bg-green-500' },
+          { label: '忙碌', value: statsLoading ? '—' : stats.busy, icon: Clock, color: 'bg-amber-500' },
+          { label: '离线', value: statsLoading ? '—' : stats.offline, icon: LayoutList, color: 'bg-[var(--sage-400)]' },
         ].map((stat) => (
           <button
             key={stat.label}
-            onClick={() => setFilter(stat.label === '全部' ? 'all' : stat.label === '在线' ? 'online' : 'busy')}
-            className={`flex items-center gap-2 px-3 py-2 rounded-card-sm text-sm transition-colors ${
-              (filter === 'all' && stat.label === '全部') ||
-              (filter === 'online' && stat.label === '在线') ||
-              (filter === 'busy' && stat.label === '忙碌')
-                ? 'bg-[var(--sage-500)] text-white'
+            onClick={() => setStatusFilter(stat.label === '全部' ? 'all' : stat.label === '在线' ? 'online' : stat.label === '忙碌' ? 'busy' : 'offline')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-card text-sm transition-colors ${
+              (statusFilter === 'all' && stat.label === '全部') ||
+              (statusFilter === 'online' && stat.label === '在线') ||
+              (statusFilter === 'busy' && stat.label === '忙碌') ||
+              (statusFilter === 'offline' && stat.label === '离线')
+                ? 'bg-white shadow-md ring-1 ring-[var(--sage-200)]'
                 : 'bg-white hover:bg-[var(--sage-50)]'
             }`}
           >
-            <stat.icon className="w-4 h-4" />
-            <span>{stat.label}</span>
-            <span className="ml-1 font-bold">{stat.value}</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${stat.color} text-white`}>
+              <stat.icon className="w-4 h-4" />
+            </div>
+            <div className="text-left">
+              <div className="text-xs text-[var(--sage-500)]">{stat.label}</div>
+              <div className="text-lg font-bold text-[var(--sage-800)]">{stat.value}</div>
+            </div>
           </button>
         ))}
       </div>
+
+      {/* Type Filter */}
+      {typeOptions.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-[var(--sage-500)] mr-1">按类型筛选:</span>
+          <button
+            onClick={() => setTypeFilter('all')}
+            className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+              typeFilter === 'all'
+                ? 'bg-[var(--sage-500)] text-white'
+                : 'bg-[var(--sage-100)] text-[var(--sage-600)] hover:bg-[var(--sage-200)]'
+            }`}
+          >
+            全部
+          </button>
+          {typeOptions.map((type) => {
+            const color = typeColorMap[type] || '#6B7280';
+            const label = typeNameMap[type] || type;
+            return (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(type)}
+                className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                  typeFilter === type
+                    ? 'text-white'
+                    : 'bg-[var(--sage-100)] text-[var(--sage-600)] hover:bg-[var(--sage-200)]'
+                }`}
+                style={typeFilter === type ? { backgroundColor: color } : {}}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
@@ -190,7 +334,10 @@ export default function Agents() {
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-[var(--sage-500)]">加载中...</div>
+        <div className="text-center py-16 text-[var(--sage-500)]">
+          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+          加载中...
+        </div>
       ) : filtered.length === 0 ? (
         <div className="card text-center py-16">
           <Brain className="w-12 h-12 text-[var(--sage-400)] mx-auto mb-3" />
@@ -213,10 +360,13 @@ export default function Agents() {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
-                    style={{ backgroundColor: agent.accentColor + '20' }}
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                    style={{ backgroundColor: agent.accentColor + '25' }}
                   >
-                    {agent.avatar}
+                    {(() => {
+                      const IconComponent = (LucideIcons as any)[agent.iconName] || Sparkles;
+                      return <IconComponent className="w-5 h-5" style={{ color: agent.accentColor }} />;
+                    })()}
                   </div>
                   <div>
                     <h3 className="font-semibold text-[var(--sage-800)]">{agent.name}</h3>
@@ -236,9 +386,17 @@ export default function Agents() {
                     </div>
                   </div>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-50)] text-[var(--sage-500)]">
-                  {agent.provider}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-50)] text-[var(--sage-500)]">
+                    {agent.provider}
+                  </span>
+                  <span
+                    className="text-[10px] px-2 py-0.5 rounded-full text-white"
+                    style={{ backgroundColor: agent.accentColor }}
+                  >
+                    {agent.typeLabel}
+                  </span>
+                </div>
               </div>
 
               <p className="text-xs text-[var(--sage-500)] mb-3">{agent.description}</p>
@@ -271,14 +429,25 @@ export default function Agents() {
                 <span>{agent.model}</span>
               </div>
 
-              {/* Chat Button */}
-              <button
-                onClick={() => handleChat(agent.id)}
-                className="w-full mt-3 flex items-center justify-center gap-2 px-3 py-2 rounded-card bg-[var(--sage-500)] text-white text-sm hover:bg-[var(--sage-600)] transition-colors"
-              >
-                <MessageSquare className="w-4 h-4" />
-                开始对话
-              </button>
+              {/* Actions */}
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={() => handleChat(agent.id)}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-card bg-[var(--sage-500)] text-white text-sm hover:bg-[var(--sage-600)] transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  对话
+                </button>
+                <button className="p-2 text-[var(--sage-400)] hover:text-[var(--sage-600)] rounded-lg hover:bg-[var(--sage-100)] transition-colors">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(agent.id)}
+                  className="p-2 text-[var(--sage-400)] hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -288,6 +457,7 @@ export default function Agents() {
             <thead className="bg-[var(--sage-50)] text-[var(--sage-600)]">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">智能体</th>
+                <th className="text-left px-4 py-3 font-medium">类型</th>
                 <th className="text-left px-4 py-3 font-medium">状态</th>
                 <th className="text-left px-4 py-3 font-medium">提供商</th>
                 <th className="text-left px-4 py-3 font-medium">今日消息</th>
@@ -301,7 +471,15 @@ export default function Agents() {
                 <tr key={agent.id} className="border-t" style={{ borderColor: 'var(--sage-100)' }}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{agent.avatar}</span>
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: agent.accentColor + '20' }}
+                      >
+                        {(() => {
+                          const IconComponent = (LucideIcons as any)[agent.iconName] || Sparkles;
+                          return <IconComponent className="w-4 h-4" style={{ color: agent.accentColor }} />;
+                        })()}
+                      </div>
                       <div>
                         <div className="font-medium text-[var(--sage-800)]">{agent.name}</div>
                         <div className="text-[10px] text-[var(--sage-500)]">{agent.description}</div>
@@ -310,15 +488,19 @@ export default function Agents() {
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full ${
-                        agent.status === 'online'
-                          ? 'bg-green-500/10 text-green-600'
-                          : agent.status === 'busy'
-                          ? 'bg-amber-500/10 text-amber-600'
-                          : 'bg-[var(--sage-100)] text-[var(--sage-500)]'
-                      }`}
+                      className="text-[10px] px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: agent.accentColor }}
                     >
-                      {agent.status === 'online' ? '在线' : agent.status === 'busy' ? '忙碌' : '离线'}
+                      {agent.typeLabel}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full ${
+                        statusMap[agent.status]?.bg || 'bg-[var(--sage-100)]'
+                      } ${statusMap[agent.status]?.color || 'text-[var(--sage-500)]'}`}
+                    >
+                      {statusMap[agent.status]?.label || agent.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-[var(--sage-500)]">{agent.provider}</td>
@@ -337,7 +519,10 @@ export default function Agents() {
                       <button className="p-1 text-[var(--sage-400)] hover:text-[var(--sage-600)]">
                         <Pencil className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-[var(--sage-400)] hover:text-red-500">
+                      <button
+                        onClick={() => handleDelete(agent.id)}
+                        className="p-1 text-[var(--sage-400)] hover:text-red-500"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -350,4 +535,67 @@ export default function Agents() {
       )}
     </div>
   );
+}
+
+/* ── Backend Data Mapping ─────────────────────────────────────────── */
+
+function mapBackendToDisplay(raw: any): DisplayAgent {
+  const type = raw.agentType || raw.type || 'general';
+  const color = raw.color || typeColorMap[type] || '#6B7280';
+  
+  // Map type to icon name string (e.g. 'coding' -> 'Code')
+  const typeToIconName: Record<string, string> = {
+    coding: 'Code',
+    writing: 'PenTool',
+    analysis: 'BarChart3',
+    creative: 'Palette',
+    research: 'Search',
+    business: 'Briefcase',
+    reviewer: 'Eye',
+    architect: 'Building2',
+    qa: 'TestTube',
+    devops: 'Server',
+    'customer-service': 'Headphones',
+    security: 'Shield',
+    legal: 'Scale',
+    medical: 'HeartPulse',
+    education: 'GraduationCap',
+    entertainment: 'Gamepad2',
+    marketing: 'Megaphone',
+    general: 'Sparkles',
+  };
+  const resolvedIconName = raw.icon || typeToIconName[type] || 'Sparkles';
+
+  // Status mapping: backend status -> display status
+  let status: 'online' | 'offline' | 'busy' = 'offline';
+  const rawStatus = raw.status;
+  if (rawStatus === 'active' || rawStatus === 'online' || rawStatus === 'running') status = 'online';
+  else if (rawStatus === 'error' || rawStatus === 'isolated' || rawStatus === 'busy') status = 'busy';
+  else if (rawStatus === 'paused' || rawStatus === 'offline' || rawStatus === 'idle') status = 'offline';
+
+  // Stats from backend stats JSON
+  const stats = raw.stats || {};
+  const messagesToday = stats.messagesToday || stats.messages || stats.messageCount || 0;
+  const tasksCompleted = stats.tasksCompleted || stats.tasks || stats.taskCount || 0;
+  const uptime = stats.uptime || stats.availability || '—';
+  const lastActive = stats.lastActive || raw.lastActive || '—';
+
+  return {
+    id: raw.id,
+    name: raw.name || '未命名',
+    status,
+    type,
+    typeLabel: typeNameMap[type] || type,
+    provider: raw.platformId || raw.provider || raw.platform || '—',
+    model: raw.config?.model || raw.model || '—',
+    description: raw.description || '—',
+    messagesToday,
+    tasksCompleted,
+    uptime: typeof uptime === 'number' ? `${uptime}%` : String(uptime),
+    tags: (raw.capabilities || raw.tags || []),
+    accentColor: color,
+    iconName: resolvedIconName,
+    lastActive,
+    avatar: raw.avatar || '💻',
+  };
 }

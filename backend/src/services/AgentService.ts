@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import type { PrismaClient } from '@prisma/client';
+import { safeJSONStringify, safeJSONParse } from '../utils/safeJSON';
 
 export enum AgentStatus {
   ACTIVE = 'active',
@@ -8,6 +9,16 @@ export enum AgentStatus {
   ISOLATED = 'isolated',
   TERMINATED = 'terminated',
 }
+
+export const VALID_AGENT_TYPES = [
+  'general', 'coding', 'writing', 'analysis', 'creative',
+  'research', 'business', 'customer-service', 'debugging',
+  'reviewer', 'architect', 'data-scientist', 'pm', 'qa',
+  'devops', 'security', 'legal', 'medical', 'education',
+  'entertainment', 'marketing',
+] as const;
+
+export type AgentType = typeof VALID_AGENT_TYPES[number];
 
 export interface Agent {
   id: string;
@@ -27,7 +38,7 @@ export interface Agent {
   protocolLevel?: number;
   mode?: string;
   parentPlatform?: string;
-  threadPlatforms?: string;
+  threadPlatforms?: string[];
   dashboardType?: string;
   workFiles?: string[];
   // Platform & API Binding
@@ -38,6 +49,14 @@ export interface Agent {
   swarmMode?: string;
   roleInGroup?: string;
   coordinatorId?: string;
+  // Agent Type System fields
+  agentType?: string;
+  capabilities?: string[];
+  personality?: string;
+  systemPrompt?: string;
+  tags?: string[];
+  color?: string;
+  icon?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +86,15 @@ export interface CreateAgentInput {
   swarmMode?: string;
   roleInGroup?: string;
   coordinatorId?: string;
+  // Agent Type System fields
+  agentType?: string;
+  capabilities?: string[];
+  personality?: string;
+  systemPrompt?: string;
+  tags?: string[];
+  color?: string;
+  icon?: string;
+  stats?: Record<string, unknown>;
 }
 
 // ─── 校验工具 ───────────────────────────────────────────
@@ -109,12 +137,12 @@ function getDashboardType(level: number): string {
 function toAgent(raw: any): Agent {
   return {
     ...raw,
-    config: JSON.parse(raw.config || '{}'),
-    knowledgeBaseIds: JSON.parse(raw.knowledgeBaseIds || '[]'),
-    skillIds: JSON.parse(raw.skillIds || '[]'),
-    integrationIds: JSON.parse(raw.integrationIds || '[]'),
-    workFiles: JSON.parse(raw.workFiles || '[]'),
-    threadPlatforms: JSON.parse(raw.threadPlatforms || '[]'),
+    config: safeJSONParse(raw.config, {}),
+    knowledgeBaseIds: safeJSONParse(raw.knowledgeBaseIds, []),
+    skillIds: safeJSONParse(raw.skillIds, []),
+    integrationIds: safeJSONParse(raw.integrationIds, []),
+    workFiles: safeJSONParse(raw.workFiles, []),
+    threadPlatforms: safeJSONParse(raw.threadPlatforms, []),
     protocolLevel: raw.protocolLevel ?? 1,
     mode: raw.mode ?? 'A',
     dashboardType: raw.dashboardType ?? 'L1',
@@ -124,6 +152,15 @@ function toAgent(raw: any): Agent {
     coordinatorId: raw.coordinatorId || undefined,
     platformId: raw.platformId || undefined,
     apiKeyId: raw.apiKeyId || undefined,
+    // Agent Type System fields
+    agentType: raw.agentType || 'general',
+    capabilities: safeJSONParse(raw.capabilities, []),
+    personality: raw.personality || undefined,
+    systemPrompt: raw.systemPrompt || undefined,
+    tags: safeJSONParse(raw.tags, []),
+    color: raw.color || undefined,
+    icon: raw.icon || undefined,
+    stats: safeJSONParse(raw.stats, {}),
   };
 }
 
@@ -165,6 +202,13 @@ export class AgentService extends EventEmitter {
       }
     }
 
+    // 5. agentType 有效性
+    if (data.agentType) {
+      if (!VALID_AGENT_TYPES.includes(data.agentType as AgentType)) {
+        return { valid: false, error: `Invalid agentType "${data.agentType}". Must be one of: ${VALID_AGENT_TYPES.join(', ')}` };
+      }
+    }
+
     return { valid: true };
   }
 
@@ -179,9 +223,9 @@ export class AgentService extends EventEmitter {
       name: data.name.trim(),
       role: data.role.trim(),
       status: AgentStatus.ACTIVE,
-      config: JSON.stringify(data.config || {}),
-      knowledgeBaseIds: JSON.stringify(data.knowledgeBaseIds || []),
-      skillIds: JSON.stringify(data.skillIds || []),
+      config: safeJSONStringify(data.config || {}),
+      knowledgeBaseIds: safeJSONStringify(data.knowledgeBaseIds || []),
+      skillIds: safeJSONStringify(data.skillIds || []),
       workspaceId: data.workspaceId || null,
       groupId: data.groupId || null,
       description: data.description || null,
@@ -190,9 +234,9 @@ export class AgentService extends EventEmitter {
       protocolLevel,
       mode,
       parentPlatform: data.parentPlatform || null,
-      threadPlatforms: JSON.stringify(data.threadPlatforms || []),
+      threadPlatforms: safeJSONStringify(data.threadPlatforms || []),
       dashboardType,
-      workFiles: JSON.stringify(data.workFiles || []),
+      workFiles: safeJSONStringify(data.workFiles || []),
       // Platform & API Binding
       platformId: data.platformId || null,
       apiKeyId: data.apiKeyId || null,
@@ -201,6 +245,15 @@ export class AgentService extends EventEmitter {
       swarmMode: data.swarmMode || null,
       roleInGroup: data.roleInGroup || 'solo',
       coordinatorId: data.coordinatorId || null,
+      // Agent Type System — 非JSON字符串直接存储，JSON字段用 safeJSONStringify
+      agentType: data.agentType || 'general',
+      capabilities: safeJSONStringify(data.capabilities || []),
+      personality: data.personality || null,
+      systemPrompt: data.systemPrompt || null,
+      tags: safeJSONStringify(data.tags || []),
+      color: data.color || null,
+      icon: data.icon || null,
+      stats: safeJSONStringify(data.stats || {}),
     };
   }
 
@@ -238,7 +291,7 @@ export class AgentService extends EventEmitter {
       protocolLevel: dbData.protocolLevel,
       mode: dbData.mode,
       parentPlatform: data.parentPlatform,
-      threadPlatforms: JSON.stringify(data.threadPlatforms || []),
+      threadPlatforms: data.threadPlatforms || [],
       dashboardType: dbData.dashboardType,
       workFiles: data.workFiles || [],
       platformId: data.platformId,
@@ -247,6 +300,15 @@ export class AgentService extends EventEmitter {
       swarmMode: data.swarmMode,
       roleInGroup: dbData.roleInGroup,
       coordinatorId: data.coordinatorId,
+      // Agent Type System
+      agentType: data.agentType || 'general',
+      capabilities: data.capabilities || [],
+      personality: data.personality,
+      systemPrompt: data.systemPrompt,
+      tags: data.tags || [],
+      color: data.color,
+      icon: data.icon,
+      stats: data.stats || {},
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -263,12 +325,13 @@ export class AgentService extends EventEmitter {
     return this.agents.get(id);
   }
 
-  async list(filters?: { groupId?: string; status?: AgentStatus; role?: string }): Promise<Agent[]> {
+  async list(filters?: { groupId?: string; status?: AgentStatus; role?: string; agentType?: string }): Promise<Agent[]> {
     if (this.prisma) {
       const where: any = {};
       if (filters?.groupId) where.groupId = filters.groupId;
       if (filters?.status) where.status = filters.status;
       if (filters?.role) where.role = filters.role;
+      if (filters?.agentType) where.agentType = filters.agentType;
       const raws = await this.prisma.agent.findMany({ where, orderBy: { createdAt: 'desc' } });
       return raws.map(toAgent);
     }
@@ -276,6 +339,7 @@ export class AgentService extends EventEmitter {
     if (filters?.groupId) results = results.filter(a => a.groupId === filters.groupId);
     if (filters?.status) results = results.filter(a => a.status === filters.status);
     if (filters?.role) results = results.filter(a => a.role === filters.role);
+    if (filters?.agentType) results = results.filter(a => a.agentType === filters.agentType);
     return results;
   }
 
@@ -284,9 +348,9 @@ export class AgentService extends EventEmitter {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.role !== undefined) updateData.role = data.role;
     if (data.status !== undefined) updateData.status = data.status;
-    if (data.config !== undefined) updateData.config = JSON.stringify(data.config);
-    if (data.knowledgeBaseIds !== undefined) updateData.knowledgeBaseIds = JSON.stringify(data.knowledgeBaseIds);
-    if (data.skillIds !== undefined) updateData.skillIds = JSON.stringify(data.skillIds);
+    if (data.config !== undefined) updateData.config = safeJSONStringify(data.config);
+    if (data.knowledgeBaseIds !== undefined) updateData.knowledgeBaseIds = safeJSONStringify(data.knowledgeBaseIds);
+    if (data.skillIds !== undefined) updateData.skillIds = safeJSONStringify(data.skillIds);
     if (data.workspaceId !== undefined) updateData.workspaceId = data.workspaceId;
     if (data.groupId !== undefined) updateData.groupId = data.groupId;
     if (data.description !== undefined) updateData.description = data.description;
@@ -294,13 +358,22 @@ export class AgentService extends EventEmitter {
     if (data.protocolLevel !== undefined) updateData.protocolLevel = data.protocolLevel;
     if (data.mode !== undefined) updateData.mode = data.mode;
     if (data.parentPlatform !== undefined) updateData.parentPlatform = data.parentPlatform;
-    if (data.threadPlatforms !== undefined) updateData.threadPlatforms = JSON.stringify(data.threadPlatforms);
+    if (data.threadPlatforms !== undefined) updateData.threadPlatforms = safeJSONStringify(data.threadPlatforms);
     if (data.dashboardType !== undefined) updateData.dashboardType = data.dashboardType;
-    if (data.workFiles !== undefined) updateData.workFiles = JSON.stringify(data.workFiles);
+    if (data.workFiles !== undefined) updateData.workFiles = safeJSONStringify(data.workFiles);
     if (data.swarmEnabled !== undefined) updateData.swarmEnabled = data.swarmEnabled;
     if (data.swarmMode !== undefined) updateData.swarmMode = data.swarmMode;
     if (data.roleInGroup !== undefined) updateData.roleInGroup = data.roleInGroup;
     if (data.coordinatorId !== undefined) updateData.coordinatorId = data.coordinatorId;
+    // Agent Type System
+    if (data.agentType !== undefined) updateData.agentType = data.agentType;
+    if (data.capabilities !== undefined) updateData.capabilities = safeJSONStringify(data.capabilities);
+    if (data.personality !== undefined) updateData.personality = data.personality;
+    if (data.systemPrompt !== undefined) updateData.systemPrompt = data.systemPrompt;
+    if (data.tags !== undefined) updateData.tags = safeJSONStringify(data.tags);
+    if (data.color !== undefined) updateData.color = data.color;
+    if (data.icon !== undefined) updateData.icon = data.icon;
+    if (data.stats !== undefined) updateData.stats = safeJSONStringify(data.stats);
 
     if (this.prisma) {
       try {
@@ -355,7 +428,24 @@ export class AgentService extends EventEmitter {
     this.emit('agent:messageInjected', { agentId: id, message, timestamp: new Date() });
   }
 
-  getStats(): { total: number; active: number; paused: number; error: number; isolated: number } {
-    return { total: 0, active: 0, paused: 0, error: 0, isolated: 0 };
+  async getStats(): Promise<{ total: number; active: number; paused: number; error: number; isolated: number }> {
+    if (this.prisma) {
+      const [total, active, paused, error, isolated] = await Promise.all([
+        this.prisma.agent.count(),
+        this.prisma.agent.count({ where: { status: 'active' } }),
+        this.prisma.agent.count({ where: { status: 'paused' } }),
+        this.prisma.agent.count({ where: { status: 'error' } }),
+        this.prisma.agent.count({ where: { status: 'isolated' } }),
+      ]);
+      return { total, active, paused, error, isolated };
+    }
+    const all = Array.from(this.agents.values());
+    return {
+      total: all.length,
+      active: all.filter(a => a.status === AgentStatus.ACTIVE).length,
+      paused: all.filter(a => a.status === AgentStatus.PAUSED).length,
+      error: all.filter(a => a.status === AgentStatus.ERROR).length,
+      isolated: all.filter(a => a.status === AgentStatus.ISOLATED).length,
+    };
   }
 }

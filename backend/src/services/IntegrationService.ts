@@ -98,7 +98,7 @@ export class IntegrationService extends EventEmitter {
     
     // 执行真实连接测试
     const config = integration.config || {};
-    const endpoint = config.endpoint || config.webhookUrl || config.url;
+    const endpoint = (config.endpoint || config.webhookUrl || config.url) as string;
     
     if (!endpoint) {
       await this.update(id, { status: 'error', lastTestedAt: new Date() });

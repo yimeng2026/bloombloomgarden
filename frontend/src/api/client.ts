@@ -328,7 +328,11 @@ export const fetchSwarms = async () => {
 };
 export const createSwarm = (data: any) => post('/swarm', data);
 
-/* ── v4.0 Frameworks ── */
+/* ── Agent Templates & Stats ── */
+export const fetchAgentTemplates = (filters?: any) => get('/agent-templates' + (filters ? '?' + new URLSearchParams(filters) : ''));
+export const getAgentTemplate = (id: string) => get(`/agent-templates/${id}`);
+export const fetchAgentStats = () => get('/agents/stats');
+export const fetchGroupStats = () => get('/groups/stats');
 export const fetchFrameworks = () => get('/frameworks');
 export const getFramework = (id: string) => get(`/frameworks/${id}`);
 

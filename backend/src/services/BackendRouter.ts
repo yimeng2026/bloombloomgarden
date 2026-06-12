@@ -254,7 +254,87 @@ export class BackendRouter {
     return keys[nextIdx];
   }
 
-  // ─── 聊天（支持fallback）────────────────────────────────
+  // ─── 带重试的聊天调用 ─────────────────────────────────
+  private async chatWithRetry(
+    backend: BaseBackendAdapter,
+    request: ChatRequest,
+    maxRetries: number = 3,
+  ): Promise<ChatResponse> {
+    let lastError: Error | undefined;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await backend.chat(request);
+      } catch (err: any) {
+        lastError = err;
+        const isRetryable = this.isRetryableError(err);
+        if (!isRetryable || attempt >= maxRetries) {
+          throw err;
+        }
+        // 指数退避: 1s, 2s, 4s
+        const delay = Math.pow(2, attempt - 1) * 1000 + Math.random() * 500;
+        console.warn(`[BackendRouter] chat attempt ${attempt} failed (${err.message}), retrying in ${delay.toFixed(0)}ms...`);
+        await this.sleep(delay);
+      }
+    }
+    throw lastError || new Error('Chat failed after retries');
+  }
+
+  private async *chatStreamWithRetry(
+    backendId: string,
+    request: ChatRequest,
+    maxRetries: number = 3,
+  ): AsyncIterable<ChatChunk> {
+    const backend = this.backends.get(backendId);
+    if (!backend) throw new Error(`Backend ${backendId} not found`);
+
+    let lastError: Error | undefined;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        yield* backend.chatStream(request);
+        return;
+      } catch (err: any) {
+        lastError = err;
+        const isRetryable = this.isRetryableError(err);
+        if (!isRetryable || attempt >= maxRetries) {
+          throw err;
+        }
+        const delay = Math.pow(2, attempt - 1) * 1000 + Math.random() * 500;
+        console.warn(`[BackendRouter] chatStream attempt ${attempt} failed (${err.message}), retrying in ${delay.toFixed(0)}ms...`);
+        await this.sleep(delay);
+      }
+    }
+    throw lastError || new Error('Chat stream failed after retries');
+  }
+
+  private isRetryableError(err: any): boolean {
+    if (!err) return false;
+    const message = err.message || String(err);
+    // 网络错误、超时、速率限制、服务端错误
+    const retryablePatterns = [
+      'timeout',
+      'ETIMEDOUT',
+      'ECONNRESET',
+      'ECONNREFUSED',
+      'ENOTFOUND',
+      'EAI_AGAIN',
+      'network',
+      'fetch failed',
+      'rate limit',
+      'too many requests',
+      '429',
+      '500',
+      '502',
+      '503',
+      '504',
+    ];
+    return retryablePatterns.some(p => message.toLowerCase().includes(p.toLowerCase()));
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // ─── 聊天（支持fallback + 重试）────────────────────────
   async chat(backendId: string, request: ChatRequest, fallbackIds?: string[]): Promise<ChatResponse> {
     const backend = this.backends.get(backendId);
     if (!backend) {
@@ -263,16 +343,32 @@ export class BackendRouter {
         const routed = await this.routeChat(request, fallbackIds);
         return routed.response;
       }
+      // 自动降级到 zhipu（如果配置了 Key）
+      const zhipuFallback = this.backends.get('zhipu');
+      if (zhipuFallback) {
+        console.warn(`[BackendRouter] ${backendId} not found, auto-falling back to zhipu`);
+        return await this.chatWithRetry(zhipuFallback, request);
+      }
       throw new Error(`Backend ${backendId} not found`);
     }
     try {
-      return await backend.chat(request);
+      return await this.chatWithRetry(backend, request);
     } catch (err: any) {
       // 主provider失败，尝试fallback
       if (fallbackIds && fallbackIds.length > 0) {
-        console.warn(`[BackendRouter] ${backendId} failed, trying fallback: ${fallbackIds.join(', ')}`);
+        console.warn(`[BackendRouter] ${backendId} failed after retries, trying fallback: ${fallbackIds.join(', ')}`);
         const routed = await this.routeChat(request, fallbackIds);
         return routed.response;
+      }
+      // 自动降级到 zhipu
+      const zhipuFallback = this.backends.get('zhipu');
+      if (zhipuFallback && backendId !== 'zhipu') {
+        console.warn(`[BackendRouter] ${backendId} failed, auto-falling back to zhipu`);
+        try {
+          return await this.chatWithRetry(zhipuFallback, request);
+        } catch (fallbackErr: any) {
+          console.error(`[BackendRouter] zhipu fallback also failed: ${fallbackErr.message}`);
+        }
       }
       throw err;
     }
@@ -280,8 +376,17 @@ export class BackendRouter {
 
   async *chatStream(backendId: string, request: ChatRequest): AsyncIterable<ChatChunk> {
     const backend = this.backends.get(backendId);
-    if (!backend) throw new Error(`Backend ${backendId} not found`);
-    yield* backend.chatStream(request);
+    if (!backend) {
+      // 自动降级到 zhipu（如果配置了 Key）
+      const zhipuFallback = this.backends.get('zhipu');
+      if (zhipuFallback) {
+        console.warn(`[BackendRouter] ${backendId} not found for stream, auto-falling back to zhipu`);
+        yield* this.chatStreamWithRetry('zhipu', request);
+        return;
+      }
+      throw new Error(`Backend ${backendId} not found`);
+    }
+    yield* this.chatStreamWithRetry(backendId, request);
   }
 
   // ─── 路由选择（支持fallback链）───────────────────────────
@@ -294,7 +399,7 @@ export class BackendRouter {
       const health = this.healthStatus.get(id);
       if (health?.status === 'unhealthy') continue;
       try {
-        const response = await backend.chat(request);
+        const response = await this.chatWithRetry(backend, request);
         return { backendId: id, response };
       } catch (err: any) {
         errors.push(`${id}: ${err.message}`);

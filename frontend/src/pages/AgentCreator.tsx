@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react'
 import {
   Bot, Users, ChevronRight, ChevronLeft, CheckCircle, Plus, X, Loader2,
-  Search, Server, Key, Cpu, MessageSquare, Sparkles
+  Search, Server, Key, Cpu, MessageSquare, Sparkles, Wand2, ArrowLeft,
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  fetchEngines, fetchPlatforms, fetchApiKeys, createAgent, fetchAgents
+  fetchEngines, fetchPlatforms, fetchApiKeys, createAgent, fetchAgents,
+  fetchAgentTemplates
 } from '@/api/client'
+import AgentTypeSelector, { AGENT_TYPES, AgentTypeConfig } from '@/components/AgentTypeSelector'
+import ColorPicker from '@/components/ColorPicker'
+import IconPicker from '@/components/IconPicker'
 
 /* ── Types ── */
 interface Engine {
@@ -42,12 +47,24 @@ interface AgentOption {
   type: 'agent' | 'group'
 }
 
+interface AgentTemplate {
+  id: string
+  name: string
+  description: string
+  agentType: string
+  systemPrompt: string
+  capabilities: string[]
+  color: string
+  icon: string
+  personality?: string
+}
+
 /* ── Step Config ── */
 const AGENT_STEPS = [
-  { id: 1, label: '基本信息', icon: Bot },
+  { id: 1, label: '选择类型', icon: Wand2 },
   { id: 2, label: '选择平台', icon: Server },
-  { id: 3, label: '配置API', icon: Key },
-  { id: 4, label: '分配引擎', icon: Cpu },
+  { id: 3, label: '个性化配置', icon: Sparkles },
+  { id: 4, label: '确认创建', icon: CheckCircle },
 ]
 
 const GROUP_STEPS = [
@@ -65,6 +82,7 @@ export default function AgentCreator() {
   const [description, setDescription] = useState('')
 
   // Agent mode
+  const [selectedType, setSelectedType] = useState<AgentTypeConfig | null>(null)
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const [engines, setEngines] = useState<Engine[]>([])
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
@@ -72,6 +90,18 @@ export default function AgentCreator() {
   const [selectedModel, setSelectedModel] = useState('')
   const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null)
   const [selectedEngine, setSelectedEngine] = useState('')
+
+  // Personalization
+  const [systemPrompt, setSystemPrompt] = useState('')
+  const [capabilities, setCapabilities] = useState<string[]>([])
+  const [color, setColor] = useState('')
+  const [icon, setIcon] = useState('')
+  const [personality, setPersonality] = useState('')
+  const [newCapability, setNewCapability] = useState('')
+
+  // Templates
+  const [templates, setTemplates] = useState<AgentTemplate[]>([])
+  const [showTemplates, setShowTemplates] = useState(false)
 
   // Group mode
   const [existingAgents, setExistingAgents] = useState<AgentOption[]>([])
@@ -110,6 +140,16 @@ export default function AgentCreator() {
     load()
   }, [])
 
+  useEffect(() => {
+    if (mode === 'agent' && showTemplates) {
+      fetchAgentTemplates().then((res: any) => {
+        setTemplates(Array.isArray(res) ? res : res.data || [])
+      }).catch(() => {
+        setTemplates([])
+      })
+    }
+  }, [mode, showTemplates])
+
   const l1Platforms = platforms.filter(
     (p) => p.protocolLevel === 1 && ['cloud', 'local', 'local-engine'].includes(p.category)
   )
@@ -127,10 +167,10 @@ export default function AgentCreator() {
   const canNext = () => {
     if (mode === 'agent') {
       switch (step) {
-        case 1: return name.trim().length > 0
+        case 1: return !!selectedType
         case 2: return !!selectedPlatform
-        case 3: return isL2Platform || !!selectedApiKey
-        case 4: return isL2Platform || !!selectedEngine
+        case 3: return name.trim().length > 0 && (isL2Platform || (!!selectedApiKey && !!selectedEngine))
+        case 4: return true
         default: return false
       }
     } else {
@@ -149,8 +189,8 @@ export default function AgentCreator() {
       return
     }
     if (mode === 'agent' && step === 2 && isL2Platform) {
-      // L2 orchestrators skip API & engine steps
-      handleCreateAgent()
+      // L2 orchestrators skip API & engine steps, go to personalization
+      setStep(3)
       return
     }
     if (mode === 'group' && step === 3) {
@@ -164,6 +204,40 @@ export default function AgentCreator() {
     if (step > 1) setStep(step - 1)
   }
 
+  const handleSelectType = (type: AgentTypeConfig) => {
+    setSelectedType(type)
+    setName(type.name)
+    setSystemPrompt(type.defaultSystemPrompt)
+    setCapabilities([...type.defaultCapabilities])
+    setColor(type.defaultColor)
+    setIcon(type.icon)
+
+    // Auto-select platform if available
+    const recommendedPlat = availablePlatforms.find(p =>
+      type.recommendedPlatforms.some(rp =>
+        p.id.toLowerCase().includes(rp.toLowerCase()) ||
+        p.name.toLowerCase().includes(rp.toLowerCase())
+      )
+    )
+    if (recommendedPlat) {
+      setSelectedPlatform(recommendedPlat)
+      setSelectedModel(recommendedPlat.models[0] || '')
+    }
+  }
+
+  const handleImportTemplate = (template: AgentTemplate) => {
+    const typeConfig = AGENT_TYPES.find(t => t.id === template.agentType) || AGENT_TYPES[0]
+    setSelectedType(typeConfig)
+    setName(template.name)
+    setDescription(template.description)
+    setSystemPrompt(template.systemPrompt)
+    setCapabilities([...(template.capabilities || [])])
+    setColor(template.color || typeConfig.defaultColor)
+    setIcon(template.icon || typeConfig.icon)
+    setPersonality(template.personality || '')
+    setShowTemplates(false)
+  }
+
   const handleCreateAgent = async () => {
     try {
       setCreating(true)
@@ -174,6 +248,14 @@ export default function AgentCreator() {
         apiKeyId: selectedApiKey?.id || undefined,
         model: selectedModel || selectedPlatform?.models[0],
         engineId: selectedEngine || undefined,
+        agentType: selectedType?.id || 'general',
+        systemPrompt,
+        capabilities,
+        color,
+        icon,
+        personality,
+        tags: capabilities,
+        stats: {},
       })
       setCreationSuccess(true)
     } catch (e) {
@@ -209,6 +291,17 @@ export default function AgentCreator() {
     )
   }
 
+  const addCapability = () => {
+    if (newCapability.trim() && !capabilities.includes(newCapability.trim())) {
+      setCapabilities([...capabilities, newCapability.trim()])
+      setNewCapability('')
+    }
+  }
+
+  const removeCapability = (cap: string) => {
+    setCapabilities(capabilities.filter((c) => c !== cap))
+  }
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       {/* Header */}
@@ -221,7 +314,7 @@ export default function AgentCreator() {
             {mode === 'agent' ? '创建智能体' : '创建智能体群组'}
           </h1>
           <p className="text-xs text-[var(--sage-500)]">
-            {mode === 'agent' ? '配置平台、API 与引擎' : '从现有智能体中组合'}
+            {mode === 'agent' ? '选择类型、配置平台、个性化定制' : '从现有智能体中组合'}
           </p>
         </div>
       </div>
@@ -290,10 +383,8 @@ export default function AgentCreator() {
         ) : mode === 'agent' ? (
           <AgentForm
             step={step}
-            name={name}
-            setName={setName}
-            description={description}
-            setDescription={setDescription}
+            selectedType={selectedType}
+            onSelectType={handleSelectType}
             platforms={availablePlatforms}
             selectedPlatform={selectedPlatform}
             setSelectedPlatform={setSelectedPlatform}
@@ -305,6 +396,28 @@ export default function AgentCreator() {
             engines={engines}
             selectedEngine={selectedEngine}
             setSelectedEngine={setSelectedEngine}
+            name={name}
+            setName={setName}
+            description={description}
+            setDescription={setDescription}
+            systemPrompt={systemPrompt}
+            setSystemPrompt={setSystemPrompt}
+            capabilities={capabilities}
+            addCapability={addCapability}
+            removeCapability={removeCapability}
+            newCapability={newCapability}
+            setNewCapability={setNewCapability}
+            color={color}
+            setColor={setColor}
+            icon={icon}
+            setIcon={setIcon}
+            personality={personality}
+            setPersonality={setPersonality}
+            templates={templates}
+            showTemplates={showTemplates}
+            setShowTemplates={setShowTemplates}
+            onImportTemplate={handleImportTemplate}
+            isL2Platform={isL2Platform}
           />
         ) : (
           <GroupForm
@@ -356,73 +469,166 @@ export default function AgentCreator() {
     setStep(1)
     setName('')
     setDescription('')
+    setSelectedType(null)
     setSelectedPlatform(null)
     setSelectedModel('')
     setSelectedApiKey(null)
     setSelectedEngine('')
+    setSystemPrompt('')
+    setCapabilities([])
+    setColor('')
+    setIcon('')
+    setPersonality('')
+    setNewCapability('')
     setSelectedMembers([])
     setGroupMode('parallel')
     setCreationSuccess(false)
+    setShowTemplates(false)
   }
 }
 
 /* ── Agent Form ── */
 function AgentForm({
-  step, name, setName, description, setDescription,
+  step, selectedType, onSelectType,
   platforms, selectedPlatform, setSelectedPlatform,
   selectedModel, setSelectedModel,
   apiKeys, selectedApiKey, setSelectedApiKey,
   engines, selectedEngine, setSelectedEngine,
+  name, setName, description, setDescription,
+  systemPrompt, setSystemPrompt,
+  capabilities, addCapability, removeCapability,
+  newCapability, setNewCapability,
+  color, setColor, icon, setIcon,
+  personality, setPersonality,
+  templates, showTemplates, setShowTemplates,
+  onImportTemplate, isL2Platform,
 }: any) {
   const [search, setSearch] = useState('')
+  const [platSearch, setPlatSearch] = useState('')
 
   if (step === 1) {
     return (
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-[var(--sage-700)] mb-1">名称</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="给智能体起个名字"
-            className="w-full px-4 py-2.5 rounded-card border text-sm"
-            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
-          />
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-[var(--sage-700)]">选择智能体类型</h3>
+          <button
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)] hover:bg-[var(--sage-200)] transition-colors"
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            {showTemplates ? '返回类型选择' : '从模板导入'}
+          </button>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-[var(--sage-700)] mb-1">描述</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="描述这个智能体的用途..."
-            rows={3}
-            className="w-full px-4 py-2.5 rounded-card border text-sm resize-none"
-            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
-          />
-        </div>
+
+        <AnimatePresence mode="wait">
+          {showTemplates ? (
+            <motion.div
+              key="templates"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="space-y-3"
+            >
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--sage-400)]" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="搜索模板..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-card border text-sm"
+                  style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+                />
+              </div>
+              {templates.length === 0 ? (
+                <div className="card text-center py-8">
+                  <Wand2 className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
+                  <p className="text-sm text-[var(--sage-500)]">暂无模板</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto">
+                  {templates.filter((t: AgentTemplate) =>
+                    !search || t.name.toLowerCase().includes(search.toLowerCase())
+                  ).map((template: AgentTemplate) => (
+                    <button
+                      key={template.id}
+                      onClick={() => onImportTemplate(template)}
+                      className="card p-3 text-left hover:bg-[var(--sage-50)] transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-sm text-[var(--sage-800)]">{template.name}</h4>
+                          <p className="text-[11px] text-[var(--sage-500)]">{template.description}</p>
+                        </div>
+                        <ArrowLeft className="w-4 h-4 text-[var(--sage-400)] rotate-180" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="types"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+            >
+              <AgentTypeSelector
+                selectedType={selectedType?.id || null}
+                onSelect={onSelectType}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     )
   }
 
   if (step === 2) {
-    const filtered = platforms.filter((p: Platform) =>
-      !search || p.name.toLowerCase().includes(search.toLowerCase())
+    // Sort platforms: recommended first
+    const recommendedIds = selectedType?.recommendedPlatforms || []
+    const sortedPlatforms = [...platforms].sort((a, b) => {
+      const aRec = recommendedIds.some(rp => a.id.toLowerCase().includes(rp.toLowerCase()) || a.name.toLowerCase().includes(rp.toLowerCase()))
+      const bRec = recommendedIds.some(rp => b.id.toLowerCase().includes(rp.toLowerCase()) || b.name.toLowerCase().includes(rp.toLowerCase()))
+      if (aRec && !bRec) return -1
+      if (!aRec && bRec) return 1
+      return 0
+    })
+
+    const filtered = sortedPlatforms.filter((p: Platform) =>
+      !platSearch || p.name.toLowerCase().includes(platSearch.toLowerCase())
     )
     const l1Filtered = filtered.filter((p: Platform) => p.protocolLevel === 1)
     const l2Filtered = filtered.filter((p: Platform) => p.protocolLevel === 2)
+    const recommendedFiltered = filtered.filter((p: Platform) =>
+      recommendedIds.some(rp => p.id.toLowerCase().includes(rp.toLowerCase()) || p.name.toLowerCase().includes(rp.toLowerCase()))
+    )
 
     return (
       <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--sage-400)]" />
           <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={platSearch}
+            onChange={(e) => setPlatSearch(e.target.value)}
             placeholder="搜索平台或编排器..."
             className="w-full pl-10 pr-4 py-2.5 rounded-card border text-sm"
             style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
           />
         </div>
+
+        {/* Recommended */}
+        {recommendedFiltered.length > 0 && !platSearch && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">推荐平台</span>
+              <span className="text-xs text-[var(--sage-400)]">{recommendedFiltered.length} 个</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {recommendedFiltered.map((p: Platform) => PlatformCard(p))}
+            </div>
+          </div>
+        )}
 
         {/* L1 基础框架 */}
         {l1Filtered.length > 0 && (
@@ -454,7 +660,6 @@ function AgentForm({
           <div className="card text-center py-8">
             <Search className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
             <p className="text-sm text-[var(--sage-500)]">未找到匹配的平台</p>
-            <p className="text-xs text-[var(--sage-400)] mt-1">尝试搜索其他关键词或查看所有平台</p>
           </div>
         )}
 
@@ -485,6 +690,9 @@ function AgentForm({
   function PlatformCard(p: Platform) {
     const isSelected = selectedPlatform?.id === p.id
     const isL2 = p.protocolLevel === 2
+    const isRecommended = selectedType?.recommendedPlatforms.some(rp =>
+      p.id.toLowerCase().includes(rp.toLowerCase()) || p.name.toLowerCase().includes(rp.toLowerCase())
+    )
     return (
       <button
         key={p.id}
@@ -506,131 +714,289 @@ function AgentForm({
           </div>
           {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
         </div>
-        <div className="text-xs text-[var(--sage-400)]">
-          {p.models.slice(0, 3).join(', ')}
-          {p.models.length > 3 && ` +${p.models.length - 3}`}
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-[var(--sage-400)]">
+            {p.models.slice(0, 3).join(', ')}
+            {p.models.length > 3 && ` +${p.models.length - 3}`}
+          </div>
+          {isRecommended && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-600">推荐</span>
+          )}
         </div>
       </button>
     )
   }
 
   if (step === 3) {
-    const isL2 = selectedPlatform?.protocolLevel === 2
-    if (isL2) {
+    // For L2 platforms, skip API & engine, show personalization directly
+    // For L1, show API & engine selection first (this is the old step 3 behavior)
+    if (!isL2Platform) {
       return (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-[var(--sage-700)]">选择 API Key</h3>
-            <span className="text-xs text-[var(--sage-500)]">平台: {selectedPlatform?.name}</span>
+        <div className="space-y-5">
+          <div>
+            <h3 className="text-sm font-medium text-[var(--sage-700)] mb-3">API 与引擎配置</h3>
           </div>
-          <div className="card text-center py-8">
-            <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-            <p className="text-sm text-[var(--sage-600)] font-medium">L2 编排器无需 API Key</p>
-            <p className="text-xs text-[var(--sage-400)] mt-1">{selectedPlatform?.name} 是编排器框架，不需要 API Key 配置</p>
+          {/* API Key */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium text-[var(--sage-700)]">选择 API Key</h4>
+              <span className="text-xs text-[var(--sage-500)]">平台: {selectedPlatform?.name}</span>
+            </div>
+            {apiKeys.length === 0 ? (
+              <div className="card text-center py-6">
+                <Key className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
+                <p className="text-sm text-[var(--sage-500)]">暂无 API Key，请先在平台管理中配置</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {apiKeys.map((k: ApiKey) => {
+                  const isSelected = selectedApiKey?.id === k.id
+                  return (
+                    <button
+                      key={k.id}
+                      onClick={() => setSelectedApiKey(k)}
+                      className={`w-full card p-3 text-left transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
+                            <Key className="w-4 h-4 text-[var(--sage-500)]" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-sm text-[var(--sage-800)]">{k.displayName}</h3>
+                            <span className="text-[10px] text-[var(--sage-500)]">{k.maskedKey}</span>
+                          </div>
+                        </div>
+                        {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
+
+          {/* Engine */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium text-[var(--sage-700)]">分配引擎</h4>
+              <span className="text-xs text-[var(--sage-500)]">{engines.length} 个可用</span>
+            </div>
+            <div className="space-y-2">
+              {engines.map((e: Engine) => {
+                const isSelected = selectedEngine === e.id
+                return (
+                  <button
+                    key={e.id}
+                    onClick={() => setSelectedEngine(e.id)}
+                    className={`w-full card p-3 text-left transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
+                          <Cpu className="w-4 h-4 text-[var(--sage-500)]" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-sm text-[var(--sage-800)]">{e.brand}</h3>
+                          <span className="text-[10px] text-[var(--sage-500)]">{e.model} · {e.tier}</span>
+                        </div>
+                      </div>
+                      {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-[var(--sage-500)]">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.status === 'healthy' ? '#10b981' : e.status === 'unhealthy' ? '#f59e0b' : '#6b7280' }} />
+                      {e.status === 'healthy' ? '健康' : e.status === 'unhealthy' ? '异常' : '离线'}
+                      <span className="text-[var(--sage-400)]">· 健康分: {e.healthScore}</span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t" style={{ borderColor: 'var(--sage-200)' }} />
+
+          {/* Personalization */}
+          <PersonalizationFields
+            name={name} setName={setName}
+            description={description} setDescription={setDescription}
+            systemPrompt={systemPrompt} setSystemPrompt={setSystemPrompt}
+            capabilities={capabilities} addCapability={addCapability} removeCapability={removeCapability}
+            newCapability={newCapability} setNewCapability={setNewCapability}
+            color={color} setColor={setColor}
+            icon={icon} setIcon={setIcon}
+            personality={personality} setPersonality={setPersonality}
+          />
         </div>
       )
     }
+
+    // L2 platform: show only personalization
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-[var(--sage-700)]">选择 API Key</h3>
-          <span className="text-xs text-[var(--sage-500)]">平台: {selectedPlatform?.name}</span>
+      <div className="space-y-5">
+        <div className="card p-3 bg-amber-50 border-amber-200">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span className="text-xs text-amber-700">L2 编排器无需配置 API Key 和引擎，直接进行个性化配置</span>
+          </div>
         </div>
-        {apiKeys.length === 0 ? (
-          <div className="card text-center py-8">
-            <Key className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
-            <p className="text-sm text-[var(--sage-500)]">暂无 API Key，请先在平台管理中配置</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {apiKeys.map((k: ApiKey) => {
-              const isSelected = selectedApiKey?.id === k.id
-              return (
-                <button
-                  key={k.id}
-                  onClick={() => setSelectedApiKey(k)}
-                  className={`w-full card p-4 text-left transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
-                        <Key className="w-5 h-5 text-[var(--sage-500)]" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-sm text-[var(--sage-800)]">{k.displayName}</h3>
-                        <span className="text-[10px] text-[var(--sage-500)]">{k.maskedKey}</span>
-                      </div>
-                    </div>
-                    {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        )}
+        <PersonalizationFields
+          name={name} setName={setName}
+          description={description} setDescription={setDescription}
+          systemPrompt={systemPrompt} setSystemPrompt={setSystemPrompt}
+          capabilities={capabilities} addCapability={addCapability} removeCapability={removeCapability}
+          newCapability={newCapability} setNewCapability={setNewCapability}
+          color={color} setColor={setColor}
+          icon={icon} setIcon={setIcon}
+          personality={personality} setPersonality={setPersonality}
+        />
       </div>
     )
   }
 
   if (step === 4) {
-    const isL2 = selectedPlatform?.protocolLevel === 2
-    if (isL2) {
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-[var(--sage-700)]">分配引擎</h3>
-            <span className="text-xs text-[var(--sage-500)]">平台: {selectedPlatform?.name}</span>
-          </div>
-          <div className="card text-center py-8">
-            <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-            <p className="text-sm text-[var(--sage-600)] font-medium">L2 编排器无需分配引擎</p>
-            <p className="text-xs text-[var(--sage-400)] mt-1">{selectedPlatform?.name} 使用内部协议调度，不需要外部引擎</p>
-          </div>
-        </div>
-      )
-    }
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-[var(--sage-700)]">分配引擎</h3>
-          <span className="text-xs text-[var(--sage-500)]">{engines.length} 个可用</span>
-        </div>
+        <h3 className="text-sm font-medium text-[var(--sage-700)]">确认配置</h3>
+
         <div className="space-y-3">
-          {engines.map((e: Engine) => {
-            const isSelected = selectedEngine === e.id
-            return (
-              <button
-                key={e.id}
-                onClick={() => setSelectedEngine(e.id)}
-                className={`w-full card p-4 text-left transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
-                      <Cpu className="w-5 h-5 text-[var(--sage-500)]" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-sm text-[var(--sage-800)]">{e.brand}</h3>
-                      <span className="text-[10px] text-[var(--sage-500)]">{e.model} · {e.tier}</span>
-                    </div>
-                  </div>
-                  {isSelected && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
-                </div>
-                <div className="flex items-center gap-2 mt-2 text-xs text-[var(--sage-500)]">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.status === 'healthy' ? '#10b981' : e.status === 'unhealthy' ? '#f59e0b' : '#6b7280' }} />
-                  {e.status === 'healthy' ? '健康' : e.status === 'unhealthy' ? '异常' : '离线'}
-                  <span className="text-[var(--sage-400)]">· 健康分: {e.healthScore}</span>
-                </div>
-              </button>
-            )
-          })}
+          <SummaryItem label="类型" value={selectedType?.name || '通用助手'} />
+          <SummaryItem label="名称" value={name} />
+          <SummaryItem label="描述" value={description || '—'} />
+          <SummaryItem label="平台" value={selectedPlatform?.name || '—'} />
+          <SummaryItem label="模型" value={selectedModel || selectedPlatform?.models[0] || '—'} />
+          {!isL2Platform && (
+            <>
+              <SummaryItem label="API Key" value={selectedApiKey?.displayName || '—'} />
+              <SummaryItem label="引擎" value={selectedEngine ? engines.find((e: Engine) => e.id === selectedEngine)?.brand : '—'} />
+            </>
+          )}
+          <SummaryItem label="系统提示词" value={systemPrompt.slice(0, 60) + (systemPrompt.length > 60 ? '...' : '')} />
+          <SummaryItem label="能力标签" value={capabilities.join(', ') || '—'} />
+          <SummaryItem label="个性特征" value={personality || '—'} />
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[var(--sage-500)] w-20">主题色</span>
+            <div className="w-5 h-5 rounded" style={{ backgroundColor: color }} />
+            <span className="text-xs text-[var(--sage-600)] font-mono">{color}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[var(--sage-500)] w-20">图标</span>
+            <span className="text-xs text-[var(--sage-600)] font-mono">{icon}</span>
+          </div>
         </div>
       </div>
     )
   }
 
   return null
+}
+
+function SummaryItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="text-xs text-[var(--sage-500)] w-20 flex-shrink-0">{label}</span>
+      <span className="text-xs text-[var(--sage-700)]">{value}</span>
+    </div>
+  )
+}
+
+function PersonalizationFields({
+  name, setName, description, setDescription,
+  systemPrompt, setSystemPrompt,
+  capabilities, addCapability, removeCapability,
+  newCapability, setNewCapability,
+  color, setColor, icon, setIcon,
+  personality, setPersonality,
+}: any) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-medium text-[var(--sage-700)]">个性化配置</h3>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--sage-700)] mb-1">名称</label>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="给智能体起个名字"
+          className="w-full px-4 py-2.5 rounded-card border text-sm"
+          style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--sage-700)] mb-1">描述</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="描述这个智能体的用途..."
+          rows={2}
+          className="w-full px-4 py-2.5 rounded-card border text-sm resize-none"
+          style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--sage-700)] mb-1">系统提示词</label>
+        <textarea
+          value={systemPrompt}
+          onChange={(e) => setSystemPrompt(e.target.value)}
+          placeholder="定义智能体的行为准则..."
+          rows={4}
+          className="w-full px-4 py-2.5 rounded-card border text-sm resize-none font-mono text-xs"
+          style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+        />
+        <p className="text-[10px] text-[var(--sage-400)] mt-1">系统提示词定义了智能体的核心行为，可在创建后随时修改</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--sage-700)] mb-1">能力标签</label>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {capabilities.map((cap: string) => (
+            <span
+              key={cap}
+              className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]"
+            >
+              {cap}
+              <button onClick={() => removeCapability(cap)} className="hover:text-red-500">
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            value={newCapability}
+            onChange={(e) => setNewCapability(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addCapability()}
+            placeholder="添加能力标签..."
+            className="flex-1 px-3 py-2 rounded-lg border text-sm"
+            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+          />
+          <button
+            onClick={addCapability}
+            className="px-3 py-2 rounded-lg bg-[var(--sage-100)] text-[var(--sage-600)] hover:bg-[var(--sage-200)] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[var(--sage-700)] mb-1">个性特征</label>
+        <input
+          value={personality}
+          onChange={(e) => setPersonality(e.target.value)}
+          placeholder="例如：严谨、幽默、耐心..."
+          className="w-full px-4 py-2.5 rounded-card border text-sm"
+          style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+        />
+      </div>
+
+      <ColorPicker value={color} onChange={setColor} />
+      <IconPicker value={icon} onChange={setIcon} />
+    </div>
+  )
 }
 
 /* ── Group Form ── */

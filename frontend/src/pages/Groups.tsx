@@ -26,6 +26,11 @@ import {
   Settings,
   ArrowRight,
   GitBranch,
+  MessageCircle,
+  Radio,
+  CheckCircle,
+  LayoutGrid,
+  Loader2,
 } from 'lucide-react'
 import {
   fetchGroups,
@@ -34,6 +39,7 @@ import {
   executeGroup,
   updateGroupStatus,
   fetchAgents,
+  fetchGroupStats,
 } from '@/api/client'
 
 /* ── Types ──────────────────────────────────────────────────────── */
@@ -61,6 +67,7 @@ interface Group {
   name: string
   entityType: 'mixed' | 'agents' | 'groups'
   type: 'sequential' | 'parallel' | 'hierarchical' | 'dynamic'
+  groupType?: string
   status: 'active' | 'paused' | 'completed'
   description: string
   coordinatorId?: string
@@ -71,148 +78,31 @@ interface Group {
   children?: Group[]
   health?: { overall: string; issues: string[] }
   accentColor?: string
+  color?: string
+  icon?: string
+  roleDefinitions?: Record<string, any>
+  strategy?: Record<string, any>
+  outputFormat?: string
   createdAt?: string
 }
 
-/* ── Mock Data for Tree Demo ──────────────────────────────────── */
+interface GroupStats {
+  total: number
+  active: number
+  paused: number
+  byType?: Record<string, number>
+}
 
-const mockGroups: Group[] = [
-  {
-    id: 'g-1',
-    name: '产品研发总部',
-    entityType: 'mixed',
-    type: 'hierarchical',
-    status: 'active',
-    description: '负责全产品线的研发管理，包含前端、后端、测试、运维子团队',
-    coordinatorId: 'a-1',
-    coordinatorName: '张总监',
-    entityIds: ['a-1', 'g-2', 'g-3', 'g-4'],
-    entities: [
-      { id: 'a-1', type: 'agent', name: '张总监', role: '技术总监', status: 'online', accentColor: '#6b7a5a' },
-      { id: 'g-2', type: 'group', name: '前端开发组' },
-      { id: 'g-3', type: 'group', name: '后端开发组' },
-      { id: 'g-4', type: 'group', name: '测试运维组' },
-    ],
-    tasks: [
-      { id: 't1', title: '产品迭代规划', status: 'in_progress', assigneeId: 'a-1', priority: 'high', progress: 60 },
-    ],
-    children: [
-      {
-        id: 'g-2',
-        name: '前端开发组',
-        entityType: 'agents',
-        type: 'parallel',
-        status: 'active',
-        description: 'React/Vue前端开发团队',
-        coordinatorId: 'a-2',
-        coordinatorName: '李前端',
-        entityIds: ['a-2', 'a-3', 'a-4'],
-        entities: [
-          { id: 'a-2', type: 'agent', name: '李前端', role: '前端负责人', status: 'online', accentColor: '#7fb89f' },
-          { id: 'a-3', type: 'agent', name: '王组件', role: 'UI组件开发', status: 'busy', accentColor: '#7fa3b0' },
-          { id: 'a-4', type: 'agent', name: '赵页面', role: '页面开发', status: 'online', accentColor: '#d4a373' },
-        ],
-        tasks: [
-          { id: 't2', title: '设计系统升级', status: 'in_progress', assigneeId: 'a-3', priority: 'high', progress: 45 },
-          { id: 't3', title: '仪表盘重构', status: 'pending', assigneeId: 'a-4', priority: 'medium', progress: 0 },
-        ],
-      },
-      {
-        id: 'g-3',
-        name: '后端开发组',
-        entityType: 'agents',
-        type: 'sequential',
-        status: 'active',
-        description: 'API服务与数据库开发',
-        coordinatorId: 'a-5',
-        coordinatorName: '陈后端',
-        entityIds: ['a-5', 'a-6'],
-        entities: [
-          { id: 'a-5', type: 'agent', name: '陈后端', role: '后端负责人', status: 'online', accentColor: '#8f9a7d' },
-          { id: 'a-6', type: 'agent', name: '刘数据库', role: 'DBA', status: 'offline', accentColor: '#c97b84' },
-        ],
-        tasks: [
-          { id: 't4', title: 'API v2开发', status: 'in_progress', assigneeId: 'a-5', priority: 'high', progress: 70 },
-        ],
-      },
-      {
-        id: 'g-4',
-        name: '测试运维组',
-        entityType: 'agents',
-        type: 'dynamic',
-        status: 'paused',
-        description: '自动化测试与CI/CD运维',
-        coordinatorId: 'a-7',
-        coordinatorName: '周测试',
-        entityIds: ['a-7', 'a-8'],
-        entities: [
-          { id: 'a-7', type: 'agent', name: '周测试', role: '测试负责人', status: 'online', accentColor: '#a78b9a' },
-          { id: 'a-8', type: 'agent', name: '吴运维', role: 'DevOps', status: 'busy', accentColor: '#c9a96e' },
-        ],
-        tasks: [
-          { id: 't5', title: 'CI流水线优化', status: 'completed', assigneeId: 'a-8', priority: 'medium', progress: 100 },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'g-5',
-    name: '数据分析中心',
-    entityType: 'mixed',
-    type: 'sequential',
-    status: 'active',
-    description: '数据采集→清洗→分析→可视化',
-    coordinatorId: 'a-9',
-    coordinatorName: '郑分析',
-    entityIds: ['a-9', 'g-6'],
-    entities: [
-      { id: 'a-9', type: 'agent', name: '郑分析', role: '分析负责人', status: 'online', accentColor: '#7fb89f' },
-      { id: 'g-6', type: 'group', name: '数据工程组' },
-    ],
-    tasks: [],
-    children: [
-      {
-        id: 'g-6',
-        name: '数据工程组',
-        entityType: 'agents',
-        type: 'parallel',
-        status: 'active',
-        description: 'ETL管道与数据仓库',
-        coordinatorId: 'a-10',
-        coordinatorName: '孙工程',
-        entityIds: ['a-10', 'a-11'],
-        entities: [
-          { id: 'a-10', type: 'agent', name: '孙工程', role: '数据工程师', status: 'online', accentColor: '#7fa3b0' },
-          { id: 'a-11', type: 'agent', name: '钱ETL', role: 'ETL开发', status: 'busy', accentColor: '#d4a373' },
-        ],
-        tasks: [
-          { id: 't6', title: '实时数仓搭建', status: 'in_progress', assigneeId: 'a-10', priority: 'high', progress: 30 },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'g-7',
-    name: '内容创作团队',
-    entityType: 'agents',
-    type: 'dynamic',
-    status: 'active',
-    description: '研究→写作→翻译→审校',
-    coordinatorId: 'a-12',
-    coordinatorName: '林创作',
-    entityIds: ['a-12', 'a-13', 'a-14'],
-    entities: [
-      { id: 'a-12', type: 'agent', name: '林创作', role: '内容总监', status: 'online', accentColor: '#6b7a5a' },
-      { id: 'a-13', type: 'agent', name: '黄写作', role: '撰稿人', status: 'busy', accentColor: '#c97b84' },
-      { id: 'a-14', type: 'agent', name: '何翻译', role: '翻译员', status: 'online', accentColor: '#8f9a7d' },
-    ],
-    tasks: [
-      { id: 't7', title: '产品白皮书撰写', status: 'in_progress', assigneeId: 'a-13', priority: 'high', progress: 55 },
-    ],
-  },
-]
+/* ── Group Type Config ──────────────────────────────────────────── */
 
-/* ── Helpers ────────────────────────────────────────────────────── */
+const GROUP_TYPE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  swarm: { label: '蜂群', icon: Zap, color: '#3B82F6' },
+  pipeline: { label: '流水线', icon: GitBranch, color: '#10B981' },
+  committee: { label: '委员会', icon: Users, color: '#8B5CF6' },
+  debate: { label: '辩论', icon: MessageCircle, color: '#F59E0B' },
+  'review-chain': { label: '审查链', icon: CheckCircle, color: '#EC4899' },
+  broadcast: { label: '广播', icon: Radio, color: '#14B8A6' },
+}
 
 const typeIcons: Record<string, React.ElementType> = {
   sequential: Clock,
@@ -256,6 +146,9 @@ function TreeNode({
   const hasChildren = group.children && group.children.length > 0
   const TypeIcon = typeIcons[group.type] || Users
   const indent = level * 20
+
+  const groupTypeConfig = group.groupType ? GROUP_TYPE_CONFIG[group.groupType] : null
+  const groupTypeColor = groupTypeConfig?.color || group.color || group.accentColor || 'var(--sage-500)'
 
   return (
     <div>
@@ -307,6 +200,14 @@ function TreeNode({
             >
               {group.status === 'active' ? '运行中' : group.status === 'paused' ? '已暂停' : '已完成'}
             </span>
+            {group.groupType && (
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 text-white"
+                style={{ backgroundColor: groupTypeColor }}
+              >
+                {groupTypeConfig?.label || group.groupType}
+              </span>
+            )}
           </div>
           <p className={`text-xs mt-0.5 truncate ${isSelected ? 'text-white/70' : 'text-[var(--sage-500)]'}`}>
             {(group.entities?.length || group.entityIds?.length || 0)} 成员 · {typeLabels[group.type]}
@@ -395,9 +296,9 @@ function searchGroups(groups: Group[], query: string): Group[] {
     (g) =>
       g.name.toLowerCase().includes(q) ||
       g.description.toLowerCase().includes(q) ||
-      g.coordinatorName?.toLowerCase().includes(q)
+      g.coordinatorName?.toLowerCase().includes(q) ||
+      g.groupType?.toLowerCase().includes(q)
   )
-  // Return top-level groups that have matches in their tree
   return groups.filter((g) => {
     const flat = flattenGroups([g])
     return flat.some((fg) => fg.name.toLowerCase().includes(q) || fg.description.toLowerCase().includes(q))
@@ -408,17 +309,21 @@ function searchGroups(groups: Group[], query: string): Group[] {
 
 export default function Groups() {
   const navigate = useNavigate()
-  const [groups, setGroups] = useState<Group[]>(mockGroups)
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(mockGroups[0] || null)
+  const [groups, setGroups] = useState<Group[]>([])
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['g-1', 'g-5']))
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [executingId, setExecutingId] = useState<string | null>(null)
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [stats, setStats] = useState<GroupStats>({ total: 0, active: 0, paused: 0 })
+  const [statsLoading, setStatsLoading] = useState(false)
 
   useEffect(() => {
     loadGroups()
+    loadStats()
   }, [])
 
   async function loadGroups() {
@@ -426,15 +331,37 @@ export default function Groups() {
       setLoading(true)
       setError(null)
       const res = await fetchGroups()
-      if (res.data && res.data.length > 0) {
-        setGroups(res.data)
-        setSelectedGroup(res.data[0])
+      const data = res.data || res || []
+      if (Array.isArray(data) && data.length > 0) {
+        setGroups(data)
+        setSelectedGroup(data[0])
+      } else {
+        setGroups([])
       }
     } catch (e: any) {
       console.error(e)
-      // Keep mock data on error
+      setError('加载群组失败: ' + e.message)
+      setGroups([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadStats() {
+    try {
+      setStatsLoading(true)
+      const res = await fetchGroupStats()
+      const data = res.data || res || {}
+      setStats({
+        total: data.total || 0,
+        active: data.active || 0,
+        paused: data.paused || 0,
+        byType: data.byType || {},
+      })
+    } catch (e) {
+      console.error('Failed to load group stats:', e)
+    } finally {
+      setStatsLoading(false)
     }
   }
 
@@ -458,7 +385,6 @@ export default function Groups() {
       loadGroups()
     } catch (e) {
       console.error(e)
-      // Optimistic update
       const removeGroup = (list: Group[]): Group[] =>
         list
           .filter((g) => g.id !== id)
@@ -490,7 +416,6 @@ export default function Groups() {
       loadGroups()
     } catch (e) {
       console.error(e)
-      // Optimistic update
       const updateStatus = (list: Group[]): Group[] =>
         list.map((g) => {
           if (g.id === id) {
@@ -507,8 +432,13 @@ export default function Groups() {
     }
   }
 
-  const filteredGroups = searchGroups(groups, search)
+  const filteredGroups = searchGroups(groups, search).filter(g =>
+    typeFilter === 'all' || g.groupType === typeFilter
+  )
   const totalCount = flattenGroups(groups).length
+
+  // Unique group types for filter
+  const typeOptions = Array.from(new Set(groups.map(g => g.groupType).filter(Boolean)))
 
   return (
     <div className="space-y-6">
@@ -525,6 +455,62 @@ export default function Groups() {
           创建群组
         </button>
       </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: '全部', value: statsLoading ? '—' : stats.total, icon: LayoutGrid, color: 'bg-[var(--sage-500)]' },
+          { label: '运行中', value: statsLoading ? '—' : stats.active, icon: CheckCircle, color: 'bg-green-500' },
+          { label: '已暂停', value: statsLoading ? '—' : stats.paused, icon: Pause, color: 'bg-amber-500' },
+        ].map((stat) => (
+          <button
+            key={stat.label}
+            className="flex items-center gap-3 px-4 py-3 rounded-card text-sm bg-white hover:bg-[var(--sage-50)] transition-colors"
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${stat.color} text-white`}>
+              <stat.icon className="w-4 h-4" />
+            </div>
+            <div className="text-left">
+              <div className="text-xs text-[var(--sage-500)]">{stat.label}</div>
+              <div className="text-lg font-bold text-[var(--sage-800)]">{stat.value}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Type Filter */}
+      {typeOptions.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-[var(--sage-500)] mr-1">按类型筛选:</span>
+          <button
+            onClick={() => setTypeFilter('all')}
+            className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+              typeFilter === 'all'
+                ? 'bg-[var(--sage-500)] text-white'
+                : 'bg-[var(--sage-100)] text-[var(--sage-600)] hover:bg-[var(--sage-200)]'
+            }`}
+          >
+            全部
+          </button>
+          {typeOptions.map((type) => {
+            const config = GROUP_TYPE_CONFIG[type]
+            return (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(type)}
+                className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                  typeFilter === type
+                    ? 'text-white'
+                    : 'bg-[var(--sage-100)] text-[var(--sage-600)] hover:bg-[var(--sage-200)]'
+                }`}
+                style={typeFilter === type ? { backgroundColor: config?.color || '#6B7280' } : {}}
+              >
+                {config?.label || type}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {/* Error Banner */}
       {error && (
@@ -574,7 +560,10 @@ export default function Groups() {
 
           {/* Tree */}
           {loading ? (
-            <div className="text-center py-8 text-[var(--sage-500)]">加载中...</div>
+            <div className="text-center py-8 text-[var(--sage-500)]">
+              <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+              加载中...
+            </div>
           ) : filteredGroups.length === 0 ? (
             <div className="card text-center py-8">
               <Users className="w-10 h-10 text-[var(--sage-400)] mx-auto mb-2" />
@@ -627,6 +616,7 @@ export default function Groups() {
             onClose={() => setShowCreate(false)}
             onCreated={() => {
               loadGroups()
+              loadStats()
               setShowCreate(false)
             }}
           />
@@ -658,6 +648,15 @@ function GroupPreview({
   const agentCount = group.entities?.filter((e) => e.type === 'agent').length || 0
   const groupCount = group.entities?.filter((e) => e.type === 'group').length || 0
 
+  const groupTypeConfig = group.groupType ? GROUP_TYPE_CONFIG[group.groupType] : null
+  const groupTypeColor = groupTypeConfig?.color || group.color || group.accentColor || 'var(--sage-500)'
+  const GroupTypeIcon = groupTypeConfig?.icon || Users
+
+  // Role definitions
+  const roleEntries = group.roleDefinitions
+    ? Object.entries(group.roleDefinitions)
+    : []
+
   return (
     <motion.div
       key={group.id}
@@ -673,9 +672,9 @@ function GroupPreview({
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-card flex items-center justify-center"
-                style={{ backgroundColor: 'var(--sage-100)' }}
+                style={{ backgroundColor: groupTypeColor + '20' }}
               >
-                <TypeIcon className="w-5 h-5 text-[var(--sage-500)]" />
+                <GroupTypeIcon className="w-5 h-5" style={{ color: groupTypeColor }} />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-[var(--sage-800)]">{group.name}</h2>
@@ -695,6 +694,17 @@ function GroupPreview({
                   >
                     {group.status === 'active' ? '运行中' : group.status === 'paused' ? '已暂停' : '已完成'}
                   </span>
+                  {group.groupType && (
+                    <>
+                      <span className="text-xs text-[var(--sage-400)]">·</span>
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full text-white"
+                        style={{ backgroundColor: groupTypeColor }}
+                      >
+                        {groupTypeConfig?.label || group.groupType}
+                      </span>
+                    </>
+                  )}
                   {group.entityType === 'mixed' && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
                       混合
@@ -704,6 +714,22 @@ function GroupPreview({
               </div>
             </div>
             <p className="text-sm text-[var(--sage-500)] mt-2">{group.description}</p>
+
+            {/* Strategy & Output */}
+            {(group.strategy || group.outputFormat) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {group.strategy && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-50)] text-[var(--sage-500)] border" style={{ borderColor: 'var(--sage-200)' }}>
+                    策略: {Object.keys(group.strategy).join(', ')}
+                  </span>
+                )}
+                {group.outputFormat && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-50)] text-[var(--sage-500)] border" style={{ borderColor: 'var(--sage-200)' }}>
+                    输出: {group.outputFormat}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -759,6 +785,36 @@ function GroupPreview({
           ))}
         </div>
       </div>
+
+      {/* Role Definitions */}
+      {roleEntries.length > 0 && (
+        <div className="card p-4">
+          <h3 className="font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
+            <Settings className="w-4 h-4" /> 角色分工
+          </h3>
+          <div className="space-y-2">
+            {roleEntries.map(([roleName, roleDef]) => (
+              <div
+                key={roleName}
+                className="flex items-center gap-3 bg-[var(--sage-50)] rounded-lg px-3 py-2.5"
+              >
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                  style={{ backgroundColor: groupTypeColor }}
+                >
+                  {roleName[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-[var(--sage-800)]">{roleName}</div>
+                  <div className="text-[11px] text-[var(--sage-500)]">
+                    {typeof roleDef === 'string' ? roleDef : (roleDef?.description || JSON.stringify(roleDef).slice(0, 60))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Members */}
       <div className="card p-4">
@@ -858,6 +914,7 @@ function GroupPreview({
 function CreateGroupModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [name, setName] = useState('')
   const [type, setType] = useState<'sequential' | 'parallel' | 'hierarchical' | 'dynamic'>('parallel')
+  const [groupType, setGroupType] = useState('swarm')
   const [desc, setDesc] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [availableAgents, setAvailableAgents] = useState<{ id: string; name: string }[]>([])
@@ -868,25 +925,15 @@ function CreateGroupModal({ onClose, onCreated }: { onClose: () => void; onCreat
   const [activePicker, setActivePicker] = useState<'agents' | 'groups' | null>(null)
 
   useEffect(() => {
-    fetchAgents().then((res) => {
+    fetchAgents().then((res: any) => {
       if (res.data) setAvailableAgents(res.data.map((a: any) => ({ id: a.id, name: a.name })))
     }).catch(() => {
-      // Mock fallback
-      setAvailableAgents([
-        { id: 'a-1', name: '张总监' },
-        { id: 'a-2', name: '李前端' },
-        { id: 'a-3', name: '王组件' },
-        { id: 'a-5', name: '陈后端' },
-        { id: 'a-7', name: '周测试' },
-      ])
+      setAvailableAgents([])
     })
-    fetchGroups().then((res) => {
+    fetchGroups().then((res: any) => {
       if (res.data) setAvailableGroups(res.data.map((g: any) => ({ id: g.id, name: g.name })))
     }).catch(() => {
-      setAvailableGroups([
-        { id: 'g-2', name: '前端开发组' },
-        { id: 'g-3', name: '后端开发组' },
-      ])
+      setAvailableGroups([])
     })
   }, [])
 
@@ -909,6 +956,7 @@ function CreateGroupModal({ onClose, onCreated }: { onClose: () => void; onCreat
       await createGroup({
         name: name.trim(),
         type,
+        groupType,
         description: desc.trim(),
         entityType:
           selectedAgentIds.length > 0 && selectedGroupIds.length > 0
@@ -961,6 +1009,30 @@ function CreateGroupModal({ onClose, onCreated }: { onClose: () => void; onCreat
               placeholder="例如：产品研发总部"
               required
             />
+          </div>
+
+          {/* Group Type */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--sage-700)] mb-1.5">群组类型</label>
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(GROUP_TYPE_CONFIG).map(([key, config]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setGroupType(key)}
+                  className={`flex items-center gap-2 p-2.5 rounded-lg border text-left transition-all ${
+                    groupType === key
+                      ? 'border-[var(--sage-500)] bg-[var(--sage-50)]'
+                      : 'border-[var(--sage-200)] hover:border-[var(--sage-300)]'
+                  }`}
+                >
+                  <config.icon className="w-4 h-4 flex-shrink-0" style={{ color: config.color }} />
+                  <div>
+                    <div className="text-xs font-medium text-[var(--sage-700)]">{config.label}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Execution Mode */}

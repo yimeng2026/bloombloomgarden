@@ -47,6 +47,24 @@ model Agent {
   roleInGroup     String   @default("solo")
   coordinatorId   String?
 
+  // --- Agent Type System (个性化) ---
+  // agentType: 预设类型分类
+  agentType       String   @default("general")
+  // capabilities: JSON array of capability tags ["coding", "debug", "review"]
+  capabilities    String   @default("[]")
+  // personality: 个性化特征描述
+  personality     String?
+  // systemPrompt: 系统提示词（覆盖默认）
+  systemPrompt    String?
+  // tags: JSON array of user-defined tags
+  tags            String   @default("[]")
+  // color: 主题色（hex如 #3B82F6）
+  color           String?
+  // icon: 图标名称（Lucide icon name）
+  icon            String?
+  // stats: JSON object {totalCalls, tokensUsed, avgLatency, successRate}
+  stats           String   @default("{}")
+
   // --- Multi-Thread First: backward compatibility mapping ---
   // If this agent was created via the new team-based flow, it maps to a Role
   roleId          String?  // Maps to Role.id (for new architecture)
@@ -64,6 +82,8 @@ model Agent {
   @@index([groupId])
   @@index([teamId])
   @@index([roleId])
+  @@index([agentType])
+  @@index([capabilities])
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -269,6 +289,20 @@ model Group {
   healthScore     Int      @default(100)
   taskStats       String   @default("{}") // JSON string
 
+  // --- Group Type System ---
+  // groupType: swarm | pipeline | committee | debate | review-chain | broadcast
+  groupType       String   @default("swarm")
+  // roleDefinitions: JSON array of {roleName, agentType, required, description}
+  roleDefinitions String   @default("[]")
+  // strategy: JSON object {strategyName, config}
+  strategy        String   @default("{}")
+  // outputFormat: 输出格式 markdown | json | code | summary
+  outputFormat    String   @default("markdown")
+  // color: 主题色
+  color           String?
+  // icon: 图标名称
+  icon            String?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -277,6 +311,48 @@ model Group {
   @@index([parentId])
   @@index([status])
   @@index([coordinatorId])
+  @@index([groupType])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Agent Template — 预设模板库
+// ═══════════════════════════════════════════════════════════════
+
+model AgentTemplate {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  // agentType: 对应 Agent.agentType
+  agentType       String
+  // capabilities: JSON array of capability tags
+  capabilities    String   @default("[]")
+  // personality: 个性化特征描述
+  personality     String?
+  // systemPrompt: 默认系统提示词
+  systemPrompt    String?
+  // recommendedPlatform: 推荐平台ID
+  recommendedPlatform String?
+  // recommendedModel: 推荐模型
+  recommendedModel String?
+  // tags: JSON array of tags
+  tags            String   @default("[]")
+  // color: 主题色
+  color           String?
+  // icon: 图标名称
+  icon            String?
+  // config: JSON 默认配置
+  config          String   @default("{}")
+  // isBuiltin: 是否内置模板
+  isBuiltin       Boolean  @default(false)
+  // category: 分类 coding | writing | analysis | creative | research | business
+  category        String   @default("general")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([agentType])
+  @@index([category])
+  @@index([isBuiltin])
 }
 
 model KnowledgeBase {

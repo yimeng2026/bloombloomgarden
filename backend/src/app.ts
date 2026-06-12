@@ -42,6 +42,7 @@ import swarmRouter from './routes/swarm';
 import canvasRouter from './routes/canvas';
 import workflowsRouter from './routes/workflows';
 import chatAccountsRouter from './routes/chat-accounts';
+import agentTemplatesRouter from './routes/agent-templates';
 
 const app = express();
 
@@ -139,6 +140,7 @@ app.use('/api/swarm', swarmRouter);                   // 蜂群协调
 app.use('/api/canvas', canvasRouter);                 // 协作画布
 app.use('/api/workflows', workflowsRouter);           // 工作流
 app.use('/api/chat-accounts', chatAccountsRouter);   // 聊天软件账号配置
+app.use('/api/agent-templates', agentTemplatesRouter); // 预设模板库
 
 // ─── Dashboard 聚合端点�?Coordinator 要求）─────────────
 app.get('/api/dashboard/state', async (_req, res) => {

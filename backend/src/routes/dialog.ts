@@ -6,7 +6,7 @@ import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 const router = Router();
 
 // 辅助函数：获取 Agent 绑定的平台和模型
-async function resolveAgentPlatform(agentId: string): Promise<{ platformId: string; model: string; apiKeyId?: string }> {
+async function resolveAgentPlatform(agentId: string): Promise<{ platformId: string; model: string; apiKeyId?: string; systemPrompt?: string }> {
   const agentService = getAgentService();
   const roleService = getRoleService();
 
@@ -27,11 +27,11 @@ async function resolveAgentPlatform(agentId: string): Promise<{ platformId: stri
   let model = agent.config?.model as string | undefined;
 
   // 2b. 兼容旧数据：从 config.llmConfig.provider 获取平台
-  if (!platformId && agent.config?.llmConfig?.provider) {
-    platformId = agent.config.llmConfig.provider as string;
+  if (!platformId && (agent.config?.llmConfig as any)?.provider) {
+    platformId = (agent.config?.llmConfig as any).provider as string;
   }
-  if (!model && agent.config?.llmConfig?.model) {
-    model = agent.config.llmConfig.model as string;
+  if (!model && (agent.config?.llmConfig as any)?.model) {
+    model = (agent.config?.llmConfig as any).model as string;
   }
 
   // 3. 如果 Agent 没有绑定平台，尝试从 Role 获取
@@ -53,7 +53,23 @@ async function resolveAgentPlatform(agentId: string): Promise<{ platformId: stri
     model = 'deepseek/deepseek-chat-v3-0324';
   }
 
-  return { platformId, model, apiKeyId };
+  // 5. 收集 systemPrompt（如果 Agent 有个性化配置）
+  const systemPrompt = agent.systemPrompt || undefined;
+
+  return { platformId, model, apiKeyId, systemPrompt };
+}
+
+// 辅助函数：将 systemPrompt 注入为第一条 system 消息
+function injectSystemPrompt(messages: any[], systemPrompt?: string): any[] {
+  if (!systemPrompt || typeof systemPrompt !== 'string' || !systemPrompt.trim()) {
+    return messages;
+  }
+  // 如果已有 system 消息，插入在第一个 system 之前
+  const hasSystem = messages.some(m => m.role === 'system');
+  if (hasSystem) {
+    return messages.map(m => (m.role === 'system' ? { ...m, content: `${systemPrompt}\n\n${m.content}` } : m));
+  }
+  return [{ role: 'system', content: systemPrompt }, ...messages];
 }
 
 // 1. GET /api/dialog/agents — 可对话 Agent 列表
@@ -77,7 +93,7 @@ router.post('/', asyncHandler(async (req, res) => {
   res.json({ success: true, data: session });
 }));
 
-// 2. POST /api/dialog/:agentId/chat — 调用 LLM API（非流式）
+// 2. POST /api/dialog/:agentId/chat — 调用 LLM API（非流式，支持 systemPrompt）
 router.post('/:agentId/chat', asyncHandler(async (req, res) => {
   const { content, role = 'user' } = req.body;
   const service = getDialogService();
@@ -87,13 +103,16 @@ router.post('/:agentId/chat', asyncHandler(async (req, res) => {
 
   // 获取完整上下文
   const context = await service.getContext(req.params.agentId);
-  const messages = (context?.messages || []).map((m: any) => ({
+  let messages = (context?.messages || []).map((m: any) => ({
     role: m.role === 'agent' ? 'assistant' : m.role,
     content: m.content,
   }));
 
   // 解析 Agent 绑定的平台和模型
-  const { platformId, model } = await resolveAgentPlatform(req.params.agentId);
+  const { platformId, model, systemPrompt } = await resolveAgentPlatform(req.params.agentId);
+
+  // 注入 Agent 的 systemPrompt（如果存在）
+  messages = injectSystemPrompt(messages, systemPrompt);
 
   // 调用 LLM API（通过 Agent/Role 绑定的平台）
   const backendRouter = getBackendRouter();
@@ -126,7 +145,7 @@ router.get('/:agentId/stream', asyncHandler(async (req, res) => {
   return handleStream(req, res, message as string);
 }));
 
-// 3b. POST /api/dialog/:agentId/stream — SSE 流式调用 LLM API（安全版本）
+// 3b. POST /api/dialog/:agentId/stream — SSE 流式调用 LLM API（安全版本，支持 systemPrompt）
 router.post('/:agentId/stream', asyncHandler(async (req, res) => {
   const { message } = req.body;
   if (!message || typeof message !== 'string') {
@@ -147,19 +166,22 @@ async function handleStream(req: any, res: any, message: string) {
 
   // 获取上下文
   const context = await service.getContext(req.params.agentId);
-  const messages = (context?.messages || []).map((m: any) => ({
+  let messages = (context?.messages || []).map((m: any) => ({
     role: m.role === 'agent' ? 'assistant' : m.role,
     content: m.content,
   }));
+
+  // 解析 Agent 绑定的平台和模型
+  const { platformId, model, systemPrompt } = await resolveAgentPlatform(req.params.agentId);
+
+  // 注入 Agent 的 systemPrompt（如果存在）
+  messages = injectSystemPrompt(messages, systemPrompt);
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
   try {
-    // 解析 Agent 绑定的平台和模型
-    const { platformId, model } = await resolveAgentPlatform(req.params.agentId);
-
     const backendRouter = getBackendRouter();
     let fullContent = '';
 

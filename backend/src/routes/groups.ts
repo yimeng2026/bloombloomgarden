@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { GroupService, GroupStatus } from '../services/GroupService';
+import { GroupService, GroupStatus, VALID_GROUP_TYPES } from '../services/GroupService';
 import { getGroupService, getAgentService } from '../services';
 import prisma from '../config/prisma';
 import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
@@ -41,6 +41,7 @@ async function buildGroupTree(
           status: agent.status,
           protocolLevel: agent.protocolLevel,
           mode: agent.mode,
+          agentType: agent.agentType,
         });
         continue;
       }
@@ -57,6 +58,7 @@ async function buildGroupTree(
             id: childGroup.id,
             name: childGroup.name,
             status: childGroup.status,
+            groupType: childGroup.groupType,
             children: subtree.children || [],
           });
         }
@@ -76,6 +78,7 @@ async function buildGroupTree(
     parentId: group.parentId,
     coordinatorId: group.coordinatorId,
     executionMode: group.executionMode,
+    groupType: group.groupType,
     entityIds,
     entityType: group.entityType,
     maxDepth: group.maxDepth,
@@ -106,24 +109,44 @@ function computeEntityType(
   return currentType as any;
 }
 
-// 1. GET /api/groups — 列表
-router.get('/', asyncHandler(async (_req, res) => {
+// 1. GET /api/groups — 列表（支持按 groupType 过滤）
+router.get('/', asyncHandler(async (req, res) => {
+  const { groupType } = req.query;
   const service = getGroupService();
-  const groups = await service.list();
+  const groups = await service.list({
+    groupType: groupType as string | undefined,
+  });
   res.json({ success: true, data: groups, total: groups.length });
 }));
 
-// 2. POST /api/groups — 创建（支持 entityIds 代替 agentIds）
+// 1b. GET /api/groups/stats — 群组统计
+router.get('/stats', asyncHandler(async (_req, res) => {
+  const service = getGroupService();
+  const stats = await service.getStats();
+  res.json({ success: true, data: stats });
+}));
+
+// 2. POST /api/groups — 创建（支持新字段）
 router.post('/', asyncHandler(async (req, res) => {
   const {
     name, description, parentId, coordinatorId,
     executionMode, maxDepth,
-    // ─── 统一实体系统新字段 ────────────────────────
+    // 统一实体系统新字段
     entityIds,
     agentIds, // 向后兼容：旧字段 agentIds 映射到 entityIds
-    // ─── 蜂群模式字段 ──────────────────────────────
+    // 蜂群模式字段
     swarmMode,
+    // Group Type System 新字段
+    groupType, roleDefinitions, strategy, outputFormat, color, icon,
   } = req.body;
+
+  // 校验 groupType（如果提供）
+  if (groupType && !VALID_GROUP_TYPES.includes(groupType)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid groupType "${groupType}". Must be one of: ${VALID_GROUP_TYPES.join(', ')}`,
+    });
+  }
 
   // ── Step 1: 创建基础 Group ──
   const service = getGroupService();
@@ -134,6 +157,13 @@ router.post('/', asyncHandler(async (req, res) => {
     coordinatorId,
     executionMode,
     maxDepth,
+    // Group Type System
+    groupType,
+    roleDefinitions,
+    strategy,
+    outputFormat,
+    color,
+    icon,
   });
 
   // ── Step 2: 处理 entityIds / agentIds ──
@@ -181,10 +211,20 @@ router.get('/:id', asyncHandler(async (req, res) => {
   res.json({ success: true, data: group });
 }));
 
-// 4. PUT /api/groups/:id — 更新
+// 4. PUT /api/groups/:id — 更新（支持新字段）
 router.put('/:id', asyncHandler(async (req, res) => {
   const service = getGroupService();
-  const group = await service.update(req.params.id, req.body);
+  const updatePayload: any = { ...req.body };
+
+  // 校验 groupType（如果提供）
+  if (req.body.groupType && !VALID_GROUP_TYPES.includes(req.body.groupType)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid groupType "${req.body.groupType}". Must be one of: ${VALID_GROUP_TYPES.join(', ')}`,
+    });
+  }
+
+  const group = await service.update(req.params.id, updatePayload);
   if (!group) return res.status(404).json({ success: false, error: 'Group not found' });
   res.json({ success: true, data: group });
 }));
@@ -378,6 +418,7 @@ router.get('/:id/swarm-status', asyncHandler(async (req, res) => {
     swarmEnabled: a.swarmEnabled,
     swarmMode: a.swarmMode,
     roleInGroup: a.roleInGroup,
+    agentType: a.agentType,
   }));
   res.json({
     success: true,
@@ -385,6 +426,7 @@ router.get('/:id/swarm-status', asyncHandler(async (req, res) => {
       groupId: group.id,
       groupName: group.name,
       swarmMode: group.swarmMode || group.executionMode || 'sequential',
+      groupType: group.groupType,
       healthScore: (group as any).healthScore ?? 100,
       agentCount: agents.length,
       activeCount: agents.filter((a: any) => a.status === 'active').length,
