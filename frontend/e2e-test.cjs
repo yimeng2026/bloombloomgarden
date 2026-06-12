@@ -248,32 +248,111 @@ async function clickButton(page, selector, name) {
     await page.close();
   }
 
-  // ─── 16. 创建 Agent 流程测试 ─────────────────────────
+  // ─── 16. v4.0 创建 Agent 流程测试 ─────────────────────────
   {
     const page = await browser.newPage();
     await page.goto(`${BASE_URL}/#/agents/create`, { waitUntil: 'networkidle2' });
-    await waitFor(1500);
+    await waitFor(2000);
     
+    // 检查页面标题
+    const hasTitle = await page.evaluate(() => {
+      return document.body.innerText.includes('创建智能体') && 
+             document.body.innerText.includes('v4.0');
+    });
+    if (hasTitle) {
+      log('创建Agent-v4', '页面标题正确', 'pass');
+    } else {
+      log('创建Agent-v4', '页面标题可能不正确', 'warn');
+    }
+    
+    // Step 1: 选择 Framework
+    const fwCards = await page.$$('.card');
+    if (fwCards.length > 0) {
+      await fwCards[0].click();
+      await waitFor(500);
+      log('创建Agent-v4', `Step 1: 选中框架 (${fwCards.length} 个可选)`, 'pass');
+    } else {
+      log('创建Agent-v4', 'Step 1: 无框架可选', 'warn');
+    }
+    
+    // 点击下一步
+    const nextBtns = await page.$$('button');
+    for (const btn of nextBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('下一步') || text.includes('下一步')) {
+        await btn.click();
+        await waitFor(1000);
+        break;
+      }
+    }
+    
+    // Step 2: 填写 Team 信息
     const inputs = await page.$$('input');
-    if (inputs.length >= 2) {
-      await inputs[0].type('E2E-Test-Agent');
-      await inputs[1].type('tester');
-      log('创建Agent', '表单填写成功', 'pass');
+    if (inputs.length >= 1) {
+      await inputs[0].type('E2E-Test-Team');
+      log('创建Agent-v4', 'Step 2: 团队名称填写成功', 'pass');
+    }
+    
+    // 点击创建团队（下一步）
+    for (const btn of nextBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('下一步') || text.includes('确认')) {
+        await btn.click();
+        await waitFor(1500);
+        break;
+      }
+    }
+    
+    // Step 3: 添加角色
+    const addRoleBtns = await page.$$('button');
+    let addRoleClicked = false;
+    for (const btn of addRoleBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('添加角色')) {
+        await btn.click();
+        await waitFor(500);
+        addRoleClicked = true;
+        break;
+      }
+    }
+    if (addRoleClicked) {
+      log('创建Agent-v4', 'Step 3: 添加角色按钮点击成功', 'pass');
       
-      // 查找提交按钮
-      const submitBtns = await page.$$('button');
-      const submitBtn = submitBtns.find(async b => {
-        const t = await b.evaluate(el => el.innerText);
-        return t.includes('创建') || t.includes('提交') || t.includes('保存');
-      });
-      if (submitBtn) {
-        log('创建Agent', '发现提交按钮', 'pass');
-      } else {
-        log('创建Agent', '未找到提交按钮', 'warn');
+      // 填写角色名称
+      const roleInputs = await page.$$('input');
+      for (const inp of roleInputs) {
+        const placeholder = await inp.evaluate(el => el.placeholder || '');
+        if (placeholder.includes('角色名称') || placeholder.includes('数据分析师')) {
+          await inp.type('E2E-Test-Role');
+          log('创建Agent-v4', 'Step 3: 角色名称填写成功', 'pass');
+          break;
+        }
       }
     } else {
-      log('创建Agent', `表单只有 ${inputs.length} 个输入框`, 'warn');
+      log('创建Agent-v4', 'Step 3: 未找到添加角色按钮', 'warn');
     }
+    
+    // 点击确认创建
+    for (const btn of addRoleBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('确认创建') || text.includes('创建')) {
+        await btn.click();
+        await waitFor(1500);
+        break;
+      }
+    }
+    
+    // Step 4: 检查引擎分配页面
+    const hasEngines = await page.evaluate(() => {
+      return document.body.innerText.includes('分配引擎') || 
+             document.body.innerText.includes('引擎');
+    });
+    if (hasEngines) {
+      log('创建Agent-v4', 'Step 4: 引擎分配页面加载成功', 'pass');
+    } else {
+      log('创建Agent-v4', 'Step 4: 引擎分配页面可能未加载', 'warn');
+    }
+    
     await page.close();
   }
 
