@@ -57,12 +57,7 @@ const navItems: NavItem[] = [
     children: [
       { id: 'list', label: '列表', route: '/agents' },
       { id: 'create', label: '创建', route: '/agents/create' },
-      { id: 'collab', label: '协作', route: '/agents/collab' },
-      { id: 'groups', label: '协作组', route: '/groups' },
-      { id: 'collaboration', label: '协作组管理', route: '/collaboration' },
-      { id: 'swarm', label: '蜂群面板', route: '/swarm' },
-      { id: 'swarm-arch', label: '蜂群架构', route: '/swarm-architectures' },
-      { id: 'monitor', label: '监控', route: '/agents/monitor' },
+      { id: 'swarm', label: '蜂群', route: '/swarm' },
     ],
   },
   {
