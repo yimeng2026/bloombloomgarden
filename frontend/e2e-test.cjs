@@ -90,7 +90,7 @@ async function clickButton(page, selector, name) {
 
   // ─── 3. Agents 页面 ─────────────────────────────────
   {
-    const { page, ok, mainText } = await testPage(browser, '/agents', '智能体列表', 'AGENT');
+    const { page, ok, mainText } = await testPage(browser, '/agents', '智能体列表', '智能体');
     if (ok && page) {
       // 测试按钮点击
       const buttons = await page.$$('button');
@@ -198,7 +198,7 @@ async function clickButton(page, selector, name) {
 
   // ─── 12. Chat 页面 ──────────────────────────────────
   {
-    const { page, ok } = await testPage(browser, '/chat', '聊天', '聊天');
+    const { page, ok } = await testPage(browser, '/chat', '聊天', '新对话');
     if (ok && page) {
       await page.close();
     }
@@ -293,17 +293,18 @@ async function clickButton(page, selector, name) {
       log('创建Agent-v4', 'Step 2: 团队名称填写成功', 'pass');
     }
     
-    // 点击创建团队（下一步）
-    for (const btn of nextBtns) {
+    // 点击创建团队（下一步）— 需要重新获取按钮
+    const step2Btns = await page.$$('button');
+    for (const btn of step2Btns) {
       const text = await btn.evaluate(el => el.innerText);
       if (text.includes('下一步') || text.includes('确认')) {
         await btn.click();
-        await waitFor(1500);
+        await waitFor(3000); // 等待团队创建和页面跳转
         break;
       }
     }
     
-    // Step 3: 添加角色
+    // Step 3: 添加角色 — 重新获取按钮
     const addRoleBtns = await page.$$('button');
     let addRoleClicked = false;
     for (const btn of addRoleBtns) {
@@ -342,51 +343,99 @@ async function clickButton(page, selector, name) {
       }
     }
     
-    // Step 4: 检查引擎分配页面
+    // Step 4: 选择平台
+    const hasPlatforms = await page.evaluate(() => {
+      return document.body.innerText.includes('选择平台') || 
+             document.body.innerText.includes('平台');
+    });
+    if (hasPlatforms) {
+      log('创建Agent-v4', 'Step 4: 平台选择页面加载成功', 'pass');
+      // 选择第一个平台
+      const platCards = await page.$$('.card');
+      if (platCards.length > 0) {
+        await platCards[0].click();
+        await waitFor(500);
+        log('创建Agent-v4', 'Step 4: 选中平台', 'pass');
+      }
+    } else {
+      log('创建Agent-v4', 'Step 4: 平台选择页面可能未加载', 'warn');
+    }
+    
+    // 点击下一步到 Step 5
+    const allBtns = await page.$$('button');
+    for (const btn of allBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('下一步')) {
+        await btn.click();
+        await waitFor(1000);
+        break;
+      }
+    }
+    
+    // Step 5: 选择 API
+    const hasApiKeys = await page.evaluate(() => {
+      return document.body.innerText.includes('选择 API') || 
+             document.body.innerText.includes('API');
+    });
+    if (hasApiKeys) {
+      log('创建Agent-v4', 'Step 5: API 选择页面加载成功', 'pass');
+    } else {
+      log('创建Agent-v4', 'Step 5: API 选择页面可能未加载', 'warn');
+    }
+    
+    // 点击下一步到 Step 6
+    const allBtns2 = await page.$$('button');
+    for (const btn of allBtns2) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('下一步')) {
+        await btn.click();
+        await waitFor(1000);
+        break;
+      }
+    }
+    
+    // Step 6: 检查引擎分配页面
     const hasEngines = await page.evaluate(() => {
       return document.body.innerText.includes('分配引擎') || 
              document.body.innerText.includes('引擎');
     });
     if (hasEngines) {
-      log('创建Agent-v4', 'Step 4: 引擎分配页面加载成功', 'pass');
+      log('创建Agent-v4', 'Step 6: 引擎分配页面加载成功', 'pass');
     } else {
-      log('创建Agent-v4', 'Step 4: 引擎分配页面可能未加载', 'warn');
+      log('创建Agent-v4', 'Step 6: 引擎分配页面可能未加载', 'warn');
     }
     
     await page.close();
   }
 
-  // ─── 17. 引擎聊天功能测试 ────────────────────────────
+  // ─── 17. Agent 列表对话跳转测试 ────────────────────────────
   {
     const page = await browser.newPage();
-    await page.goto(`${BASE_URL}/#/engines`, { waitUntil: 'networkidle2' });
+    await page.goto(`${BASE_URL}/#/agents`, { waitUntil: 'networkidle2' });
     await waitFor(2000);
     
-    // 查找聊天按钮
+    // 查找对话按钮
     const buttons = await page.$$('button');
     let chatClicked = false;
     for (const btn of buttons) {
       const text = await btn.evaluate(el => el.innerText);
-      if (text.includes('对话')) {
+      if (text.includes('开始对话') || text.includes('对话')) {
         await btn.click();
         await waitFor(1500);
         
-        // 检查聊天面板是否出现
-        const modal = await page.$('.fixed');
-        const overlay = await page.evaluate(() => {
-          return document.body.innerText.includes('发送');
-        });
-        if (overlay) {
-          log('引擎聊天', '聊天面板打开成功', 'pass');
+        // 检查是否跳转到聊天页面
+        const url = page.url();
+        if (url.includes('chat') && url.includes('agentId')) {
+          log('Agent对话跳转', '点击对话按钮后正确跳转到聊天页', 'pass');
           chatClicked = true;
         } else {
-          log('引擎聊天', '聊天面板可能未正确打开', 'warn');
+          log('Agent对话跳转', `跳转URL不正确: ${url}`, 'warn');
         }
         break;
       }
     }
     if (!chatClicked) {
-      log('引擎聊天', '未找到聊天按钮', 'warn');
+      log('Agent对话跳转', '未找到对话按钮', 'warn');
     }
     await page.close();
   }
