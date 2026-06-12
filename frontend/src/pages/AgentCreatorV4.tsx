@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Layers, Users, UserCog, Cpu, ChevronRight, ChevronLeft,
-  CheckCircle, Plus, X, Loader2, Sparkles
+  CheckCircle, Plus, X, Loader2, Sparkles, Search
 } from 'lucide-react'
 import {
   fetchFrameworks, createTeam, createRole, fetchEngines
