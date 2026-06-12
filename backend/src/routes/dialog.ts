@@ -26,6 +26,14 @@ async function resolveAgentPlatform(agentId: string): Promise<{ platformId: stri
   let apiKeyId = agent.apiKeyId;
   let model = agent.config?.model as string | undefined;
 
+  // 2b. 兼容旧数据：从 config.llmConfig.provider 获取平台
+  if (!platformId && agent.config?.llmConfig?.provider) {
+    platformId = agent.config.llmConfig.provider as string;
+  }
+  if (!model && agent.config?.llmConfig?.model) {
+    model = agent.config.llmConfig.model as string;
+  }
+
   // 3. 如果 Agent 没有绑定平台，尝试从 Role 获取
   if (!platformId && agent.role) {
     // agent.role 可能是 roleId 或 roleName，先尝试作为 ID 查询
