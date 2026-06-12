@@ -345,6 +345,41 @@ model Settings {
   updatedAt       DateTime @updatedAt
 }
 
+model ChatAccount {
+  id          String   @id @default(uuid())
+  name        String   // 显示名称，如 "微信客服号"
+  platformId  String   // 关联的平台ID（如 zhipu, openclaw）
+  channelType String   // wechat | discord | telegram | slack | whatsapp | line | teams | matrix | irc
+
+  // 凭证（加密存储）
+  credentials String   @default("{}") // JSON: {token, appId, appSecret, sessionKey, cookie}
+
+  // 配置
+  config      String   @default("{}") // JSON: {webhook, callbackUrl, groupWhitelist, autoReply}
+
+  // 状态
+  status      String   @default("pending") // pending | configuring | connected | disconnected | error
+
+  // 二维码/扫码相关（微信等）
+  qrCodeData  String?  // Base64二维码图片或扫码URL
+  qrCodeExpiresAt DateTime? // 二维码过期时间
+
+  // 连接信息
+  connectedAt DateTime?
+  lastMessageAt DateTime?
+  errorMessage String?
+
+  // 元数据
+  metadata    String   @default("{}") // JSON: {nickname, avatar, userId, botId, etc.}
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([platformId])
+  @@index([channelType])
+  @@index([status])
+}
+
 model ChatMessage {
   id              String   @id @default(uuid())
   agentId         String

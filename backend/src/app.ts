@@ -41,6 +41,7 @@ import enginesRouter from './routes/engines';
 import swarmRouter from './routes/swarm';
 import canvasRouter from './routes/canvas';
 import workflowsRouter from './routes/workflows';
+import chatAccountsRouter from './routes/chat-accounts';
 
 const app = express();
 
@@ -137,6 +138,7 @@ app.use('/api/engines', enginesRouter);               // 引擎调度           
 app.use('/api/swarm', swarmRouter);                   // 蜂群协调
 app.use('/api/canvas', canvasRouter);                 // 协作画布
 app.use('/api/workflows', workflowsRouter);           // 工作流
+app.use('/api/chat-accounts', chatAccountsRouter);   // 聊天软件账号配置
 
 // ─── Dashboard 聚合端点�?Coordinator 要求）─────────────
 app.get('/api/dashboard/state', async (_req, res) => {

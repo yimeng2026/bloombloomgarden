@@ -65,6 +65,7 @@ const navItems: NavItem[] = [
     icon: MessageSquare,
     children: [
       { id: 'chat', label: '聊天', route: '/chat' },
+      { id: 'chat-accounts', label: '聊天账号', route: '/chat-accounts' },
       { id: 'channels', label: '频道', route: '/channels' },
       { id: 'sessions', label: '会话', route: '/sessions' },
       { id: 'dialog-center', label: '对话中心', route: '/dialog-center' },

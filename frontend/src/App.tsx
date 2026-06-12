@@ -29,6 +29,7 @@ const SettingsHub    = lazy(() => import('@/pages/SettingsHub'))
 const Admin          = lazy(() => import('@/pages/Admin'))
 const Chat           = lazy(() => import('@/pages/Chat'))
 const ChatChannels   = lazy(() => import('@/pages/ChatChannels'))
+const ChatAccountManager = lazy(() => import('@/pages/ChatAccountManager'))
 const TasksAndChat   = lazy(() => import('@/pages/TasksAndChat'))
 const Channels       = lazy(() => import('@/pages/Channels'))
 const Sessions       = lazy(() => import('@/pages/Sessions'))
@@ -120,6 +121,7 @@ export default function App() {
             {/* Chat & Communication */}
             <Route path="/chat" element={<Chat />} />
             <Route path="/chat/channels" element={<ChatChannels />} />
+            <Route path="/chat-accounts" element={<ChatAccountManager />} />
             <Route path="/tasks" element={<TasksAndChat />} />
             <Route path="/channels" element={<Channels />} />
             <Route path="/sessions" element={<Sessions />} />

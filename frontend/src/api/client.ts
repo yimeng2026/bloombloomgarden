@@ -440,3 +440,16 @@ export const restoreCanvasRevision = (id: string, revisionId: string) => post(`/
 export const batchChatSwarm = (data: any) => post('/swarm/batch-chat', data);
 export const coordinateSwarm = (data: any) => post('/swarm/coordinate', data);
 export const aggregateSwarm = (data: any) => post('/swarm/aggregate', data);
+
+/* ── Chat Accounts ── */
+export const fetchChatAccounts = (filters?: any) => get('/chat-accounts' + (filters ? '?' + new URLSearchParams(filters) : ''));
+export const getChatAccount = (id: string) => get(`/chat-accounts/${id}`);
+export const createChatAccount = (data: any) => post('/chat-accounts', data);
+export const updateChatAccount = (id: string, data: any) => put(`/chat-accounts/${id}`, data);
+export const deleteChatAccount = (id: string) => del(`/chat-accounts/${id}`);
+export const connectChatAccount = (id: string) => post(`/chat-accounts/${id}/connect`, {});
+export const disconnectChatAccount = (id: string) => post(`/chat-accounts/${id}/disconnect`, {});
+export const generateQRCode = (id: string) => post(`/chat-accounts/${id}/qr-code`, {});
+export const getQRStatus = (id: string) => get(`/chat-accounts/${id}/qr-status`);
+export const testChatAccount = (id: string) => post(`/chat-accounts/${id}/test`, {});
+export const getPlatformChatAccounts = (platformId: string) => get(`/chat-accounts/platforms/${platformId}`);
