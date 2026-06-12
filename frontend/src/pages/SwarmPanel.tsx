@@ -327,20 +327,18 @@ export default function SwarmPage() {
   const [executionResult, setExecutionResult] = useState<any>(null)
   const abortRef = useRef<(() => void) | null>(null)
 
-  /* ── SwarmArchitectures data ── */
-  const [engines, setEngines] = useState<Engine[]>([])
-  const [enginesLoading, setEnginesLoading] = useState(true)
-  const [selectedEngines, setSelectedEngines] = useState<string[]>([])
-  const [prompt, setPrompt] = useState('')
-  const [strategy, setStrategy] = useState<Strategy>('parallel')
-  const [isRunning, setIsRunning] = useState(false)
-  const [engineStates, setEngineStates] = useState<Record<string, EngineRunState>>({})
-  const [aggregateResult, setAggregateResult] = useState<any>(null)
-  const [history, setHistory] = useState<SwarmRun[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [showHistory, setShowHistory] = useState(false)
-  const abortsRef = useRef<(() => void)[]>([])
-  const statesRef = useRef<Record<string, EngineRunState>>({})
+  /* ── Multi-Agent execution state (replaces engine swarm) ── */
+  const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([])
+  const [swarmPrompt, setSwarmPrompt] = useState('')
+  const [swarmStrategy, setSwarmStrategy] = useState<Strategy>('parallel')
+  const [isSwarmRunning, setIsSwarmRunning] = useState(false)
+  const [agentRunStates, setAgentRunStates] = useState<Record<string, EngineRunState>>({})
+  const [swarmAggregateResult, setSwarmAggregateResult] = useState<any>(null)
+  const [swarmHistory, setSwarmHistory] = useState<SwarmRun[]>([])
+  const [swarmError, setSwarmError] = useState<string | null>(null)
+  const [showSwarmHistory, setShowSwarmHistory] = useState(false)
+  const swarmAbortsRef = useRef<(() => void)[]>([])
+  const agentStatesRef = useRef<Record<string, EngineRunState>>({})
 
   /* ── Canvas data ── */
   const [canvases, setCanvases] = useState<CanvasItem[]>([])
@@ -393,25 +391,6 @@ export default function SwarmPage() {
       })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, [])
-
-  // Load engines
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      try {
-        setEnginesLoading(true)
-        const res: any = await fetchEngines()
-        const data = res.data || res
-        if (!cancelled) setEngines(Array.isArray(data) ? data : [])
-      } catch (e: any) {
-        if (!cancelled) setError('加载引擎列表失败：' + (e.message || '未知错误'))
-      } finally {
-        if (!cancelled) setEnginesLoading(false)
-      }
-    }
-    load()
     return () => { cancelled = true }
   }, [])
 
@@ -491,146 +470,151 @@ export default function SwarmPage() {
   }
 
   /* ═══════════════════════════════════════════════════════════
-     SwarmArchitectures Actions
+     SwarmArchitectures Actions (now Multi-Agent)
      ═══════════════════════════════════════════════════════════ */
 
-  useEffect(() => { statesRef.current = engineStates }, [engineStates])
+  useEffect(() => { agentStatesRef.current = agentRunStates }, [agentRunStates])
 
-  const toggleEngine = (id: string) => {
-    setSelectedEngines((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+  const toggleAgent = (id: string) => {
+    setSelectedAgentIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
   }
-  const selectAll = () => setSelectedEngines(engines.map((e) => e.id))
-  const clearSelection = () => setSelectedEngines([])
+  const selectAllAgents = () => setSelectedAgentIds(nodes.map((n) => n.id))
+  const clearAgentSelection = () => setSelectedAgentIds([])
 
-  const updateEngineState = useCallback((engineId: string, patch: Partial<EngineRunState>) => {
-    setEngineStates((prev) => {
-      const next = { ...prev, [engineId]: { ...prev[engineId], ...patch } }
-      statesRef.current = next
+  const updateAgentRunState = useCallback((agentId: string, patch: Partial<EngineRunState>) => {
+    setAgentRunStates((prev) => {
+      const next = { ...prev, [agentId]: { ...prev[agentId], ...patch } }
+      agentStatesRef.current = next
       return next
     })
   }, [])
 
-  const resetStates = useCallback(() => {
+  const resetAgentStates = useCallback(() => {
     const initial: Record<string, EngineRunState> = {}
-    selectedEngines.forEach((id) => { initial[id] = { status: 'pending', content: '' } })
-    setEngineStates(initial)
-    statesRef.current = initial
-    setAggregateResult(null)
-    setError(null)
-  }, [selectedEngines])
+    selectedAgentIds.forEach((id) => { initial[id] = { status: 'pending', content: '' } })
+    setAgentRunStates(initial)
+    agentStatesRef.current = initial
+    setSwarmAggregateResult(null)
+    setSwarmError(null)
+  }, [selectedAgentIds])
 
-  const addToHistory = useCallback((agg: any) => {
-    const run: SwarmRun = { id: `swarm-${Date.now()}`, timestamp: Date.now(), strategy, prompt, engineIds: [...selectedEngines], results: { ...statesRef.current }, aggregate: agg }
-    setHistory((prev) => [run, ...prev].slice(0, 20))
-  }, [strategy, prompt, selectedEngines])
+  const addToSwarmHistory = useCallback((agg: any) => {
+    const run: SwarmRun = { id: `swarm-${Date.now()}`, timestamp: Date.now(), strategy: swarmStrategy, prompt: swarmPrompt, engineIds: [...selectedAgentIds], results: { ...agentStatesRef.current }, aggregate: agg }
+    setSwarmHistory((prev) => [run, ...prev].slice(0, 20))
+  }, [swarmStrategy, swarmPrompt, selectedAgentIds])
 
-  const runParallel = useCallback(async () => {
-    resetStates()
-    setIsRunning(true)
+  const runSwarmParallel = useCallback(async () => {
+    resetAgentStates()
+    setIsSwarmRunning(true)
     const aborts: (() => void)[] = []
     try {
-      const promises = selectedEngines.map((engineId) => {
+      const promises = selectedAgentIds.map((agentId) => {
         return new Promise<void>((resolve) => {
-          const engine = engines.find((e) => e.id === engineId)
-          if (!engine) { resolve(); return }
-          updateEngineState(engineId, { status: 'running', startTime: Date.now() })
+          const agent = nodes.find((n) => n.id === agentId)
+          if (!agent) { resolve(); return }
+          updateAgentRunState(agentId, { status: 'running', startTime: Date.now() })
           const abort = streamChatWithAgent(
-            engineId, [{ role: 'user', content: prompt }],
+            agentId, [{ role: 'user', content: swarmPrompt }],
             (event) => {
               const content = extractContent(event)
               if (content) {
-                const current = statesRef.current[engineId]?.content || ''
-                updateEngineState(engineId, { status: 'running', content: current + content })
+                const current = agentStatesRef.current[agentId]?.content || ''
+                updateAgentRunState(agentId, { status: 'running', content: current + content })
               }
             },
-            (err) => { updateEngineState(engineId, { status: 'failed', error: err.message, endTime: Date.now() }); resolve() },
-            () => { updateEngineState(engineId, { status: 'completed', endTime: Date.now() }); resolve() }
+            (err) => { updateAgentRunState(agentId, { status: 'failed', error: err.message, endTime: Date.now() }); resolve() },
+            () => { updateAgentRunState(agentId, { status: 'completed', endTime: Date.now() }); resolve() }
           )
           aborts.push(abort)
         })
       })
       await Promise.all(promises)
-      const completed = Object.values(statesRef.current).filter((s) => s.status === 'completed').length
+      const completed = Object.values(agentStatesRef.current).filter((s) => s.status === 'completed').length
       let agg: any
-      if (strategy === 'vote') {
-        agg = { mode: 'vote', ...analyzeVote(statesRef.current, engines) }
+      if (swarmStrategy === 'vote') {
+        agg = { mode: 'vote', ...analyzeVote(agentStatesRef.current, nodes.map(n => ({ id: n.id, brand: n.name, model: '', tier: '', status: n.status }))) }
       } else {
-        agg = { mode: 'parallel', completed, total: selectedEngines.length }
+        agg = { mode: 'parallel', completed, total: selectedAgentIds.length }
       }
-      setAggregateResult(agg)
-      addToHistory(agg)
+      setSwarmAggregateResult(agg)
+      addToSwarmHistory(agg)
     } catch (e: any) {
-      setError('蜂群执行失败：' + (e.message || '未知错误'))
+      setSwarmError('蜂群执行失败：' + (e.message || '未知错误'))
     } finally {
-      setIsRunning(false)
-      abortsRef.current = aborts
+      setIsSwarmRunning(false)
+      swarmAbortsRef.current = aborts
     }
-  }, [selectedEngines, engines, prompt, strategy, resetStates, updateEngineState, addToHistory])
+  }, [selectedAgentIds, nodes, swarmPrompt, swarmStrategy, resetAgentStates, updateAgentRunState, addToSwarmHistory])
 
-  const runSequential = useCallback(async () => {
-    resetStates()
-    setIsRunning(true)
+  const runSwarmSequential = useCallback(async () => {
+    resetAgentStates()
+    setIsSwarmRunning(true)
     const aborts: (() => void)[] = []
     try {
-      for (const engineId of selectedEngines) {
-        const engine = engines.find((e) => e.id === engineId)
-        if (!engine) continue
-        updateEngineState(engineId, { status: 'running', startTime: Date.now() })
+      for (const agentId of selectedAgentIds) {
+        const agent = nodes.find((n) => n.id === agentId)
+        if (!agent) continue
+        updateAgentRunState(agentId, { status: 'running', startTime: Date.now() })
         await new Promise<void>((resolve) => {
           const abort = streamChatWithAgent(
-            engineId, [{ role: 'user', content: prompt }],
+            agentId, [{ role: 'user', content: swarmPrompt }],
             (event) => {
               const content = extractContent(event)
               if (content) {
-                const current = statesRef.current[engineId]?.content || ''
-                updateEngineState(engineId, { status: 'running', content: current + content })
+                const current = agentStatesRef.current[agentId]?.content || ''
+                updateAgentRunState(agentId, { status: 'running', content: current + content })
               }
             },
-            (err) => { updateEngineState(engineId, { status: 'failed', error: err.message, endTime: Date.now() }); resolve() },
-            () => { updateEngineState(engineId, { status: 'completed', endTime: Date.now() }); resolve() }
+            (err) => { updateAgentRunState(agentId, { status: 'failed', error: err.message, endTime: Date.now() }); resolve() },
+            () => { updateAgentRunState(agentId, { status: 'completed', endTime: Date.now() }); resolve() }
           )
           aborts.push(abort)
         })
       }
-      const completed = Object.values(statesRef.current).filter((s) => s.status === 'completed').length
-      const agg = { mode: 'sequential', completed, total: selectedEngines.length }
-      setAggregateResult(agg)
-      addToHistory(agg)
+      const completed = Object.values(agentStatesRef.current).filter((s) => s.status === 'completed').length
+      const agg = { mode: 'sequential', completed, total: selectedAgentIds.length }
+      setSwarmAggregateResult(agg)
+      addToSwarmHistory(agg)
     } catch (e: any) {
-      setError('蜂群执行失败：' + (e.message || '未知错误'))
+      setSwarmError('蜂群执行失败：' + (e.message || '未知错误'))
     } finally {
-      setIsRunning(false)
-      abortsRef.current = aborts
+      setIsSwarmRunning(false)
+      swarmAbortsRef.current = aborts
     }
-  }, [selectedEngines, engines, prompt, resetStates, updateEngineState, addToHistory])
+  }, [selectedAgentIds, nodes, swarmPrompt, resetAgentStates, updateAgentRunState, addToSwarmHistory])
 
-  const handleStart = () => {
-    if (selectedEngines.length === 0) { setError('请至少选择一个引擎'); return }
-    if (!prompt.trim()) { setError('请输入任务提示词'); return }
-    setError(null)
-    if (strategy === 'sequential') { runSequential() } else { runParallel() }
+  const handleSwarmStart = () => {
+    if (selectedAgentIds.length === 0) { setSwarmError('请至少选择一个Agent'); return }
+    if (!swarmPrompt.trim()) { setSwarmError('请输入任务提示词'); return }
+    setSwarmError(null)
+    if (swarmStrategy === 'sequential') { runSwarmSequential() } else { runSwarmParallel() }
   }
 
-  const handleStop = () => {
-    abortsRef.current.forEach((abort) => abort())
-    setIsRunning(false)
-    Object.entries(statesRef.current).forEach(([id, state]) => {
+  const handleSwarmStop = () => {
+    swarmAbortsRef.current.forEach((abort) => abort())
+    setIsSwarmRunning(false)
+    Object.entries(agentStatesRef.current).forEach(([id, state]) => {
       if (state.status === 'running') {
-        updateEngineState(id, { status: 'failed', error: '用户中断', endTime: Date.now() })
+        updateAgentRunState(id, { status: 'failed', error: '用户中断', endTime: Date.now() })
       }
     })
   }
 
-  const clearHistory = () => setHistory([])
+  const clearSwarmHistory = () => setSwarmHistory([])
 
-  const loadHistory = (run: SwarmRun) => {
-    setSelectedEngines(run.engineIds)
-    setPrompt(run.prompt)
-    setStrategy(run.strategy)
-    setEngineStates(run.results)
-    setAggregateResult(run.aggregate)
-    setShowHistory(false)
+  const loadSwarmHistory = (run: SwarmRun) => {
+    setSelectedAgentIds(run.engineIds)
+    setSwarmPrompt(run.prompt)
+    setSwarmStrategy(run.strategy)
+    setAgentRunStates(run.results)
+    setSwarmAggregateResult(run.aggregate)
+    setShowSwarmHistory(false)
   }
+
+  const swarmRunningCount = Object.values(agentRunStates).filter((s) => s.status === 'running').length
+  const swarmCompletedCount = Object.values(agentRunStates).filter((s) => s.status === 'completed').length
+  const swarmFailedCount = Object.values(agentRunStates).filter((s) => s.status === 'failed').length
+  const swarmTotalCount = selectedAgentIds.length
 
   const statusIcon = (status: string) => {
     switch (status) {
@@ -661,11 +645,6 @@ export default function SwarmPage() {
       default: return 'bg-[var(--sage-100)] text-[var(--sage-500)]'
     }
   }
-
-  const runningCount = Object.values(engineStates).filter((s) => s.status === 'running').length
-  const completedCount = Object.values(engineStates).filter((s) => s.status === 'completed').length
-  const failedCount = Object.values(engineStates).filter((s) => s.status === 'failed').length
-  const totalCount = selectedEngines.length
 
   /* ═══════════════════════════════════════════════════════════
      Canvas Actions
@@ -1282,7 +1261,7 @@ export default function SwarmPage() {
         </div>
       )}
 
-      {/* ===== Execute Tab (merged: chariot + engines) ===== */}
+      {/* ===== Execute Tab (merged: chariot + agents) ===== */}
       {overviewTab === 'execute' && (
         <div className="space-y-4">
           {/* ── Chariot Execution ── */}
@@ -1344,45 +1323,45 @@ export default function SwarmPage() {
           {/* Divider */}
           <div className="border-t border-dashed" style={{ borderColor: 'var(--sage-200)' }} />
 
-          {/* ── Engine Swarm Execution (from SwarmArchitectures) ── */}
+          {/* ── Multi-Agent Swarm Execution ── */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <Zap className="w-6 h-6 text-[var(--sage-500)]" />
               <div>
-                <h1 className="text-2xl font-bold text-[var(--sage-800)]">多引擎执行</h1>
-                <p className="text-sm text-[var(--sage-500)]">多引擎协作 · {engines.length} 个引擎可用</p>
+                <h1 className="text-2xl font-bold text-[var(--sage-800)]">多Agent执行</h1>
+                <p className="text-sm text-[var(--sage-500)]">多Agent协作 · {nodes.length} 个Agent可用</p>
               </div>
             </div>
-            <button onClick={() => setShowHistory(!showHistory)} className="btn-secondary flex items-center gap-2"><History className="w-4 h-4" />历史记录 {history.length > 0 && `(${history.length})`}</button>
+            <button onClick={() => setShowSwarmHistory(!showSwarmHistory)} className="btn-secondary flex items-center gap-2"><History className="w-4 h-4" />历史记录 {swarmHistory.length > 0 && `(${swarmHistory.length})`}</button>
           </div>
 
-          {error && (
+          {swarmError && (
             <div className="card p-3 flex items-center gap-2 bg-red-50 border-red-200">
               <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-              <p className="text-sm text-red-600 flex-1">{error}</p>
-              <button onClick={() => setError(null)} className="p-1 hover:bg-red-100 rounded transition-colors"><X className="w-4 h-4 text-red-500" /></button>
+              <p className="text-sm text-red-600 flex-1">{swarmError}</p>
+              <button onClick={() => setSwarmError(null)} className="p-1 hover:bg-red-100 rounded transition-colors"><X className="w-4 h-4 text-red-500" /></button>
             </div>
           )}
 
-          {showHistory && (
+          {showSwarmHistory && (
             <div className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-[var(--sage-800)] flex items-center gap-2"><History className="w-4 h-4 text-[var(--sage-500)]" />执行历史</h3>
-                {history.length > 0 && <button onClick={clearHistory} className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors"><Trash2 className="w-3 h-3" /> 清空</button>}
+                {swarmHistory.length > 0 && <button onClick={clearSwarmHistory} className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors"><Trash2 className="w-3 h-3" /> 清空</button>}
               </div>
-              {history.length === 0 ? (
+              {swarmHistory.length === 0 ? (
                 <p className="text-sm text-[var(--sage-400)]">暂无历史记录</p>
               ) : (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {history.map((run) => (
-                    <div key={run.id} onClick={() => loadHistory(run)} className="p-3 rounded-card-md bg-[var(--sage-50)] hover:bg-[var(--sage-100)] cursor-pointer transition-colors">
+                  {swarmHistory.map((run) => (
+                    <div key={run.id} onClick={() => loadSwarmHistory(run)} className="p-3 rounded-card-md bg-[var(--sage-50)] hover:bg-[var(--sage-100)] cursor-pointer transition-colors">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-[var(--sage-700)]">{run.strategy === 'parallel' ? '并行' : run.strategy === 'sequential' ? '顺序' : '投票'}</span>
                         <span className="text-[10px] text-[var(--sage-400)]">{new Date(run.timestamp).toLocaleString()}</span>
                       </div>
                       <p className="text-xs text-[var(--sage-600)] line-clamp-1">{run.prompt}</p>
                       <div className="flex items-center gap-2 mt-1 text-[10px] text-[var(--sage-400)]">
-                        <span>{run.engineIds.length} 个引擎</span><span>·</span><span>{Object.values(run.results).filter((r) => r.status === 'completed').length} 成功</span>
+                        <span>{run.engineIds.length} 个Agent</span><span>·</span><span>{Object.values(run.results).filter((r) => r.status === 'completed').length} 成功</span>
                       </div>
                     </div>
                   ))}
@@ -1392,45 +1371,45 @@ export default function SwarmPage() {
           )}
 
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Left: Engine config */}
+            {/* Left: Agent config */}
             <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 space-y-4">
               <div className="card p-4 space-y-4">
-                <h2 className="text-sm font-semibold text-[var(--sage-800)] flex items-center gap-2"><PanelLeft className="w-4 h-4 text-[var(--sage-500)]" />引擎配置</h2>
+                <h2 className="text-sm font-semibold text-[var(--sage-800)] flex items-center gap-2"><PanelLeft className="w-4 h-4 text-[var(--sage-500)]" />Agent选择</h2>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-medium text-[var(--sage-700)]">选择引擎</label>
+                    <label className="text-xs font-medium text-[var(--sage-700)]">选择Agent</label>
                     <div className="flex gap-1">
-                      <button onClick={selectAll} className="text-[10px] text-[var(--sage-500)] hover:text-[var(--sage-700)] px-1.5 py-0.5 rounded bg-[var(--sage-100)] transition-colors">全选</button>
-                      <button onClick={clearSelection} className="text-[10px] text-[var(--sage-500)] hover:text-[var(--sage-700)] px-1.5 py-0.5 rounded bg-[var(--sage-100)] transition-colors">清空</button>
+                      <button onClick={selectAllAgents} className="text-[10px] text-[var(--sage-500)] hover:text-[var(--sage-700)] px-1.5 py-0.5 rounded bg-[var(--sage-100)] transition-colors">全选</button>
+                      <button onClick={clearAgentSelection} className="text-[10px] text-[var(--sage-500)] hover:text-[var(--sage-700)] px-1.5 py-0.5 rounded bg-[var(--sage-100)] transition-colors">清空</button>
                     </div>
                   </div>
-                  {enginesLoading ? (
-                    <div className="flex items-center gap-2 py-4 text-[var(--sage-400)]"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-xs">加载引擎...</span></div>
-                  ) : engines.length === 0 ? (
-                    <p className="text-xs text-[var(--sage-400)] py-2">暂无可用引擎</p>
+                  {loading ? (
+                    <div className="flex items-center gap-2 py-4 text-[var(--sage-400)]"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-xs">加载Agent...</span></div>
+                  ) : nodes.length === 0 ? (
+                    <p className="text-xs text-[var(--sage-400)] py-2">暂无可用Agent</p>
                   ) : (
                     <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                      {engines.map((engine) => {
-                        const selected = selectedEngines.includes(engine.id)
+                      {nodes.map((node) => {
+                        const selected = selectedAgentIds.includes(node.id)
                         return (
-                          <label key={engine.id} className={`flex items-center gap-2 p-2 rounded-card-sm cursor-pointer transition-colors ${selected ? 'bg-[var(--sage-100)]' : 'hover:bg-[var(--sage-50)]'}`}>
-                            <input type="checkbox" checked={selected} onChange={() => toggleEngine(engine.id)} className="w-4 h-4 rounded border-[var(--sage-300)] text-[var(--sage-500)] focus:ring-[var(--sage-500)]" />
+                          <label key={node.id} className={`flex items-center gap-2 p-2 rounded-card-sm cursor-pointer transition-colors ${selected ? 'bg-[var(--sage-100)]' : 'hover:bg-[var(--sage-50)]'}`}>
+                            <input type="checkbox" checked={selected} onChange={() => toggleAgent(node.id)} className="w-4 h-4 rounded border-[var(--sage-300)] text-[var(--sage-500)] focus:ring-[var(--sage-500)]" />
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5"><Cpu className="w-3 h-3 text-[var(--sage-400)]" /><span className="text-xs font-medium text-[var(--sage-700)] truncate">{engine.brand}</span></div>
-                              <span className="text-[10px] text-[var(--sage-400)]">{engine.model}</span>
+                              <div className="flex items-center gap-1.5"><Bot className="w-3 h-3 text-[var(--sage-400)]" /><span className="text-xs font-medium text-[var(--sage-700)] truncate">{node.name}</span></div>
+                              <span className="text-[10px] text-[var(--sage-400)]">{TYPE_CONFIG[node.type]?.label || node.type}</span>
                             </div>
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${engine.status === 'healthy' ? 'bg-green-500' : 'bg-amber-500'}`} />
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${node.status === 'active' ? 'bg-green-500' : 'bg-amber-500'}`} />
                           </label>
                         )
                       })}
                     </div>
                   )}
-                  <p className="text-[10px] text-[var(--sage-400)] mt-1">已选择 {selectedEngines.length} 个引擎</p>
+                  <p className="text-[10px] text-[var(--sage-400)] mt-1">已选择 {selectedAgentIds.length} 个Agent</p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-[var(--sage-700)] mb-1.5 block">任务提示词</label>
-                  <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="输入任务描述，例如：分析以下代码的潜在问题..." className="w-full h-28 p-3 rounded-card-md border text-sm resize-none" style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }} />
-                  <p className="text-[10px] text-[var(--sage-400)] mt-1 text-right">{prompt.length} 字符</p>
+                  <textarea value={swarmPrompt} onChange={(e) => setSwarmPrompt(e.target.value)} placeholder="输入任务描述，例如：分析以下代码的潜在问题..." className="w-full h-28 p-3 rounded-card-md border text-sm resize-none" style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }} />
+                  <p className="text-[10px] text-[var(--sage-400)] mt-1 text-right">{swarmPrompt.length} 字符</p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-[var(--sage-700)] mb-2 block">协调策略</label>
@@ -1441,51 +1420,51 @@ export default function SwarmPage() {
                       { id: 'vote' as Strategy, label: '投票', icon: Vote, desc: '共识聚合' },
                     ] as const).map((s) => {
                       const Icon = s.icon
-                      const active = strategy === s.id
+                      const active = swarmStrategy === s.id
                       return (
-                        <button key={s.id} onClick={() => setStrategy(s.id)} className={`flex flex-col items-center gap-1 p-2.5 rounded-card-md border text-xs transition-all ${active ? 'border-[var(--sage-500)] bg-[var(--sage-50)] text-[var(--sage-700)]' : 'border-[var(--sage-200)] text-[var(--sage-500)] hover:border-[var(--sage-300)]'}`}>
+                        <button key={s.id} onClick={() => setSwarmStrategy(s.id)} className={`flex flex-col items-center gap-1 p-2.5 rounded-card-md border text-xs transition-all ${active ? 'border-[var(--sage-500)] bg-[var(--sage-50)] text-[var(--sage-700)]' : 'border-[var(--sage-200)] text-[var(--sage-500)] hover:border-[var(--sage-300)]'}`}>
                           <Icon className={`w-4 h-4 ${active ? 'text-[var(--sage-500)]' : 'text-[var(--sage-400)]'}`} /><span className="font-medium">{s.label}</span><span className="text-[9px] opacity-70">{s.desc}</span>
                         </button>
                       )
                     })}
                   </div>
                 </div>
-                <button onClick={isRunning ? handleStop : handleStart} disabled={enginesLoading || selectedEngines.length === 0} className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-card-md text-sm font-medium transition-colors ${isRunning ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-[var(--sage-500)] text-white hover:bg-[var(--sage-600)]'} disabled:opacity-50 disabled:cursor-not-allowed`}>
-                  {isRunning ? <><RefreshCw className="w-4 h-4" /> 停止执行</> : <><Play className="w-4 h-4" /> 启动引擎</>}
+                <button onClick={isSwarmRunning ? handleSwarmStop : handleSwarmStart} disabled={loading || selectedAgentIds.length === 0} className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-card-md text-sm font-medium transition-colors ${isSwarmRunning ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-[var(--sage-500)] text-white hover:bg-[var(--sage-600)]'} disabled:opacity-50 disabled:cursor-not-allowed`}>
+                  {isSwarmRunning ? <><RefreshCw className="w-4 h-4" /> 停止执行</> : <><Play className="w-4 h-4" /> 启动Agent</>}
                 </button>
               </div>
             </div>
 
             {/* Right: Execution results */}
             <div className="flex-1 space-y-4 min-w-0">
-              {totalCount > 0 && (
+              {swarmTotalCount > 0 && (
                 <div className="card p-4">
                   <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                     <h3 className="text-sm font-semibold text-[var(--sage-800)] flex items-center gap-2"><Zap className="w-4 h-4 text-[var(--sage-500)]" />执行进度</h3>
                     <div className="flex items-center gap-3 text-xs flex-wrap">
-                      <span className="flex items-center gap-1 text-[var(--sage-500)]"><Loader2 className="w-3 h-3 animate-spin" /> {runningCount} 执行中</span>
-                      <span className="flex items-center gap-1 text-green-600"><CheckCircle className="w-3 h-3" /> {completedCount} 完成</span>
-                      {failedCount > 0 && <span className="flex items-center gap-1 text-red-600"><XCircle className="w-3 h-3" /> {failedCount} 失败</span>}
+                      <span className="flex items-center gap-1 text-[var(--sage-500)]"><Loader2 className="w-3 h-3 animate-spin" /> {swarmRunningCount} 执行中</span>
+                      <span className="flex items-center gap-1 text-green-600"><CheckCircle className="w-3 h-3" /> {swarmCompletedCount} 完成</span>
+                      {swarmFailedCount > 0 && <span className="flex items-center gap-1 text-red-600"><XCircle className="w-3 h-3" /> {swarmFailedCount} 失败</span>}
                     </div>
                   </div>
                   <div className="h-2 rounded-full bg-[var(--sage-100)] overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${totalCount > 0 ? ((completedCount + failedCount) / totalCount) * 100 : 0}%`, backgroundColor: failedCount > 0 ? '#f59e0b' : '#10b981' }} />
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${swarmTotalCount > 0 ? ((swarmCompletedCount + swarmFailedCount) / swarmTotalCount) * 100 : 0}%`, backgroundColor: swarmFailedCount > 0 ? '#f59e0b' : '#10b981' }} />
                   </div>
                 </div>
               )}
 
-              {selectedEngines.length > 0 && (
+              {selectedAgentIds.length > 0 && (
                 <div className="space-y-3">
-                  {selectedEngines.map((engineId) => {
-                    const engine = engines.find((e) => e.id === engineId)
-                    const state = engineStates[engineId] || { status: 'pending', content: '' }
-                    if (!engine) return null
+                  {selectedAgentIds.map((agentId) => {
+                    const agent = nodes.find((n) => n.id === agentId)
+                    const state = agentRunStates[agentId] || { status: 'pending', content: '' }
+                    if (!agent) return null
                     return (
-                      <div key={engineId} className="card p-4">
+                      <div key={agentId} className="card p-4">
                         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-[var(--sage-100)] flex items-center justify-center"><Cpu className="w-4 h-4 text-[var(--sage-500)]" /></div>
-                            <div><h4 className="text-sm font-medium text-[var(--sage-800)]">{engine.brand}</h4><span className="text-[10px] text-[var(--sage-400)]">{engine.model}</span></div>
+                            <div className="w-8 h-8 rounded-lg bg-[var(--sage-100)] flex items-center justify-center"><Bot className="w-4 h-4 text-[var(--sage-500)]" /></div>
+                            <div><h4 className="text-sm font-medium text-[var(--sage-800)]">{agent.name}</h4><span className="text-[10px] text-[var(--sage-400)]">{TYPE_CONFIG[agent.type]?.label || agent.type}</span></div>
                           </div>
                           <span className={`text-[10px] px-2 py-1 rounded-full flex items-center gap-1 ${statusColor(state.status)}`}>{statusIcon(state.status)}{statusLabel(state.status)}</span>
                         </div>
@@ -1500,34 +1479,34 @@ export default function SwarmPage() {
                 </div>
               )}
 
-              {aggregateResult && (
+              {swarmAggregateResult && (
                 <div className="card p-4">
                   <h3 className="text-sm font-semibold text-[var(--sage-800)] mb-3 flex items-center gap-2">
-                    {aggregateResult.mode === 'vote' ? <Vote className="w-4 h-4 text-[var(--sage-500)]" /> : <GitMerge className="w-4 h-4 text-[var(--sage-500)]" />}
-                    {aggregateResult.mode === 'vote' ? '投票聚合结果' : '执行聚合结果'}
+                    {swarmAggregateResult.mode === 'vote' ? <Vote className="w-4 h-4 text-[var(--sage-500)]" /> : <GitMerge className="w-4 h-4 text-[var(--sage-500)]" />}
+                    {swarmAggregateResult.mode === 'vote' ? '投票聚合结果' : '执行聚合结果'}
                   </h3>
-                  {aggregateResult.mode === 'vote' && aggregateResult.totalVotes > 0 ? (
+                  {swarmAggregateResult.mode === 'vote' && swarmAggregateResult.totalVotes > 0 ? (
                     <div className="space-y-3">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center"><p className="text-lg font-bold text-[var(--sage-800)]">{aggregateResult.totalVotes}</p><p className="text-[10px] text-[var(--sage-500)]">参与投票</p></div>
-                        <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center"><p className="text-lg font-bold text-[var(--sage-800)]">{aggregateResult.consensusScore}%</p><p className="text-[10px] text-[var(--sage-500)]">共识度</p></div>
-                        <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center"><p className="text-lg font-bold text-[var(--sage-800)]">{aggregateResult.avgLength}</p><p className="text-[10px] text-[var(--sage-500)]">平均长度</p></div>
-                        <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center"><p className="text-lg font-bold text-[var(--sage-800)]">{aggregateResult.commonWords?.length || 0}</p><p className="text-[10px] text-[var(--sage-500)]">共同关键词</p></div>
+                        <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center"><p className="text-lg font-bold text-[var(--sage-800)]">{swarmAggregateResult.totalVotes}</p><p className="text-[10px] text-[var(--sage-500)]">参与投票</p></div>
+                        <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center"><p className="text-lg font-bold text-[var(--sage-800)]">{swarmAggregateResult.consensusScore}%</p><p className="text-[10px] text-[var(--sage-500)]">共识度</p></div>
+                        <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center"><p className="text-lg font-bold text-[var(--sage-800)]">{swarmAggregateResult.avgLength}</p><p className="text-[10px] text-[var(--sage-500)]">平均长度</p></div>
+                        <div className="p-3 rounded-card-md bg-[var(--sage-50)] text-center"><p className="text-lg font-bold text-[var(--sage-800)]">{swarmAggregateResult.commonWords?.length || 0}</p><p className="text-[10px] text-[var(--sage-500)]">共同关键词</p></div>
                       </div>
-                      {aggregateResult.commonWords?.length > 0 && (
+                      {swarmAggregateResult.commonWords?.length > 0 && (
                         <div>
                           <p className="text-xs text-[var(--sage-600)] mb-1.5">高频共识词</p>
                           <div className="flex flex-wrap gap-1.5">
-                            {aggregateResult.commonWords.map((word: string) => (<span key={word} className="text-xs px-2 py-1 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]">{word}</span>))}
+                            {swarmAggregateResult.commonWords.map((word: string) => (<span key={word} className="text-xs px-2 py-1 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]">{word}</span>))}
                           </div>
                         </div>
                       )}
                       <div>
-                        <p className="text-xs text-[var(--sage-600)] mb-1.5">各引擎意见摘要</p>
+                        <p className="text-xs text-[var(--sage-600)] mb-1.5">各Agent意见摘要</p>
                         <div className="space-y-2">
-                          {aggregateResult.responses?.map((r: { id: string; content: string; engine?: Engine }) => (
+                          {swarmAggregateResult.responses?.map((r: { id: string; content: string; engine?: any }) => (
                             <div key={r.id} className="p-2.5 rounded-card-md bg-[var(--sage-50)]">
-                              <div className="flex items-center gap-2 mb-1"><Cpu className="w-3 h-3 text-[var(--sage-400)]" /><span className="text-xs font-medium text-[var(--sage-700)]">{r.engine?.brand || r.id}</span></div>
+                              <div className="flex items-center gap-2 mb-1"><Bot className="w-3 h-3 text-[var(--sage-400)]" /><span className="text-xs font-medium text-[var(--sage-700)]">{nodes.find(n => n.id === r.id)?.name || r.id}</span></div>
                               <p className="text-xs text-[var(--sage-600)] line-clamp-3">{r.content}</p>
                             </div>
                           ))}
@@ -1536,15 +1515,15 @@ export default function SwarmPage() {
                     </div>
                   ) : (
                     <div className="p-3 rounded-card-md bg-[var(--sage-50)]">
-                      <div className="flex items-center gap-3 mb-2"><BarChart3 className="w-4 h-4 text-[var(--sage-500)]" /><span className="text-xs text-[var(--sage-700)]">{aggregateResult.mode === 'parallel' ? '并行执行' : '顺序执行'}完成</span></div>
-                      <div className="flex items-center gap-4 text-xs text-[var(--sage-600)]"><span>成功: {aggregateResult.completed} / {aggregateResult.total}</span><span>成功率: {Math.round((aggregateResult.completed / aggregateResult.total) * 100)}%</span></div>
+                      <div className="flex items-center gap-3 mb-2"><BarChart3 className="w-4 h-4 text-[var(--sage-500)]" /><span className="text-xs text-[var(--sage-700)]">{swarmAggregateResult.mode === 'parallel' ? '并行执行' : '顺序执行'}完成</span></div>
+                      <div className="flex items-center gap-4 text-xs text-[var(--sage-600)]"><span>成功: {swarmAggregateResult.completed} / {swarmAggregateResult.total}</span><span>成功率: {Math.round((swarmAggregateResult.completed / swarmAggregateResult.total) * 100)}%</span></div>
                     </div>
                   )}
                 </div>
               )}
 
-              {selectedEngines.length === 0 && !aggregateResult && (
-                <div className="card p-8 text-center"><Network className="w-12 h-12 text-[var(--sage-300)] mx-auto mb-3" /><p className="text-sm text-[var(--sage-500)]">请在左侧选择引擎并配置任务</p></div>
+              {selectedAgentIds.length === 0 && !swarmAggregateResult && (
+                <div className="card p-8 text-center"><Network className="w-12 h-12 text-[var(--sage-300)] mx-auto mb-3" /><p className="text-sm text-[var(--sage-500)]">请在左侧选择Agent并配置任务</p></div>
               )}
             </div>
           </div>
