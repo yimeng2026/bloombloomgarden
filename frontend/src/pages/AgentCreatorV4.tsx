@@ -241,7 +241,13 @@ export default function AgentCreatorV4() {
   }
 
   /* ── Step 4: Platform ── */
-  const filteredPlatforms = platforms.filter((p) => {
+  // 只显示 L1 层级的平台（cloud/local/gateway），不显示 L0 infra 和 L2 orchestrator
+  const l1Platforms = platforms.filter((p) => {
+    const isL1 = p.protocolLevel === 1 && ['cloud', 'local', 'local-engine', 'gateway'].includes(p.category)
+    return isL1
+  })
+
+  const filteredPlatforms = l1Platforms.filter((p) => {
     if (!platformSearch.trim()) return true
     const q = platformSearch.toLowerCase()
     return (

@@ -37,10 +37,10 @@ function toEngine(raw: any): Engine {
 export type EngineStrategy = 'mixed' | 'single' | 'fallback' | 'cost-optimized' | 'performance';
 
 export class EngineScheduler extends EventEmitter {
-  // 从 providers.json 加载所有 cloud/local 类别的 provider 作为引擎
+  // 从 providers.json 加载 L1 层级的 provider 作为引擎（cloud/local，protocolLevel === 1）
   private getEnginesFromConfig(): Engine[] {
     const engineProviders = providersConfig.providers.filter(
-      (p: any) => p.category === 'cloud' || p.category === 'local' || p.category === 'local-engine' || p.category === 'gateway'
+      (p: any) => (p.category === 'cloud' || p.category === 'local' || p.category === 'local-engine') && p.protocolLevel === 1
     );
     return engineProviders.map((p: any) => ({
       id: p.id,
@@ -58,7 +58,7 @@ export class EngineScheduler extends EventEmitter {
       supportsTools: true,
       apiKey: undefined,
       baseUrl: p.baseUrl,
-      metadata: { category: p.category, models: p.models },
+      metadata: { category: p.category, models: p.models, protocolLevel: p.protocolLevel },
       keyPool: [],
       keyRotationStrategy: 'round-robin',
       createdAt: new Date(),
@@ -91,7 +91,14 @@ export class EngineScheduler extends EventEmitter {
       const dbEng = dbEngines.find(d => d.id === eng.id);
       return dbEng || eng;
     });
-    const extra = dbEngines.filter(d => !fromConfig.find((c: any) => c.id === d.id));
+    // 只保留 L1 引擎（cloud/local/local-engine 类别，protocolLevel === 1）
+    const l1DbEngines = dbEngines.filter(d => {
+      const meta = d.metadata || {};
+      const category = meta.category || '';
+      const protocolLevel = meta.protocolLevel || 0;
+      return (category === 'cloud' || category === 'local' || category === 'local-engine') && protocolLevel === 1;
+    });
+    const extra = l1DbEngines.filter(d => !fromConfig.find((c: any) => c.id === d.id));
     return [...merged, ...extra];
   }
 
