@@ -1,91 +1,102 @@
-# 🌸 BloomBloomGarden - AI 蜂群协作平台
+# 🐝 BloomBloomGarden — AI Agent 群智协同平台
 
-多 Agent 蜂群协作编排平台，支持 7 种蜂群协作机制、画布可视化编排、人工干预面板。
+> 多 Agent 蜂群协作系统，支持 7 种蜂群模式 + 4 级人工干预 + 10 大 LLM 供应商
 
-## 🚀 快速开始
+## ✨ 核心功能
 
-```bash
-# 安装依赖
-bun install
+### 🤖 Agent 管理
+- 创建/编辑/删除 AI Agent
+- 支持 10 大 LLM 供应商（智谱、OpenAI、Anthropic、DeepSeek 等）
+- 角色模板一键创建（项目经理、调研助手、量化交易员等）
+- API Key 自动检测供应商
 
-# 初始化数据库
-bun run db:push
+### 👥 群组蜂群协作
+- **7 种蜂群模式**：基础蜂群、信号传递、层级委派、流水线、共识机制、红蓝对抗、导师学徒
+- **4 级人工干预**：观察模式、审批模式、副驾驶模式、否决模式
+- 群组嵌套（子群组）
+- 实时流式聊天
 
-# 启动开发服务器
-bun run dev
-```
+### 💬 对话系统
+- 单 Agent 对话
+- 群组蜂群聊天
+- 对话历史持久化
+- 流式输出（SSE）
 
-打开 http://localhost:3000
+### 🎨 画布视图
+- Agent/群组关系可视化
+- 拖拽布局
+- 连线展示
 
-## 🐝 7 种蜂群协作机制
-
-| 机制 | 说明 |
-|------|------|
-| 🐝 基础蜂群 | 按编排模式顺序执行 |
-| 🐜 信号觅食 | Agent 通过信息素自主发现任务 |
-| 👑 层级委派 | Leader 分配任务给 Worker |
-| 🔧 流水线 | 顺序处理，每步输出→下步输入 |
-| 🤝 共识机制 | 所有 Agent 必须达成一致 |
-| ⚔️ 红蓝对抗 | 两队对立辩论 |
-| 🎓 导师学徒 | 资深 Agent 指导新手 |
-
-## 🧑‍💼 4 种人工干预模式
-
-| 模式 | 说明 |
-|------|------|
-| 👁️ 观察 | 自动运行，人工旁观 |
-| ✅ 审批 | 关键决策需人工批准 |
-| 🎮 副驾驶 | 人工可随时注入指令 |
-| 🛑 否决权 | 人工可否决 Agent 输出 |
-
-## 📊 功能模块
-
-- **仪表盘** - 实时统计、Agent 状态热力图
-- **Agent 管理** - 一键创建、API Key 自动检测供应商
-- **群组管理** - 蜂群机制 + 人工干预组合
-- **画布视图** - 可视化编排、拖拽移动、连线
-- **聊天界面** - 单 Agent / 群组协作聊天
+### 📊 仪表盘
+- Agent/群组统计
+- 平台分布
+- 角色分布
+- 蜂群模式/人工干预级别选择
 
 ## 🛠️ 技术栈
 
-- Next.js 16 + TypeScript + Tailwind CSS 4
-- Prisma ORM + SQLite (LibSQL)
-- z-ai-web-dev-sdk (LLM 集成)
-- 支持 13+ LLM 供应商
+| 技术 | 用途 |
+|------|------|
+| Next.js 16 | 全栈框架（App Router） |
+| TypeScript | 类型安全 |
+| Prisma | ORM（SQLite） |
+| Tailwind CSS | 样式 |
+| Bun | 运行时 & 包管理 |
 
-## 🚢 部署
+## 🚀 部署
 
-### Railway
-
-项目已包含 `railway.toml` 和 `nixpacks.toml` 配置，直接连接 GitHub 仓库即可部署。
-
-需要设置环境变量：
-- `DATABASE_URL` - 数据库连接字符串
+### Railway（推荐）
+```bash
+# railway.toml 和 railpack.json 已配置好
+# 直接连接 GitHub 仓库即可部署
+```
 
 ### Docker
-
 ```bash
 docker build -t bloombloomgarden .
-docker run -p 3000:3000 -e DATABASE_URL=file:./db/custom.db bloombloomgarden
+docker run -p 3000:3000 bloombloomgarden
+```
+
+### 本地开发
+```bash
+bun install
+bun run postinstall    # 生成 Prisma Client
+bun run dev            # 启动开发服务器
 ```
 
 ## 📁 项目结构
 
 ```
-src/
-├── app/
-│   ├── page.tsx          # 主界面（5个Tab视图）
-│   └── api/
-│       ├── agents/       # Agent CRUD
-│       ├── groups/       # 群组 CRUD
-│       ├── workflows/    # 工作流 CRUD
-│       ├── conversations/# 对话 CRUD
-│       └── chat/
-│           ├── route.ts  # 单 Agent 聊天
-│           └── group/    # 群组蜂群聊天
-├── lib/
-│   ├── platforms.ts      # 平台注册表
-│   └── prisma.ts         # 数据库客户端
-prisma/
-└── schema.prisma         # 数据模型
+├── src/
+│   ├── app/
+│   │   ├── page.tsx              # 主页面（仪表盘+Agent+画布+聊天）
+│   │   ├── api/
+│   │   │   ├── agents/           # Agent CRUD API
+│   │   │   ├── groups/           # 群组 CRUD API
+│   │   │   ├── workflows/        # 工作流 CRUD API
+│   │   │   ├── conversations/    # 对话 CRUD API
+│   │   │   └── chat/             # 聊天 API（SSE 流式）
+│   │   └── layout.tsx
+│   └── lib/
+│       ├── platforms.ts          # 平台注册表（LLM/角色/技能/频道）
+│       └── prisma.ts             # Prisma Client 单例
+├── prisma/
+│   └── schema.prisma             # 数据库 Schema
+├── railpack.json                 # Railpack 构建配置
+├── railway.toml                  # Railway 部署配置
+├── Dockerfile                    # Docker 构建配置
+└── .env.example                  # 环境变量模板
 ```
+
+## 🔑 环境变量
+
+复制 `.env.example` 为 `.env` 并填写：
+
+```bash
+DATABASE_URL=file:./dev.db
+ZHIPU_API_KEY=your-key-here
+```
+
+## 📄 License
+
+MIT
