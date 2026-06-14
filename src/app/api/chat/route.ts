@@ -47,6 +47,11 @@ export async function POST(request: Request) {
     }
 
     const agent = conversation.agent;
+    if (!agent) {
+      return new Response(JSON.stringify({ error: "Agent 不存在" }), {
+        status: 404, headers: { "Content-Type": "application/json" },
+      });
+    }
 
     // 保存用户消息
     await prisma.message.create({

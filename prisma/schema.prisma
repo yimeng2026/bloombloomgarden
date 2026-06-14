@@ -24,17 +24,63 @@ model Agent {
   updatedAt     DateTime @updatedAt
 
   conversations Conversation[]
+  groupMemberships AgentGroupMember[]
+}
+
+model AgentGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  avatar      String   @default("")
+  mode        String   @default("relay")  // relay | debate | vote | parallel | roundtable
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     AgentGroupMember[]
+  conversations Conversation[]
+  // 嵌套群组：一个群组可以包含其他群组
+  parentGroups  GroupGroupMember[] @relation("ChildGroups")
+  childGroups   GroupGroupMember[] @relation("ParentGroups")
+}
+
+// Agent ↔ Group 多对多
+model AgentGroupMember {
+  id        String   @id @default(uuid())
+  agentId   String
+  groupId   String
+  role      String   @default("member")  // leader | member | observer
+  createdAt DateTime @default(now())
+
+  agent     Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  group     AgentGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, groupId])
+}
+
+// Group ↔ Group 嵌套多对多
+model GroupGroupMember {
+  id          String   @id @default(uuid())
+  parentGroupId  String
+  childGroupId   String
+  createdAt    DateTime @default(now())
+
+  parentGroup AgentGroup @relation("ParentGroups", fields: [parentGroupId], references: [id], onDelete: Cascade)
+  childGroup  AgentGroup @relation("ChildGroups", fields: [childGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([parentGroupId, childGroupId])
 }
 
 model Conversation {
   id        String   @id @default(uuid())
   title     String   @default("新对话")
-  agentId   String
+  agentId   String?
+  groupId   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  agent    Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  messages Message[]
+  agent     Agent?        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  group     AgentGroup?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  messages  Message[]
 }
 
 model Message {
@@ -42,6 +88,7 @@ model Message {
   conversationId String
   role           String   // "user" | "assistant" | "system"
   content        String
+  agentName      String   @default("")  // 群组聊天时标记是哪个Agent说的
   createdAt      DateTime @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
