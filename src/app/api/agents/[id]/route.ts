@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/agents/[id] - 获取单个 Agent
+// GET /api/agents/[id] - 获取单个 Agent（含完整 apiKey 用于聊天）
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -39,21 +39,31 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, description, avatar, systemPrompt, model, temperature } = body;
+    const {
+      name, description, avatar, systemPrompt, model, temperature,
+      apiKey, llmProvider, agentPlatform, skills, channels, role,
+    } = body;
 
-    const agent = await prisma.agent.update({
-      where: { id },
-      data: {
-        ...(name !== undefined && { name: name.trim() }),
-        ...(description !== undefined && { description: description.trim() }),
-        ...(avatar !== undefined && { avatar: avatar.trim() }),
-        ...(systemPrompt !== undefined && { systemPrompt: systemPrompt.trim() }),
-        ...(model !== undefined && { model }),
-        ...(temperature !== undefined && { temperature }),
-      },
+    const data: Record<string, unknown> = {};
+    if (name !== undefined) data.name = name.trim();
+    if (description !== undefined) data.description = description.trim();
+    if (avatar !== undefined) data.avatar = avatar.trim();
+    if (systemPrompt !== undefined) data.systemPrompt = systemPrompt.trim();
+    if (model !== undefined) data.model = model;
+    if (temperature !== undefined) data.temperature = temperature;
+    if (apiKey !== undefined) data.apiKey = apiKey.trim();
+    if (llmProvider !== undefined) data.llmProvider = llmProvider;
+    if (agentPlatform !== undefined) data.agentPlatform = agentPlatform;
+    if (skills !== undefined) data.skills = typeof skills === "string" ? skills : JSON.stringify(skills);
+    if (channels !== undefined) data.channels = typeof channels === "string" ? channels : JSON.stringify(channels);
+    if (role !== undefined) data.role = role;
+
+    const agent = await prisma.agent.update({ where: { id }, data });
+
+    return NextResponse.json({
+      ...agent,
+      apiKey: agent.apiKey ? agent.apiKey.slice(0, 8) + "****" + agent.apiKey.slice(-4) : "",
     });
-
-    return NextResponse.json(agent);
   } catch (error) {
     console.error("Failed to update agent:", error);
     return NextResponse.json({ error: "更新 Agent 失败" }, { status: 500 });

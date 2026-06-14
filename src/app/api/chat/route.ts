@@ -1,5 +1,21 @@
 import { prisma } from "@/lib/prisma";
-import ZAI from "z-ai-web-dev-sdk";
+
+// LLM 供应商 → API 端点映射
+const LLM_ENDPOINTS: Record<string, string> = {
+  zhipu: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+  openai: "https://api.openai.com/v1/chat/completions",
+  anthropic: "https://api.anthropic.com/v1/messages",
+  deepseek: "https://api.deepseek.com/v1/chat/completions",
+  google: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+  alibaba: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+  baidu: "https://qianfan.baidubce.com/v2/chat/completions",
+  moonshot: "https://api.moonshot.cn/v1/chat/completions",
+  mistral: "https://api.mistral.ai/v1/chat/completions",
+  xai: "https://api.x.ai/v1/chat/completions",
+  cohere: "https://api.cohere.com/v2/chat",
+  together: "https://api.together.xyz/v1/chat/completions",
+  groq: "https://api.groq.com/openai/v1/chat/completions",
+};
 
 // POST /api/chat - 发送消息并获取流式响应
 export async function POST(request: Request) {
@@ -30,6 +46,8 @@ export async function POST(request: Request) {
       });
     }
 
+    const agent = conversation.agent;
+
     // 保存用户消息
     await prisma.message.create({
       data: {
@@ -41,93 +59,123 @@ export async function POST(request: Request) {
 
     // 构建消息历史
     const messages = [
-      {
-        role: "system" as const,
-        content: conversation.agent.systemPrompt,
-      },
+      ...(agent.systemPrompt ? [{ role: "system" as const, content: agent.systemPrompt }] : []),
       ...conversation.messages.map((m) => ({
         role: m.role as "user" | "assistant" | "system",
         content: m.content,
       })),
-      {
-        role: "user" as const,
-        content: content.trim(),
-      },
+      { role: "user" as const, content: content.trim() },
     ];
 
-    // 调用 AI API（流式）
-    const zai = await ZAI.create();
+    // 获取 API 端点和密钥
+    const provider = agent.llmProvider || "zhipu";
+    const endpoint = LLM_ENDPOINTS[provider];
+    const apiKey = agent.apiKey;
 
-    const aiStream = await zai.chat.completions.create({
-      messages,
-      model: conversation.agent.model || "glm-4-plus",
-      temperature: conversation.agent.temperature ?? 0.7,
-      stream: true,
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "未配置 API Key，请先在 Agent 设置中填写" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (!endpoint) {
+      return new Response(JSON.stringify({ error: `不支持的 LLM 供应商: ${provider}` }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // 调用 LLM API（流式）
+    const llmResponse = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: agent.model || "glm-5.1",
+        messages,
+        temperature: agent.temperature ?? 0.7,
+        stream: true,
+      }),
     });
 
-    // aiStream 是 ReadableStream<Uint8Array>，包含原始 SSE 文本
-    // 我们需要解析它并转发给客户端
-    const reader = aiStream.getReader();
-    const decoder = new TextDecoder();
+    if (!llmResponse.ok) {
+      const errText = await llmResponse.text().catch(() => "");
+      console.error(`LLM API error (${llmResponse.status}):`, errText.slice(0, 200));
+      return new Response(JSON.stringify({
+        error: `LLM API 错误 (${llmResponse.status}): ${errText.slice(0, 100)}`,
+      }), {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // 流式转发
+    const encoder = new TextEncoder();
+    let fullAssistantContent = "";
 
     const stream = new ReadableStream({
       async start(controller) {
-        const encoder = new TextEncoder();
-        let fullAssistantContent = "";
-        let buffer = "";
-
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            // value 是 Uint8Array，解码为文本
-            buffer += decoder.decode(value, { stream: true });
-
-            // 按 \n\n 分割 SSE 事件
-            const parts = buffer.split("\n\n");
-            // 最后一个可能不完整，保留在 buffer 中
-            buffer = parts.pop() || "";
-
-            for (const part of parts) {
-              const lines = part.split("\n");
-              for (const line of lines) {
-                if (!line.startsWith("data: ")) continue;
-
-                const dataStr = line.slice(6).trim();
-
-                // 检查是否是结束标记
-                if (dataStr === "[DONE]") {
-                  continue;
-                }
-
-                try {
-                  const parsed = JSON.parse(dataStr);
-                  const delta = parsed.choices?.[0]?.delta?.content || "";
-
-                  if (delta) {
-                    fullAssistantContent += delta;
-                    // 发送 SSE 格式的流式数据给客户端
-                    const outData = JSON.stringify({ type: "delta", content: delta });
-                    controller.enqueue(encoder.encode(`data: ${outData}\n\n`));
-                  }
-                } catch {
-                  // 忽略解析失败的行
-                }
-              }
-            }
-          }
-
-          // 保存助手消息到数据库
+          // 创建助手消息占位
           const assistantMessage = await prisma.message.create({
             data: {
               conversationId,
               role: "assistant",
-              content: fullAssistantContent || "（AI 未返回内容）",
+              content: "",
             },
           });
 
-          // 更新对话的 updatedAt
+          // 发送消息ID
+          const startData = JSON.stringify({ type: "start", messageId: assistantMessage.id });
+          controller.enqueue(encoder.encode(`data: ${startData}\n\n`));
+
+          const reader = llmResponse.body?.getReader();
+          if (!reader) {
+            throw new Error("无法读取 LLM 响应流");
+          }
+
+          const decoder = new TextDecoder();
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+              const dataStr = trimmed.slice(6);
+              if (dataStr === "[DONE]") continue;
+
+              try {
+                const data = JSON.parse(dataStr);
+                const delta = data.choices?.[0]?.delta?.content;
+                if (delta) {
+                  fullAssistantContent += delta;
+                  const chunkData = JSON.stringify({ type: "chunk", content: delta });
+                  controller.enqueue(encoder.encode(`data: ${chunkData}\n\n`));
+                }
+              } catch {
+                // 忽略解析错误
+              }
+            }
+          }
+
+          // 更新助手消息内容
+          await prisma.message.update({
+            where: { id: assistantMessage.id },
+            data: { content: fullAssistantContent },
+          });
+
+          // 更新对话时间
           await prisma.conversation.update({
             where: { id: conversationId },
             data: { updatedAt: new Date() },
