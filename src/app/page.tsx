@@ -3,35 +3,33 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AGENT_ROLES, LLM_PROVIDERS, AGENT_PLATFORMS } from "@/lib/platforms";
 
-// ==================== 类型定义 ====================
-interface Agent {
-  id: string; name: string; description: string; avatar: string; systemPrompt: string;
-  model: string; temperature: number; apiKey: string; llmProvider: string;
-  agentPlatform: string; skills: string; channels: string; role: string;
-  createdAt: string; updatedAt: string; _count?: { conversations: number };
-}
+// ==================== 类型 ====================
+interface Agent { id: string; name: string; description: string; avatar: string; systemPrompt: string; model: string; temperature: number; apiKey: string; llmProvider: string; agentPlatform: string; skills: string; channels: string; role: string; status: string; createdAt: string; updatedAt: string; _count?: { conversations: number }; }
+interface AgentGroup { id: string; name: string; description: string; avatar: string; mode: string; swarmMode: string; humanControl: string; createdAt: string; updatedAt: string; members: { id: string; agentId: string; role: string; agent: Agent }[]; childGroups: { id: string; childGroupId: string; childGroup: { id: string; name: string; avatar: string; mode: string; swarmMode: string } }[]; _count?: { conversations: number }; }
+interface Conversation { id: string; title: string; agentId?: string; groupId?: string; createdAt: string; updatedAt: string; agent?: { name: string; avatar: string }; group?: { name: string; mode: string }; _count?: { messages: number }; }
+interface Message { id: string; conversationId: string; role: string; content: string; agentName: string; approved: boolean; createdAt: string; }
 
-interface AgentGroup {
-  id: string; name: string; description: string; avatar: string; mode: string;
-  createdAt: string; updatedAt: string;
-  members: { id: string; agentId: string; role: string; agent: Agent }[];
-  childGroups: { id: string; childGroupId: string; childGroup: { id: string; name: string; avatar: string; mode: string } }[];
-  _count?: { conversations: number };
-}
+// ==================== 蜂群协作机制 ====================
+const SWARM_MODES = [
+  { id: "basic", name: "基础蜂群", icon: "🐝", desc: "按编排模式（接力/辩论/投票/并行/圆桌）执行", color: "from-amber-400 to-orange-400" },
+  { id: "stigmergy", name: "信号传递", icon: "🧪", desc: "Agent通过共享信息素间接协作，无需直接通信", color: "from-green-400 to-emerald-400" },
+  { id: "hierarchical", name: "层级委派", icon: "👑", desc: "Leader分解任务→Worker执行→Leader汇总", color: "from-blue-400 to-indigo-400" },
+  { id: "pipeline", name: "流水线", icon: "🏭", desc: "每个Agent处理上一步的输出，逐步精炼", color: "from-purple-400 to-pink-400" },
+  { id: "consensus", name: "共识机制", icon: "🤝", desc: "多轮讨论直到Agent达成共识", color: "from-teal-400 to-cyan-400" },
+  { id: "adversarial", name: "红蓝对抗", icon: "⚔️", desc: "红队攻击→蓝队防守→方案更健壮", color: "from-red-400 to-rose-400" },
+  { id: "mentor", name: "导师学徒", icon: "👨‍🏫", desc: "资深Agent示范→新手学习→导师点评", color: "from-yellow-400 to-amber-400" },
+];
 
-interface Conversation {
-  id: string; title: string; agentId?: string; groupId?: string;
-  createdAt: string; updatedAt: string;
-  agent?: { name: string; avatar: string }; group?: { name: string; mode: string };
-  _count?: { messages: number };
-}
+// 人工干预级别
+const HUMAN_CONTROL_LEVELS = [
+  { id: "observe", name: "观察模式", icon: "👁️", desc: "AI自主运行，人类旁观学习" },
+  { id: "approve", name: "审批模式", icon: "✅", desc: "AI输出需人类审批后才发送" },
+  { id: "copilot", name: "副驾驶模式", icon: "🎮", desc: "人类可随时注入指令引导方向" },
+  { id: "veto", name: "否决模式", icon: "🛑", desc: "人类可否决任何Agent的输出" },
+];
 
-interface Message {
-  id: string; conversationId: string; role: string; content: string; agentName: string; createdAt: string;
-}
-
-// ==================== API Key 自动检测 ====================
-function detectProvider(apiKey: string): { provider: string; model: string } {
+// ==================== API Key 检测 ====================
+function detectProvider(apiKey: string) {
   if (apiKey.includes(".bigmodel.") || (apiKey.includes(".") && apiKey.length < 40)) return { provider: "zhipu", model: "glm-5.1" };
   if (apiKey.startsWith("sk-") && apiKey.length > 50) return { provider: "openai", model: "gpt-4o" };
   if (apiKey.startsWith("sk-ant-")) return { provider: "anthropic", model: "claude-sonnet-4-20250514" };
@@ -39,17 +37,10 @@ function detectProvider(apiKey: string): { provider: string; model: string } {
   return { provider: "zhipu", model: "glm-5.1" };
 }
 
-const GROUP_MODES = [
-  { id: "relay", name: "接力模式", icon: "🔄", desc: "Agent依次发言，前一个的输出作为后一个的输入" },
-  { id: "debate", name: "辩论模式", icon: "⚔️", desc: "Agent分为正反方，交替论证" },
-  { id: "vote", name: "投票模式", icon: "🗳️", desc: "每个Agent独立给出意见" },
-  { id: "parallel", name: "并行模式", icon: "⚡", desc: "所有Agent同时回答" },
-  { id: "roundtable", name: "圆桌模式", icon: "🪑", desc: "多轮讨论，每轮每个Agent发言一次" },
-];
-
 // ==================== 主组件 ====================
 export default function Home() {
-  const [tab, setTab] = useState<"agents" | "groups" | "chat">("agents");
+  // 视图：dashboard | agents | canvas | chat
+  const [view, setView] = useState<"dashboard" | "agents" | "canvas" | "chat">("dashboard");
   const [agents, setAgents] = useState<Agent[]>([]);
   const [groups, setGroups] = useState<AgentGroup[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
@@ -63,29 +54,34 @@ export default function Home() {
   const [streamingContent, setStreamingContent] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 创建Agent表单
+  // 创建Agent
   const [showCreate, setShowCreate] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [customName, setCustomName] = useState("");
   const [detectedProvider, setDetectedProvider] = useState({ provider: "zhipu", model: "glm-5.1" });
 
-  // 创建群组表单
+  // 创建群组
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [groupName, setGroupName] = useState("");
-  const [groupMode, setGroupMode] = useState("relay");
   const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
-  const [selectedChildGroupIds, setSelectedChildGroupIds] = useState<string[]>([]);
+  const [groupMode, setGroupMode] = useState("relay");
+  const [swarmMode, setSwarmMode] = useState("basic");
+  const [humanControl, setHumanControl] = useState("observe");
+
+  // 画布视图
+  const [canvasNodes, setCanvasNodes] = useState<{ id: string; x: number; y: number; agent?: Agent; group?: AgentGroup; type: string }[]>([]);
+  const [canvasEdges, setCanvasEdges] = useState<{ from: string; to: string }[]>([]);
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  // 人工干预
+  const [pendingMessages, setPendingMessages] = useState<Message[]>([]);
+  const [injectMode, setInjectMode] = useState(false);
+  const [injectTarget, setInjectTarget] = useState("");
 
   // ==================== 数据获取 ====================
-  const fetchAgents = useCallback(async () => {
-    try { const res = await fetch("/api/agents"); if (res.ok) setAgents(await res.json()); } catch (e) { console.error(e); }
-  }, []);
-
-  const fetchGroups = useCallback(async () => {
-    try { const res = await fetch("/api/groups"); if (res.ok) setGroups(await res.json()); } catch (e) { console.error(e); }
-  }, []);
-
   useEffect(() => {
     async function load() {
       try {
@@ -99,378 +95,499 @@ export default function Home() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingContent]);
 
-  // ==================== Agent 操作 ====================
-  const handleApiKeyChange = (key: string) => { setApiKey(key); if (key.trim().length > 10) setDetectedProvider(detectProvider(key.trim())); };
+  const fetchAgents = useCallback(async () => { try { const r = await fetch("/api/agents"); if (r.ok) setAgents(await r.json()); } catch {} }, []);
+  const fetchGroups = useCallback(async () => { try { const r = await fetch("/api/groups"); if (r.ok) setGroups(await r.json()); } catch {} }, []);
+
+  // ==================== 创建Agent ====================
+  const handleApiKeyChange = (key: string) => {
+    setApiKey(key);
+    if (key.trim().length > 10) setDetectedProvider(detectProvider(key.trim()));
+  };
 
   const handleCreateAgent = async () => {
     if (!apiKey.trim() || !selectedRole) return;
     setLoading(true);
     try {
-      const role = AGENT_ROLES.find((r) => r.id === selectedRole);
+      const role = AGENT_ROLES.find(r => r.id === selectedRole);
       if (!role) return;
+      const name = customName.trim() || role.name;
       const res = await fetch("/api/agents", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: customName.trim() || role.name, description: role.tagline, avatar: role.emoji, systemPrompt: role.systemPrompt, model: detectedProvider.model, temperature: 0.7, apiKey: apiKey.trim(), llmProvider: detectedProvider.provider, agentPlatform: role.recommendedPlatform, skills: role.recommendedSkills, channels: ["web"], role: role.id }),
+        body: JSON.stringify({ name, description: role.tagline, avatar: role.emoji, systemPrompt: role.systemPrompt, model: detectedProvider.model, temperature: 0.7, apiKey: apiKey.trim(), llmProvider: detectedProvider.provider, agentPlatform: role.recommendedPlatform, skills: role.recommendedSkills, channels: ["web"], role: role.id }),
       });
       if (res.ok) { await fetchAgents(); setShowCreate(false); setApiKey(""); setSelectedRole(""); setCustomName(""); }
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+    } finally { setLoading(false); }
   };
 
-  const handleDeleteAgent = async (id: string) => {
-    if (!confirm("确定删除？")) return;
-    await fetch(`/api/agents/${id}`, { method: "DELETE" });
-    await fetchAgents();
-    if (selectedAgent?.id === id) { setSelectedAgent(null); setTab("agents"); }
-  };
-
-  // ==================== 群组操作 ====================
+  // ==================== 创建群组 ====================
   const handleCreateGroup = async () => {
     if (!groupName.trim() || selectedAgentIds.length === 0) return;
     setLoading(true);
     try {
       const res = await fetch("/api/groups", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: groupName.trim(), mode: groupMode, agentIds: selectedAgentIds, childGroupIds: selectedChildGroupIds }),
+        body: JSON.stringify({ name: groupName, description: `${swarmMode}模式群组`, mode: groupMode, swarmMode, humanControl, agentIds: selectedAgentIds }),
       });
-      if (res.ok) { await fetchGroups(); setShowCreateGroup(false); setGroupName(""); setSelectedAgentIds([]); setSelectedChildGroupIds([]); }
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+      if (res.ok) { await fetchGroups(); setShowCreateGroup(false); setGroupName(""); setSelectedAgentIds([]); }
+    } finally { setLoading(false); }
   };
 
-  const handleDeleteGroup = async (id: string) => {
-    if (!confirm("确定删除群组？")) return;
-    await fetch(`/api/groups/${id}`, { method: "DELETE" });
-    await fetchGroups();
-    if (selectedGroup?.id === id) { setSelectedGroup(null); setTab("agents"); }
-  };
-
-  const toggleAgentInGroup = (id: string) => {
-    setSelectedAgentIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  };
-
-  const toggleChildGroup = (id: string) => {
-    setSelectedChildGroupIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  };
-
-  // ==================== 聊天操作 ====================
+  // ==================== 聊天 ====================
   const handleStartChat = async (agent: Agent) => {
     setSelectedAgent(agent); setSelectedGroup(null);
     try {
       const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentId: agent.id }) });
-      if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setTab("chat"); }
-    } catch (e) { console.error(e); }
+      if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setView("chat"); }
+    } catch {}
   };
 
   const handleStartGroupChat = async (group: AgentGroup) => {
     setSelectedGroup(group); setSelectedAgent(null);
     try {
-      const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ groupId: group.id, title: `群组: ${group.name}` }) });
-      if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setTab("chat"); }
-    } catch (e) { console.error(e); }
+      const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ groupId: group.id }) });
+      if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setView("chat"); }
+    } catch {}
   };
 
   const handleSendMessage = async () => {
     if (!input.trim() || sending) return;
-    const userMsg = input.trim(); setInput(""); setSending(true); setStreamingContent("");
-    const isGroupChat = !!currentConversation?.groupId;
-
-    setMessages((prev) => [...prev, { id: `temp-${Date.now()}`, conversationId: currentConversation?.id || "", role: "user", content: userMsg, agentName: "用户", createdAt: new Date().toISOString() }]);
-
+    const content = input.trim(); setInput(""); setSending(true); setStreamingContent("");
     try {
-      const endpoint = isGroupChat ? "/api/chat/group" : "/api/chat";
-      const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: currentConversation?.id, content: userMsg }) });
-
-      if (!res.ok || !res.body) { setSending(false); return; }
-      const reader = res.body.getReader(); const decoder = new TextDecoder(); let buffer = "";
-      let currentAgentName = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n"); buffer = lines.pop() || "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          try {
-            const data = JSON.parse(line.slice(6));
-            if (data.type === "token") {
-              setStreamingContent((prev) => prev + data.content);
-            } else if (data.type === "agent_reply") {
-              currentAgentName = data.agentName;
-              setMessages((prev) => [...prev, { id: data.messageId || `m-${Date.now()}`, conversationId: currentConversation?.id || "", role: "assistant", content: data.content, agentName: data.agentName, createdAt: new Date().toISOString() }]);
-              setStreamingContent("");
-            } else if (data.type === "done") {
-              if (streamingContent) {
-                setMessages((prev) => [...prev, { id: `a-${Date.now()}`, conversationId: currentConversation?.id || "", role: "assistant", content: streamingContent, agentName: currentAgentName || "AI", createdAt: new Date().toISOString() }]);
-                setStreamingContent("");
-              }
-            } else if (data.type === "agent_error") {
-              setMessages((prev) => [...prev, { id: `e-${Date.now()}`, conversationId: currentConversation?.id || "", role: "assistant", content: `❌ ${data.agentName}: ${data.error}`, agentName: "系统", createdAt: new Date().toISOString() }]);
+      const isGroup = !!currentConversation?.groupId;
+      const endpoint = isGroup ? "/api/chat/group" : "/api/chat";
+      const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: currentConversation?.id, content }), });
+      if (res.ok) {
+        const reader = res.body?.getReader();
+        const decoder = new TextDecoder();
+        let full = "";
+        while (reader) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          for (const line of chunk.split("\n")) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.type === "token") { full += data.content; setStreamingContent(full); }
+                else if (data.type === "agent_reply") {
+                  setMessages(prev => [...prev, { id: data.messageId || Date.now().toString(), conversationId: currentConversation?.id || "", role: "assistant", content: data.content, agentName: data.agentName || "", approved: true, createdAt: new Date().toISOString() }]);
+                  full = ""; setStreamingContent("");
+                }
+                else if (data.type === "done") {
+                  if (full) { setMessages(prev => [...prev, { id: Date.now().toString(), conversationId: currentConversation?.id || "", role: "assistant", content: full, agentName: "", approved: true, createdAt: new Date().toISOString() }]); full = ""; setStreamingContent(""); }
+                }
+              } catch {}
             }
-          } catch { /* ignore */ }
+          }
         }
       }
-    } catch (e) { console.error(e); } finally { setSending(false); }
+    } catch {} finally { setSending(false); }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } };
+  // ==================== 画布拖拽 ====================
+  const initCanvas = () => {
+    const nodes: typeof canvasNodes = [];
+    const edges: typeof canvasEdges = [];
+    agents.forEach((a, i) => { nodes.push({ id: a.id, x: 80 + (i % 4) * 200, y: 80 + Math.floor(i / 4) * 160, agent: a, type: "agent" }); });
+    groups.forEach((g, i) => {
+      const gx = 80 + (i % 3) * 280; const gy = 400 + Math.floor(i / 3) * 180;
+      nodes.push({ id: g.id, x: gx, y: gy, group: g, type: "group" });
+      g.members.forEach(m => edges.push({ from: m.agentId, to: g.id }));
+    });
+    setCanvasNodes(nodes); setCanvasEdges(edges);
+  };
 
+  useEffect(() => {
+    if (view === "canvas") {
+      setTimeout(() => initCanvas(), 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, agents, groups]);
+
+  const handleCanvasMouseDown = (e: React.MouseEvent, nodeId: string) => {
+    const node = canvasNodes.find(n => n.id === nodeId);
+    if (!node) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setDragging(nodeId);
+    setDragOffset({ x: e.clientX - rect.left - node.x, y: e.clientY - rect.top - node.y });
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    if (!dragging) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left - dragOffset.x;
+    const y = e.clientY - rect.top - dragOffset.y;
+    setCanvasNodes(prev => prev.map(n => n.id === dragging ? { ...n, x, y } : n));
+  };
+
+  const handleCanvasMouseUp = () => { setDragging(null); };
+
+  // ==================== 人工干预 ====================
+  const handleApproveMessage = (msgId: string) => {
+    setPendingMessages(prev => prev.filter(m => m.id !== msgId));
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, approved: true } : m));
+  };
+
+  const handleRejectMessage = (msgId: string) => { setPendingMessages(prev => prev.filter(m => m.id !== msgId)); };
+
+  const handleInjectMessage = () => {
+    if (!injectTarget || !input.trim()) return;
+    setMessages(prev => [...prev, { id: Date.now().toString(), conversationId: currentConversation?.id || "", role: "system", content: `[人工注入→${injectTarget}]: ${input.trim()}`, agentName: "👤人类", approved: true, createdAt: new Date().toISOString() }]);
+    setInput(""); setInjectMode(false); setInjectTarget("");
+  };
+
+  // ==================== 头像颜色 ====================
   const getAvatarColor = (name: string) => {
     const colors = ["bg-blue-500","bg-purple-500","bg-pink-500","bg-red-500","bg-orange-500","bg-yellow-500","bg-green-500","bg-teal-500","bg-cyan-500","bg-indigo-500"];
     let hash = 0; for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // ==================== 统计 ====================
+  const stats = {
+    totalAgents: agents.length, totalGroups: groups.length,
+    swarmModes: [...new Set(groups.map(g => g.swarmMode))].length,
+    humanControls: [...new Set(groups.map(g => g.humanControl))].length,
+    platformDist: agents.reduce((acc, a) => { acc[a.agentPlatform] = (acc[a.agentPlatform] || 0) + 1; return acc; }, {} as Record<string, number>),
+    roleDist: agents.reduce((acc, a) => { acc[a.role || "other"] = (acc[a.role || "other"] || 0) + 1; return acc; }, {} as Record<string, number>),
+  };
+
   // ==================== 渲染 ====================
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* ===== 左侧边栏 ===== */}
-      <aside className="w-72 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="p-4 border-b border-gray-200">
-          <button onClick={() => { setTab("agents"); setSelectedAgent(null); setSelectedGroup(null); setCurrentConversation(null); }}
-            className="flex items-center gap-2 w-full hover:opacity-80 transition">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">B</div>
-            <span className="font-bold text-lg text-gray-800">BloomBloomGarden</span>
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      {/* ===== 左侧导航 ===== */}
+      <aside className="w-16 bg-gradient-to-b from-purple-600 to-indigo-700 flex flex-col items-center py-4 gap-2 shrink-0">
+        {[
+          { v: "dashboard" as const, icon: "📊", tip: "仪表盘" },
+          { v: "agents" as const, icon: "🤖", tip: "Agent" },
+          { v: "canvas" as const, icon: "🎨", tip: "画布" },
+          { v: "chat" as const, icon: "💬", tip: "聊天" },
+        ].map(item => (
+          <button key={item.v} onClick={() => setView(item.v)}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg transition-all ${view === item.v ? "bg-white/20 shadow-lg scale-110" : "hover:bg-white/10"}`}
+            title={item.tip}>
+            {item.icon}
           </button>
-        </div>
-
-        {/* Tab 切换 */}
-        <div className="flex border-b border-gray-200">
-          {(["agents", "groups"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`flex-1 py-2 text-xs font-medium transition ${tab === t ? "text-purple-600 border-b-2 border-purple-600" : "text-gray-500 hover:text-gray-700"}`}>
-              {t === "agents" ? "🤖 Agent" : "👥 群组"}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-3 space-y-1">
-          {tab === "agents" && (
-            <>
-              <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-xs font-semibold text-gray-400 uppercase">我的 Agent ({agents.length})</span>
-                <button onClick={() => setShowCreate(true)} className="text-purple-500 hover:text-purple-700 text-lg">+</button>
-              </div>
-              {agents.map((agent) => (
-                <div key={agent.id} onClick={() => setSelectedAgent(agent)}
-                  className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ${selectedAgent?.id === agent.id ? "bg-purple-50 border border-purple-200" : "hover:bg-gray-50"}`}>
-                  <div className={`w-8 h-8 ${getAvatarColor(agent.name)} rounded-full flex items-center justify-center text-white text-sm`}>
-                    {agent.avatar || agent.name[0]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-gray-800 truncate">{agent.name}</div>
-                    <div className="text-xs text-gray-400">{agent.llmProvider}/{agent.model}</div>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-
-          {tab === "groups" && (
-            <>
-              <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-xs font-semibold text-gray-400 uppercase">群组 ({groups.length})</span>
-                <button onClick={() => setShowCreateGroup(true)} className="text-purple-500 hover:text-purple-700 text-lg">+</button>
-              </div>
-              {groups.map((group) => (
-                <div key={group.id} onClick={() => setSelectedGroup(group)}
-                  className={`p-2 rounded-lg cursor-pointer transition ${selectedGroup?.id === group.id ? "bg-purple-50 border border-purple-200" : "hover:bg-gray-50"}`}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center text-white text-sm">👥</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-800 truncate">{group.name}</div>
-                      <div className="text-xs text-gray-400">{GROUP_MODES.find((m) => m.id === group.mode)?.icon} {group.members.length}人</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
+        ))}
+        <div className="flex-1" />
+        <button onClick={() => setShowCreate(true)} className="w-11 h-11 rounded-xl bg-pink-500 hover:bg-pink-400 flex items-center justify-center text-white text-xl shadow-lg" title="创建Agent">+</button>
       </aside>
 
       {/* ===== 主内容区 ===== */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {tab === "chat" && currentConversation ? (
-          /* ===== 聊天界面 ===== */
-          <>
-            <div className="px-4 py-3 border-b border-gray-200 bg-white flex items-center gap-3">
-              <button onClick={() => { setTab(selectedGroup ? "groups" : "agents"); setCurrentConversation(null); }}
-                className="text-gray-400 hover:text-gray-600">←</button>
-              <div className="flex-1">
-                <div className="font-medium text-gray-800">
-                  {selectedGroup ? `👥 ${selectedGroup.name}` : selectedAgent ? `🤖 ${selectedAgent.name}` : "对话"}
+      <main className="flex-1 overflow-hidden">
+
+        {/* ===== 仪表盘 ===== */}
+        {view === "dashboard" && (
+          <div className="h-full overflow-y-auto p-6">
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">🐝 BloomBloomGarden 控制台</h1>
+
+            {/* 统计卡片 */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              {[
+                { label: "Agent", value: stats.totalAgents, icon: "🤖", color: "from-blue-500 to-cyan-400" },
+                { label: "群组", value: stats.totalGroups, icon: "👥", color: "from-purple-500 to-pink-400" },
+                { label: "蜂群模式", value: stats.swarmModes, icon: "🐝", color: "from-amber-500 to-orange-400" },
+                { label: "干预级别", value: stats.humanControls, icon: "🎮", color: "from-green-500 to-emerald-400" },
+              ].map(card => (
+                <div key={card.label} className={`bg-gradient-to-br ${card.color} rounded-xl p-4 text-white shadow-lg`}>
+                  <div className="text-2xl mb-1">{card.icon}</div>
+                  <div className="text-3xl font-bold">{card.value}</div>
+                  <div className="text-sm opacity-80">{card.label}</div>
                 </div>
-                {selectedGroup && (
-                  <div className="text-xs text-gray-400">
-                    {GROUP_MODES.find((m) => m.id === selectedGroup.mode)?.name} · {selectedGroup.members.length} Agent
-                    {selectedGroup.childGroups.length > 0 && ` · ${selectedGroup.childGroups.length} 子群组`}
-                  </div>
-                )}
+              ))}
+            </div>
+
+            {/* 蜂群协作机制选择 */}
+            <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
+              <h2 className="text-lg font-bold text-gray-700 mb-4">🐝 蜂群协作机制</h2>
+              <div className="grid grid-cols-4 gap-3">
+                {SWARM_MODES.map(mode => (
+                  <button key={mode.id} onClick={() => { setSwarmMode(mode.id); setShowCreateGroup(true); }}
+                    className={`bg-gradient-to-br ${mode.color} rounded-xl p-4 text-left text-white hover:shadow-lg transition-all hover:scale-105`}>
+                    <div className="text-2xl mb-1">{mode.icon}</div>
+                    <div className="font-bold text-sm">{mode.name}</div>
+                    <div className="text-xs opacity-80 mt-1">{mode.desc}</div>
+                  </button>
+                ))}
               </div>
             </div>
 
+            {/* 人工干预级别 */}
+            <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
+              <h2 className="text-lg font-bold text-gray-700 mb-4">🎮 人工干预级别</h2>
+              <div className="grid grid-cols-4 gap-3">
+                {HUMAN_CONTROL_LEVELS.map(level => (
+                  <button key={level.id} onClick={() => setHumanControl(level.id)}
+                    className={`rounded-xl p-4 text-left border-2 transition-all ${humanControl === level.id ? "border-indigo-500 bg-indigo-50 shadow-md" : "border-gray-100 bg-gray-50 hover:border-gray-300"}`}>
+                    <div className="text-2xl mb-1">{level.icon}</div>
+                    <div className="font-bold text-sm text-gray-700">{level.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{level.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Agent 列表 */}
+            <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-gray-700">🤖 Agent 列表</h2>
+                <button onClick={() => setShowCreate(true)} className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-400">+ 创建</button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {agents.map(a => (
+                  <div key={a.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-purple-200 hover:bg-purple-50/30 transition cursor-pointer"
+                    onClick={() => handleStartChat(a)}>
+                    <div className={`w-10 h-10 ${getAvatarColor(a.name)} rounded-lg flex items-center justify-center text-white text-lg shrink-0`}>{a.avatar || a.name[0]}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-800 text-sm">{a.name}</div>
+                      <div className="text-xs text-gray-400">{a.llmProvider}/{a.model} | {a.role}</div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${a.status === "running" ? "bg-green-100 text-green-700" : a.status === "paused" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500"}`}>{a.status || "idle"}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 群组列表 */}
+            <div className="bg-white rounded-xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-gray-700">👥 群组列表</h2>
+                <button onClick={() => setShowCreateGroup(true)} className="px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-sm hover:bg-indigo-400">+ 创建群组</button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {groups.map(g => {
+                  const swarm = SWARM_MODES.find(s => s.id === g.swarmMode);
+                  const ctrl = HUMAN_CONTROL_LEVELS.find(c => c.id === g.humanControl);
+                  return (
+                    <div key={g.id} className="p-4 rounded-xl border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition cursor-pointer"
+                      onClick={() => handleStartGroupChat(g)}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{swarm?.icon || "👥"}</span>
+                        <span className="font-bold text-gray-800">{g.name}</span>
+                        <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full">{g.mode}</span>
+                      </div>
+                      <div className="text-xs text-gray-500 mb-2">{swarm?.name} | {ctrl?.icon} {ctrl?.name}</div>
+                      <div className="flex gap-1 flex-wrap">
+                        {g.members.map(m => (
+                          <span key={m.id} className={`px-2 py-0.5 rounded-full text-xs ${m.role === "leader" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{m.agent.name}</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== Agent 视图 ===== */}
+        {view === "agents" && (
+          <div className="h-full overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-gray-800">🤖 Agent 管理</h1>
+              <button onClick={() => setShowCreate(true)} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:shadow-lg">+ 创建 Agent</button>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              {agents.map(a => (
+                <div key={a.id} className="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition border border-gray-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-12 h-12 ${getAvatarColor(a.name)} rounded-xl flex items-center justify-center text-white text-xl`}>{a.avatar || a.name[0]}</div>
+                    <div><div className="font-bold text-gray-800">{a.name}</div><div className="text-xs text-gray-400">{a.role}</div></div>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-1 mb-3">
+                    <div>🔧 {a.llmProvider}/{a.model}</div>
+                    <div>📡 {a.agentPlatform}</div>
+                    <div>🔑 {a.apiKey}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleStartChat(a)} className="flex-1 px-3 py-1.5 bg-purple-500 text-white rounded-lg text-xs hover:bg-purple-400">💬 聊天</button>
+                    <button onClick={async () => { await fetch(`/api/agents/${a.id}`, { method: "DELETE" }); fetchAgents(); }} className="px-3 py-1.5 bg-red-50 text-red-500 rounded-lg text-xs hover:bg-red-100">🗑️</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===== 画布视图 ===== */}
+        {view === "canvas" && (
+          <div className="h-full flex flex-col">
+            <div className="p-4 bg-white border-b flex items-center justify-between">
+              <h1 className="text-lg font-bold text-gray-800">🎨 编排画布</h1>
+              <div className="flex gap-2">
+                <button onClick={initCanvas} className="px-3 py-1.5 bg-gray-100 rounded-lg text-xs hover:bg-gray-200">🔄 重排</button>
+                <button onClick={() => setShowCreateGroup(true)} className="px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs">+ 创建群组</button>
+              </div>
+            </div>
+            <div ref={canvasRef} className="flex-1 relative overflow-hidden bg-gray-50"
+              style={{ backgroundImage: "radial-gradient(circle, #e5e7eb 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+              onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp}>
+              {/* 连线 */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                {canvasEdges.map((edge, i) => {
+                  const from = canvasNodes.find(n => n.id === edge.from);
+                  const to = canvasNodes.find(n => n.id === edge.to);
+                  if (!from || !to) return null;
+                  return <line key={i} x1={from.x + 60} y1={from.y + 30} x2={to.x + 60} y2={to.y + 30} stroke="#a78bfa" strokeWidth={2} strokeDasharray="6 3" />;
+                })}
+              </svg>
+              {/* 节点 */}
+              {canvasNodes.map(node => (
+                <div key={node.id}
+                  className={`absolute cursor-grab active:cursor-grabbing rounded-xl shadow-md border-2 transition-shadow hover:shadow-lg ${node.type === "agent" ? "w-32 bg-white border-purple-200" : "w-44 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-300"}`}
+                  style={{ left: node.x, top: node.y }}
+                  onMouseDown={e => handleCanvasMouseDown(e, node.id)}>
+                  {node.type === "agent" && node.agent && (
+                    <div className="p-3 text-center">
+                      <div className={`w-10 h-10 ${getAvatarColor(node.agent.name)} rounded-lg mx-auto mb-1 flex items-center justify-center text-white text-lg`}>{node.agent.avatar || node.agent.name[0]}</div>
+                      <div className="text-xs font-bold text-gray-700 truncate">{node.agent.name}</div>
+                      <div className="text-[10px] text-gray-400">{node.agent.role}</div>
+                    </div>
+                  )}
+                  {node.type === "group" && node.group && (
+                    <div className="p-3">
+                      <div className="text-xs font-bold text-indigo-700 mb-1">👥 {node.group?.name || "群组"}</div>
+                      <div className="text-[10px] text-gray-500">{SWARM_MODES.find(s => s.id === node.group?.swarmMode)?.icon} {SWARM_MODES.find(s => s.id === node.group?.swarmMode)?.name}</div>
+                      <div className="flex gap-0.5 mt-1 flex-wrap">
+                        {node.group?.members.slice(0, 4).map(m => (
+                          <span key={m.id} className={`w-5 h-5 ${getAvatarColor(m.agent.name)} rounded text-[8px] text-white flex items-center justify-center`}>{m.agent.name[0]}</span>
+                        ))}
+                        {node.group.members.length > 4 && <span className="text-[10px] text-gray-400">+{node.group.members.length - 4}</span>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===== 聊天视图 ===== */}
+        {view === "chat" && (
+          <div className="h-full flex flex-col">
+            {/* 聊天头部 */}
+            <div className="p-4 bg-white border-b flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setView("dashboard")} className="text-gray-400 hover:text-gray-600">←</button>
+                {selectedAgent && (
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 ${getAvatarColor(selectedAgent.name)} rounded-lg flex items-center justify-center text-white text-sm`}>{selectedAgent.avatar || selectedAgent.name[0]}</div>
+                    <span className="font-bold text-gray-800">{selectedAgent.name}</span>
+                  </div>
+                )}
+                {selectedGroup && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{SWARM_MODES.find(s => s.id === selectedGroup.swarmMode)?.icon}</span>
+                    <span className="font-bold text-gray-800">{selectedGroup.name}</span>
+                    <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded-full">{SWARM_MODES.find(s => s.id === selectedGroup.swarmMode)?.name}</span>
+                    <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full">{HUMAN_CONTROL_LEVELS.find(c => c.id === selectedGroup.humanControl)?.icon} {HUMAN_CONTROL_LEVELS.find(c => c.id === selectedGroup.humanControl)?.name}</span>
+                  </div>
+                )}
+              </div>
+              {/* 人工干预控制 */}
+              {selectedGroup && (
+                <div className="flex gap-2">
+                  <button onClick={() => setInjectMode(!injectMode)} className={`px-3 py-1.5 rounded-lg text-xs ${injectMode ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-600"}`}>🎮 注入指令</button>
+                </div>
+              )}
+            </div>
+
+            {/* 消息列表 */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((msg) => (
+              {messages.map(msg => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] ${msg.role === "user" ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-800"} rounded-2xl px-4 py-2`}>
-                    {msg.agentName && msg.role !== "user" && (
-                      <div className="text-xs font-semibold text-purple-600 mb-1">{msg.agentName}</div>
-                    )}
+                  <div className={`max-w-[70%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-purple-500 text-white" : msg.role === "system" ? "bg-amber-100 text-amber-800 border border-amber-200" : "bg-white border border-gray-100 shadow-sm"}`}>
+                    {msg.agentName && <div className="text-xs font-bold text-indigo-500 mb-1">{msg.agentName}</div>}
                     <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                    {selectedGroup && !msg.approved && msg.role === "assistant" && (
+                      <div className="flex gap-2 mt-2 pt-2 border-t border-gray-100">
+                        <button onClick={() => handleApproveMessage(msg.id)} className="px-3 py-1 bg-green-500 text-white rounded text-xs">✅ 批准</button>
+                        <button onClick={() => handleRejectMessage(msg.id)} className="px-3 py-1 bg-red-500 text-white rounded text-xs">❌ 否决</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
               {streamingContent && (
                 <div className="flex justify-start">
-                  <div className="max-w-[80%] bg-gray-100 text-gray-800 rounded-2xl px-4 py-2">
-                    <div className="text-sm whitespace-pre-wrap">{streamingContent}</div>
-                    <span className="inline-block w-1 h-4 bg-purple-500 animate-pulse ml-1" />
+                  <div className="max-w-[70%] bg-white border border-purple-200 rounded-xl px-4 py-2.5 shadow-sm">
+                    <div className="text-sm whitespace-pre-wrap text-purple-700">{streamingContent}▊</div>
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t border-gray-200 bg-white">
+            {/* 注入指令面板 */}
+            {injectMode && selectedGroup && (
+              <div className="p-3 bg-amber-50 border-t border-amber-200">
+                <div className="text-xs font-bold text-amber-700 mb-2">🎮 人工注入指令</div>
+                <div className="flex gap-2 mb-2 flex-wrap">
+                  {selectedGroup.members.map(m => (
+                    <button key={m.id} onClick={() => setInjectTarget(m.agent.name)}
+                      className={`px-2 py-1 rounded text-xs ${injectTarget === m.agent.name ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"}`}>
+                      {m.agent.name}
+                    </button>
+                  ))}
+                  <button onClick={() => setInjectTarget("all")} className={`px-2 py-1 rounded text-xs ${injectTarget === "all" ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"}`}>全部</button>
+                </div>
+                <div className="flex gap-2">
+                  <input value={input} onChange={e => setInput(e.target.value)} placeholder={`向 ${injectTarget || "..."} 注入指令...`} className="flex-1 px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                  <button onClick={handleInjectMessage} className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm">注入</button>
+                </div>
+              </div>
+            )}
+
+            {/* 输入框 */}
+            <div className="p-4 bg-white border-t">
               <div className="flex gap-2">
-                <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
-                  placeholder={selectedGroup ? `向 ${selectedGroup.name} 发送消息...` : "输入消息..."}
-                  className="flex-1 resize-none border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
-                  rows={1} />
-                <button onClick={handleSendMessage} disabled={sending || !input.trim()}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-xl text-sm font-medium hover:bg-purple-600 disabled:opacity-40 transition">
-                  {sending ? "..." : "发送"}
+                <textarea value={input} onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); injectMode ? handleInjectMessage() : handleSendMessage(); } }}
+                  placeholder={injectMode ? "注入指令..." : "输入消息..."}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-300" rows={1} />
+                <button onClick={injectMode ? handleInjectMessage : handleSendMessage} disabled={sending || !input.trim()}
+                  className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-sm font-medium hover:shadow-lg disabled:opacity-40">
+                  {sending ? "..." : injectMode ? "注入" : "发送"}
                 </button>
               </div>
             </div>
-          </>
-        ) : (
-          /* ===== Agent/群组详情 ===== */
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            {selectedAgent ? (
-              <div className="bg-white rounded-2xl shadow-sm p-8 max-w-md w-full mx-4">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className={`w-16 h-16 ${getAvatarColor(selectedAgent.name)} rounded-2xl flex items-center justify-center text-white text-2xl`}>
-                    {selectedAgent.avatar || selectedAgent.name[0]}
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-800">{selectedAgent.name}</h2>
-                    <p className="text-sm text-gray-500">{selectedAgent.llmProvider}/{selectedAgent.model}</p>
-                  </div>
-                </div>
-                <div className="space-y-2 text-sm text-gray-600 mb-6">
-                  <div>🔑 API Key: <span className="font-mono text-xs">{selectedAgent.apiKey}</span></div>
-                  <div>🎭 角色: {selectedAgent.role || "自定义"}</div>
-                  <div>🏗️ 平台: {AGENT_PLATFORMS.find((p) => p.id === selectedAgent.agentPlatform)?.name || selectedAgent.agentPlatform}</div>
-                  <div>🔧 技能: {JSON.parse(selectedAgent.skills || "[]").length} 个</div>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => handleStartChat(selectedAgent)}
-                    className="flex-1 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:shadow-lg transition">
-                    💬 开始聊天
-                  </button>
-                  <button onClick={() => handleDeleteAgent(selectedAgent.id)}
-                    className="px-4 py-2 text-red-500 hover:bg-red-50 rounded-xl transition">删除</button>
-                </div>
-              </div>
-            ) : selectedGroup ? (
-              <div className="bg-white rounded-2xl shadow-sm p-8 max-w-lg w-full mx-4">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-white text-2xl">👥</div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-800">{selectedGroup.name}</h2>
-                    <p className="text-sm text-gray-500">{GROUP_MODES.find((m) => m.id === selectedGroup.mode)?.icon} {GROUP_MODES.find((m) => m.id === selectedGroup.mode)?.name}</p>
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-gray-500 mb-2">成员 Agent:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedGroup.members.map((m) => (
-                      <span key={m.id} className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
-                        {m.agent.avatar} {m.agent.name} {m.role === "leader" ? "⭐" : ""}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                {selectedGroup.childGroups.length > 0 && (
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-gray-500 mb-2">子群组:</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedGroup.childGroups.map((cg) => (
-                        <span key={cg.id} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
-                          🏗️ {cg.childGroup.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <button onClick={() => handleStartGroupChat(selectedGroup)}
-                    className="flex-1 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-medium hover:shadow-lg transition">
-                    💬 群组聊天
-                  </button>
-                  <button onClick={() => handleDeleteGroup(selectedGroup.id)}
-                    className="px-4 py-2 text-red-500 hover:bg-red-50 rounded-xl transition">删除</button>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center text-gray-400">
-                <div className="text-6xl mb-4">🌸</div>
-                <p className="text-lg font-medium">BloomBloomGarden</p>
-                <p className="text-sm mt-1">粘贴 API Key → 选角色 → 一键创建 Agent</p>
-                <p className="text-sm mt-1">组合多个 Agent → 创建群组 → 多模式协作</p>
-              </div>
-            )}
           </div>
         )}
       </main>
 
-      {/* ===== 创建 Agent 弹窗 ===== */}
+      {/* ===== 创建Agent弹窗 ===== */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-[480px] max-h-[85vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">🤖 创建 Agent</h2>
-              <p className="text-sm text-gray-500 mt-1">粘贴 API Key → 选角色 → 一键创建</p>
-            </div>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowCreate(false)}>
+          <div className="bg-white rounded-2xl w-[480px] max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b"><h2 className="text-lg font-bold text-gray-800">🤖 创建 Agent</h2></div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">🔑 API Key</label>
-                <input value={apiKey} onChange={(e) => handleApiKeyChange(e.target.value)}
-                  placeholder="粘贴你的 API Key..."
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-                {apiKey.length > 10 && (
-                  <div className="mt-1 text-xs text-green-600">
-                    ✅ 检测到: {LLM_PROVIDERS.find((p) => p.id === detectedProvider.provider)?.name} / {detectedProvider.model}
-                  </div>
-                )}
+                <label className="text-sm font-medium text-gray-700">API Key</label>
+                <input value={apiKey} onChange={e => handleApiKeyChange(e.target.value)} placeholder="粘贴你的 API Key..." className="w-full mt-1 px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
+                {apiKey.length > 10 && <div className="mt-1 text-xs text-green-600">✅ 检测到: {LLM_PROVIDERS.find(p => p.id === detectedProvider.provider)?.name} / {detectedProvider.model}</div>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">🎭 选择角色</label>
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-                  {AGENT_ROLES.map((role) => (
+                <label className="text-sm font-medium text-gray-700">选择角色</label>
+                <div className="grid grid-cols-3 gap-2 mt-1 max-h-48 overflow-y-auto">
+                  {AGENT_ROLES.map(role => (
                     <button key={role.id} onClick={() => setSelectedRole(role.id)}
-                      className={`p-2 rounded-lg text-left text-xs transition ${selectedRole === role.id ? "bg-purple-50 border-2 border-purple-400" : "bg-gray-50 border border-gray-100 hover:bg-gray-100"}`}>
-                      <span className="text-lg">{role.emoji}</span>
-                      <span className="font-medium ml-1">{role.name}</span>
+                      className={`p-2 rounded-lg text-left text-xs transition ${selectedRole === role.id ? "bg-purple-100 border-2 border-purple-400" : "bg-gray-50 border border-gray-100"}`}>
+                      <div className="text-lg">{role.emoji}</div>
+                      <div className="font-bold">{role.name}</div>
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">✏️ 自定义名称（可选）</label>
-                <input value={customName} onChange={(e) => setCustomName(e.target.value)}
-                  placeholder={AGENT_ROLES.find((r) => r.id === selectedRole)?.name || "Agent 名称"}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                <label className="text-sm font-medium text-gray-700">自定义名称（可选）</label>
+                <input value={customName} onChange={e => setCustomName(e.target.value)} placeholder={AGENT_ROLES.find(r => r.id === selectedRole)?.name || "名称"} className="w-full mt-1 px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 flex gap-3 justify-end">
-              <button onClick={() => { setShowCreate(false); setApiKey(""); setSelectedRole(""); setCustomName(""); }}
-                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition">取消</button>
-              <button onClick={handleCreateAgent} disabled={!apiKey.trim() || !selectedRole || loading}
-                className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-40 transition-all">
-                {loading ? "创建中..." : "一键创建"}
-              </button>
+            <div className="p-6 border-t flex gap-3 justify-end">
+              <button onClick={() => { setShowCreate(false); setApiKey(""); setSelectedRole(""); setCustomName(""); }} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">取消</button>
+              <button onClick={handleCreateAgent} disabled={!apiKey.trim() || !selectedRole || loading} className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-40">{loading ? "创建中..." : "一键创建"}</button>
             </div>
           </div>
         </div>
@@ -478,63 +595,61 @@ export default function Home() {
 
       {/* ===== 创建群组弹窗 ===== */}
       {showCreateGroup && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-[560px] max-h-[85vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">👥 创建 Agent 群组</h2>
-              <p className="text-sm text-gray-500 mt-1">组合多个 Agent，选择协作模式</p>
-            </div>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowCreateGroup(false)}>
+          <div className="bg-white rounded-2xl w-[560px] max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b"><h2 className="text-lg font-bold text-gray-800">👥 创建群组</h2></div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">群组名称</label>
-                <input value={groupName} onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="例如：量化交易团队"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                <label className="text-sm font-medium text-gray-700">群组名称</label>
+                <input value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="输入群组名称..." className="w-full mt-1 px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-300 focus:outline-none" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">协作模式</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {GROUP_MODES.map((mode) => (
-                    <button key={mode.id} onClick={() => setGroupMode(mode.id)}
-                      className={`p-3 rounded-lg text-left transition ${groupMode === mode.id ? "bg-indigo-50 border-2 border-indigo-400" : "bg-gray-50 border border-gray-100 hover:bg-gray-100"}`}>
-                      <span className="font-medium text-sm">{mode.icon} {mode.name}</span>
-                      <span className="text-xs text-gray-500 ml-2">{mode.desc}</span>
+                <label className="text-sm font-medium text-gray-700">🐝 蜂群协作机制</label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {SWARM_MODES.map(mode => (
+                    <button key={mode.id} onClick={() => setSwarmMode(mode.id)}
+                      className={`p-3 rounded-xl text-left transition ${swarmMode === mode.id ? `bg-gradient-to-br ${mode.color} text-white shadow-md` : "bg-gray-50 border border-gray-100"}`}>
+                      <div className="flex items-center gap-2"><span className="text-lg">{mode.icon}</span><span className="font-bold text-sm">{mode.name}</span></div>
+                      <div className={`text-xs mt-1 ${swarmMode === mode.id ? "opacity-80" : "text-gray-500"}`}>{mode.desc}</div>
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">选择 Agent ({selectedAgentIds.length} 个)</label>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                  {agents.map((agent) => (
-                    <button key={agent.id} onClick={() => toggleAgentInGroup(agent.id)}
-                      className={`p-2 rounded-lg text-left text-xs transition ${selectedAgentIds.includes(agent.id) ? "bg-purple-50 border-2 border-purple-400" : "bg-gray-50 border border-gray-100"}`}>
-                      {agent.avatar} {agent.name}
+                <label className="text-sm font-medium text-gray-700">🎮 人工干预级别</label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {HUMAN_CONTROL_LEVELS.map(level => (
+                    <button key={level.id} onClick={() => setHumanControl(level.id)}
+                      className={`p-3 rounded-xl text-left transition ${humanControl === level.id ? "bg-indigo-100 border-2 border-indigo-400" : "bg-gray-50 border border-gray-100"}`}>
+                      <div className="flex items-center gap-2"><span className="text-lg">{level.icon}</span><span className="font-bold text-sm">{level.name}</span></div>
+                      <div className="text-xs text-gray-500 mt-1">{level.desc}</div>
                     </button>
                   ))}
                 </div>
               </div>
-              {groups.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">嵌套子群组 ({selectedChildGroupIds.length} 个)</label>
-                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-                    {groups.map((group) => (
-                      <button key={group.id} onClick={() => toggleChildGroup(group.id)}
-                        className={`p-2 rounded-lg text-left text-xs transition ${selectedChildGroupIds.includes(group.id) ? "bg-indigo-50 border-2 border-indigo-400" : "bg-gray-50 border border-gray-100"}`}>
-                        👥 {group.name} ({group.members.length}人)
-                      </button>
-                    ))}
-                  </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">编排模式</label>
+                <div className="flex gap-2 mt-1">
+                  {["relay", "debate", "vote", "parallel", "roundtable"].map(m => (
+                    <button key={m} onClick={() => setGroupMode(m)} className={`px-3 py-1.5 rounded-lg text-xs ${groupMode === m ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600"}`}>{m}</button>
+                  ))}
                 </div>
-              )}
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">选择 Agent ({selectedAgentIds.length} 个)</label>
+                <div className="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto">
+                  {agents.map(a => (
+                    <button key={a.id} onClick={() => setSelectedAgentIds(prev => prev.includes(a.id) ? prev.filter(x => x !== a.id) : [...prev, a.id])}
+                      className={`p-2 rounded-lg text-left text-xs transition ${selectedAgentIds.includes(a.id) ? "bg-indigo-50 border-2 border-indigo-400" : "bg-gray-50 border border-gray-100"}`}>
+                      {a.avatar} {a.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="p-6 border-t border-gray-100 flex gap-3 justify-end">
-              <button onClick={() => { setShowCreateGroup(false); setGroupName(""); setSelectedAgentIds([]); setSelectedChildGroupIds([]); }}
-                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition">取消</button>
-              <button onClick={handleCreateGroup} disabled={!groupName.trim() || selectedAgentIds.length === 0 || loading}
-                className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-40 transition-all">
-                {loading ? "创建中..." : "创建群组"}
-              </button>
+            <div className="p-6 border-t flex gap-3 justify-end">
+              <button onClick={() => setShowCreateGroup(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">取消</button>
+              <button onClick={handleCreateGroup} disabled={!groupName.trim() || selectedAgentIds.length === 0 || loading} className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-40">{loading ? "创建中..." : "创建群组"}</button>
             </div>
           </div>
         </div>

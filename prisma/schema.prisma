@@ -20,6 +20,7 @@ model Agent {
   skills        String   @default("[]")
   channels      String   @default("[]")
   role          String   @default("")
+  status        String   @default("idle")  // idle | running | paused | error
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -32,23 +33,23 @@ model AgentGroup {
   name        String
   description String   @default("")
   avatar      String   @default("")
-  mode        String   @default("relay")  // relay | debate | vote | parallel | roundtable
+  mode        String   @default("relay")
+  swarmMode   String   @default("basic")  // basic | stigmergy | hierarchical | pipeline | consensus | adversarial | mentor
+  humanControl String  @default("observe") // observe | approve | copilot | veto
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   members     AgentGroupMember[]
   conversations Conversation[]
-  // 嵌套群组：一个群组可以包含其他群组
   parentGroups  GroupGroupMember[] @relation("ChildGroups")
   childGroups   GroupGroupMember[] @relation("ParentGroups")
 }
 
-// Agent ↔ Group 多对多
 model AgentGroupMember {
   id        String   @id @default(uuid())
   agentId   String
   groupId   String
-  role      String   @default("member")  // leader | member | observer
+  role      String   @default("member")
   createdAt DateTime @default(now())
 
   agent     Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
@@ -57,9 +58,8 @@ model AgentGroupMember {
   @@unique([agentId, groupId])
 }
 
-// Group ↔ Group 嵌套多对多
 model GroupGroupMember {
-  id          String   @id @default(uuid())
+  id            String   @id @default(uuid())
   parentGroupId  String
   childGroupId   String
   createdAt    DateTime @default(now())
@@ -70,25 +70,72 @@ model GroupGroupMember {
   @@unique([parentGroupId, childGroupId])
 }
 
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  canvasData  String   @default("{}")  // JSON: 画布节点位置/连线
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  nodes       WorkflowNode[]
+  edges       WorkflowEdge[]
+  conversations Conversation[]
+}
+
+model WorkflowNode {
+  id         String   @id @default(uuid())
+  workflowId String
+  type       String   @default("agent")  // agent | group | input | output | condition | human
+  refId      String   @default("")       // Agent.id or AgentGroup.id
+  label      String   @default("")
+  config     String   @default("{}")     // JSON: 节点配置
+  positionX  Float    @default(0)
+  positionY  Float    @default(0)
+  createdAt  DateTime @default(now())
+
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  sourceEdges WorkflowEdge[] @relation("SourceNode")
+  targetEdges WorkflowEdge[] @relation("TargetNode")
+}
+
+model WorkflowEdge {
+  id         String   @id @default(uuid())
+  workflowId String
+  sourceId   String
+  targetId   String
+  label      String   @default("")
+  condition  String   @default("")  // 条件表达式
+  createdAt  DateTime @default(now())
+
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sourceNode WorkflowNode @relation("SourceNode", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetNode WorkflowNode @relation("TargetNode", fields: [targetId], references: [id], onDelete: Cascade)
+}
+
 model Conversation {
   id        String   @id @default(uuid())
   title     String   @default("新对话")
   agentId   String?
   groupId   String?
+  workflowId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   agent     Agent?        @relation(fields: [agentId], references: [id], onDelete: Cascade)
   group     AgentGroup?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  workflow  Workflow?     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   messages  Message[]
 }
 
 model Message {
   id             String   @id @default(uuid())
   conversationId String
-  role           String   // "user" | "assistant" | "system"
+  role           String
   content        String
-  agentName      String   @default("")  // 群组聊天时标记是哪个Agent说的
+  agentName      String   @default("")
+  approved       Boolean  @default(true)  // 人工审批标记
   createdAt      DateTime @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)

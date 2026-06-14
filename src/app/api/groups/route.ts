@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/groups - 获取所有群组
+// GET /api/groups
 export async function GET() {
   try {
     const groups = await prisma.agentGroup.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        members: { include: { agent: { select: { id: true, name: true, avatar: true, role: true, agentPlatform: true } } } },
-        childGroups: { include: { childGroup: { select: { id: true, name: true, avatar: true, mode: true } } } },
+        members: { include: { agent: { select: { id: true, name: true, avatar: true, role: true, agentPlatform: true, status: true } } } },
+        childGroups: { include: { childGroup: { select: { id: true, name: true, avatar: true, mode: true, swarmMode: true } } } },
         parentGroups: { include: { parentGroup: { select: { id: true, name: true } } } },
         _count: { select: { conversations: true } },
       },
@@ -20,15 +20,12 @@ export async function GET() {
   }
 }
 
-// POST /api/groups - 创建群组
+// POST /api/groups
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, description, avatar, mode, agentIds, childGroupIds } = body;
-
-    if (!name?.trim()) {
-      return NextResponse.json({ error: "群组名称不能为空" }, { status: 400 });
-    }
+    const { name, description, avatar, mode, swarmMode, humanControl, agentIds, childGroupIds } = body;
+    if (!name?.trim()) return NextResponse.json({ error: "群组名称不能为空" }, { status: 400 });
 
     const group = await prisma.agentGroup.create({
       data: {
@@ -36,24 +33,13 @@ export async function POST(request: Request) {
         description: description?.trim() || "",
         avatar: avatar?.trim() || "",
         mode: mode || "relay",
-        members: {
-          create: (agentIds || []).map((agentId: string, i: number) => ({
-            agentId,
-            role: i === 0 ? "leader" : "member",
-          })),
-        },
-        childGroups: {
-          create: (childGroupIds || []).map((childGroupId: string) => ({
-            childGroupId,
-          })),
-        },
+        swarmMode: swarmMode || "basic",
+        humanControl: humanControl || "observe",
+        members: { create: (agentIds || []).map((agentId: string, i: number) => ({ agentId, role: i === 0 ? "leader" : "member" })) },
+        childGroups: { create: (childGroupIds || []).map((childGroupId: string) => ({ childGroupId })) },
       },
-      include: {
-        members: { include: { agent: true } },
-        childGroups: { include: { childGroup: true } },
-      },
+      include: { members: { include: { agent: true } }, childGroups: { include: { childGroup: true } } },
     });
-
     return NextResponse.json(group, { status: 201 });
   } catch (error) {
     console.error("Failed to create group:", error);
