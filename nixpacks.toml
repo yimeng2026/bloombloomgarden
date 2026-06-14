@@ -1,0 +1,13 @@
+# Railway / Nixpacks 构建配置
+# 告诉构建器这是一个 Next.js 项目，不需要 backend 目录
+
+[phases.setup]
+
+[phases.install]
+cmd = "bun install"
+
+[phases.build]
+cmd = "bun run build"
+
+[phases.start]
+cmd = "bun run start"

@@ -27,7 +27,7 @@
 # debug
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
+yarn-debug.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
@@ -41,3 +41,14 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# skills - 不需要部署到生产环境
+/skills/
+
+# 临时文件
+/tool-results/
+/upload/
+/download/
+
+# 数据库
+/db/*.db

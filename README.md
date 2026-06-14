@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌸 BloomBloomGarden - AI 蜂群协作平台
 
-## Getting Started
+多 Agent 蜂群协作编排平台，支持 7 种蜂群协作机制、画布可视化编排、人工干预面板。
 
-First, run the development server:
+## 🚀 快速开始
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 安装依赖
+bun install
+
+# 初始化数据库
+bun run db:push
+
+# 启动开发服务器
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🐝 7 种蜂群协作机制
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 机制 | 说明 |
+|------|------|
+| 🐝 基础蜂群 | 按编排模式顺序执行 |
+| 🐜 信号觅食 | Agent 通过信息素自主发现任务 |
+| 👑 层级委派 | Leader 分配任务给 Worker |
+| 🔧 流水线 | 顺序处理，每步输出→下步输入 |
+| 🤝 共识机制 | 所有 Agent 必须达成一致 |
+| ⚔️ 红蓝对抗 | 两队对立辩论 |
+| 🎓 导师学徒 | 资深 Agent 指导新手 |
 
-## Learn More
+## 🧑‍💼 4 种人工干预模式
 
-To learn more about Next.js, take a look at the following resources:
+| 模式 | 说明 |
+|------|------|
+| 👁️ 观察 | 自动运行，人工旁观 |
+| ✅ 审批 | 关键决策需人工批准 |
+| 🎮 副驾驶 | 人工可随时注入指令 |
+| 🛑 否决权 | 人工可否决 Agent 输出 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📊 功能模块
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **仪表盘** - 实时统计、Agent 状态热力图
+- **Agent 管理** - 一键创建、API Key 自动检测供应商
+- **群组管理** - 蜂群机制 + 人工干预组合
+- **画布视图** - 可视化编排、拖拽移动、连线
+- **聊天界面** - 单 Agent / 群组协作聊天
 
-## Deploy on Vercel
+## 🛠️ 技术栈
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Next.js 16 + TypeScript + Tailwind CSS 4
+- Prisma ORM + SQLite (LibSQL)
+- z-ai-web-dev-sdk (LLM 集成)
+- 支持 13+ LLM 供应商
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚢 部署
+
+### Railway
+
+项目已包含 `railway.toml` 和 `nixpacks.toml` 配置，直接连接 GitHub 仓库即可部署。
+
+需要设置环境变量：
+- `DATABASE_URL` - 数据库连接字符串
+
+### Docker
+
+```bash
+docker build -t bloombloomgarden .
+docker run -p 3000:3000 -e DATABASE_URL=file:./db/custom.db bloombloomgarden
+```
+
+## 📁 项目结构
+
+```
+src/
+├── app/
+│   ├── page.tsx          # 主界面（5个Tab视图）
+│   └── api/
+│       ├── agents/       # Agent CRUD
+│       ├── groups/       # 群组 CRUD
+│       ├── workflows/    # 工作流 CRUD
+│       ├── conversations/# 对话 CRUD
+│       └── chat/
+│           ├── route.ts  # 单 Agent 聊天
+│           └── group/    # 群组蜂群聊天
+├── lib/
+│   ├── platforms.ts      # 平台注册表
+│   └── prisma.ts         # 数据库客户端
+prisma/
+└── schema.prisma         # 数据模型
+```
