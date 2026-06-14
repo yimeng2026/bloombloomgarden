@@ -85,9 +85,10 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       try {
-        const [ar, gr] = await Promise.all([fetch("/api/agents"), fetch("/api/groups")]);
+        const [ar, gr, cr] = await Promise.all([fetch("/api/agents"), fetch("/api/groups"), fetch("/api/conversations")]);
         if (ar.ok) setAgents(await ar.json());
         if (gr.ok) setGroups(await gr.json());
+        if (cr.ok) setConversations(await cr.json());
       } catch (e) { console.error(e); }
     }
     load();
@@ -95,8 +96,20 @@ export default function Home() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingContent]);
 
-  const fetchAgents = useCallback(async () => { try { const r = await fetch("/api/agents"); if (r.ok) setAgents(await r.json()); } catch {} }, []);
-  const fetchGroups = useCallback(async () => { try { const r = await fetch("/api/groups"); if (r.ok) setGroups(await r.json()); } catch {} }, []);
+  const fetchAgents = useCallback(async () => { try { const r = await fetch("/api/agents"); if (r.ok) setAgents(await r.json()); } catch (e) { console.error("获取Agent列表失败:", e); } }, []);
+  const fetchGroups = useCallback(async () => { try { const r = await fetch("/api/groups"); if (r.ok) setGroups(await r.json()); } catch (e) { console.error("获取群组列表失败:", e); } }, []);
+  const fetchConversations = useCallback(async () => { try { const r = await fetch("/api/conversations"); if (r.ok) setConversations(await r.json()); } catch (e) { console.error("获取对话列表失败:", e); } }, []);
+
+  // 加载对话历史消息
+  const loadConversationMessages = useCallback(async (convId: string) => {
+    try {
+      const r = await fetch(`/api/conversations/${convId}`);
+      if (r.ok) {
+        const conv = await r.json();
+        setMessages(conv.messages || []);
+      }
+    } catch (e) { console.error("加载对话历史失败:", e); }
+  }, []);
 
   // ==================== 创建Agent ====================
   const handleApiKeyChange = (key: string) => {
@@ -136,17 +149,35 @@ export default function Home() {
   const handleStartChat = async (agent: Agent) => {
     setSelectedAgent(agent); setSelectedGroup(null);
     try {
-      const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentId: agent.id }) });
-      if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setView("chat"); }
-    } catch {}
+      // 查找该Agent的现有对话
+      const existing = conversations.find(c => c.agentId === agent.id);
+      if (existing) {
+        setCurrentConversation(existing);
+        await loadConversationMessages(existing.id);
+        setView("chat");
+      } else {
+        const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentId: agent.id }) });
+        if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setView("chat"); fetchConversations(); }
+        else { const err = await res.json().catch(() => ({})); console.error("创建对话失败:", err); }
+      }
+    } catch (e) { console.error("创建对话失败:", e); }
   };
 
   const handleStartGroupChat = async (group: AgentGroup) => {
     setSelectedGroup(group); setSelectedAgent(null);
     try {
-      const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ groupId: group.id }) });
-      if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setView("chat"); }
-    } catch {}
+      // 查找该群组的现有对话
+      const existing = conversations.find(c => c.groupId === group.id);
+      if (existing) {
+        setCurrentConversation(existing);
+        await loadConversationMessages(existing.id);
+        setView("chat");
+      } else {
+        const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ groupId: group.id }) });
+        if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setView("chat"); fetchConversations(); }
+        else { const err = await res.json().catch(() => ({})); console.error("创建群组对话失败:", err); }
+      }
+    } catch (e) { console.error("创建群组对话失败:", e); }
   };
 
   const handleSendMessage = async () => {
@@ -176,12 +207,12 @@ export default function Home() {
                 else if (data.type === "done") {
                   if (full) { setMessages(prev => [...prev, { id: Date.now().toString(), conversationId: currentConversation?.id || "", role: "assistant", content: full, agentName: "", approved: true, createdAt: new Date().toISOString() }]); full = ""; setStreamingContent(""); }
                 }
-              } catch {}
+              } catch (e) { console.error("SSE解析错误:", e); }
             }
           }
         }
       }
-    } catch {} finally { setSending(false); }
+    } catch (e) { console.error("发送消息失败:", e); } finally { setSending(false); }
   };
 
   // ==================== 画布拖拽 ====================
@@ -336,6 +367,13 @@ export default function Home() {
                 <button onClick={() => setShowCreate(true)} className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-400">+ 创建</button>
               </div>
               <div className="grid grid-cols-2 gap-3">
+                {agents.length === 0 && (
+                  <div className="col-span-2 text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2">🤖</div>
+                    <div className="text-sm">暂无Agent</div>
+                    <div className="text-xs mt-1">点击「创建」添加第一个Agent</div>
+                  </div>
+                )}
                 {agents.map(a => (
                   <div key={a.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-purple-200 hover:bg-purple-50/30 transition cursor-pointer"
                     onClick={() => handleStartChat(a)}>
@@ -357,6 +395,13 @@ export default function Home() {
                 <button onClick={() => setShowCreateGroup(true)} className="px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-sm hover:bg-indigo-400">+ 创建群组</button>
               </div>
               <div className="grid grid-cols-2 gap-3">
+                {groups.length === 0 && (
+                  <div className="col-span-2 text-center py-8 text-gray-400">
+                    <div className="text-3xl mb-2">👥</div>
+                    <div className="text-sm">暂无群组</div>
+                    <div className="text-xs mt-1">点击「创建群组」添加第一个蜂群</div>
+                  </div>
+                )}
                 {groups.map(g => {
                   const swarm = SWARM_MODES.find(s => s.id === g.swarmMode);
                   const ctrl = HUMAN_CONTROL_LEVELS.find(c => c.id === g.humanControl);
@@ -466,92 +511,146 @@ export default function Home() {
 
         {/* ===== 聊天视图 ===== */}
         {view === "chat" && (
-          <div className="h-full flex flex-col">
-            {/* 聊天头部 */}
-            <div className="p-4 bg-white border-b flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button onClick={() => setView("dashboard")} className="text-gray-400 hover:text-gray-600">←</button>
-                {selectedAgent && (
-                  <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 ${getAvatarColor(selectedAgent.name)} rounded-lg flex items-center justify-center text-white text-sm`}>{selectedAgent.avatar || selectedAgent.name[0]}</div>
-                    <span className="font-bold text-gray-800">{selectedAgent.name}</span>
-                  </div>
+          <div className="h-full flex">
+            {/* 对话列表侧边栏 */}
+            <div className="w-64 bg-white border-r flex flex-col shrink-0">
+              <div className="p-3 border-b flex items-center justify-between">
+                <span className="text-sm font-bold text-gray-700">对话列表</span>
+                <button onClick={() => setView("dashboard")} className="text-gray-400 hover:text-gray-600 text-sm">← 返回</button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {conversations.length === 0 && (
+                  <div className="p-4 text-center text-gray-400 text-xs">暂无对话<br />点击Agent或群组开始聊天</div>
                 )}
+                {conversations.map(c => (
+                  <div key={c.id}
+                    onClick={async () => {
+                      setCurrentConversation(c);
+                      if (c.agentId) { const a = agents.find(a => a.id === c.agentId); if (a) setSelectedAgent(a); setSelectedGroup(null); }
+                      if (c.groupId) { const g = groups.find(g => g.id === c.groupId); if (g) setSelectedGroup(g); setSelectedAgent(null); }
+                      await loadConversationMessages(c.id);
+                    }}
+                    className={`p-3 cursor-pointer border-b hover:bg-purple-50 transition ${currentConversation?.id === c.id ? "bg-purple-50 border-l-2 border-l-purple-500" : ""}`}>
+                    <div className="text-sm font-medium text-gray-800 truncate">{c.title}</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {c.agent?.name && `🤖 ${c.agent.name}`}
+                      {c.group?.name && `👥 ${c.group.name}`}
+                      {c._count && ` · ${c._count.messages}条消息`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 聊天主区域 */}
+            <div className="flex-1 flex flex-col min-w-0">
+              {/* 聊天头部 */}
+              <div className="p-4 bg-white border-b flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {selectedAgent && (
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 ${getAvatarColor(selectedAgent.name)} rounded-lg flex items-center justify-center text-white text-sm`}>{selectedAgent.avatar || selectedAgent.name[0]}</div>
+                      <span className="font-bold text-gray-800">{selectedAgent.name}</span>
+                    </div>
+                  )}
+                  {selectedGroup && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{SWARM_MODES.find(s => s.id === selectedGroup.swarmMode)?.icon}</span>
+                      <span className="font-bold text-gray-800">{selectedGroup.name}</span>
+                      <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded-full">{SWARM_MODES.find(s => s.id === selectedGroup.swarmMode)?.name}</span>
+                      <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full">{HUMAN_CONTROL_LEVELS.find(c => c.id === selectedGroup.humanControl)?.icon} {HUMAN_CONTROL_LEVELS.find(c => c.id === selectedGroup.humanControl)?.name}</span>
+                    </div>
+                  )}
+                  {!selectedAgent && !selectedGroup && (
+                    <span className="text-gray-400 text-sm">请从左侧选择对话</span>
+                  )}
+                </div>
+                {/* 人工干预控制 */}
                 {selectedGroup && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{SWARM_MODES.find(s => s.id === selectedGroup.swarmMode)?.icon}</span>
-                    <span className="font-bold text-gray-800">{selectedGroup.name}</span>
-                    <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded-full">{SWARM_MODES.find(s => s.id === selectedGroup.swarmMode)?.name}</span>
-                    <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-600 rounded-full">{HUMAN_CONTROL_LEVELS.find(c => c.id === selectedGroup.humanControl)?.icon} {HUMAN_CONTROL_LEVELS.find(c => c.id === selectedGroup.humanControl)?.name}</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setInjectMode(!injectMode)} className={`px-3 py-1.5 rounded-lg text-xs ${injectMode ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-600"}`}>🎮 注入指令</button>
                   </div>
                 )}
               </div>
-              {/* 人工干预控制 */}
-              {selectedGroup && (
-                <div className="flex gap-2">
-                  <button onClick={() => setInjectMode(!injectMode)} className={`px-3 py-1.5 rounded-lg text-xs ${injectMode ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-600"}`}>🎮 注入指令</button>
-                </div>
-              )}
-            </div>
 
-            {/* 消息列表 */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map(msg => (
-                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[70%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-purple-500 text-white" : msg.role === "system" ? "bg-amber-100 text-amber-800 border border-amber-200" : "bg-white border border-gray-100 shadow-sm"}`}>
-                    {msg.agentName && <div className="text-xs font-bold text-indigo-500 mb-1">{msg.agentName}</div>}
-                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                    {selectedGroup && !msg.approved && msg.role === "assistant" && (
-                      <div className="flex gap-2 mt-2 pt-2 border-t border-gray-100">
-                        <button onClick={() => handleApproveMessage(msg.id)} className="px-3 py-1 bg-green-500 text-white rounded text-xs">✅ 批准</button>
-                        <button onClick={() => handleRejectMessage(msg.id)} className="px-3 py-1 bg-red-500 text-white rounded text-xs">❌ 否决</button>
-                      </div>
-                    )}
+              {/* 消息列表 */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {!currentConversation && (
+                  <div className="flex items-center justify-center h-full text-gray-400">
+                    <div className="text-center">
+                      <div className="text-4xl mb-3">💬</div>
+                      <div className="text-sm">选择一个对话开始聊天</div>
+                      <div className="text-xs mt-1">或从仪表盘点击Agent/群组</div>
+                    </div>
+                  </div>
+                )}
+                {currentConversation && messages.length === 0 && !streamingContent && (
+                  <div className="flex items-center justify-center h-full text-gray-400">
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">👋</div>
+                      <div className="text-sm">开始对话吧！</div>
+                    </div>
+                  </div>
+                )}
+                {messages.map(msg => (
+                  <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[70%] rounded-xl px-4 py-2.5 ${msg.role === "user" ? "bg-purple-500 text-white" : msg.role === "system" ? "bg-amber-100 text-amber-800 border border-amber-200" : "bg-white border border-gray-100 shadow-sm"}`}>
+                      {msg.agentName && <div className="text-xs font-bold text-indigo-500 mb-1">{msg.agentName}</div>}
+                      <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                      {selectedGroup && !msg.approved && msg.role === "assistant" && (
+                        <div className="flex gap-2 mt-2 pt-2 border-t border-gray-100">
+                          <button onClick={() => handleApproveMessage(msg.id)} className="px-3 py-1 bg-green-500 text-white rounded text-xs">✅ 批准</button>
+                          <button onClick={() => handleRejectMessage(msg.id)} className="px-3 py-1 bg-red-500 text-white rounded text-xs">❌ 否决</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {streamingContent && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[70%] bg-white border border-purple-200 rounded-xl px-4 py-2.5 shadow-sm">
+                      <div className="text-sm whitespace-pre-wrap text-purple-700">{streamingContent}▊</div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* 注入指令面板 */}
+              {injectMode && selectedGroup && (
+                <div className="p-3 bg-amber-50 border-t border-amber-200">
+                  <div className="text-xs font-bold text-amber-700 mb-2">🎮 人工注入指令</div>
+                  <div className="flex gap-2 mb-2 flex-wrap">
+                    {selectedGroup.members.map(m => (
+                      <button key={m.id} onClick={() => setInjectTarget(m.agent.name)}
+                        className={`px-2 py-1 rounded text-xs ${injectTarget === m.agent.name ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"}`}>
+                        {m.agent.name}
+                      </button>
+                    ))}
+                    <button onClick={() => setInjectTarget("all")} className={`px-2 py-1 rounded text-xs ${injectTarget === "all" ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"}`}>全部</button>
+                  </div>
+                  <div className="flex gap-2">
+                    <input value={input} onChange={e => setInput(e.target.value)} placeholder={`向 ${injectTarget || "..."} 注入指令...`} className="flex-1 px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                    <button onClick={handleInjectMessage} className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm">注入</button>
                   </div>
                 </div>
-              ))}
-              {streamingContent && (
-                <div className="flex justify-start">
-                  <div className="max-w-[70%] bg-white border border-purple-200 rounded-xl px-4 py-2.5 shadow-sm">
-                    <div className="text-sm whitespace-pre-wrap text-purple-700">{streamingContent}▊</div>
-                  </div>
-                </div>
               )}
-              <div ref={messagesEndRef} />
-            </div>
 
-            {/* 注入指令面板 */}
-            {injectMode && selectedGroup && (
-              <div className="p-3 bg-amber-50 border-t border-amber-200">
-                <div className="text-xs font-bold text-amber-700 mb-2">🎮 人工注入指令</div>
-                <div className="flex gap-2 mb-2 flex-wrap">
-                  {selectedGroup.members.map(m => (
-                    <button key={m.id} onClick={() => setInjectTarget(m.agent.name)}
-                      className={`px-2 py-1 rounded text-xs ${injectTarget === m.agent.name ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"}`}>
-                      {m.agent.name}
+              {/* 输入框 */}
+              {currentConversation && (
+                <div className="p-4 bg-white border-t">
+                  <div className="flex gap-2">
+                    <textarea value={input} onChange={e => setInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); injectMode ? handleInjectMessage() : handleSendMessage(); } }}
+                      placeholder={injectMode ? "注入指令..." : "输入消息..."}
+                      className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-300" rows={1} />
+                    <button onClick={injectMode ? handleInjectMessage : handleSendMessage} disabled={sending || !input.trim()}
+                      className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-sm font-medium hover:shadow-lg disabled:opacity-40">
+                      {sending ? "..." : injectMode ? "注入" : "发送"}
                     </button>
-                  ))}
-                  <button onClick={() => setInjectTarget("all")} className={`px-2 py-1 rounded text-xs ${injectTarget === "all" ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"}`}>全部</button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <input value={input} onChange={e => setInput(e.target.value)} placeholder={`向 ${injectTarget || "..."} 注入指令...`} className="flex-1 px-3 py-2 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
-                  <button onClick={handleInjectMessage} className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm">注入</button>
-                </div>
-              </div>
-            )}
-
-            {/* 输入框 */}
-            <div className="p-4 bg-white border-t">
-              <div className="flex gap-2">
-                <textarea value={input} onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); injectMode ? handleInjectMessage() : handleSendMessage(); } }}
-                  placeholder={injectMode ? "注入指令..." : "输入消息..."}
-                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-300" rows={1} />
-                <button onClick={injectMode ? handleInjectMessage : handleSendMessage} disabled={sending || !input.trim()}
-                  className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-sm font-medium hover:shadow-lg disabled:opacity-40">
-                  {sending ? "..." : injectMode ? "注入" : "发送"}
-                </button>
-              </div>
+              )}
             </div>
           </div>
         )}

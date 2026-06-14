@@ -165,7 +165,7 @@ export async function POST(request: Request) {
                 const delta = data.choices?.[0]?.delta?.content;
                 if (delta) {
                   fullAssistantContent += delta;
-                  const chunkData = JSON.stringify({ type: "chunk", content: delta });
+                  const chunkData = JSON.stringify({ type: "token", content: delta });
                   controller.enqueue(encoder.encode(`data: ${chunkData}\n\n`));
                 }
               } catch {
