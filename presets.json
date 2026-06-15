@@ -1,0 +1,65 @@
+{
+  "version": "1.0.0",
+  "name": "agent-platform-starter",
+  "description": "通用 AI Agent 管理平台脚手架",
+  "presets": {
+    "customer-service": {
+      "name": "智能客服平台",
+      "description": "电商/企业客服自动化",
+      "features": ["chat", "channels", "knowledge", "workflows", "monitor"],
+      "adapter": "openclaw",
+      "defaultAgents": [
+        { "name": "售前咨询", "role": "consultant", "skills": ["产品推荐", "价格查询"] },
+        { "name": "售后支持", "role": "support", "skills": ["退换货", "故障排查"] },
+        { "name": "工单处理", "role": "operator", "skills": ["工单分配", "进度跟踪"] }
+      ],
+      "defaultChannels": ["wechat", "webchat", "slack"],
+      "theme": { "primary": "emerald", "accent": "teal" }
+    },
+    "education": {
+      "name": "AI 教育辅导平台",
+      "description": "个性化学习辅导与答疑",
+      "features": ["chat", "knowledge", "tasks", "workflows"],
+      "adapter": "openclaw",
+      "defaultAgents": [
+        { "name": "数学导师", "role": "tutor", "skills": ["数学解题", "概念讲解"] },
+        { "name": "语文助手", "role": "tutor", "skills": ["作文批改", "阅读理解"] },
+        { "name": "英语教练", "role": "tutor", "skills": ["口语练习", "翻译纠正"] }
+      ],
+      "defaultChannels": ["webchat", "telegram"],
+      "theme": { "primary": "blue", "accent": "indigo" }
+    },
+    "dev-team": {
+      "name": "开发协作平台",
+      "description": "AI 辅助软件开发",
+      "features": ["agents", "groups", "tasks", "workflows", "knowledge", "costs"],
+      "adapter": "openclaw",
+      "defaultAgents": [
+        { "name": "代码助手", "role": "coder", "skills": ["代码生成", "代码审查", "调试"] },
+        { "name": "架构师", "role": "architect", "skills": ["架构设计", "技术选型"] },
+        { "name": "测试工程师", "role": "tester", "skills": ["测试用例", "自动化测试"] },
+        { "name": "文档撰写", "role": "writer", "skills": ["API文档", "用户手册"] }
+      ],
+      "defaultChannels": ["slack", "discord", "github"],
+      "theme": { "primary": "violet", "accent": "purple" }
+    },
+    "healthcare": {
+      "name": "健康咨询平台",
+      "description": "AI 辅助健康咨询与导诊",
+      "features": ["chat", "knowledge", "channels", "monitor"],
+      "adapter": "custom",
+      "defaultAgents": [
+        { "name": "健康顾问", "role": "advisor", "skills": ["症状分析", "健康建议"] },
+        { "name": "用药助手", "role": "pharmacist", "skills": ["药物查询", "相互作用"] }
+      ],
+      "defaultChannels": ["wechat", "webchat"],
+      "theme": { "primary": "rose", "accent": "pink" }
+    }
+  },
+  "adapters": {
+    "openclaw": { "apiBase": "http://localhost:11435", "apiKey": "" },
+    "dify": { "apiBase": "http://localhost/v1", "apiKey": "" },
+    "langchain": { "apiBase": "http://localhost:8000", "apiKey": "" },
+    "custom": { "apiBase": "http://localhost:3000/api", "apiKey": "" }
+  }
+}

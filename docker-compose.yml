@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  # ── 主应用 ──
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+      - "3001:3001"  # WebSocket
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - ADAPTER_TYPE=${ADAPTER_TYPE:-openclaw}
+      - ADAPTER_API_BASE=${ADAPTER_API_BASE:-http://localhost:11435}
+      - ADAPTER_API_KEY=${ADAPTER_API_KEY:-}
+      - PRESET=${PRESET:-customer-service}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  # ── OpenClaw Gateway（可选） ──
+  openclaw:
+    image: openclaw/openclaw:latest
+    ports:
+      - "11435:11435"
+    environment:
+      - OPENCLAW_API_KEY=${OPENCLAW_API_KEY:-}
+    volumes:
+      - openclaw-data:/app/data
+    restart: unless-stopped
+    profiles: ["openclaw"]
+
+  # ── Dify（可选） ──
+  dify:
+    image: langgenius/dify-api:latest
+    ports:
+      - "80:80"
+    environment:
+      - DIFY_API_KEY=${DIFY_API_KEY:-}
+    volumes:
+      - dify-data:/app/data
+    restart: unless-stopped
+    profiles: ["dify"]
+
+  # ── 向量数据库（可选） ──
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - QUERY_DEFAULTS_LIMIT=25
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+      - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+    volumes:
+      - weaviate-data:/var/lib/weaviate
+    restart: unless-stopped
+    profiles: ["vectordb"]
+
+volumes:
+  openclaw-data:
+  dify-data:
+  weaviate-data:

@@ -1,0 +1,382 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Agent {
+  id            String   @id @default(uuid())
+  name          String
+  description   String   @default("")
+  avatar        String   @default("")
+  systemPrompt  String   @default("")
+  model         String   @default("glm-5.1")
+  temperature   Float    @default(0.7)
+  apiKey        String   @default("")
+  llmProvider   String   @default("zhipu")
+  agentPlatform String   @default("openclaw")
+  skills        String   @default("[]")
+  channels      String   @default("[]")
+  role          String   @default("")
+  status        String   @default("idle")  // idle | running | paused | error
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  conversations Conversation[]
+  groupMemberships AgentGroupMember[]
+}
+
+model AgentGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  avatar      String   @default("")
+  mode        String   @default("relay")
+  swarmMode   String   @default("basic")  // basic | stigmergy | hierarchical | pipeline | consensus | adversarial | mentor
+  humanControl String  @default("observe") // observe | approve | copilot | veto
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     AgentGroupMember[]
+  conversations Conversation[]
+  parentGroups  GroupGroupMember[] @relation("ChildGroups")
+  childGroups   GroupGroupMember[] @relation("ParentGroups")
+}
+
+model AgentGroupMember {
+  id        String   @id @default(uuid())
+  agentId   String
+  groupId   String
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+
+  agent     Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  group     AgentGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, groupId])
+}
+
+model GroupGroupMember {
+  id            String   @id @default(uuid())
+  parentGroupId  String
+  childGroupId   String
+  createdAt    DateTime @default(now())
+
+  parentGroup AgentGroup @relation("ParentGroups", fields: [parentGroupId], references: [id], onDelete: Cascade)
+  childGroup  AgentGroup @relation("ChildGroups", fields: [childGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([parentGroupId, childGroupId])
+}
+
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  canvasData  String   @default("{}")  // JSON: 画布节点位置/连线
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  nodes       WorkflowNode[]
+  edges       WorkflowEdge[]
+  conversations Conversation[]
+}
+
+model WorkflowNode {
+  id         String   @id @default(uuid())
+  workflowId String
+  type       String   @default("agent")  // agent | group | input | output | condition | human
+  refId      String   @default("")       // Agent.id or AgentGroup.id
+  label      String   @default("")
+  config     String   @default("{}")     // JSON: 节点配置
+  positionX  Float    @default(0)
+  positionY  Float    @default(0)
+  createdAt  DateTime @default(now())
+
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  sourceEdges WorkflowEdge[] @relation("SourceNode")
+  targetEdges WorkflowEdge[] @relation("TargetNode")
+}
+
+model WorkflowEdge {
+  id         String   @id @default(uuid())
+  workflowId String
+  sourceId   String
+  targetId   String
+  label      String   @default("")
+  condition  String   @default("")  // 条件表达式
+  createdAt  DateTime @default(now())
+
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sourceNode WorkflowNode @relation("SourceNode", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetNode WorkflowNode @relation("TargetNode", fields: [targetId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  title     String   @default("新对话")
+  agentId   String?
+  groupId   String?
+  workflowId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  agent     Agent?        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  group     AgentGroup?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  workflow  Workflow?     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  messages  Message[]
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  role           String
+  content        String
+  agentName      String   @default("")
+  approved       Boolean  @default(true)  // 人工审批标记
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Channel 通道管理
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Channel {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // whatsapp | telegram | discord | slack | wechat | feishu | dingtalk | gmail | webchat | ...
+  status      String   @default("not_installed") // connected | disconnected | not_installed
+  category    String   @default("") // 即时通讯 | 办公协作 | 邮件社交 | 媒体其他
+  messageCount Int    @default(0)
+  lastActive  String   @default("—")
+  users       Int      @default(0)
+  config      String   @default("{}") // JSON: 配置参数
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Plugin 插件管理
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Plugin {
+  id            String   @id @default(uuid())
+  name          String
+  description   String   @default("")
+  version       String   @default("1.0.0")
+  latestVersion String   @default("1.0.0")
+  status        String   @default("active") // active | disabled | update_available
+  category      String   @default("core") // core | communication | productivity | dev | data | ai | integration
+  author        String   @default("Community")
+  size          String   @default("0KB")
+  installedAt   DateTime @default(now())
+  config        String   @default("{}") // JSON: 动态配置
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  category    String   @default("dev") // dev | data | writing | language | research | design
+  level       String   @default("beginner") // beginner | intermediate | advanced
+  agentCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Task 任务管理
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Task {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  status      String   @default("pending") // pending | running | completed | failed | cancelled
+  priority    String   @default("medium") // high | medium | low
+  progress    Int      @default(0)
+  agentId     String   @default("")
+  agentName   String   @default("")
+  createdAt   DateTime @default(now())
+  estimated   String   @default("")
+  tags        String   @default("[]")
+  updatedAt   DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Cost 成本追踪
+// ═══════════════════════════════════════════════════════════════════════════
+
+model CostRecord {
+  id          String   @id @default(uuid())
+  model       String
+  provider    String
+  requestCount Int     @default(0)
+  tokenCount  Int      @default(0)
+  cost        Float    @default(0) // 人民币
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model CostAlert {
+  id          String   @id @default(uuid())
+  name        String
+  threshold   Float    @default(0)
+  enabled     Boolean  @default(true)
+  type        String   @default("daily") // daily | per_request | monthly
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Cron 定时任务
+// ═══════════════════════════════════════════════════════════════════════════
+
+model CronJob {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  schedule    String   @default("0 0 * * *")
+  scheduleDesc String  @default("每天 00:00")
+  status      String   @default("active") // active | paused
+  lastRun     String   @default("")
+  nextRun     String   @default("")
+  lastResult  String   @default("success") // success | failed | running
+  duration    String   @default("")
+  agentId     String   @default("")
+  agentName   String   @default("")
+  command     String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Knowledge 知识库
+// ═══════════════════════════════════════════════════════════════════════════
+
+model KnowledgeBase {
+  id            String   @id @default(uuid())
+  name          String
+  description   String   @default("")
+  type          String   @default("technical") // technical | business | general | private | external
+  docCount      Int      @default(0)
+  indexedCount  Int      @default(0)
+  totalCount    Int      @default(0)
+  tags          String   @default("[]")
+  lastUpdated   String   @default("")
+  status        String   @default("synced") // synced | syncing | error
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  documents     KnowledgeDoc[]
+}
+
+model KnowledgeDoc {
+  id          String   @id @default(uuid())
+  kbId        String
+  name        String
+  type        String   @default("md") // md | json | csv | pdf | png | other
+  size        String   @default("0KB")
+  chunks      Int      @default(0)
+  status      String   @default("indexed") // indexed | indexing | pending | error
+  modifiedAt  String   @default("")
+  tags        String   @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  knowledgeBase KnowledgeBase @relation(fields: [kbId], references: [id], onDelete: Cascade)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Workspace 工作空间
+// ═══════════════════════════════════════════════════════════════════════════
+
+model WorkspaceFile {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   @default("other") // md | json | ts | csv | xlsx | png | jpg | svg | pdf | yml | other
+  size        String   @default("0KB")
+  sizeBytes   Int      @default(0)
+  folderPath  String   @default("root")
+  tags        String   @default("[]")
+  content     String   @default("") // 文本内容预览
+  modifiedAt  String   @default("")
+  agentId     String   @default("")
+  agentName   String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MemoryFile {
+  id          String   @id @default(uuid())
+  agentName   String
+  agentAvatar String   @default("")
+  type        String   @default("conversation") // conversation | working | system | knowledge
+  description String   @default("")
+  fileCount   Int      @default(0)
+  size        String   @default("0KB")
+  lastUsed    String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Company 公司/团队
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  members     String   @default("[]") // JSON: 成员ID列表
+  taskCount   Int      @default(0)
+  status      String   @default("active") // active | idle
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CompanyConfig {
+  id            String   @id @default(uuid())
+  name          String   @default("BloomGarden AI")
+  description   String   @default("")
+  gatewayUrl    String   @default("http://localhost:11435")
+  gatewayStatus String   @default("online")
+  gatewayVersion String   @default("v2.1.0")
+  apiKey        String   @default("")
+  defaultModel  String   @default("glm-5.1")
+  timeout       Int      @default(30000)
+  retries       Int      @default(3)
+  concurrency   Int      @default(10)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// System 系统日志/活动
+// ═══════════════════════════════════════════════════════════════════════════
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @default("")
+  type        String   @default("system") // agent | task | system | api | config | team
+  status      String   @default("info") // info | success | warning | error
+  source      String   @default("")
+  metadata    String   @default("{}") // JSON
+  createdAt   DateTime @default(now())
+}
+
+model SystemEvent {
+  id          String   @id @default(uuid())
+  event       String
+  level       String   @default("info") // info | warn | error | critical
+  message     String
+  metadata    String   @default("{}") // JSON
+  createdAt   DateTime @default(now())
+}
