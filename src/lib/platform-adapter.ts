@@ -105,6 +105,7 @@ async function* callLLMStream(
       model,
       messages,
       temperature,
+      max_tokens: 4096,
       stream: true,
     }),
   });
