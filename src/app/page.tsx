@@ -74,6 +74,7 @@ export default function Home() {
   const [showCreate, setShowCreate] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
+  const [selectedPlatform, setSelectedPlatform] = useState("");
   const [customName, setCustomName] = useState("");
   const [detectedProvider, setDetectedProvider] = useState({ provider: "zhipu", model: "glm-5.1" });
 
@@ -147,7 +148,7 @@ export default function Home() {
       const name = customName.trim() || role.name;
       const res = await fetch("/api/agents", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description: role.tagline, avatar: role.emoji, systemPrompt: role.systemPrompt, model: detectedProvider.model, temperature: 0.7, apiKey: apiKey.trim(), llmProvider: detectedProvider.provider, agentPlatform: role.recommendedPlatform, skills: role.recommendedSkills, channels: ["web"], role: role.id }),
+        body: JSON.stringify({ name, description: role.tagline, avatar: role.emoji, systemPrompt: role.systemPrompt, model: detectedProvider.model, temperature: 0.7, apiKey: apiKey.trim(), llmProvider: detectedProvider.provider, agentPlatform: selectedPlatform || role.recommendedPlatform, skills: role.recommendedSkills, channels: ["web"], role: role.id }),
       });
       if (res.ok) {
         const newAgent = await res.json();
@@ -156,7 +157,7 @@ export default function Home() {
         const updated = [fullAgent, ...loadLocalAgents()];
         saveLocalAgents(updated);
         setAgents(updated);
-        setShowCreate(false); setApiKey(""); setSelectedRole(""); setCustomName("");
+        setShowCreate(false); setApiKey(""); setSelectedRole(""); setSelectedPlatform(""); setCustomName("");
       } else {
         const err = await res.json().catch(() => ({}));
         alert(err.error || "创建失败");
@@ -775,12 +776,32 @@ export default function Home() {
                 </div>
               </div>
               <div>
+                <label className="text-sm font-medium text-gray-700">🏗️ 选择平台</label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {AGENT_PLATFORMS.map(platform => (
+                    <button key={platform.id} onClick={() => setSelectedPlatform(platform.id)}
+                      className={`p-2 rounded-xl text-left text-xs transition ${selectedPlatform === platform.id ? `${platform.tagBg} border-2 border-current` : "bg-gray-50 border border-gray-100"}`}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{platform.logo}</span>
+                        <span className="font-bold">{platform.name}</span>
+                      </div>
+                      <div className={`text-xs mt-1 ${selectedPlatform === platform.id ? platform.tagText : "text-gray-500"}`}>{platform.tagline}</div>
+                    </button>
+                  ))}
+                </div>
+                {selectedRole && !selectedPlatform && (
+                  <div className="mt-1 text-xs text-amber-600">
+                    💡 推荐: {AGENT_PLATFORMS.find(p => p.id === AGENT_ROLES.find(r => r.id === selectedRole)?.recommendedPlatform)?.name || "OpenClaw"}
+                  </div>
+                )}
+              </div>
+              <div>
                 <label className="text-sm font-medium text-gray-700">自定义名称（可选）</label>
                 <input value={customName} onChange={e => setCustomName(e.target.value)} placeholder={AGENT_ROLES.find(r => r.id === selectedRole)?.name || "名称"} className="w-full mt-1 px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
               </div>
             </div>
             <div className="p-6 border-t flex gap-3 justify-end">
-              <button onClick={() => { setShowCreate(false); setApiKey(""); setSelectedRole(""); setCustomName(""); }} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">取消</button>
+              <button onClick={() => { setShowCreate(false); setApiKey(""); setSelectedRole(""); setSelectedPlatform(""); setCustomName(""); }} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">取消</button>
               <button onClick={handleCreateAgent} disabled={!apiKey.trim() || !selectedRole || loading} className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:shadow-lg disabled:opacity-40">{loading ? "创建中..." : "一键创建"}</button>
             </div>
           </div>
