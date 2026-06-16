@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AGENT_ROLES, LLM_PROVIDERS, AGENT_PLATFORMS } from "@/lib/platforms";
+import { getPlatformInfo } from "@/lib/platform-adapter";
 
 // ==================== 类型 ====================
 interface Agent { id: string; name: string; description: string; avatar: string; systemPrompt: string; model: string; temperature: number; apiKey: string; llmProvider: string; agentPlatform: string; skills: string; channels: string; role: string; status: string; createdAt: string; updatedAt: string; _count?: { conversations: number }; }
@@ -52,6 +53,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
+  const [platformStatus, setPlatformStatus] = useState<{ logo: string; name: string; status: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 创建Agent
@@ -182,7 +184,7 @@ export default function Home() {
 
   const handleSendMessage = async () => {
     if (!input.trim() || sending) return;
-    const content = input.trim(); setInput(""); setSending(true); setStreamingContent("");
+    const content = input.trim(); setInput(""); setSending(true); setStreamingContent(""); setPlatformStatus(null);
     try {
       const isGroup = !!currentConversation?.groupId;
       const endpoint = isGroup ? "/api/chat/group" : "/api/chat";
@@ -199,13 +201,31 @@ export default function Home() {
             if (line.startsWith("data: ")) {
               try {
                 const data = JSON.parse(line.slice(6));
-                if (data.type === "token") { full += data.content; setStreamingContent(full); }
+                // 平台状态事件 —— 让用户看到"谁在工作"
+                if (data.type === "platform_status") {
+                  setPlatformStatus({ logo: data.platformLogo || "🤖", name: data.platformName || "AI", status: data.content || "思考中..." });
+                }
+                else if (data.type === "tool_call") {
+                  setPlatformStatus({ logo: data.platformLogo || "🔧", name: data.platformName || "AI", status: `调用工具: ${data.toolName || "unknown"}` });
+                }
+                else if (data.type === "tool_result") {
+                  setPlatformStatus({ logo: data.platformLogo || "🔧", name: data.platformName || "AI", status: `工具返回结果` });
+                }
+                else if (data.type === "memory_hit") {
+                  setPlatformStatus({ logo: data.platformLogo || "🧠", name: data.platformName || "AI", status: `检索记忆: ${(data.memorySnippet || "").slice(0, 30)}...` });
+                }
+                else if (data.type === "knowledge_hit") {
+                  setPlatformStatus({ logo: data.platformLogo || "📚", name: data.platformName || "AI", status: `检索知识库: ${(data.knowledgeSnippet || "").slice(0, 30)}...` });
+                }
+                // 内容事件
+                else if (data.type === "token") { full += data.content; setStreamingContent(full); }
                 else if (data.type === "agent_reply") {
                   setMessages(prev => [...prev, { id: data.messageId || Date.now().toString(), conversationId: currentConversation?.id || "", role: "assistant", content: data.content, agentName: data.agentName || "", approved: true, createdAt: new Date().toISOString() }]);
-                  full = ""; setStreamingContent("");
+                  full = ""; setStreamingContent(""); setPlatformStatus(null);
                 }
                 else if (data.type === "done") {
                   if (full) { setMessages(prev => [...prev, { id: Date.now().toString(), conversationId: currentConversation?.id || "", role: "assistant", content: full, agentName: "", approved: true, createdAt: new Date().toISOString() }]); full = ""; setStreamingContent(""); }
+                  setPlatformStatus(null);
                 }
               } catch (e) { console.error("SSE解析错误:", e); }
             }
@@ -551,6 +571,9 @@ export default function Home() {
                     <div className="flex items-center gap-2">
                       <div className={`w-8 h-8 ${getAvatarColor(selectedAgent.name)} rounded-lg flex items-center justify-center text-white text-sm`}>{selectedAgent.avatar || selectedAgent.name[0]}</div>
                       <span className="font-bold text-gray-800">{selectedAgent.name}</span>
+                      <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full flex items-center gap-1">
+                        {(() => { const pi = getPlatformInfo(selectedAgent.agentPlatform); return <>{pi.logo} {pi.name}</>; })()}
+                      </span>
                     </div>
                   )}
                   {selectedGroup && (
@@ -609,7 +632,34 @@ export default function Home() {
                 {streamingContent && (
                   <div className="flex justify-start">
                     <div className="max-w-[70%] bg-white border border-purple-200 rounded-xl px-4 py-2.5 shadow-sm">
+                      {platformStatus && (
+                        <div className="flex items-center gap-2 mb-1.5 px-2 py-1 bg-gray-50 rounded-lg">
+                          <span className="text-base">{platformStatus.logo}</span>
+                          <span className="text-xs font-bold text-gray-700">{platformStatus.name}</span>
+                          <span className="text-xs text-gray-400">·</span>
+                          <span className="text-xs text-gray-500">{platformStatus.status}</span>
+                        </div>
+                      )}
                       <div className="text-sm whitespace-pre-wrap text-purple-700">{streamingContent}▊</div>
+                    </div>
+                  </div>
+                )}
+                {/* 平台状态（无流式内容时也显示） */}
+                {platformStatus && !streamingContent && sending && (
+                  <div className="flex justify-start">
+                    <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg animate-pulse">{platformStatus.logo}</span>
+                        <div>
+                          <div className="text-xs font-bold text-gray-700">{platformStatus.name}</div>
+                          <div className="text-xs text-gray-500">{platformStatus.status}</div>
+                        </div>
+                        <div className="ml-2 flex gap-1">
+                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

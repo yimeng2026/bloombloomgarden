@@ -1,23 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { getAdapter, type AgentConfig, type ChatMessage } from "@/lib/platform-adapter";
 
-// LLM 供应商 → API 端点映射
-const LLM_ENDPOINTS: Record<string, string> = {
-  zhipu: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-  openai: "https://api.openai.com/v1/chat/completions",
-  anthropic: "https://api.anthropic.com/v1/messages",
-  deepseek: "https://api.deepseek.com/v1/chat/completions",
-  google: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-  alibaba: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-  baidu: "https://qianfan.baidubce.com/v2/chat/completions",
-  moonshot: "https://api.moonshot.cn/v1/chat/completions",
-  mistral: "https://api.mistral.ai/v1/chat/completions",
-  xai: "https://api.x.ai/v1/chat/completions",
-  cohere: "https://api.cohere.com/v2/chat",
-  together: "https://api.together.xyz/v1/chat/completions",
-  groq: "https://api.groq.com/openai/v1/chat/completions",
-};
-
-// POST /api/chat - 发送消息并获取流式响应
+// POST /api/chat - 发送消息并获取流式响应（通过平台适配器）
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -53,6 +37,13 @@ export async function POST(request: Request) {
       });
     }
 
+    if (!agent.apiKey) {
+      return new Response(JSON.stringify({ error: "未配置 API Key，请先在 Agent 设置中填写" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // 保存用户消息
     await prisma.message.create({
       data: {
@@ -63,7 +54,7 @@ export async function POST(request: Request) {
     });
 
     // 构建消息历史
-    const messages = [
+    const messages: ChatMessage[] = [
       ...(agent.systemPrompt ? [{ role: "system" as const, content: agent.systemPrompt }] : []),
       ...conversation.messages.map((m) => ({
         role: m.role as "user" | "assistant" | "system",
@@ -72,50 +63,22 @@ export async function POST(request: Request) {
       { role: "user" as const, content: content.trim() },
     ];
 
-    // 获取 API 端点和密钥
-    const provider = agent.llmProvider || "zhipu";
-    const endpoint = LLM_ENDPOINTS[provider];
-    const apiKey = agent.apiKey;
+    // 获取平台适配器
+    const adapter = getAdapter(agent.agentPlatform || "openclaw");
 
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "未配置 API Key，请先在 Agent 设置中填写" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (!endpoint) {
-      return new Response(JSON.stringify({ error: `不支持的 LLM 供应商: ${provider}` }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // 调用 LLM API（流式）
-    const llmResponse = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: agent.model || "glm-5.1",
-        messages,
-        temperature: agent.temperature ?? 0.7,
-        stream: true,
-      }),
-    });
-
-    if (!llmResponse.ok) {
-      const errText = await llmResponse.text().catch(() => "");
-      console.error(`LLM API error (${llmResponse.status}):`, errText.slice(0, 200));
-      return new Response(JSON.stringify({
-        error: `LLM API 错误 (${llmResponse.status}): ${errText.slice(0, 100)}`,
-      }), {
-        status: 502,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    // 构建 Agent 配置
+    const agentConfig: AgentConfig = {
+      id: agent.id,
+      name: agent.name,
+      systemPrompt: agent.systemPrompt,
+      model: agent.model || "glm-5.1",
+      temperature: agent.temperature ?? 0.7,
+      apiKey: agent.apiKey,
+      llmProvider: agent.llmProvider || "zhipu",
+      agentPlatform: agent.agentPlatform || "openclaw",
+      skills: JSON.parse(agent.skills || "[]"),
+      channels: JSON.parse(agent.channels || "[]"),
+    };
 
     // 流式转发
     const encoder = new TextEncoder();
@@ -133,66 +96,41 @@ export async function POST(request: Request) {
             },
           });
 
-          // 发送消息ID
-          const startData = JSON.stringify({ type: "start", messageId: assistantMessage.id });
+          // 发送消息ID + 平台信息
+          const startData = JSON.stringify({
+            type: "start",
+            messageId: assistantMessage.id,
+            platformId: adapter.platformId,
+            platformName: adapter.platformName,
+            platformLogo: adapter.platformLogo,
+          });
           controller.enqueue(encoder.encode(`data: ${startData}\n\n`));
 
-          const reader = llmResponse.body?.getReader();
-          if (!reader) {
-            throw new Error("无法读取 LLM 响应流");
-          }
+          // 通过适配器流式获取响应
+          for await (const event of adapter.chatStream(agentConfig, messages)) {
+            const sseData = JSON.stringify(event);
+            controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
 
-          const decoder = new TextDecoder();
-          let buffer = "";
+            // 收集完整内容
+            if (event.type === "token" && event.content) {
+              fullAssistantContent += event.content;
+            }
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+            // 完成
+            if (event.type === "done") {
+              // 更新助手消息内容
+              await prisma.message.update({
+                where: { id: assistantMessage.id },
+                data: { content: fullAssistantContent },
+              });
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || !trimmed.startsWith("data: ")) continue;
-
-              const dataStr = trimmed.slice(6);
-              if (dataStr === "[DONE]") continue;
-
-              try {
-                const data = JSON.parse(dataStr);
-                const delta = data.choices?.[0]?.delta?.content;
-                if (delta) {
-                  fullAssistantContent += delta;
-                  const chunkData = JSON.stringify({ type: "token", content: delta });
-                  controller.enqueue(encoder.encode(`data: ${chunkData}\n\n`));
-                }
-              } catch {
-                // 忽略解析错误
-              }
+              // 更新对话时间
+              await prisma.conversation.update({
+                where: { id: conversationId },
+                data: { updatedAt: new Date() },
+              });
             }
           }
-
-          // 更新助手消息内容
-          await prisma.message.update({
-            where: { id: assistantMessage.id },
-            data: { content: fullAssistantContent },
-          });
-
-          // 更新对话时间
-          await prisma.conversation.update({
-            where: { id: conversationId },
-            data: { updatedAt: new Date() },
-          });
-
-          // 发送完成信号
-          const doneData = JSON.stringify({
-            type: "done",
-            messageId: assistantMessage.id,
-            fullContent: fullAssistantContent,
-          });
-          controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));
         } catch (error: unknown) {
           console.error("Stream error:", error);
           const errMsg = error instanceof Error ? error.message : "AI 响应失败";

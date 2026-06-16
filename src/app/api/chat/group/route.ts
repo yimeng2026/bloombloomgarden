@@ -1,34 +1,23 @@
 import { prisma } from "@/lib/prisma";
-
-const LLM_ENDPOINTS: Record<string, string> = {
-  zhipu: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-  openai: "https://api.openai.com/v1/chat/completions",
-  anthropic: "https://api.anthropic.com/v1/messages",
-  deepseek: "https://api.deepseek.com/v1/chat/completions",
-  google: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-  alibaba: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-  baidu: "https://qianfan.baidubce.com/v2/chat/completions",
-  moonshot: "https://api.moonshot.cn/v1/chat/completions",
-  mistral: "https://api.mistral.ai/v1/chat/completions",
-  xai: "https://api.x.ai/v1/chat/completions",
-  cohere: "https://api.cohere.com/v2/chat",
-  together: "https://api.together.xyz/v1/chat/completions",
-  groq: "https://api.groq.com/openai/v1/chat/completions",
-};
+import { getAdapter, type AgentConfig, type ChatMessage } from "@/lib/platform-adapter";
 
 type AgentInfo = { id: string; name: string; systemPrompt: string; model: string; temperature: number; apiKey: string; llmProvider: string; agentPlatform: string };
 
 async function callLLM(provider: string, apiKey: string, model: string, messages: { role: string; content: string }[], temperature: number): Promise<string> {
-  const endpoint = LLM_ENDPOINTS[provider];
-  if (!endpoint) throw new Error(`不支持的 LLM 供应商: ${provider}`);
-  const headers: Record<string, string> = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
-  const body = JSON.stringify({ model, messages, temperature, max_tokens: 1024, stream: false });
-  const response = await fetch(endpoint, { method: "POST", headers, body, signal: AbortSignal.timeout(30000) });
-  if (!response.ok) throw new Error(`LLM API 错误: ${response.status}`);
-  const data = await response.json();
-  if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
-  if (data.output?.text) return data.output.text;
-  return JSON.stringify(data).slice(0, 200);
+  // 使用平台适配器获取平台信息，但群聊仍用同步调用
+  const adapter = getAdapter("openclaw"); // 群聊默认用 OpenClaw 编排
+  const agentConfig: AgentConfig = {
+    id: "group-chat", name: "群聊", systemPrompt: "", model, temperature, apiKey,
+    llmProvider: provider, agentPlatform: "openclaw", skills: [], channels: [],
+  };
+  const chatMsgs: ChatMessage[] = messages.map(m => ({ role: m.role as "system" | "user" | "assistant", content: m.content }));
+  let full = "";
+  for await (const event of adapter.chatStream(agentConfig, chatMsgs)) {
+    if (event.type === "token" && event.content) full += event.content;
+    if (event.type === "done") return event.fullContent || full;
+    if (event.type === "error") throw new Error(event.error || "LLM 调用失败");
+  }
+  return full;
 }
 
 async function resolveGroupAgents(groupId: string, visited = new Set<string>()): Promise<AgentInfo[]> {
