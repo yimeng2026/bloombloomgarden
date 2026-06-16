@@ -97,6 +97,7 @@ export default function Home() {
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+  const dragStartPos = useRef({ x: 0, y: 0 });
 
   // 人工干预
   const [pendingMessages, setPendingMessages] = useState<Message[]>([]);
@@ -393,6 +394,7 @@ export default function Home() {
     if (!node) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
     setDragging(nodeId);
     setDragOffset({ x: e.clientX - rect.left - node.x, y: e.clientY - rect.top - node.y });
   };
@@ -406,7 +408,18 @@ export default function Home() {
     setCanvasNodes(prev => prev.map(n => n.id === dragging ? { ...n, x, y } : n));
   };
 
-  const handleCanvasMouseUp = () => { setDragging(null); };
+  const handleCanvasMouseUp = (e: React.MouseEvent) => {
+    if (!dragging) return;
+    const dx = Math.abs(e.clientX - dragStartPos.current.x);
+    const dy = Math.abs(e.clientY - dragStartPos.current.y);
+    if (dx < 5 && dy < 5) {
+      // Click detected, not drag
+      const node = canvasNodes.find(n => n.id === dragging);
+      if (node?.type === "agent" && node.agent) handleStartChat(node.agent);
+      if (node?.type === "group" && node.group) handleStartGroupChat(node.group);
+    }
+    setDragging(null);
+  };
 
   // ==================== 人工干预 ====================
   const handleApproveMessage = (msgId: string) => {
