@@ -97,7 +97,22 @@ export default function Home() {
   const [injectMode, setInjectMode] = useState(false);
   const [injectTarget, setInjectTarget] = useState("");
 
-  // ==================== 数据获取 ====================
+  // 全局暴露（用于 E2E 测试）
+  useEffect(() => {
+    (window as any).__bloom_startChat__ = (agent: Agent) => {
+      setSelectedAgent(agent); setSelectedGroup(null);
+      const chats = loadLocalChats();
+      const chatMessages = chats[agent.id] || [];
+      setMessages(chatMessages);
+      const convId = `conv-${agent.id}`;
+      const conv: Conversation = { id: convId, title: `与 ${agent.name} 的对话`, agentId: agent.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), agent: { name: agent.name, avatar: agent.avatar } };
+      setCurrentConversation(conv);
+      setView("chat");
+    };
+    (window as any).__bloom_sendMessage__ = (content: string) => {
+      setInput(content);
+    };
+  }, []);
   useEffect(() => {
     // 从 localStorage 加载本地 Agent
     const localAgents = loadLocalAgents();
