@@ -790,7 +790,7 @@ export default function Home() {
       {/* ===== 创建群组弹窗 ===== */}
       {showCreateGroup && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowCreateGroup(false)}>
-          <div className="bg-white rounded-2xl w-[560px] max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-[560px] max-h-[95vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()} ref={el => { if (el) el.scrollTop = 0; }}>
             <div className="p-6 border-b"><h2 className="text-lg font-bold text-gray-800">👥 创建群组</h2></div>
             <div className="p-6 space-y-4">
               <div>
