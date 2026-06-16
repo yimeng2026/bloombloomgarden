@@ -10,6 +10,19 @@ interface AgentGroup { id: string; name: string; description: string; avatar: st
 interface Conversation { id: string; title: string; agentId?: string; groupId?: string; createdAt: string; updatedAt: string; agent?: { name: string; avatar: string }; group?: { name: string; mode: string }; _count?: { messages: number }; }
 interface Message { id: string; conversationId: string; role: string; content: string; agentName: string; approved: boolean; createdAt: string; }
 
+// ==================== localStorage 键 ====================
+const LS_AGENTS_KEY = "bloomgarden_agents";
+const LS_CHATS_KEY = "bloomgarden_chats";
+
+function loadLocalAgents(): Agent[] {
+  try { return JSON.parse(localStorage.getItem(LS_AGENTS_KEY) || "[]"); } catch { return []; }
+}
+function saveLocalAgents(agents: Agent[]) { localStorage.setItem(LS_AGENTS_KEY, JSON.stringify(agents)); }
+function loadLocalChats(): Record<string, Message[]> {
+  try { return JSON.parse(localStorage.getItem(LS_CHATS_KEY) || "{}"); } catch { return {}; }
+}
+function saveLocalChats(chats: Record<string, Message[]>) { localStorage.setItem(LS_CHATS_KEY, JSON.stringify(chats)); }
+
 // ==================== 蜂群协作机制 ====================
 const SWARM_MODES = [
   { id: "basic", name: "基础蜂群", icon: "🐝", desc: "按编排模式（接力/辩论/投票/并行/圆桌）执行", color: "from-amber-400 to-orange-400" },
@@ -85,33 +98,23 @@ export default function Home() {
 
   // ==================== 数据获取 ====================
   useEffect(() => {
-    async function load() {
-      try {
-        const [ar, gr, cr] = await Promise.all([fetch("/api/agents"), fetch("/api/groups"), fetch("/api/conversations")]);
-        if (ar.ok) setAgents(await ar.json());
-        if (gr.ok) setGroups(await gr.json());
-        if (cr.ok) setConversations(await cr.json());
-      } catch (e) { console.error(e); }
-    }
-    load();
+    // 从 localStorage 加载本地 Agent
+    const localAgents = loadLocalAgents();
+    setAgents(localAgents);
+    // 群组和对话暂不依赖数据库（Vercel 只读）
+    setGroups([]);
+    setConversations([]);
   }, []);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streamingContent]);
 
-  const fetchAgents = useCallback(async () => { try { const r = await fetch("/api/agents"); if (r.ok) setAgents(await r.json()); } catch (e) { console.error("获取Agent列表失败:", e); } }, []);
-  const fetchGroups = useCallback(async () => { try { const r = await fetch("/api/groups"); if (r.ok) setGroups(await r.json()); } catch (e) { console.error("获取群组列表失败:", e); } }, []);
-  const fetchConversations = useCallback(async () => { try { const r = await fetch("/api/conversations"); if (r.ok) setConversations(await r.json()); } catch (e) { console.error("获取对话列表失败:", e); } }, []);
-
-  // 加载对话历史消息
-  const loadConversationMessages = useCallback(async (convId: string) => {
-    try {
-      const r = await fetch(`/api/conversations/${convId}`);
-      if (r.ok) {
-        const conv = await r.json();
-        setMessages(conv.messages || []);
-      }
-    } catch (e) { console.error("加载对话历史失败:", e); }
+  const fetchAgents = useCallback(async () => {
+    // 本地 Agent 直接从 localStorage 读取
+    setAgents(loadLocalAgents());
   }, []);
+
+  const fetchGroups = useCallback(async () => { setGroups([]); }, []);
+  const fetchConversations = useCallback(async () => { setConversations([]); }, []);
 
   // ==================== 创建Agent ====================
   const handleApiKeyChange = (key: string) => {
@@ -130,8 +133,20 @@ export default function Home() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, description: role.tagline, avatar: role.emoji, systemPrompt: role.systemPrompt, model: detectedProvider.model, temperature: 0.7, apiKey: apiKey.trim(), llmProvider: detectedProvider.provider, agentPlatform: role.recommendedPlatform, skills: role.recommendedSkills, channels: ["web"], role: role.id }),
       });
-      if (res.ok) { await fetchAgents(); setShowCreate(false); setApiKey(""); setSelectedRole(""); setCustomName(""); }
-    } finally { setLoading(false); }
+      if (res.ok) {
+        const newAgent = await res.json();
+        // 保存完整 apiKey（后端返回的是脱敏的，但我们前端有原始值）
+        const fullAgent: Agent = { ...newAgent, apiKey: apiKey.trim() };
+        const updated = [fullAgent, ...loadLocalAgents()];
+        saveLocalAgents(updated);
+        setAgents(updated);
+        setShowCreate(false); setApiKey(""); setSelectedRole(""); setCustomName("");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "创建失败");
+      }
+    } catch (e) { console.error(e); alert("创建请求失败"); }
+    finally { setLoading(false); }
   };
 
   // ==================== 创建群组 ====================
@@ -139,56 +154,53 @@ export default function Home() {
     if (!groupName.trim() || selectedAgentIds.length === 0) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/groups", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: groupName, description: `${swarmMode}模式群组`, mode: groupMode, swarmMode, humanControl, agentIds: selectedAgentIds }),
-      });
-      if (res.ok) { await fetchGroups(); setShowCreateGroup(false); setGroupName(""); setSelectedAgentIds([]); }
+      // 群组暂不实现（需要数据库）
+      alert("群组功能暂不可用（Vercel 数据库只读）");
     } finally { setLoading(false); }
   };
 
   // ==================== 聊天 ====================
-  const handleStartChat = async (agent: Agent) => {
+  const handleStartChat = (agent: Agent) => {
     setSelectedAgent(agent); setSelectedGroup(null);
-    try {
-      // 查找该Agent的现有对话
-      const existing = conversations.find(c => c.agentId === agent.id);
-      if (existing) {
-        setCurrentConversation(existing);
-        await loadConversationMessages(existing.id);
-        setView("chat");
-      } else {
-        const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agentId: agent.id }) });
-        if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setView("chat"); fetchConversations(); }
-        else { const err = await res.json().catch(() => ({})); console.error("创建对话失败:", err); }
-      }
-    } catch (e) { console.error("创建对话失败:", e); }
+    // 从 localStorage 加载该 agent 的聊天历史
+    const chats = loadLocalChats();
+    const chatMessages = chats[agent.id] || [];
+    setMessages(chatMessages);
+    // 创建一个虚拟 conversation（仅用于 UI）
+    const convId = `conv-${agent.id}`;
+    const conv: Conversation = { id: convId, title: `与 ${agent.name} 的对话`, agentId: agent.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), agent: { name: agent.name, avatar: agent.avatar } };
+    setCurrentConversation(conv);
+    setView("chat");
   };
 
-  const handleStartGroupChat = async (group: AgentGroup) => {
+  const handleStartGroupChat = (group: AgentGroup) => {
     setSelectedGroup(group); setSelectedAgent(null);
-    try {
-      // 查找该群组的现有对话
-      const existing = conversations.find(c => c.groupId === group.id);
-      if (existing) {
-        setCurrentConversation(existing);
-        await loadConversationMessages(existing.id);
-        setView("chat");
-      } else {
-        const res = await fetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ groupId: group.id }) });
-        if (res.ok) { const conv = await res.json(); setCurrentConversation(conv); setMessages([]); setView("chat"); fetchConversations(); }
-        else { const err = await res.json().catch(() => ({})); console.error("创建群组对话失败:", err); }
-      }
-    } catch (e) { console.error("创建群组对话失败:", e); }
+    alert("群组聊天暂不可用（Vercel 数据库只读）");
   };
 
   const handleSendMessage = async () => {
     if (!input.trim() || sending) return;
     const content = input.trim(); setInput(""); setSending(true); setStreamingContent(""); setPlatformStatus(null);
+
+    const agent = selectedAgent;
+    if (!agent) { setSending(false); alert("请先选择一个 Agent"); return; }
+
+    // 先添加用户消息到 UI
+    const userMsg: Message = { id: `msg-${Date.now()}-user`, conversationId: currentConversation?.id || "", role: "user", content, agentName: "", approved: true, createdAt: new Date().toISOString() };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
+
+    // 保存到 localStorage
+    const chats = loadLocalChats();
+    chats[agent.id] = updatedMessages;
+    saveLocalChats(chats);
+
     try {
-      const isGroup = !!currentConversation?.groupId;
-      const endpoint = isGroup ? "/api/chat/group" : "/api/chat";
-      const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: currentConversation?.id, content }), });
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, agent, messages: updatedMessages.slice(0, -1) }), // 不包括刚加的用户消息
+      });
       if (res.ok) {
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
@@ -201,7 +213,6 @@ export default function Home() {
             if (line.startsWith("data: ")) {
               try {
                 const data = JSON.parse(line.slice(6));
-                // 平台状态事件 —— 让用户看到"谁在工作"
                 if (data.type === "platform_status") {
                   setPlatformStatus({ logo: data.platformLogo || "🤖", name: data.platformName || "AI", status: data.content || "思考中..." });
                 }
@@ -217,22 +228,42 @@ export default function Home() {
                 else if (data.type === "knowledge_hit") {
                   setPlatformStatus({ logo: data.platformLogo || "📚", name: data.platformName || "AI", status: `检索知识库: ${(data.knowledgeSnippet || "").slice(0, 30)}...` });
                 }
-                // 内容事件
                 else if (data.type === "token") { full += data.content; setStreamingContent(full); }
-                else if (data.type === "agent_reply") {
-                  setMessages(prev => [...prev, { id: data.messageId || Date.now().toString(), conversationId: currentConversation?.id || "", role: "assistant", content: data.content, agentName: data.agentName || "", approved: true, createdAt: new Date().toISOString() }]);
-                  full = ""; setStreamingContent(""); setPlatformStatus(null);
-                }
                 else if (data.type === "done") {
-                  if (full) { setMessages(prev => [...prev, { id: Date.now().toString(), conversationId: currentConversation?.id || "", role: "assistant", content: full, agentName: "", approved: true, createdAt: new Date().toISOString() }]); full = ""; setStreamingContent(""); }
+                  if (full) {
+                    const assistantMsg: Message = { id: `msg-${Date.now()}-assistant`, conversationId: currentConversation?.id || "", role: "assistant", content: full, agentName: agent.name, approved: true, createdAt: new Date().toISOString() };
+                    const finalMessages = [...updatedMessages, assistantMsg];
+                    setMessages(finalMessages);
+                    chats[agent.id] = finalMessages;
+                    saveLocalChats(chats);
+                    full = "";
+                  }
+                  setStreamingContent("");
                   setPlatformStatus(null);
+                }
+                else if (data.type === "error") {
+                  const errMsg: Message = { id: `msg-${Date.now()}-error`, conversationId: currentConversation?.id || "", role: "assistant", content: `❌ 错误: ${data.error}`, agentName: agent.name, approved: true, createdAt: new Date().toISOString() };
+                  const finalMessages = [...updatedMessages, errMsg];
+                  setMessages(finalMessages);
+                  chats[agent.id] = finalMessages;
+                  saveLocalChats(chats);
+                  setStreamingContent(""); setPlatformStatus(null);
                 }
               } catch (e) { console.error("SSE解析错误:", e); }
             }
           }
         }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        console.error("发送消息失败:", err);
+        const errMsg: Message = { id: `msg-${Date.now()}-error`, conversationId: currentConversation?.id || "", role: "assistant", content: `❌ 发送失败: ${err.error || "未知错误"}`, agentName: agent.name, approved: true, createdAt: new Date().toISOString() };
+        const finalMessages = [...updatedMessages, errMsg];
+        setMessages(finalMessages);
+        chats[agent.id] = finalMessages;
+        saveLocalChats(chats);
       }
-    } catch (e) { console.error("发送消息失败:", e); } finally { setSending(false); }
+    } catch (e) { console.error("发送消息失败:", e); }
+    finally { setSending(false); }
   };
 
   // ==================== 画布拖拽 ====================
@@ -468,7 +499,7 @@ export default function Home() {
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => handleStartChat(a)} className="flex-1 px-3 py-1.5 bg-purple-500 text-white rounded-lg text-xs hover:bg-purple-400">💬 聊天</button>
-                    <button onClick={async () => { await fetch(`/api/agents/${a.id}`, { method: "DELETE" }); fetchAgents(); }} className="px-3 py-1.5 bg-red-50 text-red-500 rounded-lg text-xs hover:bg-red-100">🗑️</button>
+                    <button onClick={() => { const updated = loadLocalAgents().filter(x => x.id !== a.id); saveLocalAgents(updated); setAgents(updated); if (selectedAgent?.id === a.id) { setSelectedAgent(null); setMessages([]); setCurrentConversation(null); } }} className="px-3 py-1.5 bg-red-50 text-red-500 rounded-lg text-xs hover:bg-red-100">🗑️</button>
                   </div>
                 </div>
               ))}
@@ -532,30 +563,28 @@ export default function Home() {
         {/* ===== 聊天视图 ===== */}
         {view === "chat" && (
           <div className="h-full flex">
-            {/* 对话列表侧边栏 */}
+            {/* 对话列表侧边栏 - 显示所有Agent，点击直接聊天 */}
             <div className="w-64 bg-white border-r flex flex-col shrink-0">
               <div className="p-3 border-b flex items-center justify-between">
-                <span className="text-sm font-bold text-gray-700">对话列表</span>
+                <span className="text-sm font-bold text-gray-700">🤖 选择Agent</span>
                 <button onClick={() => setView("dashboard")} className="text-gray-400 hover:text-gray-600 text-sm">← 返回</button>
               </div>
               <div className="flex-1 overflow-y-auto">
-                {conversations.length === 0 && (
-                  <div className="p-4 text-center text-gray-400 text-xs">暂无对话<br />点击Agent或群组开始聊天</div>
+                {agents.length === 0 && (
+                  <div className="p-4 text-center text-gray-400 text-xs">
+                    暂无Agent<br />先在仪表盘创建
+                  </div>
                 )}
-                {conversations.map(c => (
-                  <div key={c.id}
-                    onClick={async () => {
-                      setCurrentConversation(c);
-                      if (c.agentId) { const a = agents.find(a => a.id === c.agentId); if (a) setSelectedAgent(a); setSelectedGroup(null); }
-                      if (c.groupId) { const g = groups.find(g => g.id === c.groupId); if (g) setSelectedGroup(g); setSelectedAgent(null); }
-                      await loadConversationMessages(c.id);
-                    }}
-                    className={`p-3 cursor-pointer border-b hover:bg-purple-50 transition ${currentConversation?.id === c.id ? "bg-purple-50 border-l-2 border-l-purple-500" : ""}`}>
-                    <div className="text-sm font-medium text-gray-800 truncate">{c.title}</div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {c.agent?.name && `🤖 ${c.agent.name}`}
-                      {c.group?.name && `👥 ${c.group.name}`}
-                      {c._count && ` · ${c._count.messages}条消息`}
+                {agents.map(a => (
+                  <div key={a.id}
+                    onClick={() => handleStartChat(a)}
+                    className={`p-3 cursor-pointer border-b hover:bg-purple-50 transition ${selectedAgent?.id === a.id ? "bg-purple-50 border-l-2 border-l-purple-500" : ""}`}>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 ${getAvatarColor(a.name)} rounded-lg flex items-center justify-center text-white text-sm shrink-0`}>{a.avatar || a.name[0]}</div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-gray-800 truncate">{a.name}</div>
+                        <div className="text-xs text-gray-400">{a.llmProvider}/{a.model}</div>
+                      </div>
                     </div>
                   </div>
                 ))}
