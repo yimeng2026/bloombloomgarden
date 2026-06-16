@@ -18,6 +18,11 @@ function loadLocalAgents(): Agent[] {
   try { return JSON.parse(localStorage.getItem(LS_AGENTS_KEY) || "[]"); } catch { return []; }
 }
 function saveLocalAgents(agents: Agent[]) { localStorage.setItem(LS_AGENTS_KEY, JSON.stringify(agents)); }
+const LS_GROUPS_KEY = "bloomgarden_groups";
+function loadLocalGroups(): AgentGroup[] {
+  try { return JSON.parse(localStorage.getItem(LS_GROUPS_KEY) || "[]"); } catch { return []; }
+}
+function saveLocalGroups(groups: AgentGroup[]) { localStorage.setItem(LS_GROUPS_KEY, JSON.stringify(groups)); }
 function loadLocalChats(): Record<string, Message[]> {
   try { return JSON.parse(localStorage.getItem(LS_CHATS_KEY) || "{}"); } catch { return {}; }
 }
@@ -115,11 +120,11 @@ export default function Home() {
     };
   }, []);
   useEffect(() => {
-    // 从 localStorage 加载本地 Agent
+    // 从 localStorage 加载本地 Agent 和群组
     const localAgents = loadLocalAgents();
     setAgents(localAgents);
-    // 群组和对话暂不依赖数据库（Vercel 只读）
-    setGroups([]);
+    const localGroups = loadLocalGroups();
+    setGroups(localGroups);
     setConversations([]);
   }, []);
 
@@ -171,9 +176,33 @@ export default function Home() {
     if (!groupName.trim() || selectedAgentIds.length === 0) return;
     setLoading(true);
     try {
-      // 群组暂不实现（需要数据库）
-      alert("群组功能暂不可用（Vercel 数据库只读）");
-    } finally { setLoading(false); }
+      const memberAgents = agents.filter(a => selectedAgentIds.includes(a.id));
+      const groupId = `group-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const newGroup: AgentGroup = {
+        id: groupId,
+        name: groupName.trim(),
+        description: `${swarmMode}模式群组`,
+        avatar: "👥",
+        mode: groupMode,
+        swarmMode,
+        humanControl,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        members: memberAgents.map((a, i) => ({
+          id: `member-${i}-${Date.now()}`,
+          agentId: a.id,
+          role: i === 0 ? "leader" : "worker",
+          agent: a,
+        })),
+        childGroups: [],
+        _count: { conversations: 0 },
+      };
+      const updated = [newGroup, ...loadLocalGroups()];
+      saveLocalGroups(updated);
+      setGroups(updated);
+      setShowCreateGroup(false); setGroupName(""); setSelectedAgentIds([]); setSwarmMode("basic"); setHumanControl("observe");
+    } catch (e) { console.error(e); alert("创建群组失败"); }
+    finally { setLoading(false); }
   };
 
   // ==================== 聊天 ====================
@@ -192,22 +221,95 @@ export default function Home() {
 
   const handleStartGroupChat = (group: AgentGroup) => {
     setSelectedGroup(group); setSelectedAgent(null);
-    alert("群组聊天暂不可用（Vercel 数据库只读）");
+    const chats = loadLocalChats();
+    const chatMessages = chats[group.id] || [];
+    setMessages(chatMessages);
+    const convId = `conv-${group.id}`;
+    const conv: Conversation = { id: convId, title: `${group.name}（${group.members.length}人）`, groupId: group.id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), group: { name: group.name, mode: group.swarmMode } };
+    setCurrentConversation(conv);
+    setView("chat");
   };
 
   const handleSendMessage = async () => {
     if (!input.trim() || sending) return;
     const content = input.trim(); setInput(""); setSending(true); setStreamingContent(""); setPlatformStatus(null);
 
+    // ===== 群组聊天 =====
+    if (selectedGroup) {
+      const group = selectedGroup;
+      const leaderAgent = group.members[0]?.agent;
+      if (!leaderAgent) { setSending(false); alert("群组中没有可用Agent"); return; }
+
+      const userMsg: Message = { id: `msg-${Date.now()}-user`, conversationId: currentConversation?.id || "", role: "user", content, agentName: "", approved: true, createdAt: new Date().toISOString() };
+      const updatedMessages = [...messages, userMsg];
+      setMessages(updatedMessages);
+      const chats = loadLocalChats();
+      chats[group.id] = updatedMessages;
+      saveLocalChats(chats);
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content, agent: leaderAgent, messages: updatedMessages.slice(0, -1) }),
+        });
+        if (res.ok) {
+          const reader = res.body?.getReader();
+          const decoder = new TextDecoder();
+          let full = "";
+          while (reader) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            for (const line of chunk.split("\n")) {
+              if (line.startsWith("data: ")) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  if (data.type === "platform_status") { setPlatformStatus({ logo: data.platformLogo || "🤖", name: data.platformName || "AI", status: data.content || "思考中..." }); }
+                  else if (data.type === "tool_call") { setPlatformStatus({ logo: data.platformLogo || "🔧", name: data.platformName || "AI", status: `调用工具: ${data.toolName || "unknown"}` }); }
+                  else if (data.type === "tool_result") { setPlatformStatus({ logo: data.platformLogo || "🔧", name: data.platformName || "AI", status: `工具返回结果` }); }
+                  else if (data.type === "memory_hit") { setPlatformStatus({ logo: data.platformLogo || "🧠", name: data.platformName || "AI", status: `检索记忆: ${(data.memorySnippet || "").slice(0, 30)}...` }); }
+                  else if (data.type === "knowledge_hit") { setPlatformStatus({ logo: data.platformLogo || "📚", name: data.platformName || "AI", status: `检索知识库: ${(data.knowledgeSnippet || "").slice(0, 30)}...` }); }
+                  else if (data.type === "token") { full += data.content; setStreamingContent(full); }
+                  else if (data.type === "done") {
+                    if (full) {
+                      const assistantMsg: Message = { id: `msg-${Date.now()}-assistant`, conversationId: currentConversation?.id || "", role: "assistant", content: full, agentName: `${leaderAgent.name} (${group.swarmMode})`, approved: true, createdAt: new Date().toISOString() };
+                      const finalMessages = [...updatedMessages, assistantMsg];
+                      setMessages(finalMessages);
+                      chats[group.id] = finalMessages;
+                      saveLocalChats(chats);
+                      full = "";
+                    }
+                    setStreamingContent(""); setPlatformStatus(null);
+                  }
+                  else if (data.type === "error") {
+                    const errMsg: Message = { id: `msg-${Date.now()}-error`, conversationId: currentConversation?.id || "", role: "assistant", content: `❌ 错误: ${data.error}`, agentName: leaderAgent.name, approved: true, createdAt: new Date().toISOString() };
+                    const finalMessages = [...updatedMessages, errMsg];
+                    setMessages(finalMessages); chats[group.id] = finalMessages; saveLocalChats(chats);
+                    setStreamingContent(""); setPlatformStatus(null);
+                  }
+                } catch (e) { console.error("SSE解析错误:", e); }
+              }
+            }
+          }
+        } else {
+          const err = await res.json().catch(() => ({}));
+          const errMsg: Message = { id: `msg-${Date.now()}-error`, conversationId: currentConversation?.id || "", role: "assistant", content: `❌ 发送失败: ${err.error || "未知错误"}`, agentName: leaderAgent.name, approved: true, createdAt: new Date().toISOString() };
+          const finalMessages = [...updatedMessages, errMsg]; setMessages(finalMessages); chats[group.id] = finalMessages; saveLocalChats(chats);
+        }
+      } catch (e) { console.error("发送消息失败:", e); }
+      finally { setSending(false); }
+      return;
+    }
+
+    // ===== 单Agent聊天 =====
     const agent = selectedAgent;
     if (!agent) { setSending(false); alert("请先选择一个 Agent"); return; }
 
-    // 先添加用户消息到 UI
     const userMsg: Message = { id: `msg-${Date.now()}-user`, conversationId: currentConversation?.id || "", role: "user", content, agentName: "", approved: true, createdAt: new Date().toISOString() };
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
 
-    // 保存到 localStorage
     const chats = loadLocalChats();
     chats[agent.id] = updatedMessages;
     saveLocalChats(chats);
@@ -216,7 +318,7 @@ export default function Home() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, agent, messages: updatedMessages.slice(0, -1) }), // 不包括刚加的用户消息
+        body: JSON.stringify({ content, agent, messages: updatedMessages.slice(0, -1) }),
       });
       if (res.ok) {
         const reader = res.body?.getReader();
@@ -230,21 +332,11 @@ export default function Home() {
             if (line.startsWith("data: ")) {
               try {
                 const data = JSON.parse(line.slice(6));
-                if (data.type === "platform_status") {
-                  setPlatformStatus({ logo: data.platformLogo || "🤖", name: data.platformName || "AI", status: data.content || "思考中..." });
-                }
-                else if (data.type === "tool_call") {
-                  setPlatformStatus({ logo: data.platformLogo || "🔧", name: data.platformName || "AI", status: `调用工具: ${data.toolName || "unknown"}` });
-                }
-                else if (data.type === "tool_result") {
-                  setPlatformStatus({ logo: data.platformLogo || "🔧", name: data.platformName || "AI", status: `工具返回结果` });
-                }
-                else if (data.type === "memory_hit") {
-                  setPlatformStatus({ logo: data.platformLogo || "🧠", name: data.platformName || "AI", status: `检索记忆: ${(data.memorySnippet || "").slice(0, 30)}...` });
-                }
-                else if (data.type === "knowledge_hit") {
-                  setPlatformStatus({ logo: data.platformLogo || "📚", name: data.platformName || "AI", status: `检索知识库: ${(data.knowledgeSnippet || "").slice(0, 30)}...` });
-                }
+                if (data.type === "platform_status") { setPlatformStatus({ logo: data.platformLogo || "🤖", name: data.platformName || "AI", status: data.content || "思考中..." }); }
+                else if (data.type === "tool_call") { setPlatformStatus({ logo: data.platformLogo || "🔧", name: data.platformName || "AI", status: `调用工具: ${data.toolName || "unknown"}` }); }
+                else if (data.type === "tool_result") { setPlatformStatus({ logo: data.platformLogo || "🔧", name: data.platformName || "AI", status: `工具返回结果` }); }
+                else if (data.type === "memory_hit") { setPlatformStatus({ logo: data.platformLogo || "🧠", name: data.platformName || "AI", status: `检索记忆: ${(data.memorySnippet || "").slice(0, 30)}...` }); }
+                else if (data.type === "knowledge_hit") { setPlatformStatus({ logo: data.platformLogo || "📚", name: data.platformName || "AI", status: `检索知识库: ${(data.knowledgeSnippet || "").slice(0, 30)}...` }); }
                 else if (data.type === "token") { full += data.content; setStreamingContent(full); }
                 else if (data.type === "done") {
                   if (full) {
@@ -255,15 +347,12 @@ export default function Home() {
                     saveLocalChats(chats);
                     full = "";
                   }
-                  setStreamingContent("");
-                  setPlatformStatus(null);
+                  setStreamingContent(""); setPlatformStatus(null);
                 }
                 else if (data.type === "error") {
                   const errMsg: Message = { id: `msg-${Date.now()}-error`, conversationId: currentConversation?.id || "", role: "assistant", content: `❌ 错误: ${data.error}`, agentName: agent.name, approved: true, createdAt: new Date().toISOString() };
                   const finalMessages = [...updatedMessages, errMsg];
-                  setMessages(finalMessages);
-                  chats[agent.id] = finalMessages;
-                  saveLocalChats(chats);
+                  setMessages(finalMessages); chats[agent.id] = finalMessages; saveLocalChats(chats);
                   setStreamingContent(""); setPlatformStatus(null);
                 }
               } catch (e) { console.error("SSE解析错误:", e); }
@@ -272,12 +361,8 @@ export default function Home() {
         }
       } else {
         const err = await res.json().catch(() => ({}));
-        console.error("发送消息失败:", err);
         const errMsg: Message = { id: `msg-${Date.now()}-error`, conversationId: currentConversation?.id || "", role: "assistant", content: `❌ 发送失败: ${err.error || "未知错误"}`, agentName: agent.name, approved: true, createdAt: new Date().toISOString() };
-        const finalMessages = [...updatedMessages, errMsg];
-        setMessages(finalMessages);
-        chats[agent.id] = finalMessages;
-        saveLocalChats(chats);
+        const finalMessages = [...updatedMessages, errMsg]; setMessages(finalMessages); chats[agent.id] = finalMessages; saveLocalChats(chats);
       }
     } catch (e) { console.error("发送消息失败:", e); }
     finally { setSending(false); }
