@@ -44,6 +44,7 @@ const HUMAN_CONTROL_LEVELS = [
 
 // ==================== API Key 检测 ====================
 function detectProvider(apiKey: string) {
+  if (apiKey.startsWith("sk-or-v1-")) return { provider: "openrouter", model: "moonshotai/kimi-k2.5" };
   if (apiKey.includes(".bigmodel.") || (apiKey.includes(".") && apiKey.length < 40)) return { provider: "zhipu", model: "glm-5.1" };
   if (apiKey.startsWith("sk-") && apiKey.length > 50) return { provider: "openai", model: "gpt-4o" };
   if (apiKey.startsWith("sk-ant-")) return { provider: "anthropic", model: "claude-sonnet-4-20250514" };

@@ -21,6 +21,7 @@ const LLM_ENDPOINTS: Record<string, string> = {
   cohere: "https://api.cohere.com/v2/chat",
   together: "https://api.together.xyz/v1/chat/completions",
   groq: "https://api.groq.com/openai/v1/chat/completions",
+  openrouter: "https://openrouter.ai/api/v1/chat/completions",
 };
 
 async function validateApiKey(provider: string, apiKey: string, model: string): Promise<{ ok: boolean; error?: string }> {
@@ -35,6 +36,9 @@ async function validateApiKey(provider: string, apiKey: string, model: string): 
         Authorization: `Bearer ${apiKey}`,
         ...(provider === "anthropic"
           ? { "x-api-key": apiKey, "anthropic-version": "2023-06-01" }
+          : {}),
+        ...(provider === "openrouter"
+          ? { "HTTP-Referer": "https://bloombloomgarden.vercel.app", "X-Title": "BloomBloomGarden" }
           : {}),
       },
       body: JSON.stringify({
