@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   Server, Key, Layers, Cpu, Users, Search, Plus, Loader2,
   CheckCircle, XCircle, Check, X, Trash2, Edit3, Eye, EyeOff,
-  GitBranch, Play, Globe, Activity
+  GitBranch, Play, Globe, Activity, AlertTriangle,
 } from 'lucide-react'
 import {
   fetchPlatforms, fetchFrameworks, fetchEngines, fetchTeams,
@@ -98,37 +98,20 @@ const TABS = [
   { id: 'teams', label: '团队', icon: Users },
 ]
 
-/* ── Mock Data ── */
-const MOCK_PLATFORMS: Platform[] = [
-  { id: 'pl-1', name: 'Kimi API', type: 'kimi', url: 'https://api.moonshot.cn', status: 'connected', models: ['kimi-k2.5', 'kimi-k1.5'], createdAt: '2026-05-01', lastCheck: '刚刚', requestCount: 12543, avgLatency: 156 },
-  { id: 'pl-2', name: 'Claude API', type: 'claude', url: 'https://api.anthropic.com', status: 'connected', models: ['claude-3-5-sonnet', 'claude-3-opus'], createdAt: '2026-05-02', lastCheck: '2分钟前', requestCount: 8765, avgLatency: 35 },
-  { id: 'pl-3', name: 'Ollama Local', type: 'ollama', url: 'http://localhost:11434', status: 'connected', models: ['qwen2.5:7b', 'deepseek-r1:14b'], createdAt: '2026-05-03', lastCheck: '刚刚', requestCount: 3421, avgLatency: 120 },
-  { id: 'pl-4', name: 'OpenAI', type: 'openai', url: 'https://api.openai.com', status: 'disconnected', models: ['gpt-4.1', 'gpt-4o'], createdAt: '2026-05-04', lastCheck: '1小时前', requestCount: 0, avgLatency: 0 },
-  { id: 'pl-5', name: 'DeepSeek', type: 'deepseek', url: 'https://api.deepseek.com', status: 'connected', models: ['deepseek-chat', 'deepseek-reasoner'], createdAt: '2026-05-05', lastCheck: '5分钟前', requestCount: 5678, avgLatency: 45 },
-  { id: 'pl-6', name: '智谱AI', type: 'zhipu', url: 'https://open.bigmodel.cn', status: 'connected', models: ['glm-5.1', 'glm-4-plus'], createdAt: '2026-05-06', lastCheck: '刚刚', requestCount: 8901, avgLatency: 80 },
-]
-
-const MOCK_APIKEYS: ApiKeyItem[] = [
-  { id: 'ak-1', name: 'Kimi 生产密钥', provider: 'kimi', endpoint: 'https://api.moonshot.cn', keyMask: 'sk-mk-7a3f...', modelCount: 3, status: 'connected', latency: 156 },
-  { id: 'ak-2', name: 'Claude 密钥', provider: 'claude', endpoint: 'https://api.anthropic.com', keyMask: 'sk-ant-9b2e...', modelCount: 3, status: 'connected', latency: 35 },
-  { id: 'ak-3', name: 'OpenAI 密钥', provider: 'openai', endpoint: 'https://api.openai.com', keyMask: 'sk-proj-4c1d...', modelCount: 5, status: 'disconnected', latency: '-' },
-  { id: 'ak-4', name: 'DeepSeek 密钥', provider: 'deepseek', endpoint: 'https://api.deepseek.com', keyMask: 'sk-ds-8f5a...', modelCount: 3, status: 'connected', latency: 45 },
-  { id: 'ak-5', name: '智谱 API Key', provider: 'zhipu', endpoint: 'https://open.bigmodel.cn', keyMask: 'sk-zp-2e9b...', modelCount: 6, status: 'connected', latency: 80 },
-]
-
 export default function PlatformManager() {
   const [activeTab, setActiveTab] = useState('platforms')
   const [searchQuery, setSearchQuery] = useState('')
 
   // Data states
-  const [platforms, setPlatforms] = useState<Platform[]>(MOCK_PLATFORMS)
+  const [platforms, setPlatforms] = useState<Platform[]>([])
   const [frameworks, setFrameworks] = useState<Framework[]>([])
   const [engines, setEngines] = useState<Engine[]>([])
   const [teams, setTeams] = useState<Team[]>([])
-  const [apiKeys] = useState<ApiKeyItem[]>(MOCK_APIKEYS)
+  const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([])
   const [loading, setLoading] = useState<Record<string, boolean>>({
-    platforms: false, frameworks: true, engines: true, teams: true
+    platforms: true, frameworks: true, engines: true, teams: true, apiKeys: true
   })
+  const [error, setError] = useState<string | null>(null)
 
   // Modals
   const [showPlatformModal, setShowPlatformModal] = useState(false)
@@ -142,18 +125,22 @@ export default function PlatformManager() {
   useEffect(() => {
     async function load() {
       try {
-        const [fwRes, engRes, teamRes]: any = await Promise.all([
+        setError(null)
+        const [platRes, fwRes, engRes, teamRes]: any = await Promise.allSettled([
+          fetchPlatforms(),
           fetchFrameworks(),
           fetchEngines(),
           fetchTeams(),
         ])
-        setFrameworks(Array.isArray(fwRes) ? fwRes : fwRes.data || [])
-        setEngines(Array.isArray(engRes) ? engRes : engRes.data || [])
-        setTeams(Array.isArray(teamRes) ? teamRes : teamRes.data || [])
-      } catch (e) {
-        console.error('Failed to load data:', e)
+        setPlatforms(Array.isArray(platRes.value) ? platRes.value : platRes.value?.data || [])
+        setFrameworks(Array.isArray(fwRes.value) ? fwRes.value : fwRes.value?.data || [])
+        setEngines(Array.isArray(engRes.value) ? engRes.value : engRes.value?.data || [])
+        setTeams(Array.isArray(teamRes.value) ? teamRes.value : teamRes.value?.data || [])
+        // Note: client.ts has no fetchApiKeys API; keep empty
+      } catch (e: any) {
+        setError(e?.message || '加载数据失败')
       } finally {
-        setLoading({ platforms: false, frameworks: false, engines: false, teams: false })
+        setLoading({ platforms: false, frameworks: false, engines: false, teams: false, apiKeys: false })
       }
     }
     load()
@@ -268,6 +255,13 @@ export default function PlatformManager() {
           />
         </div>
       </div>
+
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b" style={{ borderColor: 'var(--sage-200)' }}>

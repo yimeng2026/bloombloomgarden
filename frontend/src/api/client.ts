@@ -457,3 +457,200 @@ export const generateQRCode = (id: string) => post(`/chat-accounts/${id}/qr-code
 export const getQRStatus = (id: string) => get(`/chat-accounts/${id}/qr-status`);
 export const testChatAccount = (id: string) => post(`/chat-accounts/${id}/test`, {});
 export const getPlatformChatAccounts = (platformId: string) => get(`/chat-accounts/platforms/${platformId}`);
+/* ── v4.0 Dialog ── */
+export const fetchDialogs = () => get('/dialog');
+export const getDialog = (id: string) => get(`/dialog/${id}`);
+export const createDialog = (data: any) => post('/dialog', data);
+export const deleteDialog = (id: string) => del(`/dialog/${id}`);
+export const chatDialog = (id: string, content: string) => post(`/dialog/${id}/chat`, { content });
+export const streamDialog = (id: string, content: string, onEvent: (event: any) => void, onError?: (err: Error) => void, onComplete?: () => void): (() => void) => {
+  const ctrl = new AbortController();
+  const url = `${EFFECTIVE_API_BASE}/dialog/${id}/stream?message=${encodeURIComponent(content)}`;
+  fetch(url, { signal: ctrl.signal }).then(async (res) => {
+    if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
+    const reader = res.body?.getReader(); if (!reader) throw new Error('No response body');
+    const decoder = new TextDecoder(); let buffer = '';
+    while (true) { const { done, value } = await reader.read(); if (done) break; buffer += decoder.decode(value, { stream: true }); const lines = buffer.split('\n'); buffer = lines.pop() || ''; for (const line of lines) { const trimmed = line.trim(); if (!trimmed.startsWith('data: ')) continue; const data = trimmed.slice(6); if (data === '[DONE]') { onComplete?.(); return; } try { const event = JSON.parse(data); onEvent(event); } catch {} } }
+    onComplete?.();
+  }).catch((err) => { if (err.name !== 'AbortError') onError?.(err); });
+  return () => ctrl.abort();
+};
+
+/* ── v4.0 Handoff ── */
+export const fetchHandoffs = () => get('/handoff');
+export const fetchPendingHandoffs = () => get('/handoff/pending');
+export const createHandoff = (data: any) => post('/handoff', data);
+export const getHandoff = (id: string) => get(`/handoff/${id}`);
+export const updateHandoff = (id: string, data: any) => put(`/handoff/${id}`, data);
+export const deleteHandoff = (id: string) => del(`/handoff/${id}`);
+export const acceptHandoff = (id: string) => post(`/handoff/${id}/accept`, {});
+export const declineHandoff = (id: string) => post(`/handoff/${id}/decline`, {});
+export const completeHandoff = (id: string) => post(`/handoff/${id}/complete`, {});
+export const cancelHandoff = (id: string) => post(`/handoff/${id}/cancel`, {});
+export const batchCreateHandoff = (data: any) => post('/handoff/batch', data);
+export const autoRouteHandoff = (data: any) => post('/handoff/auto-route', data);
+export const fetchHandoffStats = () => get('/handoff/stats');
+
+/* ── v4.0 Intervention ── */
+export const fetchInterventions = () => get('/intervention');
+export const createIntervention = (data: any) => post('/intervention', data);
+export const getInterventionStatus = (id: string) => get(`/intervention/status/${id}`);
+export const resolveIntervention = (id: string, data?: any) => post(`/intervention/resolve/${id}`, data || {});
+export const cancelIntervention = (id: string) => post(`/intervention/cancel/${id}`, {});
+export const deleteIntervention = (id: string) => del(`/intervention/${id}`);
+export const clearInterventions = () => del('/intervention/clear');
+
+/* ── v4.0 Unified API ── */
+export const fetchUnifiedTemplates = () => get('/unified-api/templates');
+export const getUnifiedTemplate = (id: string) => get(`/unified-api/templates/${id}`);
+export const createUnifiedTemplate = (data: any) => post('/unified-api/templates', data);
+export const updateUnifiedTemplate = (id: string, data: any) => put(`/unified-api/templates/${id}`, data);
+export const deleteUnifiedTemplate = (id: string) => del(`/unified-api/templates/${id}`);
+export const fetchUnifiedInstances = () => get('/unified-api/instances');
+export const createUnifiedInstance = (data: any) => post('/unified-api/instances', data);
+export const getUnifiedInstance = (id: string) => get(`/unified-api/instances/${id}`);
+export const updateUnifiedInstance = (id: string, data: any) => put(`/unified-api/instances/${id}`, data);
+export const deleteUnifiedInstance = (id: string) => del(`/unified-api/instances/${id}`);
+export const executeUnifiedInstance = (id: string, data?: any) => post(`/unified-api/instances/${id}/execute`, data || {});
+export const streamUnifiedInstance = (id: string, data: any, onEvent: (event: any) => void, onError?: (err: Error) => void, onComplete?: () => void): (() => void) => {
+  const ctrl = new AbortController();
+  const url = `${EFFECTIVE_API_BASE}/unified-api/instances/${id}/stream`;
+  fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: ctrl.signal }).then(async (res) => {
+    if (!res.ok) throw new Error(`POST ${url} → ${res.status}`);
+    const reader = res.body?.getReader(); if (!reader) throw new Error('No response body');
+    const decoder = new TextDecoder(); let buffer = '';
+    while (true) { const { done, value } = await reader.read(); if (done) break; buffer += decoder.decode(value, { stream: true }); const lines = buffer.split('\n'); buffer = lines.pop() || ''; for (const line of lines) { const trimmed = line.trim(); if (!trimmed.startsWith('data: ')) continue; const data = trimmed.slice(6); if (data === '[DONE]') { onComplete?.(); return; } try { const event = JSON.parse(data); onEvent(event); } catch {} } }
+    onComplete?.();
+  }).catch((err) => { if (err.name !== 'AbortError') onError?.(err); });
+  return () => ctrl.abort();
+};
+export const getUnifiedInstanceStats = (id: string) => get(`/unified-api/instances/${id}/stats`);
+export const fetchUnifiedStats = () => get('/unified-api/stats');
+export const batchExecuteUnified = (data: any) => post('/unified-api/batch', data);
+export const batchExecuteUnifiedStream = (data: any, onEvent: (event: any) => void, onError?: (err: Error) => void, onComplete?: () => void): (() => void) => {
+  const ctrl = new AbortController();
+  const url = `${EFFECTIVE_API_BASE}/unified-api/batch/stream`;
+  fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: ctrl.signal }).then(async (res) => {
+    if (!res.ok) throw new Error(`POST ${url} → ${res.status}`);
+    const reader = res.body?.getReader(); if (!reader) throw new Error('No response body');
+    const decoder = new TextDecoder(); let buffer = '';
+    while (true) { const { done, value } = await reader.read(); if (done) break; buffer += decoder.decode(value, { stream: true }); const lines = buffer.split('\n'); buffer = lines.pop() || ''; for (const line of lines) { const trimmed = line.trim(); if (!trimmed.startsWith('data: ')) continue; const data = trimmed.slice(6); if (data === '[DONE]') { onComplete?.(); return; } try { const event = JSON.parse(data); onEvent(event); } catch {} } }
+    onComplete?.();
+  }).catch((err) => { if (err.name !== 'AbortError') onError?.(err); });
+  return () => ctrl.abort();
+};
+
+/* ── v4.0 Integrations ── */
+export const fetchIntegrations = () => get('/integrations');
+export const getIntegration = (id: string) => get(`/integrations/${id}`);
+export const createIntegration = (data: any) => post('/integrations', data);
+export const updateIntegration = (id: string, data: any) => put(`/integrations/${id}`, data);
+export const deleteIntegration = (id: string) => del(`/integrations/${id}`);
+export const testIntegration = (id: string) => post(`/integrations/${id}/test`, {});
+export const syncIntegration = (id: string) => post(`/integrations/${id}/sync`, {});
+export const fetchIntegrationStats = () => get('/integrations/stats');
+
+/* ── v4.0 Events ── */
+export const fetchEvents = () => get('/events');
+export const createEvent = (data: any) => post('/events', data);
+export const fetchEventStats = () => get('/events/stats');
+export const acknowledgeEvent = (id: string) => post(`/events/${id}/acknowledge`, {});
+export const clearEvents = () => del('/events');
+
+/* ── v4.0 Processes ── */
+export const fetchProcesses = () => get('/processes');
+export const createProcess = (data: any) => post('/processes', data);
+export const fetchProcessStats = () => get('/processes/stats');
+export const killProcess = (id: string) => post(`/processes/${id}/kill`, {});
+export const signalProcess = (id: string, signal: string) => post(`/processes/${id}/signal`, { signal });
+export const clearProcesses = () => del('/processes');
+
+/* ── v4.0 Spend ── */
+export const fetchSpendStats = () => get('/spend/stats');
+export const fetchSpendSummary = () => get('/spend/summary');
+export const fetchSpendBreakdown = () => get('/spend/breakdown');
+export const fetchSpendByAgent = () => get('/spend/agents');
+export const fetchSpendByProvider = () => get('/spend/providers');
+export const updateSpend = (data: any) => post('/spend/update', data);
+
+/* ── v4.0 Backups ── */
+export const fetchBackups = () => get('/backups');
+export const getBackup = (id: string) => get(`/backups/${id}`);
+export const createBackup = (data: any) => post('/backups', data);
+export const restoreBackup = (id: string) => post(`/backups/${id}/restore`, {});
+export const verifyBackup = (id: string) => post(`/backups/${id}/verify`, {});
+export const deleteBackup = (id: string) => del(`/backups/${id}`);
+export const clearBackups = () => del('/backups');
+export const fetchBackupStats = () => get('/backups/stats');
+
+/* ── v4.0 External ── */
+export const fetchExternalIntegrations = () => get('/external/integrations');
+export const createExternalIntegration = (data: any) => post('/external/integrations', data);
+export const getExternalIntegration = (id: string) => get(`/external/integrations/${id}`);
+export const updateExternalIntegration = (id: string, data: any) => put(`/external/integrations/${id}`, data);
+export const deleteExternalIntegration = (id: string) => del(`/external/integrations/${id}`);
+export const syncExternalIntegration = (id: string) => post(`/external/sync/${id}`, {});
+export const webhookExternalIntegration = (id: string, data: any) => post(`/external/webhooks/${id}`, data);
+export const fetchExternalStats = () => get('/external/stats');
+
+/* ── v4.0 Security ── */
+export const fetchSecurityLogs = () => get('/security/logs');
+export const getSecurityLog = (id: string) => get(`/security/logs/${id}`);
+export const createSecurityLog = (data: any) => post('/security/logs', data);
+export const deleteSecurityLog = (id: string) => del(`/security/logs/${id}`);
+export const fetchSecurityMetrics = () => get('/security/metrics');
+export const scanSecurity = () => post('/security/scan', {});
+export const blockSecurity = (data: any) => post('/security/block', data);
+export const unblockSecurity = (data: any) => post('/security/unblock', data);
+export const fetchSecurityAudit = () => get('/security/audit');
+export const fetchSecurityStatus = () => get('/security/status');
+
+/* ── v4.0 Auth ── */
+export const login = (data: any) => post('/auth/login', data);
+export const register = (data: any) => post('/auth/register', data);
+export const logout = () => post('/auth/logout', {});
+export const getMe = () => get('/auth/me');
+export const refreshToken = () => post('/auth/refresh', {});
+export const forgotPassword = (email: string) => post('/auth/forgot-password', { email });
+export const resetPassword = (token: string, password: string) => post('/auth/reset-password', { token, password });
+export const changePassword = (data: any) => post('/auth/change-password', data);
+export const verifyEmail = (token: string) => post('/auth/verify-email', { token });
+export const fetchAuthSessions = () => get('/auth/sessions');
+
+/* ── v4.0 Kimi Cluster ── */
+export const fetchKimiClusterNodes = () => get('/kimi-cluster');
+export const fetchKimiClusterStats = () => get('/kimi-cluster/stats');
+export const addKimiClusterNode = (data: any) => post('/kimi-cluster/nodes', data);
+export const removeKimiClusterNode = (id: string) => del(`/kimi-cluster/nodes/${id}`);
+export const activateKimiClusterNode = (id: string) => post(`/kimi-cluster/nodes/${id}/activate`, {});
+export const deactivateKimiClusterNode = (id: string) => post(`/kimi-cluster/nodes/${id}/deactivate`, {});
+export const fetchKimiClusterHealth = () => get('/kimi-cluster/health');
+export const fetchKimiClusterStatus = () => get('/kimi-cluster/status');
+export const syncKimiCluster = () => post('/kimi-cluster/sync', {});
+
+/* ── v4.0 Agent Context ── */
+export const fetchAgentContext = (id: string) => get(`/agent-context/${id}`);
+export const setAgentContext = (id: string, data: any) => post(`/agent-context/${id}`, data);
+export const deleteAgentContext = (id: string) => del(`/agent-context/${id}`);
+export const fetchAgentContextHistory = (id: string) => get(`/agent-context/${id}/history`);
+export const setAgentContextVariables = (id: string, data: any) => post(`/agent-context/${id}/variables`, data);
+export const fetchAgentContextVariables = (id: string) => get(`/agent-context/${id}/variables`);
+export const setAgentContextVariable = (id: string, key: string, value: any) => post(`/agent-context/${id}/variables/${key}`, { value });
+export const deleteAgentContextVariable = (id: string, key: string) => del(`/agent-context/${id}/variables/${key}`);
+
+/* ── v4.0 Platform Details ── */
+export const fetchPlatformDetails = (id: string) => get(`/platform-details/${id}`);
+export const updatePlatformDetails = (id: string, data: any) => put(`/platform-details/${id}`, data);
+export const deletePlatformDetails = (id: string) => del(`/platform-details/${id}`);
+export const verifyPlatformDetails = (id: string) => post(`/platform-details/${id}/verify`, {});
+export const syncPlatformDetails = (id: string) => post(`/platform-details/${id}/sync`, {});
+export const testPlatformDetails = (id: string) => post(`/platform-details/${id}/test`, {});
+export const clonePlatformDetails = (id: string, data?: any) => post(`/platform-details/${id}/clone`, data || {});
+export const fetchPlatformDetailStats = (id: string) => get(`/platform-details/${id}/stats`);
+
+/* ── v4.0 Settings Extended ── */
+export const resetSettings = () => post('/settings/reset', {});
+export const backupSettings = () => post('/settings/backup', {});
+export const restoreSettings = (data: any) => post('/settings/restore', data);
+export const importSettings = (data: any) => post('/settings/import', data);
+export const exportSettings = () => post('/settings/export', {});

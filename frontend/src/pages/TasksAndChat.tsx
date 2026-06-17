@@ -22,17 +22,6 @@ interface Task {
   tags: string[]
 }
 
-const MOCK_TASKS: Task[] = [
-  { id: 'task-1', name: '代码审查', description: '审查 frontend PR #123，检查代码质量和潜在问题', status: 'completed', priority: 'high', agent_id: 'agent-1', agent_name: 'Code Agent', progress: 100, created_at: '2026-05-24 10:00', started_at: '2026-05-24 10:00', completed_at: '2026-05-24 10:15', estimated_duration: '15分钟', tags: ['代码', '审查'] },
-  { id: 'task-2', name: '数据备份', description: '每日数据库全量备份，上传到冷存储', status: 'running', priority: 'high', agent_id: 'agent-3', agent_name: 'Data Agent', progress: 72, created_at: '2026-05-24 14:00', started_at: '2026-05-24 14:00', estimated_duration: '30分钟', tags: ['备份', '数据库'] },
-  { id: 'task-3', name: '文档生成', description: '根据最新 API 变更自动生成 OpenAPI 文档', status: 'pending', priority: 'medium', agent_id: 'agent-2', agent_name: 'Doc Agent', progress: 0, created_at: '2026-05-24 16:00', estimated_duration: '20分钟', tags: ['文档', 'API'] },
-  { id: 'task-4', name: '测试运行', description: '运行单元测试和集成测试套件，生成报告', status: 'failed', priority: 'high', agent_id: 'agent-1', agent_name: 'Code Agent', progress: 45, created_at: '2026-05-24 09:00', started_at: '2026-05-24 09:00', completed_at: '2026-05-24 09:05', estimated_duration: '已中断', tags: ['测试'] },
-  { id: 'task-5', name: '安全扫描', description: '扫描依赖漏洞和潜在安全风险', status: 'running', priority: 'high', agent_id: 'agent-4', agent_name: 'Sec Agent', progress: 35, created_at: '2026-05-25 08:00', started_at: '2026-05-25 08:00', estimated_duration: '1小时', tags: ['安全', '扫描'] },
-  { id: 'task-6', name: '模型评估', description: '评估新微调模型的性能和准确性', status: 'pending', priority: 'medium', agent_id: 'agent-5', agent_name: 'ML Agent', progress: 0, created_at: '2026-05-25 10:00', estimated_duration: '2小时', tags: ['AI', '评估'] },
-  { id: 'task-7', name: '索引重建', description: '重建知识库全文搜索索引', status: 'completed', priority: 'low', agent_id: 'agent-6', agent_name: 'KB Agent', progress: 100, created_at: '2026-05-23 02:00', started_at: '2026-05-23 02:00', completed_at: '2026-05-23 02:45', estimated_duration: '45分钟', tags: ['搜索', '索引'] },
-  { id: 'task-8', name: '日志归档', description: '归档30天前的系统日志', status: 'paused', priority: 'low', agent_id: 'agent-7', agent_name: 'Ops Agent', progress: 60, created_at: '2026-05-22 03:00', started_at: '2026-05-22 03:00', estimated_duration: '已暂停', tags: ['运维', '日志'] },
-]
-
 const STATUS_CONFIG: Record<string, { icon: any; color: string; label: string; bg: string }> = {
   pending: { icon: Clock, color: '#f59e0b', label: '待处理', bg: '#fdf6e3' },
   running: { icon: Play, color: '#3b82f6', label: '运行中', bg: '#e8f0fe' },
@@ -50,6 +39,7 @@ const PRIORITY_CONFIG = {
 export default function TasksAndChat() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState<{ name: string; description: string; agent_id: string; priority: Task['priority']; tags: string }>({ name: '', description: '', agent_id: '', priority: 'medium', tags: '' })
   const [search, setSearch] = useState('')
@@ -61,10 +51,14 @@ export default function TasksAndChat() {
   useEffect(() => {
     async function load() {
       try {
+        setLoading(true)
+        setError(null)
         const res = await fetchTasks()
-        setTasks(res.data?.length > 0 ? res.data : MOCK_TASKS)
-      } catch (e) {
-        setTasks(MOCK_TASKS)
+        const data = res.data || res
+        setTasks(Array.isArray(data) ? data : [])
+      } catch (e: any) {
+        setError(e?.message || '加载任务失败')
+        setTasks([])
       } finally {
         setLoading(false)
       }
@@ -131,6 +125,15 @@ export default function TasksAndChat() {
           <div className="w-5 h-5 border-2 border-[var(--sage-300)] border-t-[var(--sage-500)] rounded-full animate-spin" />
           <span className="text-sm">加载任务...</span>
         </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="card p-6 text-center">
+        <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+        <p className="text-red-500">{error}</p>
       </div>
     )
   }

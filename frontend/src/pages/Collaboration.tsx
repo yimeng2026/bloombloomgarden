@@ -52,89 +52,9 @@ const PRIORITY_CONFIG = {
   low: { color: 'bg-green-100 text-green-700', label: '低' },
 }
 
-// ── MOCK DATA (fallback when API fails) ──
-const MOCK_TASKS: Task[] = [
-  { id: 'mock-1', name: '数据同步任务', description: '同步各节点数据到主库', status: 'running', assignee: 'Agent-A', assigneeAvatar: '🤖', priority: 'high', progress: 65, createdAt: '2024-01-15 09:00', estimatedTime: '2小时', tags: ['自动', '高频'] },
-  { id: 'mock-2', name: '模型训练', description: '训练新模型版本', status: 'pending', assignee: 'Agent-B', assigneeAvatar: '🤖', priority: 'medium', progress: 0, createdAt: '2024-01-15 10:00', estimatedTime: '4小时', tags: ['训练', 'GPU'] },
-  { id: 'mock-3', name: '健康检查', description: '检查所有节点健康状态', status: 'completed', assignee: 'Agent-C', assigneeAvatar: '🤖', priority: 'low', progress: 100, createdAt: '2024-01-15 08:00', estimatedTime: '已完成', tags: ['监控', '定期'] },
-]
-
-const MOCK_TOPOLOGY: TopologyNode[] = [
-  { id: 'mock-group-1', name: '协作组A', type: 'group', status: 'active', connections: ['mock-agent-1', 'mock-agent-2'], load: 60 },
-  { id: 'mock-agent-1', name: 'Agent-1', type: 'agent', status: 'active', connections: ['mock-group-1'], load: 75 },
-  { id: 'mock-agent-2', name: 'Agent-2', type: 'agent', status: 'idle', connections: ['mock-group-1'], load: 20 },
-]
-
-const MOCK_SYNC_LOGS: SyncLog[] = [
-  { id: 'mock-sync-1', time: new Date().toISOString(), source: 'Agent-A', target: '主库', action: '数据同步', status: 'success', size: 1024 },
-  { id: 'mock-sync-2', time: new Date().toISOString(), source: '系统', target: 'Agent-B', action: '任务分发', status: 'pending', size: 256 },
-]
-
 export default function Collaboration() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [topologyNodes, setTopologyNodes] = useState<TopologyNode[]>([])
-
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    Promise.allSettled([
-      fetchGroups(),
-      fetchAgents(),
-    ]).then(([groupsRes, agentsRes]) => {
-      if (cancelled) return
-      // Tasks from groups
-      const groups = groupsRes.status === 'fulfilled' ? (groupsRes.value?.data || []) : []
-      const agents = agentsRes.status === 'fulfilled' ? (agentsRes.value?.data || []) : []
-      if (groups.length > 0) {
-        const mappedTasks = groups.map((g: any) => ({
-          id: g.id,
-          name: g.name,
-          description: g.description || '',
-          status: 'running',
-          assignee: g.coordinatorId || 'system',
-          priority: 'medium',
-          progress: 0,
-          dueDate: new Date().toISOString(),
-          tags: [],
-          updatedAt: new Date().toISOString(),
-        }))
-        setTasks(mappedTasks)
-      } else {
-        setTasks(MOCK_TASKS)
-      }
-      if (groups.length > 0 || agents.length > 0) {
-        const mappedTopology = [
-          ...groups.map((g: any) => ({
-            id: g.id,
-            name: g.name,
-            type: 'group',
-            status: 'active',
-            connections: agents.filter((a: any) => a.groupId === g.id).map((a: any) => a.id),
-            data: g,
-          })),
-          ...agents.map((a: any) => ({
-            id: a.id,
-            name: a.name,
-            type: 'agent',
-            status: 'idle',
-            connections: [],
-            data: a,
-          })),
-        ]
-        setTopologyNodes(mappedTopology)
-      } else {
-        setTopologyNodes(MOCK_TOPOLOGY)
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setTasks(MOCK_TASKS)
-        setTopologyNodes(MOCK_TOPOLOGY)
-      }
-    }).finally(() => {
-      if (!cancelled) setLoading(false)
-    })
-    return () => { cancelled = true }
-  }, [])
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import { fetchTasks } from '@/api/client';
 
 interface Task {
   id: string;
@@ -19,117 +20,6 @@ interface Task {
   result?: string;
   error?: string;
 }
-
-const MOCK_TASKS: Task[] = [
-  {
-    id: 'task-001',
-    title: '初始化Kimi集群',
-    description: '配置并启动5个Kimi Code API端点的负载均衡器',
-    status: 'completed',
-    priority: 'high',
-    type: 'agent',
-    assignee: 'SYLVA',
-    assigneeType: 'agent',
-    createdAt: '2024-05-29T08:00:00Z',
-    startedAt: '2024-05-29T08:00:05Z',
-    completedAt: '2024-05-29T08:01:30Z',
-    progress: 100,
-    dependencies: [],
-    tags: ['kimi', 'cluster', 'init'],
-    result: '5个端点全部连接成功，负载均衡策略：round-robin'
-  },
-  {
-    id: 'task-002',
-    title: '3DACP协议适配器自检',
-    description: '验证REST/SSE/WS/Internal/Bridge/External 6种适配器运行状态',
-    status: 'running',
-    priority: 'critical',
-    type: 'skill',
-    assignee: 'AgentZero',
-    assigneeType: 'agent',
-    createdAt: '2024-05-29T08:02:00Z',
-    startedAt: '2024-05-29T08:02:10Z',
-    progress: 65,
-    dependencies: ['task-001'],
-    tags: ['3dacp', 'adapter', 'health-check']
-  },
-  {
-    id: 'task-003',
-    title: '知识库文档索引更新',
-    description: '对新增的上传文档进行向量索引和语义分块',
-    status: 'pending',
-    priority: 'medium',
-    type: 'manual',
-    assignee: '用户',
-    assigneeType: 'user',
-    createdAt: '2024-05-29T08:05:00Z',
-    progress: 0,
-    dependencies: [],
-    tags: ['knowledge', 'index', 'embedding']
-  },
-  {
-    id: 'task-004',
-    title: '前端构建与部署',
-    description: 'Vite生产构建、资源优化、Docker镜像打包',
-    status: 'running',
-    priority: 'high',
-    type: 'blueprint',
-    assignee: '系统',
-    assigneeType: 'system',
-    createdAt: '2024-05-29T08:10:00Z',
-    startedAt: '2024-05-29T08:10:30Z',
-    progress: 42,
-    dependencies: ['task-002'],
-    tags: ['build', 'deploy', 'frontend']
-  },
-  {
-    id: 'task-005',
-    title: 'OpenRouter API连通性测试',
-    description: '验证OpenRouter免费模型列表和API响应',
-    status: 'failed',
-    priority: 'medium',
-    type: 'skill',
-    assignee: 'SYLVA',
-    assigneeType: 'agent',
-    createdAt: '2024-05-29T08:15:00Z',
-    startedAt: '2024-05-29T08:15:10Z',
-    completedAt: '2024-05-29T08:15:45Z',
-    progress: 100,
-    dependencies: [],
-    tags: ['openrouter', 'api-test', 'llm'],
-    error: 'API Key无效，返回401 Unauthorized。请检查key是否过期。'
-  },
-  {
-    id: 'task-006',
-    title: '每日增量备份',
-    description: '自动执行知识库和Agent状态的增量备份',
-    status: 'completed',
-    priority: 'low',
-    type: 'scheduled',
-    assignee: '系统',
-    assigneeType: 'system',
-    createdAt: '2024-05-29T06:00:00Z',
-    startedAt: '2024-05-29T06:00:01Z',
-    completedAt: '2024-05-29T06:05:00Z',
-    progress: 100,
-    dependencies: [],
-    tags: ['backup', 'scheduled', 'daily']
-  },
-  {
-    id: 'task-007',
-    title: 'Agent对话上下文清理',
-    description: '清理超过30天的历史对话记录，释放内存',
-    status: 'pending',
-    priority: 'low',
-    type: 'scheduled',
-    assignee: 'AgentZero',
-    assigneeType: 'agent',
-    createdAt: '2024-05-29T08:20:00Z',
-    progress: 0,
-    dependencies: [],
-    tags: ['cleanup', 'memory', 'maintenance']
-  }
-];
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   pending: { label: '待执行', color: 'text-gray-400', bg: 'bg-gray-500/10', icon: '⏳' },
@@ -168,23 +58,16 @@ export default function TasksPage() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetch('/api/tasks')
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        const data = json.data || json.tasks || json;
-        if (Array.isArray(data) && data.length > 0) {
-          if (!cancelled) setTasks(data);
-        } else {
-          // 后端无数据 → 回退到 MOCK
-          if (!cancelled) setTasks(MOCK_TASKS);
+    fetchTasks()
+      .then((json) => {
+        if (!cancelled) {
+          const data = json.data || json;
+          setTasks(Array.isArray(data) ? data : []);
         }
       })
       .catch((err) => {
-        console.warn('后端 /api/tasks 不可用，使用 MOCK:', err);
         if (!cancelled) {
-          setTasks(MOCK_TASKS);
-          setError('后端不可用，显示模拟数据');
+          setError('加载任务失败: ' + (err.message || '未知错误'));
         }
       })
       .finally(() => {

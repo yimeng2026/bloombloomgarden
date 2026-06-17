@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import { fetchProcesses, fetchProcessStats } from '@/api/client';
 
 interface ProcessInfo {
   pid: number;
@@ -14,19 +15,6 @@ interface ProcessInfo {
   parentPid?: number;
   command: string;
 }
-
-const MOCK_PROCESSES: ProcessInfo[] = [
-  { pid: 1, name: 'node-backend', type: 'backend', status: 'running', cpu: 12.5, memory: 256, memoryUnit: 'MB', uptime: '3d 12h', threads: 8, command: 'node dist/main.js --port 3001' },
-  { pid: 42, name: 'vite-frontend', type: 'frontend', status: 'running', cpu: 8.3, memory: 128, memoryUnit: 'MB', uptime: '3d 12h', threads: 4, command: 'vite --host 0.0.0.0 --port 5173' },
-  { pid: 88, name: 'electron-main', type: 'electron', status: 'running', cpu: 5.1, memory: 192, memoryUnit: 'MB', uptime: '2h 15m', threads: 6, command: 'electron . --enable-logging' },
-  { pid: 156, name: 'agent-sylva', type: 'agent', status: 'running', cpu: 15.7, memory: 320, memoryUnit: 'MB', uptime: '3d 10h', threads: 3, command: 'AgentRuntime --id=sylva --model=kimi-code' },
-  { pid: 157, name: 'agent-zero', type: 'agent', status: 'running', cpu: 2.1, memory: 180, memoryUnit: 'MB', uptime: '3d 10h', threads: 2, command: 'AgentRuntime --id=zero --model=local' },
-  { pid: 200, name: 'kimi-orchestrator', type: 'service', status: 'running', cpu: 4.5, memory: 64, memoryUnit: 'MB', uptime: '3d 10h', threads: 2, command: 'KimiClusterOrchestrator --keys=5' },
-  { pid: 230, name: 'redis-server', type: 'service', status: 'running', cpu: 1.2, memory: 48, memoryUnit: 'MB', uptime: '5d 8h', threads: 4, command: 'redis-server /etc/redis.conf' },
-  { pid: 245, name: 'axis-gateway', type: 'adapter', status: 'running', cpu: 3.8, memory: 96, memoryUnit: 'MB', uptime: '3d 12h', threads: 5, command: 'AxisGateway --protocols=all' },
-  { pid: 260, name: 'ws-adapter', type: 'adapter', status: 'sleeping', cpu: 0.5, memory: 32, memoryUnit: 'MB', uptime: '3d 12h', threads: 2, command: 'WebSocketAdapter --port 3002' },
-  { pid: 300, name: 'prisma-engine', type: 'service', status: 'running', cpu: 2.8, memory: 80, memoryUnit: 'MB', uptime: '3d 12h', threads: 3, command: 'prisma-query-engine' },
-];
 
 const TYPE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   backend: { bg: 'bg-blue-500/10', text: 'text-blue-400', label: '后端' },
@@ -45,7 +33,9 @@ const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
 };
 
 export default function ProcessMonitor() {
-  const [processes, setProcesses] = useState<ProcessInfo[]>(MOCK_PROCESSES);
+  const [processes, setProcesses] = useState<ProcessInfo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'cpu' | 'memory' | 'pid'>('cpu');
   const [sortDesc, setSortDesc] = useState(true);
   const [filter, setFilter] = useState('');
@@ -53,41 +43,34 @@ export default function ProcessMonitor() {
   const [refreshInterval, setRefreshInterval] = useState<number>(5);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
+    async function load() {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetch('/api/system/processes');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.data) {
-            // 转换后端格式到前端格式
-            const formatted = (data.data as any[]).map((p: any) => ({
-              pid: p.pid,
-              name: p.name,
-              type: p.type || 'service',
-              status: p.status || 'running',
-              cpu: p.cpu || 0,
-              memory: typeof p.memory === 'string' ? parseInt(p.memory) : (p.memory || 0),
-              memoryUnit: 'MB',
-              uptime: typeof p.uptime === 'number' ? formatUptime(p.uptime) : (p.uptime || '-'),
-              threads: p.threads || 1,
-              command: p.command || p.name
-            }));
-            setProcesses(formatted);
-            return;
-          }
+        const res = await fetchProcesses();
+        if (res?.data) {
+          const formatted = (Array.isArray(res.data) ? res.data : []).map((p: any) => ({
+            pid: p.pid,
+            name: p.name,
+            type: p.type || 'service',
+            status: p.status || 'running',
+            cpu: p.cpu || 0,
+            memory: typeof p.memory === 'string' ? parseInt(p.memory) : (p.memory || 0),
+            memoryUnit: 'MB',
+            uptime: typeof p.uptime === 'number' ? formatUptime(p.uptime) : (p.uptime || '-'),
+            threads: p.threads || 1,
+            command: p.command || p.name
+          }));
+          setProcesses(formatted);
         }
-      } catch (e) {
-        // 后端不可用，继续Mock波动
+      } catch (e: any) {
+        setError(e.message || '加载进程数据失败');
+      } finally {
+        setLoading(false);
       }
-      // 模拟数据波动（降级）
-      setProcesses(prev => prev.map(p => ({
-        ...p,
-        cpu: Math.max(0, p.cpu + (Math.random() - 0.5) * 3),
-        memory: p.memory + Math.floor((Math.random() - 0.5) * 10)
-      })));
-    }, refreshInterval * 1000);
-    return () => clearInterval(interval);
-  }, [refreshInterval]);
+    }
+    load();
+  }, []);
 
   function formatUptime(seconds: number): string {
     const d = Math.floor(seconds / 86400);
@@ -132,6 +115,13 @@ export default function ProcessMonitor() {
           </div>
         </div>
 
+        {loading && (
+          <div className="text-center text-sm text-[var(--sage-400)] py-4">加载中...</div>
+        )}
+        {error && (
+          <div className="text-center text-sm text-red-500 py-4">⚠️ {error}</div>
+        )}
+
         {/* 资源总览 */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-[#12121a] border border-gray-800 rounded-lg p-4">
@@ -159,18 +149,24 @@ export default function ProcessMonitor() {
             <span className="text-xs text-gray-500">实时</span>
           </div>
           <div className="space-y-2">
-            {sorted.slice(0, 8).map(p => (
-              <div key={p.pid} className="flex items-center gap-3">
-                <span className="text-xs text-gray-400 w-20 truncate">{p.name}</span>
-                <div className="flex-1 h-4 bg-gray-800 rounded overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[var(--sage-600)] to-[var(--sage-400)] transition-all duration-1000"
-                    style={{ width: `${Math.min(p.cpu * 3, 100)}%` }}
-                  />
+            {loading ? (
+              <div className="text-center text-sm text-[var(--sage-400)] py-4">加载中...</div>
+            ) : error ? (
+              <div className="text-center text-sm text-red-500 py-4">⚠️ {error}</div>
+            ) : (
+              sorted.slice(0, 8).map(p => (
+                <div key={p.pid} className="flex items-center gap-3">
+                  <span className="text-xs text-gray-400 w-20 truncate">{p.name}</span>
+                  <div className="flex-1 h-4 bg-gray-800 rounded overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[var(--sage-600)] to-[var(--sage-400)] transition-all duration-1000"
+                      style={{ width: `${Math.min(p.cpu * 3, 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-400 w-12 text-right">{p.cpu.toFixed(1)}%</span>
                 </div>
-                <span className="text-xs text-gray-400 w-12 text-right">{p.cpu.toFixed(1)}%</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -206,66 +202,72 @@ export default function ProcessMonitor() {
 
         {/* 进程表格 */}
         <div className="bg-[#12121a] border border-gray-800 rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-[#0d0d14] text-gray-400">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">PID</th>
-                <th className="text-left px-4 py-3 font-medium">名称</th>
-                <th className="text-left px-4 py-3 font-medium">类型</th>
-                <th className="text-left px-4 py-3 font-medium">状态</th>
-                <th className="text-right px-4 py-3 font-medium">CPU</th>
-                <th className="text-right px-4 py-3 font-medium">内存</th>
-                <th className="text-left px-4 py-3 font-medium">运行时间</th>
-                <th className="text-right px-4 py-3 font-medium">线程</th>
-                <th className="text-right px-4 py-3 font-medium">操作</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800">
-              {sorted.map(p => {
-                const typeCfg = TYPE_COLORS[p.type];
-                const statusCfg = STATUS_CONFIG[p.status];
-                return (
-                  <tr
-                    key={p.pid}
-                    onClick={() => setSelectedProcess(p)}
-                    className="hover:bg-[#1a1a24] transition-colors cursor-pointer"
-                  >
-                    <td className="px-4 py-3 text-gray-400 font-mono">{p.pid}</td>
-                    <td className="px-4 py-3 text-white font-medium">{p.name}</td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded ${typeCfg.bg} ${typeCfg.text}`}>
-                        {typeCfg.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-sm ${statusCfg.color}`}>{statusCfg.label}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right text-white">{p.cpu.toFixed(1)}%</td>
-                    <td className="px-4 py-3 text-right text-white">{p.memory} {p.memoryUnit}</td>
-                    <td className="px-4 py-3 text-gray-400">{p.uptime}</td>
-                    <td className="px-4 py-3 text-right text-gray-400">{p.threads}</td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            const res = await fetch(`/api/system/processes/${p.pid}/restart`, { method: 'POST' });
-                            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                            alert(`重启命令已发送: ${p.name} (PID: ${p.pid})`);
-                          } catch (err) {
-                            alert(`模拟重启: ${p.name} (PID: ${p.pid})`);
-                          }
-                        }}
-                        className="text-xs px-2 py-1 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded transition-colors"
-                      >
-                        重启
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {loading ? (
+            <div className="text-center text-sm text-[var(--sage-400)] py-8">加载中...</div>
+          ) : error ? (
+            <div className="text-center text-sm text-red-500 py-8">⚠️ {error}</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-[#0d0d14] text-gray-400">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium">PID</th>
+                  <th className="text-left px-4 py-3 font-medium">名称</th>
+                  <th className="text-left px-4 py-3 font-medium">类型</th>
+                  <th className="text-left px-4 py-3 font-medium">状态</th>
+                  <th className="text-right px-4 py-3 font-medium">CPU</th>
+                  <th className="text-right px-4 py-3 font-medium">内存</th>
+                  <th className="text-left px-4 py-3 font-medium">运行时间</th>
+                  <th className="text-right px-4 py-3 font-medium">线程</th>
+                  <th className="text-right px-4 py-3 font-medium">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800">
+                {sorted.map(p => {
+                  const typeCfg = TYPE_COLORS[p.type];
+                  const statusCfg = STATUS_CONFIG[p.status];
+                  return (
+                    <tr
+                      key={p.pid}
+                      onClick={() => setSelectedProcess(p)}
+                      className="hover:bg-[#1a1a24] transition-colors cursor-pointer"
+                    >
+                      <td className="px-4 py-3 text-gray-400 font-mono">{p.pid}</td>
+                      <td className="px-4 py-3 text-white font-medium">{p.name}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded ${typeCfg.bg} ${typeCfg.text}`}>
+                          {typeCfg.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-sm ${statusCfg.color}`}>{statusCfg.label}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-white">{p.cpu.toFixed(1)}%</td>
+                      <td className="px-4 py-3 text-right text-white">{p.memory} {p.memoryUnit}</td>
+                      <td className="px-4 py-3 text-gray-400">{p.uptime}</td>
+                      <td className="px-4 py-3 text-right text-gray-400">{p.threads}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const res = await fetch(`/api/system/processes/${p.pid}/restart`, { method: 'POST' });
+                              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                              alert(`重启命令已发送: ${p.name} (PID: ${p.pid})`);
+                            } catch (err) {
+                              alert(`重启失败: ${p.name} (PID: ${p.pid})`);
+                            }
+                          }}
+                          className="text-xs px-2 py-1 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded transition-colors"
+                        >
+                          重启
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* 进程详情弹窗 */}

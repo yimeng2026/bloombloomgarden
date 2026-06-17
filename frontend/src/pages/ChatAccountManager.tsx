@@ -22,29 +22,7 @@ import {
   fetchPlatforms,
 } from '@/api/client';
 
-/* ── Mock fallback ── */
-const MOCK_ACCOUNTS: ChatAccount[] = [
-  {
-    id: 'ca-1',
-    name: '微信客服1号',
-    platformId: 'pl-1',
-    platformName: '智谱AI',
-    channelType: 'wechat',
-    status: 'connected',
-    connectedAt: '2026-06-01',
-    lastMessageAt: '刚刚',
-    config: {},
-  },
-  {
-    id: 'ca-2',
-    name: 'Discord Bot',
-    platformId: 'pl-2',
-    platformName: 'Kimi API',
-    channelType: 'discord',
-    status: 'disconnected',
-    config: { botToken: '***', guildId: '123456' },
-  },
-];
+/* ── Mock fallback removed ── */
 
 export default function ChatAccountManager() {
   const [accounts, setAccounts] = useState<ChatAccount[]>([]);
@@ -92,11 +70,10 @@ export default function ChatAccountManager() {
               config: a.config || {},
             }))
           : [];
-        setAccounts(mappedAccounts.length > 0 ? mappedAccounts : MOCK_ACCOUNTS);
+        setAccounts(mappedAccounts);
         setPlatforms(Array.isArray(platData) ? platData.map((p: any) => ({ id: p.id, name: p.name })) : []);
       } catch (e) {
         console.error('Failed to load chat accounts:', e);
-        setAccounts(MOCK_ACCOUNTS);
       } finally {
         setLoading(false);
       }

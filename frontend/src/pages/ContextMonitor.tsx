@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Monitor, Activity, Clock, AlertTriangle, CheckCircle, RefreshCw,
   Trash2, Download, Filter, Search, Database, Bot, MessageSquare,
-  FileText, BarChart3, ChevronRight, X,
+  FileText, BarChart3, ChevronRight, X, Loader2,
 } from 'lucide-react'
 
 interface ContextItem {
@@ -19,17 +19,6 @@ interface ContextItem {
   sessionId?: string
 }
 
-const MOCK_CONTEXTS: ContextItem[] = [
-  { id: 'ctx-1', name: 'Code Assistant', type: 'agent', size: 102400, lastAccessed: '2026-05-25 13:30', createdAt: '2026-05-20', status: 'active', tokenCount: 4500, messageCount: 234, agentId: 'agent-1' },
-  { id: 'ctx-2', name: 'Session #42', type: 'session', size: 51200, lastAccessed: '2026-05-25 12:45', createdAt: '2026-05-24', status: 'active', tokenCount: 2100, messageCount: 89, sessionId: 'sess-42' },
-  { id: 'ctx-3', name: 'Task Queue Worker', type: 'task', size: 25600, lastAccessed: '2026-05-25 10:00', createdAt: '2026-05-23', status: 'idle', tokenCount: 800, messageCount: 12 },
-  { id: 'ctx-4', name: 'Legacy Archive', type: 'memory', size: 204800, lastAccessed: '2026-05-20 09:00', createdAt: '2026-05-01', status: 'stale', tokenCount: 12000, messageCount: 0 },
-  { id: 'ctx-5', name: 'System Monitor', type: 'agent', size: 76800, lastAccessed: '2026-05-25 13:15', createdAt: '2026-05-22', status: 'active', tokenCount: 3200, messageCount: 156, agentId: 'agent-3' },
-  { id: 'ctx-6', name: 'Workflow Pipeline', type: 'workflow', size: 38400, lastAccessed: '2026-05-24 18:00', createdAt: '2026-05-21', status: 'idle', tokenCount: 1500, messageCount: 34 },
-  { id: 'ctx-7', name: 'Chat Channel #general', type: 'session', size: 153600, lastAccessed: '2026-05-25 13:00', createdAt: '2026-05-18', status: 'active', tokenCount: 8900, messageCount: 445, sessionId: 'chan-1' },
-  { id: 'ctx-8', name: 'Data Analysis', type: 'task', size: 128000, lastAccessed: '2026-05-23 11:30', createdAt: '2026-05-19', status: 'stale', tokenCount: 5600, messageCount: 67 },
-]
-
 const TYPE_CONFIG: Record<string, { icon: any; label: string; color: string }> = {
   agent: { icon: Bot, label: '智能体', color: '#3b82f6' },
   session: { icon: MessageSquare, label: '会话', color: '#c97b84' },
@@ -45,12 +34,20 @@ function formatSize(bytes: number) {
 }
 
 export default function ContextMonitor() {
-  const [contexts, setContexts] = useState<ContextItem[]>(MOCK_CONTEXTS)
+  const [contexts, setContexts] = useState<ContextItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [lastRefresh, setLastRefresh] = useState<string>('刚刚')
+
+  // 注意：client.ts 中暂无 fetchContexts / fetchAllAgentContexts 等全局上下文列表 API
+  // 只有 fetchAgentContext(id) 需要单个 agent ID。等后端提供全局接口后，可在此加载真实数据
+  useEffect(() => {
+    setLoading(false)
+  }, [])
 
   const handleRefresh = () => {
     setLastRefresh(new Date().toLocaleTimeString())
@@ -96,6 +93,20 @@ export default function ContextMonitor() {
           </button>
         </div>
       </div>
+
+      {loading && (
+        <div className="card p-6 text-center">
+          <Loader2 className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2 animate-spin" />
+          <p className="text-sm text-[var(--sage-400)]">加载中...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">

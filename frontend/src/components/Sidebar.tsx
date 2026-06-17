@@ -28,9 +28,8 @@ import {
   Layers,
   Box,
   Users,
-  Palette,
+  Send, DollarSign, Globe, ClipboardList, Key, Terminal, Zap,
 } from 'lucide-react';
-import { useAppStore } from '@/stores/appStore';
 
 interface NavItem {
   id: string;
@@ -93,6 +92,18 @@ const navItems: NavItem[] = [
       { id: 'webhooks', label: 'Webhooks', route: '/webhooks' },
     ],
   },
+  { id: 'handoff', label: 'Handoff 移交', icon: Send, route: '/handoff' },
+  { id: 'spend', label: 'Spend 费用', icon: DollarSign, route: '/spend' },
+  { id: 'security', label: 'Security 安全', icon: Shield, route: '/security' },
+  { id: 'backups', label: 'Backups 备份', icon: HardDrive, route: '/backups' },
+  { id: 'external', label: 'External 外部集成', icon: Globe, route: '/external-integrations' },
+  { id: 'registry', label: 'Registry 注册表', icon: ClipboardList, route: '/registry' },
+  { id: 'processes', label: 'Processes 进程', icon: Zap, route: '/processes' },
+  { id: 'events', label: 'Events 事件', icon: Activity, route: '/events' },
+  { id: 'api-keys', label: 'API Keys', icon: Key, route: '/api-keys' },
+  { id: 'ollama', label: 'Ollama', icon: Terminal, route: '/ollama' },
+  { id: 'unified', label: 'Unified API', icon: Layers, route: '/unified' },
+  { id: 'kimi-cluster', label: 'Kimi Cluster', icon: Server, route: '/kimi-cluster' },
   { id: 'admin', label: '管理面板', icon: Shield, route: '/admin' },
   { id: 'settings', label: '设置', icon: Settings, route: '/settings' },
 ];

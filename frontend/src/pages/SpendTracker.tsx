@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import { fetchSpendStats, fetchSpendSummary, fetchSpendBreakdown } from '@/api/client';
 
 interface SpendRecord {
   id: string;
@@ -30,26 +31,6 @@ interface DailyStat {
   cost: number;
 }
 
-const MOCK_RECORDS: SpendRecord[] = [
-  { id: '1', provider: 'kimi-code', model: 'kimi-code', tokensIn: 256, tokensOut: 512, costUsd: 0.0032, timestamp: '2024-05-29T08:00:00Z', requestId: 'req-001', latencyMs: 1200, status: 'success' },
-  { id: '2', provider: 'kimi-code', model: 'kimi-code', tokensIn: 128, tokensOut: 256, costUsd: 0.0016, timestamp: '2024-05-29T08:05:00Z', requestId: 'req-002', latencyMs: 980, status: 'success' },
-  { id: '3', provider: 'openai', model: 'gpt-3.5-turbo', tokensIn: 512, tokensOut: 1024, costUsd: 0.002, timestamp: '2024-05-29T08:10:00Z', requestId: 'req-003', latencyMs: 800, status: 'success' },
-  { id: '4', provider: 'kimi-code', model: 'kimi-code', tokensIn: 1024, tokensOut: 2048, costUsd: 0.0128, timestamp: '2024-05-29T08:15:00Z', requestId: 'req-004', latencyMs: 3500, status: 'success' },
-  { id: '5', provider: 'deepseek', model: 'deepseek-chat', tokensIn: 256, tokensOut: 512, costUsd: 0.0008, timestamp: '2024-05-29T08:20:00Z', requestId: 'req-005', latencyMs: 1500, status: 'success' },
-  { id: '6', provider: 'openrouter', model: 'openai/gpt-3.5-turbo', tokensIn: 128, tokensOut: 128, costUsd: 0.001, timestamp: '2024-05-29T08:25:00Z', requestId: 'req-006', latencyMs: 1100, status: 'success' },
-  { id: '7', provider: 'kimi-code', model: 'kimi-code', tokensIn: 64, tokensOut: 0, costUsd: 0.0004, timestamp: '2024-05-29T08:30:00Z', requestId: 'req-007', latencyMs: 200, status: 'error' },
-];
-
-const MOCK_DAILY: DailyStat[] = [
-  { date: '2024-05-23', requests: 145, tokens: 89000, cost: 0.45 },
-  { date: '2024-05-24', requests: 132, tokens: 76000, cost: 0.38 },
-  { date: '2024-05-25', requests: 189, tokens: 112000, cost: 0.56 },
-  { date: '2024-05-26', requests: 156, tokens: 94000, cost: 0.47 },
-  { date: '2024-05-27', requests: 201, tokens: 134000, cost: 0.67 },
-  { date: '2024-05-28', requests: 178, tokens: 105000, cost: 0.53 },
-  { date: '2024-05-29', requests: 87, tokens: 52000, cost: 0.26 },
-];
-
 const PROVIDER_COLORS: Record<string, string> = {
   'kimi-code': '#10b981',
   'openai': '#3b82f6',
@@ -64,12 +45,44 @@ const PROVIDER_COLORS: Record<string, string> = {
 };
 
 export default function SpendTrackerPage() {
-  const [records] = useState<SpendRecord[]>(MOCK_RECORDS);
-  const [dailyStats] = useState<DailyStat[]>(MOCK_DAILY);
+  const [records, setRecords] = useState<SpendRecord[]>([]);
+  const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
   const [providerFilter, setProviderFilter] = useState('all');
   const [budget, setBudget] = useState(100);
   const [alertThreshold, setAlertThreshold] = useState(0.8);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [statsRes, summaryRes, breakdownRes] = await Promise.allSettled([
+          fetchSpendStats(),
+          fetchSpendSummary(),
+          fetchSpendBreakdown(),
+        ]);
+        if (statsRes.status === 'fulfilled') {
+          const data = statsRes.value?.data || statsRes.value || {};
+          setRecords(data.records || []);
+        }
+        if (summaryRes.status === 'fulfilled') {
+          const data = summaryRes.value?.data || summaryRes.value || {};
+          setDailyStats(data.daily || []);
+        }
+        if (breakdownRes.status === 'fulfilled') {
+          // breakdown data can be used for additional stats
+        }
+      } catch (e: any) {
+        setError(e.message || '加载用量数据失败');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   // 计算统计数据
   const totalCost = records.reduce((sum, r) => sum + r.costUsd, 0);

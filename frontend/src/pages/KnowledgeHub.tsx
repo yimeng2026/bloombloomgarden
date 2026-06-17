@@ -80,52 +80,6 @@ interface SearchResult {
 
 /* ──────────────────────── mock data ──────────────────────── */
 
-const MOCK_KB: KnowledgeBaseItem[] = [
-  {
-    id: 'kb-1', name: '技术文档库', description: 'API文档、开发规范、代码库说明和架构设计文档',
-    type: 'technical', docCount: 156, tagCount: 12, indexedCount: 156, totalCount: 156,
-    tags: ['API', '开发', '架构'], lastUpdated: '2小时前', status: 'synced', accentColor: '#7fa3b0',
-  },
-  {
-    id: 'kb-2', name: '产品知识库', description: '产品功能说明、用户手册、FAQ和竞品分析',
-    type: 'business', docCount: 89, tagCount: 8, indexedCount: 89, totalCount: 89,
-    tags: ['产品', '用户', 'FAQ'], lastUpdated: '1天前', status: 'synced', accentColor: '#d4a373',
-  },
-  {
-    id: 'kb-3', name: '通用知识', description: '通用常识、百科知识和多语言翻译参考',
-    type: 'general', docCount: 234, tagCount: 23, indexedCount: 229, totalCount: 234,
-    tags: ['百科', '翻译', '常识'], lastUpdated: '3小时前', status: 'syncing', accentColor: '#7fb89f',
-  },
-  {
-    id: 'kb-4', name: '内部数据', description: '公司内部文档、会议记录和项目资料',
-    type: 'private', docCount: 45, tagCount: 5, indexedCount: 45, totalCount: 45,
-    tags: ['内部', '会议', '项目'], lastUpdated: '1周前', status: 'synced', accentColor: '#a78b9a',
-  },
-  {
-    id: 'kb-5', name: '网络搜索缓存', description: '网络搜索结果缓存和实时信息快照',
-    type: 'external', docCount: 567, tagCount: 0, indexedCount: 567, totalCount: 567,
-    tags: [], lastUpdated: '刚刚', status: 'synced', accentColor: '#c9a96e',
-  },
-  {
-    id: 'kb-6', name: 'AI研究文献', description: 'AI论文摘要、研究报告和技术博客文章',
-    type: 'technical', docCount: 78, tagCount: 15, indexedCount: 78, totalCount: 78,
-    tags: ['AI', '论文', '研究'], lastUpdated: '5小时前', status: 'synced', accentColor: '#7fa3b0',
-  },
-];
-
-const MOCK_DOCS: DocumentItem[] = [
-  { id: 'doc-1', name: 'authentication.md', type: 'md', size: '24 KB', chunks: 12, status: 'indexed', kb: '技术文档库', tags: ['API', '认证'], modifiedAt: '2小时前' },
-  { id: 'doc-2', name: 'database-config.pdf', type: 'pdf', size: '1.2 MB', chunks: 34, status: 'indexed', kb: '技术文档库', tags: ['数据库', '配置'], modifiedAt: '1天前' },
-  { id: 'doc-3', name: 'error-handling.md', type: 'md', size: '18 KB', chunks: 8, status: 'indexed', kb: '技术文档库', tags: ['错误', '最佳实践'], modifiedAt: '3小时前' },
-  { id: 'doc-4', name: 'deployment-guide.docx', type: 'docx', size: '3.4 MB', chunks: 56, status: 'indexing', kb: '技术文档库', tags: ['部署', 'Docker'], modifiedAt: '刚刚' },
-  { id: 'doc-5', name: 'user-manual-v2.pdf', type: 'pdf', size: '5.6 MB', chunks: 89, status: 'indexed', kb: '产品知识库', tags: ['产品', '用户'], modifiedAt: '1天前' },
-  { id: 'doc-6', name: 'competitor-analysis.xlsx', type: 'xlsx', size: '890 KB', chunks: 23, status: 'indexed', kb: '产品知识库', tags: ['竞品', '分析'], modifiedAt: '2天前' },
-  { id: 'doc-7', name: 'meeting-notes-2026-01-15.md', type: 'md', size: '12 KB', chunks: 6, status: 'pending', kb: '内部数据', tags: ['会议'], modifiedAt: '3小时前' },
-  { id: 'doc-8', name: 'project-specs.pdf', type: 'pdf', size: '2.1 MB', chunks: 45, status: 'error', kb: '内部数据', tags: ['项目', '规格'], modifiedAt: '1周前' },
-  { id: 'doc-9', name: 'translation-guide.md', type: 'md', size: '45 KB', chunks: 19, status: 'indexed', kb: '通用知识', tags: ['翻译', '多语言'], modifiedAt: '5小时前' },
-  { id: 'doc-10', name: 'api-reference-v3.pdf', type: 'pdf', size: '8.3 MB', chunks: 112, status: 'indexed', kb: '技术文档库', tags: ['API', '参考'], modifiedAt: '1周前' },
-];
-
 const searchResults: SearchResult[] = [
   {
     id: 'sr-1', source: '技术文档库', path: '技术文档库 > API文档 > authentication.md',
@@ -220,20 +174,25 @@ export default function KnowledgeHub() {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [openMenuKb, setOpenMenuKb] = useState<string | null>(null);
-  const [kbData, setKbData] = useState<KnowledgeBaseItem[]>(MOCK_KB);
-  const [docData, setDocData] = useState<DocumentItem[]>(MOCK_DOCS);
+  const [kbData, setKbData] = useState<KnowledgeBaseItem[]>([]);
+  const [docData, setDocData] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(null);
     fetchKnowledgeBases()
       .then(res => {
-        if (!cancelled && res.data?.length) {
-          setKbData(res.data);
+        if (!cancelled) {
+          const data = res.data || res;
+          setKbData(Array.isArray(data) ? data : []);
         }
       })
-      .catch(() => { /* keep MOCK */ })
+      .catch((err) => {
+        if (!cancelled) setError('加载知识库失败: ' + (err.message || '未知错误'));
+      })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
@@ -320,6 +279,20 @@ export default function KnowledgeHub() {
           </motion.div>
         </div>
       </div>
+
+      {loading && (
+        <div className="card p-6 text-center">
+          <Loader2 className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2 animate-spin" />
+          <p className="text-sm text-[var(--sage-400)]">加载中...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
 
       {/* ═══════════ Tab Navigation ═══════════ */}
       <div className="flex items-center gap-1 border-b" style={{ borderColor: 'var(--sage-200)' }}>

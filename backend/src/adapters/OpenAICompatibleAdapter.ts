@@ -121,7 +121,7 @@ export class OpenAICompatibleAdapter extends BaseBackendAdapter {
     const maxRetries = this.getMaxRetries();
     const timeoutMs = this.getTimeout();
 
-    console.log(`[Adapter:${this.compatConfig.provider}] Chat request: ${JSON.stringify({ url: chatUrl, model: payload.model, msgCount: payload.messages?.length, hasApiKey: !!(headers.Authorization || headers['x-api-key']) })}`);
+    console.log(`[Adapter:${this.compatConfig.provider}] Chat request: ${JSON.stringify({ url: chatUrl, model: payload.model, msgCount: payload.messages?.length, hasApiKey: !!(headers.Authorization || headers['x-api-key']), fullPayload: payload })}`);
 
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -186,7 +186,7 @@ export class OpenAICompatibleAdapter extends BaseBackendAdapter {
     const maxRetries = this.getMaxRetries();
     const timeoutMs = this.getTimeout();
 
-    console.log(`[Adapter:${this.compatConfig.provider}] ChatStream request: ${JSON.stringify({ url: chatUrl, model: payload.model, msgCount: payload.messages?.length, hasApiKey: !!(headers.Authorization || headers['x-api-key']) })}`);
+    console.log(`[Adapter:${this.compatConfig.provider}] ChatStream request: ${JSON.stringify({ url: chatUrl, model: payload.model, msgCount: payload.messages?.length, hasApiKey: !!(headers.Authorization || headers['x-api-key']), fullPayload: payload })}`);
 
     let lastError: Error | undefined;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {

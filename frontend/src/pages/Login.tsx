@@ -5,6 +5,7 @@ import {
   AlertTriangle, CheckCircle, ArrowRight, Github, KeyRound
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { login, register, getMe } from '../api/client';
 
 interface UserProfile {
   id: string;
@@ -15,25 +16,6 @@ interface UserProfile {
   lastLogin: string;
   isAdmin: boolean;
 }
-
-const MOCK_USERS: UserProfile[] = [
-  {
-    id: 'user-001',
-    name: '管理员',
-    email: 'admin@thousand-realms.garden',
-    role: 'admin',
-    lastLogin: '2024-01-15T08:30:00Z',
-    isAdmin: true,
-  },
-  {
-    id: 'user-002',
-    name: '开发者',
-    email: 'dev@thousand-realms.garden',
-    role: 'developer',
-    lastLogin: '2024-01-14T16:20:00Z',
-    isAdmin: false,
-  },
-];
 
 export default function Login() {
   const navigate = useNavigate();
@@ -61,7 +43,7 @@ export default function Login() {
     { id: 'google', name: 'Google', icon: <Globe className="w-5 h-5" /> },
   ];
 
-  // Check existing session
+  // Check existing session via API
   useEffect(() => {
     const saved = localStorage.getItem('trg_current_user');
     if (saved) {
@@ -71,6 +53,18 @@ export default function Login() {
         localStorage.removeItem('trg_current_user');
       }
     }
+    // Also verify with backend
+    getMe()
+      .then((data: any) => {
+        if (data?.data || data?.user) {
+          const user = data.data || data.user;
+          setCurrentUser(user);
+          localStorage.setItem('trg_current_user', JSON.stringify(user));
+        }
+      })
+      .catch(() => {
+        // No active session on backend, keep localStorage if present
+      });
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -85,49 +79,21 @@ export default function Login() {
 
     setLoading(true);
     try {
-      // API call (fallback to mock)
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, rememberMe }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const user = data.data || data.user;
-        if (user) {
-          setCurrentUser(user);
-          localStorage.setItem('trg_current_user', JSON.stringify(user));
-          if (rememberMe) {
-            localStorage.setItem('trg_remember_email', email);
-          }
-          setSuccess('登录成功！');
-          setTimeout(() => navigate('/dashboard'), 800);
-          return;
+      const data = await login({ email, password, rememberMe });
+      const user = data?.data || data?.user;
+      if (user) {
+        setCurrentUser(user);
+        localStorage.setItem('trg_current_user', JSON.stringify(user));
+        if (rememberMe) {
+          localStorage.setItem('trg_remember_email', email);
         }
-      }
-
-      // Mock fallback
-      const mockUser = MOCK_USERS.find(u => u.email === email);
-      if (mockUser && password.length >= 4) {
-        setCurrentUser(mockUser);
-        localStorage.setItem('trg_current_user', JSON.stringify(mockUser));
-        setSuccess('登录成功（演示模式）');
+        setSuccess('登录成功！');
         setTimeout(() => navigate('/dashboard'), 800);
       } else {
-        setError('邮箱或密码错误');
+        setError('登录失败：未返回用户信息');
       }
     } catch (err: any) {
-      // Offline mock login
-      const mockUser = MOCK_USERS.find(u => u.email === email);
-      if (mockUser && password.length >= 4) {
-        setCurrentUser(mockUser);
-        localStorage.setItem('trg_current_user', JSON.stringify(mockUser));
-        setSuccess('登录成功（离线演示模式）');
-        setTimeout(() => navigate('/dashboard'), 800);
-      } else {
-        setError('登录失败: ' + (err.message || '网络错误'));
-      }
+      setError('登录失败: ' + (err.message || '网络错误'));
     } finally {
       setLoading(false);
     }
@@ -152,25 +118,15 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: regName, email: regEmail, password: regPassword }),
-      });
-
-      if (res.ok) {
-        setSuccess('注册成功，请登录');
-        setIsLoginMode(true);
-        setEmail(regEmail);
-        setRegName('');
-        setRegPassword('');
-        setRegConfirm('');
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || '注册失败');
-      }
-    } catch {
-      setError('注册服务暂不可用');
+      await register({ name: regName, email: regEmail, password: regPassword });
+      setSuccess('注册成功，请登录');
+      setIsLoginMode(true);
+      setEmail(regEmail);
+      setRegName('');
+      setRegPassword('');
+      setRegConfirm('');
+    } catch (err: any) {
+      setError('注册失败: ' + (err.message || '服务暂不可用'));
     } finally {
       setLoading(false);
     }
@@ -376,7 +332,7 @@ export default function Login() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="输入密码（演示模式任意4位以上）"
+                    placeholder="输入密码"
                     className="w-full pl-10 pr-10 py-2.5 bg-[#12121a] border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors"
                   />
                   <button
@@ -494,13 +450,6 @@ export default function Login() {
               </button>
             </form>
           )}
-
-          {/* Demo hint */}
-          <div className="mt-6 p-3 bg-blue-500/5 border border-blue-500/10 rounded-lg">
-            <p className="text-xs text-gray-500 text-center">
-              演示账号: <span className="text-blue-400">admin@thousand-realms.garden</span> / 任意密码（4位以上）
-            </p>
-          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MessageSquare, Wifi, WifiOff, Bot, Globe, Mail, Hash, Smartphone, Radio, AlertTriangle, CheckCircle, Plus, Settings } from 'lucide-react'
+import { fetchChannels } from '@/api/client'
 
 interface Channel {
   id: string
@@ -14,17 +15,6 @@ interface Channel {
   config: { webhook?: string; apiKey?: string }
 }
 
-const MOCK_CHANNELS: Channel[] = [
-  { id: 'ch-1', name: 'WebChat 主站', platform: 'web', url: 'https://sylva.local/chat', status: 'connected', messagesToday: 156, messagesTotal: 12453, lastMessage: '2分钟前', config: {} },
-  { id: 'ch-2', name: 'Telegram Bot', platform: 'telegram', url: 't.me/sylva_bot', status: 'connected', agentId: 'agent-1', messagesToday: 89, messagesTotal: 5672, lastMessage: '5分钟前', config: { apiKey: '***' } },
-  { id: 'ch-3', name: 'Discord 服务器', platform: 'discord', url: 'discord.gg/sylva', status: 'disconnected', messagesToday: 0, messagesTotal: 3421, lastMessage: '3小时前', config: { apiKey: '***' } },
-  { id: 'ch-4', name: 'Slack 工作区', platform: 'slack', url: 'sylva.slack.com', status: 'connected', agentId: 'agent-2', messagesToday: 45, messagesTotal: 2890, lastMessage: '15分钟前', config: { webhook: '***' } },
-  { id: 'ch-5', name: '微信公众号', platform: 'wechat', url: 'mp.weixin.qq.com', status: 'error', messagesToday: 12, messagesTotal: 8901, lastMessage: '1小时前', config: { apiKey: '***' } },
-  { id: 'ch-6', name: '企业微信', platform: 'wecom', url: 'work.weixin.qq.com', status: 'connected', agentId: 'agent-3', messagesToday: 234, messagesTotal: 15678, lastMessage: '刚刚', config: { apiKey: '***' } },
-  { id: 'ch-7', name: '邮件通知', platform: 'email', url: 'smtp.sylva.local', status: 'connected', messagesToday: 67, messagesTotal: 4234, lastMessage: '30分钟前', config: {} },
-  { id: 'ch-8', name: 'WhatsApp Bot', platform: 'whatsapp', url: 'wa.me/sylva', status: 'disconnected', messagesToday: 0, messagesTotal: 1234, lastMessage: '昨天', config: { apiKey: '***' } },
-]
-
 const PLATFORM_CONFIG: Record<string, { icon: any; label: string; color: string }> = {
   web: { icon: Globe, label: 'Web', color: '#10b981' },
   telegram: { icon: Smartphone, label: 'Telegram', color: '#3b82f6' },
@@ -37,10 +27,40 @@ const PLATFORM_CONFIG: Record<string, { icon: any; label: string; color: string 
 }
 
 export default function ChatChannels() {
-  const [channels, setChannels] = useState<Channel[]>(MOCK_CHANNELS)
+  const [channels, setChannels] = useState<Channel[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<'all' | 'connected' | 'disconnected' | 'error'>('all')
   const [selected, setSelected] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchChannels()
+      .then((data: any) => {
+        if (!cancelled) {
+          const list = (data?.data || []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            platform: c.type || c.platform || 'web',
+            url: c.url || '-',
+            status: c.status || (c.is_active ? 'connected' : 'disconnected'),
+            agentId: c.agent_id || c.agentId,
+            messagesToday: c.message_count || 0,
+            messagesTotal: c.message_count || 0,
+            lastMessage: c.last_message || '-',
+            config: c.config || {},
+          }))
+          setChannels(list)
+        }
+      })
+      .catch((err: any) => {
+        if (!cancelled) setError(err.message || '加载频道列表失败')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const filtered = channels.filter((ch) => {
     if (search && !ch.name.toLowerCase().includes(search.toLowerCase()) && !ch.platform.toLowerCase().includes(search.toLowerCase())) return false
@@ -61,6 +81,21 @@ export default function ChatChannels() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center h-[calc(100vh-120px)]">
+          <div className="flex items-center gap-3 text-[var(--sage-500)]">
+            <div className="w-5 h-5 border-2 border-[var(--sage-300)] border-t-[var(--sage-500)] rounded-full animate-spin" />
+            <span className="text-sm">加载频道列表...</span>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -163,17 +198,7 @@ export default function ChatChannels() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={(e) => { e.stopPropagation();
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    fetchChannels()
-      .then(res => { if (!cancelled) setChannels(res.data || []); })
-      .catch(() => { /* keep default/mock */ })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, []); toggleStatus(ch.id); }}
+                    onClick={(e) => { e.stopPropagation(); toggleStatus(ch.id); }}
                     className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 transition-colors ${
                       ch.status === 'connected'
                         ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
@@ -191,6 +216,11 @@ export default function ChatChannels() {
           )
         })}
       </div>
+      {filtered.length === 0 && !loading && (
+        <div className="text-center text-sm text-[var(--sage-400)]">暂无数据</div>
+      )}
+        </>
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Clock, Plus, Play, Trash2, Edit2, History, Terminal, Pause, Calendar, Repeat, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { fetchSchedulerTasks } from '@/api/client'
 
 interface ScheduledTask {
   id: string
@@ -16,15 +17,6 @@ interface ScheduledTask {
   tags: string[]
   timeout: number
 }
-
-const MOCK_TASKS: ScheduledTask[] = [
-  { id: 'sch-1', name: '每日全量备份', description: '数据库全量备份并上传至冷存储', cron: '0 2 * * *', command: 'backup_db.sh --full', isActive: true, lastRun: '2026-05-24 02:00', nextRun: '2026-05-25 02:00', status: 'success', runCount: 45, failCount: 0, tags: ['备份', '数据库'], timeout: 3600 },
-  { id: 'sch-2', name: '日志清理', description: '清理30天前的系统日志和临时文件', cron: '0 3 * * 0', command: 'cleanup_logs.sh --retention=30', isActive: true, lastRun: '2026-05-18 03:00', nextRun: '2026-05-25 03:00', status: 'success', runCount: 12, failCount: 0, tags: ['清理', '维护'], timeout: 600 },
-  { id: 'sch-3', name: '健康检查', description: '检查所有服务健康状态并生成报告', cron: '*/15 * * * *', command: 'health_check.py --all', isActive: true, lastRun: '2026-05-24 16:00', nextRun: '2026-05-24 16:15', status: 'success', runCount: 1248, failCount: 3, tags: ['监控', '健康'], timeout: 60 },
-  { id: 'sch-4', name: '周报生成', description: '汇总本周数据生成周报并发送邮件', cron: '0 9 * * 1', command: 'generate_weekly_report.py --email', isActive: false, lastRun: '2026-05-19 09:00', nextRun: '2026-05-26 09:00', status: 'idle', runCount: 8, failCount: 1, tags: ['报告', '邮件'], timeout: 300 },
-  { id: 'sch-5', name: '模型同步', description: '从 Ollama 模型仓库同步最新版本', cron: '0 4 * * *', command: 'sync_models.sh --provider=ollama', isActive: true, lastRun: '2026-05-24 04:00', nextRun: '2026-05-25 04:00', status: 'failed', runCount: 23, failCount: 2, tags: ['AI', '同步'], timeout: 1800 },
-  { id: 'sch-6', name: '索引重建', description: '重建知识库全文搜索索引', cron: '0 1 * * 6', command: 'rebuild_index.py --full', isActive: true, lastRun: '2026-05-17 01:00', nextRun: '2026-05-24 01:00', status: 'success', runCount: 6, failCount: 0, tags: ['搜索', '索引'], timeout: 1200 },
-]
 
 function isValidCron(cron: string): boolean {
   const parts = cron.trim().split(/\s+/)
@@ -49,10 +41,26 @@ const STATUS_CONFIG: Record<string, { icon: any; color: string; label: string }>
 }
 
 export default function SchedulerPage() {
-  const [tasks, setTasks] = useState<ScheduledTask[]>(MOCK_TASKS)
+  const [tasks, setTasks] = useState<ScheduledTask[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', description: '', cron: '', command: '', tags: '' })
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all')
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchSchedulerTasks()
+      .then((data: any) => {
+        if (!cancelled) setTasks(data?.data || [])
+      })
+      .catch((err: any) => {
+        if (!cancelled) setError(err.message || '加载调度任务失败')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const toggleActive = (id: string) => {
     setTasks(tasks.map((t) => t.id === id ? { ...t, isActive: !t.isActive } : t))
@@ -88,6 +96,21 @@ export default function SchedulerPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center h-[calc(100vh-120px)]">
+          <div className="flex items-center gap-3 text-[var(--sage-500)]">
+            <div className="w-5 h-5 border-2 border-[var(--sage-300)] border-t-[var(--sage-500)] rounded-full animate-spin" />
+            <span className="text-sm">加载调度任务...</span>
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Clock className="w-6 h-6 text-[var(--sage-500)]" />
@@ -208,6 +231,9 @@ export default function SchedulerPage() {
           </tbody>
         </table>
       </div>
+      {filtered.length === 0 && !loading && (
+        <div className="text-center text-sm text-[var(--sage-400)]">暂无数据</div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
@@ -230,6 +256,8 @@ export default function SchedulerPage() {
           </div>
         </div>
       )}
+    </>
+  )}
     </div>
   )
 }

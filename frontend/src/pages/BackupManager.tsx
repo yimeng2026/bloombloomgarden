@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import { fetchBackups, fetchBackupStats } from '@/api/client';
 
 interface BackupJob {
   id: string;
@@ -12,57 +13,6 @@ interface BackupJob {
   schedule?: string;
   target: string;
 }
-
-const MOCK_BACKUPS: BackupJob[] = [
-  {
-    id: '1',
-    name: '完整系统备份 #2024-05-28',
-    type: 'full',
-    status: 'completed',
-    size: '2.4 GB',
-    createdAt: '2024-05-28T02:00:00Z',
-    completedAt: '2024-05-28T02:35:00Z',
-    target: '本地存储 /backups/full'
-  },
-  {
-    id: '2',
-    name: '知识库增量备份',
-    type: 'incremental',
-    status: 'running',
-    size: '156 MB',
-    createdAt: '2024-05-29T08:00:00Z',
-    target: '本地存储 /backups/incremental'
-  },
-  {
-    id: '3',
-    name: 'Agent状态每日备份',
-    type: 'differential',
-    status: 'scheduled',
-    size: '-',
-    createdAt: '2024-05-29T06:00:00Z',
-    schedule: '每日 06:00',
-    target: '本地存储 /backups/agents'
-  },
-  {
-    id: '4',
-    name: '完整系统备份 #2024-05-21',
-    type: 'full',
-    status: 'completed',
-    size: '2.3 GB',
-    createdAt: '2024-05-21T02:00:00Z',
-    completedAt: '2024-05-21T02:32:00Z',
-    target: '本地存储 /backups/full'
-  },
-  {
-    id: '5',
-    name: '配置数据备份',
-    type: 'full',
-    status: 'failed',
-    size: '12 MB',
-    createdAt: '2024-05-29T05:30:00Z',
-    target: '本地存储 /backups/config'
-  }
-];
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   running: { label: '进行中', color: 'text-blue-400', icon: '▶️' },
@@ -78,10 +28,33 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function BackupManager() {
-  const [backups, setBackups] = useState<BackupJob[]>(MOCK_BACKUPS);
+  const [backups, setBackups] = useState<BackupJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'full' | 'incremental' | 'differential'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupJob | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [bRes, sRes] = await Promise.allSettled([
+          fetchBackups(),
+          fetchBackupStats(),
+        ]);
+        if (bRes.status === 'fulfilled' && bRes.value?.data) {
+          setBackups(Array.isArray(bRes.value.data) ? bRes.value.data : []);
+        }
+      } catch (e: any) {
+        setError(e.message || '加载备份数据失败');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   const filtered = filter === 'all' ? backups : backups.filter(b => b.type === filter);
 
@@ -96,27 +69,8 @@ export default function BackupManager() {
       const data = await res.json();
       if (data.data) { setBackups(prev => [data.data, ...prev]); setShowCreateModal(false); return; }
     } catch (e) {
-      console.warn('后端备份创建不可用，使用本地模拟:', e);
+      console.error('Backup creation failed:', e);
     }
-    // 降级：本地Mock
-    const newBackup: BackupJob = {
-      id: Date.now().toString(),
-      name: `${TYPE_LABELS[type]} #${new Date().toLocaleDateString('zh-CN')}`,
-      type,
-      status: 'running',
-      size: '计算中...',
-      createdAt: new Date().toISOString(),
-      target: `本地存储 /backups/${type}`
-    };
-    setBackups(prev => [newBackup, ...prev]);
-    setShowCreateModal(false);
-    setTimeout(() => {
-      setBackups(prev => prev.map(b =>
-        b.id === newBackup.id
-          ? { ...b, status: 'completed' as const, size: type === 'full' ? '2.5 GB' : '180 MB', completedAt: new Date().toISOString() }
-          : b
-      ));
-    }, 3000);
   };
 
   const handleRestore = async (backup: BackupJob) => {
@@ -126,7 +80,7 @@ export default function BackupManager() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       alert('恢复请求已提交，正在后台执行。');
     } catch (e) {
-      alert('恢复请求已提交（模拟），请查看任务进度。');
+      alert('恢复请求提交失败');
     }
   };
 
@@ -136,7 +90,7 @@ export default function BackupManager() {
       const res = await fetch(`/api/backups/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (e) {
-      console.warn('后端删除不可用，仅移除本地显示:', e);
+      console.error('Delete failed:', e);
     }
     setBackups(prev => prev.filter(b => b.id !== id));
   };

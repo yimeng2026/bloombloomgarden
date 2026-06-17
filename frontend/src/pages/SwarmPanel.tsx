@@ -149,30 +149,6 @@ const CANVAS_STATUS_CONFIG: Record<string, { color: string; label: string }> = {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   Mock data (fallback)
-   ════════════════════════════════════════════════════════════════ */
-
-const MOCK_NODES: SwarmNode[] = [
-  { id: 'n-1', name: 'Coordinator-1', type: 'coordinator', status: 'active', load: 45, tasks: 12, memory: 2048, uptime: '15d 3h', version: 'v2.1.0', region: 'cn-north-1', lastHeartbeat: '刚刚' },
-  { id: 'n-2', name: 'Gateway-1', type: 'gateway', status: 'active', load: 32, tasks: 8, memory: 1024, uptime: '15d 3h', version: 'v2.1.0', region: 'cn-north-1', lastHeartbeat: '刚刚' },
-  { id: 'n-3', name: 'Worker-A1', type: 'worker', status: 'active', load: 78, tasks: 34, memory: 4096, uptime: '10d 5h', version: 'v2.0.5', region: 'cn-east-1', lastHeartbeat: '2秒前' },
-  { id: 'n-4', name: 'Worker-A2', type: 'worker', status: 'active', load: 65, tasks: 28, memory: 4096, uptime: '10d 5h', version: 'v2.0.5', region: 'cn-east-1', lastHeartbeat: '3秒前' },
-  { id: 'n-5', name: 'Worker-B1', type: 'worker', status: 'active', load: 42, tasks: 15, memory: 2048, uptime: '8d 12h', version: 'v2.0.5', region: 'cn-south-1', lastHeartbeat: '5秒前' },
-  { id: 'n-6', name: 'Leaf-1', type: 'leaf', status: 'idle', load: 5, tasks: 1, memory: 512, uptime: '5d 0h', version: 'v1.9.0', region: 'cn-north-1', lastHeartbeat: '1分钟前' },
-  { id: 'n-7', name: 'Leaf-2', type: 'leaf', status: 'offline', load: 0, tasks: 0, memory: 512, uptime: '0d 0h', version: 'v1.9.0', region: 'cn-east-1', lastHeartbeat: '30分钟前' },
-  { id: 'n-8', name: 'Observer-1', type: 'observer', status: 'active', load: 15, tasks: 3, memory: 1024, uptime: '15d 3h', version: 'v2.1.0', region: 'cn-north-1', lastHeartbeat: '刚刚' },
-]
-
-const MOCK_TASKS: SwarmTask[] = [
-  { id: 'st-1', name: '数据聚合', nodeId: 'n-3', status: 'running', priority: 'high', progress: 65, startedAt: '13:00', estimatedDuration: '45分钟' },
-  { id: 'st-2', name: '模型推理', nodeId: 'n-4', status: 'running', priority: 'high', progress: 42, startedAt: '13:15', estimatedDuration: '1小时' },
-  { id: 'st-3', name: '日志清理', nodeId: 'n-5', status: 'running', priority: 'low', progress: 88, startedAt: '12:30', estimatedDuration: '10分钟' },
-  { id: 'st-4', name: '索引更新', nodeId: 'n-6', status: 'pending', priority: 'medium', progress: 0, startedAt: '-', estimatedDuration: '20分钟' },
-  { id: 'st-5', name: '健康检查', nodeId: 'n-8', status: 'completed', priority: 'low', progress: 100, startedAt: '13:00', estimatedDuration: '已完成' },
-  { id: 'st-6', name: '备份同步', nodeId: 'n-3', status: 'failed', priority: 'high', progress: 30, startedAt: '12:00', estimatedDuration: '已中断' },
-]
-
-/* ════════════════════════════════════════════════════════════════
    Helpers
    ════════════════════════════════════════════════════════════════ */
 
@@ -311,9 +287,10 @@ export default function SwarmPage() {
   const [overviewTab, setOverviewTab] = useState<'nodes' | 'tasks' | 'topology' | 'execute'>('nodes')
 
   /* ── SwarmPanel data ── */
-  const [nodes, setNodes] = useState<SwarmNode[]>(MOCK_NODES)
-  const [tasks, setTasks] = useState<SwarmTask[]>(MOCK_TASKS)
+  const [nodes, setNodes] = useState<SwarmNode[]>([])
+  const [tasks, setTasks] = useState<SwarmTask[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')

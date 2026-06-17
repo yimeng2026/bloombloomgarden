@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchPlatforms, createPlatform, deletePlatform } from '@/api/client'
-import { Globe, Plus, Power, Trash2, Settings, CheckCircle, XCircle, MessageSquare, Edit2, Eye } from 'lucide-react'
+import { Globe, Plus, Power, Trash2, Settings, CheckCircle, XCircle, MessageSquare, Edit2, Eye, AlertTriangle } from 'lucide-react'
 
 interface Platform {
   id: string
@@ -16,15 +16,6 @@ interface Platform {
   avgLatency: number
 }
 
-const MOCK_PLATFORMS: Platform[] = [
-  { id: 'pl-1', name: 'Kimi API', type: 'kimi', url: 'https://api.moonshot.cn', status: 'connected', models: ['kimi-k2.5', 'kimi-k1.5'], createdAt: '2026-05-01', lastCheck: '刚刚', requestCount: 12543, avgLatency: 156 },
-  { id: 'pl-2', name: 'Claude API', type: 'claude', url: 'https://api.anthropic.com', status: 'connected', models: ['claude-3-5-sonnet', 'claude-3-opus'], createdAt: '2026-05-02', lastCheck: '2分钟前', requestCount: 8765, avgLatency: 35 },
-  { id: 'pl-3', name: 'Ollama Local', type: 'ollama', url: (import.meta.env.VITE_OLLAMA_URL as string) || 'http://localhost:11434', status: 'connected', models: ['qwen2.5:7b', 'deepseek-r1:14b', 'qwen2.5:1.5b'], createdAt: '2026-05-03', lastCheck: '刚刚', requestCount: 3421, avgLatency: 120 },
-  { id: 'pl-4', name: 'OpenAI', type: 'openai', url: 'https://api.openai.com', status: 'disconnected', models: ['gpt-4o', 'gpt-4o-mini'], createdAt: '2026-05-04', lastCheck: '1小时前', requestCount: 0, avgLatency: 0 },
-  { id: 'pl-5', name: 'DeepSeek', type: 'deepseek', url: 'https://api.deepseek.com', status: 'connected', models: ['deepseek-v3', 'deepseek-chat'], createdAt: '2026-05-05', lastCheck: '5分钟前', requestCount: 5678, avgLatency: 45 },
-  { id: 'pl-6', name: 'Google Gemini', type: 'gemini', url: 'https://generativelanguage.googleapis.com', status: 'error', models: ['gemini-pro', 'gemini-flash'], createdAt: '2026-05-06', lastCheck: '30分钟前', requestCount: 1234, avgLatency: 28 },
-]
-
 const TYPE_COLORS: Record<string, string> = {
   kimi: '#c97b84',
   claude: '#d4a373',
@@ -35,10 +26,26 @@ const TYPE_COLORS: Record<string, string> = {
 }
 
 export default function Platforms() {
-  const [platforms, setPlatforms] = useState<Platform[]>(MOCK_PLATFORMS)
+  const [platforms, setPlatforms] = useState<Platform[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', type: 'kimi', url: '' })
   const [filter, setFilter] = useState<'all' | 'connected' | 'disconnected'>('all')
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchPlatforms()
+      .then((data: any) => {
+        if (!cancelled) setPlatforms(data?.data || [])
+      })
+      .catch((err: any) => {
+        if (!cancelled) setError(err.message || '加载平台列表失败')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const toggleStatus = (id: string) => {
     setPlatforms(platforms.map((p) => {
@@ -77,6 +84,21 @@ export default function Platforms() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center h-[calc(100vh-120px)]">
+          <div className="flex items-center gap-3 text-[var(--sage-500)]">
+            <div className="w-5 h-5 border-2 border-[var(--sage-300)] border-t-[var(--sage-500)] rounded-full animate-spin" />
+            <span className="text-sm">加载平台列表...</span>
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Globe className="w-6 h-6 text-[var(--sage-500)]" />
@@ -175,6 +197,9 @@ export default function Platforms() {
           </div>
         ))}
       </div>
+      {filtered.length === 0 && !loading && (
+        <div className="text-center text-sm text-[var(--sage-400)]">暂无数据</div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
@@ -199,6 +224,8 @@ export default function Platforms() {
           </div>
         </div>
       )}
+    </>
+  )}
     </div>
   )
 }

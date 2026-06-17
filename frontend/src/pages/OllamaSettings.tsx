@@ -5,6 +5,7 @@ import {
   HardDrive, Zap, Search
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { fetchOllamaModels, pullOllamaModel } from '../api/client';
 
 interface OllamaModel {
   id: string;
@@ -30,26 +31,6 @@ interface OllamaInstance {
   isDefault: boolean;
 }
 
-const MOCK_INSTANCES: OllamaInstance[] = [
-  {
-    id: 'oll-001',
-    name: '本地 Ollama',
-    url: (import.meta.env.VITE_OLLAMA_URL as string) || 'http://localhost:11434',
-    status: 'online',
-    latencyMs: 12,
-    modelsCount: 4,
-    version: '0.3.0',
-    isDefault: true,
-  },
-];
-
-const MOCK_MODELS: OllamaModel[] = [
-  { id: 'mod-001', name: 'llama3.2', size: '2.0 GB', parameterCount: '3B', modified: '3 days ago', status: 'ready', family: 'Llama', quantization: 'Q4_0', format: 'gguf' },
-  { id: 'mod-002', name: 'qwen2.5', size: '4.7 GB', parameterCount: '7B', modified: '1 week ago', status: 'ready', family: 'Qwen', quantization: 'Q4_K_M', format: 'gguf' },
-  { id: 'mod-003', name: 'deepseek-coder-v2', size: '8.9 GB', parameterCount: '16B', modified: '2 weeks ago', status: 'ready', family: 'DeepSeek', quantization: 'Q4_K_M', format: 'gguf' },
-  { id: 'mod-004', name: 'mistral', size: '4.1 GB', parameterCount: '7B', modified: '1 month ago', status: 'unloaded', family: 'Mistral', quantization: 'Q4_0', format: 'gguf' },
-];
-
 const POPULAR_MODELS = [
   { name: 'llama3.2', desc: 'Meta Llama 3.2 — 轻量高效', size: '2.0 GB', params: '3B' },
   { name: 'llama3.1:8b', desc: 'Meta Llama 3.1 — 均衡之选', size: '4.9 GB', params: '8B' },
@@ -62,8 +43,8 @@ const POPULAR_MODELS = [
 ];
 
 export default function OllamaSettings() {
-  const [instances, setInstances] = useState<OllamaInstance[]>(MOCK_INSTANCES);
-  const [models, setModels] = useState<OllamaModel[]>(MOCK_MODELS);
+  const [instances, setInstances] = useState<OllamaInstance[]>([]);
+  const [models, setModels] = useState<OllamaModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -86,19 +67,27 @@ export default function OllamaSettings() {
   // Load data
   const loadData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch('/api/ollama/instances');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) setInstances(data.data);
+      const data = await fetchOllamaModels();
+      if (data?.data) {
+        const modelList = data.data.map((m: any) => ({
+          id: m.id || m.name || `mod-${Date.now()}`,
+          name: m.name || 'Unknown',
+          size: m.size || 'Unknown',
+          parameterCount: m.parameterCount || m.parameters || 'Unknown',
+          modified: m.modified || 'Unknown',
+          status: m.status || 'ready',
+          family: m.family,
+          quantization: m.quantization,
+          format: m.format,
+        }));
+        setModels(modelList);
+      } else {
+        setModels([]);
       }
-      const mres = await fetch('/api/ollama/models');
-      if (mres.ok) {
-        const mdata = await mres.json();
-        if (mdata.success) setModels(mdata.data);
-      }
-    } catch {
-      // Use mock data
+    } catch (err: any) {
+      setError(err.message || '加载 Ollama 模型失败');
     } finally {
       setLoading(false);
     }
@@ -122,26 +111,11 @@ export default function OllamaSettings() {
         setShowAddInstance(false);
         await loadData();
       } else {
-        setError('添加失败');
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || '添加失败');
       }
-    } catch {
-      // Mock add
-      const newInst: OllamaInstance = {
-        id: `oll-${Date.now()}`,
-        name: newName || newUrl,
-        url: newUrl,
-        status: 'online',
-        latencyMs: 15,
-        modelsCount: 0,
-        version: 'unknown',
-        isDefault: false,
-      };
-      setInstances(prev => [...prev, newInst]);
-      log(`Instance added: ${newUrl}`);
-      setSuccess('实例添加成功（演示模式）');
-      setNewUrl('');
-      setNewName('');
-      setShowAddInstance(false);
+    } catch (err: any) {
+      setError('添加失败: ' + (err.message || '网络错误'));
     }
   };
 
@@ -152,10 +126,12 @@ export default function OllamaSettings() {
       if (res.ok) {
         setSuccess('实例已删除');
         await loadData();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || '删除失败');
       }
-    } catch {
-      setInstances(prev => prev.filter(i => i.id !== id));
-      log(`Instance removed: ${id}`);
+    } catch (err: any) {
+      setError('删除失败: ' + (err.message || '网络错误'));
     }
   };
 
@@ -164,29 +140,15 @@ export default function OllamaSettings() {
     setError(null);
     setShowPullModel(false);
     log(`Pulling model: ${pullModelName}...`);
-    
-    // Simulate pull progress
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 15;
-      if (progress >= 100) {
-        clearInterval(interval);
-        const newModel: OllamaModel = {
-          id: `mod-${Date.now()}`,
-          name: pullModelName,
-          size: 'Unknown',
-          parameterCount: 'Unknown',
-          modified: 'Just now',
-          status: 'ready',
-        };
-        setModels(prev => [...prev, newModel]);
-        log(`Model pulled successfully: ${pullModelName}`);
-        setSuccess(`模型 ${pullModelName} 拉取完成`);
-        setPullModelName('');
-      } else {
-        log(`Pulling ${pullModelName}... ${progress}%`);
-      }
-    }, 500);
+    try {
+      await pullOllamaModel(pullModelName);
+      log(`Model pulled successfully: ${pullModelName}`);
+      setSuccess(`模型 ${pullModelName} 拉取完成`);
+      setPullModelName('');
+      await loadData();
+    } catch (err: any) {
+      setError('拉取失败: ' + (err.message || '网络错误'));
+    }
   };
 
   const deleteModel = async (id: string) => {
@@ -196,10 +158,12 @@ export default function OllamaSettings() {
       if (res.ok) {
         setModels(prev => prev.filter(m => m.id !== id));
         log(`Model removed: ${id}`);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || '删除失败');
       }
-    } catch {
-      setModels(prev => prev.filter(m => m.id !== id));
-      log(`Model removed: ${id}`);
+    } catch (err: any) {
+      setError('删除失败: ' + (err.message || '网络错误'));
     }
   };
 
@@ -265,6 +229,15 @@ export default function OllamaSettings() {
           <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2 text-green-400 text-sm">
             <CheckCircle className="w-4 h-4" />
             {success}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-3 text-gray-500">
+              <div className="w-5 h-5 border-2 border-gray-700 border-t-gray-500 rounded-full animate-spin" />
+              <span className="text-sm">加载 Ollama 数据...</span>
+            </div>
           </div>
         )}
 

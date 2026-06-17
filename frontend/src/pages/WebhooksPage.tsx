@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Webhook, Plus, Send, Trash2, Edit2, Eye, EyeOff, Copy, Check, RefreshCw, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
+import { fetchWebhooks } from '@/api/client'
 
 interface WebhookItem {
   id: string
@@ -16,49 +17,6 @@ interface WebhookItem {
   headers: Record<string, string>
   retryPolicy: { maxRetries: number; backoff: string }
 }
-
-const MOCK_WEBHOOKS: WebhookItem[] = [
-  {
-    id: 'wh-1', name: '消息推送通知', url: 'https://hooks.company.com/notifications',
-    events: ['message.created', 'message.updated', 'agent.mentioned'],
-    isActive: true, secret: 'sk-abc123def456', createdAt: '2026-05-01', lastTriggered: '2026-05-24 15:30',
-    successRate: 98.5, totalDeliveries: 12543, failedDeliveries: 189,
-    headers: { 'Content-Type': 'application/json', 'X-Signature': 'sha256' },
-    retryPolicy: { maxRetries: 3, backoff: 'exponential' },
-  },
-  {
-    id: 'wh-2', name: 'Agent 状态同步', url: 'https://hooks.company.com/agents',
-    events: ['agent.created', 'agent.updated', 'agent.deleted', 'agent.status_changed'],
-    isActive: true, secret: 'sk-xyz789uvw012', createdAt: '2026-05-02', lastTriggered: '2026-05-24 14:00',
-    successRate: 100, totalDeliveries: 8765, failedDeliveries: 0,
-    headers: { 'Content-Type': 'application/json' },
-    retryPolicy: { maxRetries: 5, backoff: 'linear' },
-  },
-  {
-    id: 'wh-3', name: '工作流事件', url: 'https://hooks.company.com/workflows',
-    events: ['workflow.started', 'workflow.completed', 'workflow.failed'],
-    isActive: false, secret: 'sk-workflow999', createdAt: '2026-05-03', lastTriggered: '2026-05-20 10:00',
-    successRate: 94.2, totalDeliveries: 3421, failedDeliveries: 198,
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ***' },
-    retryPolicy: { maxRetries: 3, backoff: 'exponential' },
-  },
-  {
-    id: 'wh-4', name: '监控告警', url: 'https://hooks.company.com/alerts',
-    events: ['monitor.alert', 'system.error', 'agent.crashed'],
-    isActive: true, secret: 'sk-alert2026', createdAt: '2026-05-04', lastTriggered: '2026-05-24 12:00',
-    successRate: 99.8, totalDeliveries: 567, failedDeliveries: 1,
-    headers: { 'Content-Type': 'application/json', 'X-Priority': 'high' },
-    retryPolicy: { maxRetries: 10, backoff: 'exponential' },
-  },
-  {
-    id: 'wh-5', name: '数据导出通知', url: 'https://hooks.company.com/exports',
-    events: ['export.completed', 'export.failed'],
-    isActive: true, secret: 'sk-export888', createdAt: '2026-05-05', lastTriggered: '2026-05-23 08:00',
-    successRate: 100, totalDeliveries: 234, failedDeliveries: 0,
-    headers: { 'Content-Type': 'application/json' },
-    retryPolicy: { maxRetries: 2, backoff: 'fixed' },
-  },
-]
 
 const EVENT_LABELS: Record<string, string> = {
   'message.created': '消息创建',
@@ -79,11 +37,27 @@ const EVENT_LABELS: Record<string, string> = {
 }
 
 export default function WebhooksPage() {
-  const [webhooks, setWebhooks] = useState<WebhookItem[]>(MOCK_WEBHOOKS)
+  const [webhooks, setWebhooks] = useState<WebhookItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({})
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', url: '', events: '', secret: '' })
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all')
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchWebhooks()
+      .then((data: any) => {
+        if (!cancelled) setWebhooks(data?.data || [])
+      })
+      .catch((err: any) => {
+        if (!cancelled) setError(err.message || '加载 Webhooks 失败')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const toggleActive = (id: string) => {
     setWebhooks(webhooks.map((w) => w.id === id ? { ...w, isActive: !w.isActive } : w))
@@ -126,6 +100,21 @@ export default function WebhooksPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center h-[calc(100vh-120px)]">
+          <div className="flex items-center gap-3 text-[var(--sage-500)]">
+            <div className="w-5 h-5 border-2 border-[var(--sage-300)] border-t-[var(--sage-500)] rounded-full animate-spin" />
+            <span className="text-sm">加载 Webhooks...</span>
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Webhook className="w-6 h-6 text-[var(--sage-500)]" />
@@ -225,6 +214,9 @@ export default function WebhooksPage() {
           </div>
         ))}
       </div>
+      {filtered.length === 0 && !loading && (
+        <div className="text-center text-sm text-[var(--sage-400)]">暂无数据</div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
@@ -243,6 +235,8 @@ export default function WebhooksPage() {
           </div>
         </div>
       )}
+    </>
+  )}
     </div>
   )
 }

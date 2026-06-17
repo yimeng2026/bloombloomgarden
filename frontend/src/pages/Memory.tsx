@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Brain,
@@ -23,9 +23,11 @@ import {
   Zap,
   CheckCircle2,
   ExternalLink,
+  AlertTriangle,
 } from 'lucide-react'
 import { useToast } from '@/contexts/ToastContext'
 import { cn } from '@/lib/utils'
+import { fetchMemories } from '@/api/client'
 
 /* ── Types ──────────────────────────────────────────────────────── */
 
@@ -108,309 +110,6 @@ const NODE_COLORS: Record<NodeType, string> = {
   Topic: '#8b5cf6',
 }
 
-/* ── Mock Data ──────────────────────────────────────────────────── */
-
-const MOCK_PATTERNS: Pattern[] = [
-  {
-    id: 'pt-1',
-    name: 'API-First Design Preference',
-    type: 'Preference',
-    confidence: 0.92,
-    description: 'Agent consistently prefers API-first approaches over direct database access',
-    evidence: ['Recommended REST API in 12 conversations', 'Suggested GraphQL for complex queries', 'Avoided raw SQL suggestions'],
-    sourceMemory: 'Code Assistant Memory',
-  },
-  {
-    id: 'pt-2',
-    name: 'Error Handling Pattern',
-    type: 'Behavioral',
-    confidence: 0.87,
-    description: 'Agent demonstrates structured error handling with specific retry strategies',
-    evidence: ['Implemented exponential backoff in 8 solutions', 'Suggested circuit breaker pattern', 'Always includes error logging'],
-    sourceMemory: 'Debug Agent Memory',
-  },
-  {
-    id: 'pt-3',
-    name: 'React Component Architecture',
-    type: 'Knowledge',
-    confidence: 0.95,
-    description: 'Strong preference for compound component patterns with context API',
-    evidence: ['Used compound pattern in 15 code examples', 'Recommended context over prop drilling', 'Suggested custom hooks for logic reuse'],
-    sourceMemory: 'Frontend Expert Memory',
-  },
-  {
-    id: 'pt-4',
-    name: 'Pythonic Code Style',
-    type: 'Skill',
-    confidence: 0.89,
-    description: 'Agent writes Python code following PEP8 and uses list comprehensions effectively',
-    evidence: ['Used list comprehensions in 20+ examples', 'Recommended type hints consistently', 'Preferred pathlib over os.path'],
-    sourceMemory: 'Python Mentor Memory',
-  },
-  {
-    id: 'pt-5',
-    name: 'Documentation-First Approach',
-    type: 'Preference',
-    confidence: 0.78,
-    description: 'Agent prioritizes writing documentation before implementation',
-    evidence: ['Suggested docstrings first in 6 sessions', 'Recommended README-driven development', 'Emphasized API documentation'],
-    sourceMemory: 'Tech Lead Memory',
-  },
-]
-
-const MOCK_MEMORIES: Memory[] = [
-  {
-    id: 'mem-1',
-    name: 'Code Assistant Memory',
-    description: 'Accumulated coding knowledge from 6 months of pair programming sessions. Covers API design, database patterns, and testing strategies.',
-    type: 'Memory',
-    sourceAgent: 'Code Assistant',
-    platform: 'Claude',
-    patternCount: 12,
-    knowledgeGraph: { nodes: 48, edges: 87 },
-    createdAt: '2 weeks ago',
-    updatedAt: '5h ago',
-    messageCount: 342,
-    linkedKnowledgeBase: 'API Documentation',
-    patterns: MOCK_PATTERNS.slice(0, 3),
-    nodes: [
-      { id: 'n1', name: 'REST API', type: 'Concept', importance: 0.9 },
-      { id: 'n2', name: 'GraphQL', type: 'Concept', importance: 0.8 },
-      { id: 'n3', name: 'PostgreSQL', type: 'Entity', importance: 0.7 },
-      { id: 'n4', name: 'Authentication', type: 'Action', importance: 0.85 },
-      { id: 'n5', name: 'Microservices', type: 'Topic', importance: 0.75 },
-      { id: 'n6', name: 'JWT', type: 'Concept', importance: 0.8 },
-      { id: 'n7', name: 'Redis', type: 'Entity', importance: 0.6 },
-      { id: 'n8', name: 'Error Handling', type: 'Action', importance: 0.7 },
-    ],
-    edges: [
-      { source: 'n1', target: 'n4', label: 'requires', strength: 0.9 },
-      { source: 'n2', target: 'n4', label: 'requires', strength: 0.8 },
-      { source: 'n3', target: 'n1', label: 'supports', strength: 0.7 },
-      { source: 'n6', target: 'n4', label: 'implements', strength: 0.95 },
-      { source: 'n5', target: 'n1', label: 'uses', strength: 0.8 },
-      { source: 'n7', target: 'n4', label: 'caches', strength: 0.6 },
-      { source: 'n8', target: 'n1', label: 'protects', strength: 0.75 },
-    ],
-  },
-  {
-    id: 'mem-2',
-    name: 'System Architect Memory',
-    description: 'Architecture decisions, design patterns, and infrastructure recommendations from collaborative design sessions.',
-    type: 'Memory',
-    sourceAgent: 'System Architect',
-    platform: 'Kimi',
-    patternCount: 8,
-    knowledgeGraph: { nodes: 32, edges: 54 },
-    createdAt: '1 month ago',
-    updatedAt: '2d ago',
-    messageCount: 198,
-    linkedKnowledgeBase: 'Research Papers',
-    patterns: [MOCK_PATTERNS[2]],
-    nodes: [
-      { id: 'n9', name: 'Event Sourcing', type: 'Concept', importance: 0.9 },
-      { id: 'n10', name: 'CQRS', type: 'Concept', importance: 0.85 },
-      { id: 'n11', name: 'Kafka', type: 'Entity', importance: 0.8 },
-      { id: 'n12', name: 'Kubernetes', type: 'Entity', importance: 0.75 },
-      { id: 'n13', name: 'Load Balancing', type: 'Action', importance: 0.7 },
-      { id: 'n14', name: 'Distributed Systems', type: 'Topic', importance: 0.95 },
-    ],
-    edges: [
-      { source: 'n9', target: 'n10', label: 'complements', strength: 0.9 },
-      { source: 'n11', target: 'n9', label: 'enables', strength: 0.85 },
-      { source: 'n12', target: 'n13', label: 'orchestrates', strength: 0.8 },
-      { source: 'n14', target: 'n9', label: 'includes', strength: 0.75 },
-    ],
-  },
-  {
-    id: 'mem-3',
-    name: 'Debug Session Archive',
-    description: 'Collection of debugging sessions covering common errors, stack trace analysis, and troubleshooting workflows.',
-    type: 'Work Log',
-    sourceAgent: 'Debug Agent',
-    platform: 'DeepSeek',
-    patternCount: 15,
-    knowledgeGraph: { nodes: 24, edges: 38 },
-    createdAt: '3 weeks ago',
-    updatedAt: '1d ago',
-    messageCount: 256,
-    patterns: [MOCK_PATTERNS[1]],
-    nodes: [
-      { id: 'n15', name: 'Stack Trace', type: 'Concept', importance: 0.8 },
-      { id: 'n16', name: 'Breakpoint', type: 'Action', importance: 0.75 },
-      { id: 'n17', name: 'Race Condition', type: 'Concept', importance: 0.85 },
-      { id: 'n18', name: 'Memory Leak', type: 'Concept', importance: 0.9 },
-    ],
-    edges: [
-      { source: 'n16', target: 'n15', label: 'reveals', strength: 0.8 },
-      { source: 'n17', target: 'n18', label: 'causes', strength: 0.7 },
-    ],
-  },
-  {
-    id: 'mem-4',
-    name: 'Frontend Expert Knowledge',
-    description: 'Frontend development expertise accumulated over numerous React, Vue, and TypeScript discussions.',
-    type: 'Memory',
-    sourceAgent: 'Frontend Expert',
-    platform: 'Gemini',
-    patternCount: 10,
-    knowledgeGraph: { nodes: 36, edges: 62 },
-    createdAt: '1 week ago',
-    updatedAt: '3d ago',
-    messageCount: 187,
-    linkedKnowledgeBase: 'Code Examples',
-    patterns: MOCK_PATTERNS.slice(2, 4),
-    nodes: [
-      { id: 'n19', name: 'React Hooks', type: 'Concept', importance: 0.9 },
-      { id: 'n20', name: 'TypeScript', type: 'Concept', importance: 0.85 },
-      { id: 'n21', name: 'Tailwind CSS', type: 'Entity', importance: 0.7 },
-      { id: 'n22', name: 'State Management', type: 'Topic', importance: 0.8 },
-      { id: 'n23', name: 'Component Design', type: 'Action', importance: 0.75 },
-    ],
-    edges: [
-      { source: 'n19', target: 'n20', label: 'pairs with', strength: 0.9 },
-      { source: 'n22', target: 'n19', label: 'uses', strength: 0.85 },
-      { source: 'n23', target: 'n21', label: 'styles with', strength: 0.7 },
-    ],
-  },
-  {
-    id: 'mem-5',
-    name: 'Python Mentor Sessions',
-    description: 'Python tutoring sessions covering advanced language features, best practices, and library recommendations.',
-    type: 'Memory',
-    sourceAgent: 'Python Mentor',
-    platform: 'Ollama',
-    patternCount: 6,
-    knowledgeGraph: { nodes: 18, edges: 28 },
-    createdAt: '3 days ago',
-    updatedAt: '12h ago',
-    messageCount: 94,
-    patterns: [MOCK_PATTERNS[3]],
-    nodes: [
-      { id: 'n24', name: 'Generators', type: 'Concept', importance: 0.8 },
-      { id: 'n25', name: 'Decorators', type: 'Concept', importance: 0.85 },
-      { id: 'n26', name: 'FastAPI', type: 'Entity', importance: 0.75 },
-    ],
-    edges: [
-      { source: 'n25', target: 'n26', label: 'powers', strength: 0.7 },
-      { source: 'n24', target: 'n25', label: 'complements', strength: 0.6 },
-    ],
-  },
-  {
-    id: 'mem-6',
-    name: 'Tech Lead Decisions',
-    description: 'Technical leadership decisions, code review patterns, and team best practices documentation.',
-    type: 'Memory',
-    sourceAgent: 'Tech Lead',
-    platform: 'Sylva',
-    patternCount: 9,
-    knowledgeGraph: { nodes: 28, edges: 45 },
-    createdAt: '5 days ago',
-    updatedAt: '1d ago',
-    messageCount: 145,
-    patterns: [MOCK_PATTERNS[4]],
-    nodes: [
-      { id: 'n27', name: 'Code Review', type: 'Action', importance: 0.9 },
-      { id: 'n28', name: 'CI/CD', type: 'Topic', importance: 0.8 },
-      { id: 'n29', name: 'Testing', type: 'Topic', importance: 0.85 },
-      { id: 'n30', name: 'Documentation', type: 'Action', importance: 0.75 },
-    ],
-    edges: [
-      { source: 'n27', target: 'n29', label: 'validates', strength: 0.85 },
-      { source: 'n28', target: 'n27', label: 'automates', strength: 0.7 },
-      { source: 'n30', target: 'n27', label: 'supports', strength: 0.8 },
-    ],
-  },
-  {
-    id: 'mem-7',
-    name: 'Security Analyst Notes',
-    description: 'Security audit findings, vulnerability patterns, and hardening recommendations across various systems.',
-    type: 'Memory',
-    sourceAgent: 'Security Analyst',
-    platform: 'Grok',
-    patternCount: 11,
-    knowledgeGraph: { nodes: 22, edges: 35 },
-    createdAt: '2 weeks ago',
-    updatedAt: '4d ago',
-    messageCount: 167,
-    patterns: [],
-    nodes: [
-      { id: 'n31', name: 'OWASP', type: 'Concept', importance: 0.9 },
-      { id: 'n32', name: 'Penetration Testing', type: 'Action', importance: 0.85 },
-      { id: 'n33', name: 'Encryption', type: 'Concept', importance: 0.8 },
-    ],
-    edges: [
-      { source: 'n32', target: 'n31', label: 'evaluates', strength: 0.9 },
-      { source: 'n33', target: 'n31', label: 'mitigates', strength: 0.75 },
-    ],
-  },
-  {
-    id: 'mem-8',
-    name: 'Data Science Insights',
-    description: 'Data science workflows, model training sessions, and visualization techniques from collaborative analysis.',
-    type: 'Memory',
-    sourceAgent: 'Data Scientist',
-    platform: 'Kimi',
-    patternCount: 7,
-    knowledgeGraph: { nodes: 30, edges: 48 },
-    createdAt: '4 days ago',
-    updatedAt: '6h ago',
-    messageCount: 112,
-    linkedKnowledgeBase: 'Product Knowledge',
-    patterns: [],
-    nodes: [
-      { id: 'n34', name: 'Neural Networks', type: 'Concept', importance: 0.9 },
-      { id: 'n35', name: 'Pandas', type: 'Entity', importance: 0.75 },
-      { id: 'n36', name: 'Feature Engineering', type: 'Action', importance: 0.8 },
-      { id: 'n37', name: 'Machine Learning', type: 'Topic', importance: 0.95 },
-    ],
-    edges: [
-      { source: 'n36', target: 'n37', label: 'enables', strength: 0.85 },
-      { source: 'n35', target: 'n36', label: 'supports', strength: 0.7 },
-      { source: 'n34', target: 'n37', label: 'is part of', strength: 0.9 },
-    ],
-  },
-]
-
-const MOCK_WORK_LOGS: WorkLog[] = [
-  {
-    id: 'wl-1',
-    name: 'Database Migration Task',
-    sourceTask: 'Migrate users to new schema',
-    agents: ['Code Assistant', 'System Architect'],
-    duration: '45 min',
-    log: '## Database Migration Log\n\n1. Analyzed current schema\n2. Created migration scripts\n3. Validated data integrity\n4. Deployed to staging\n5. Verified 100% success rate',
-    date: '2h ago',
-  },
-  {
-    id: 'wl-2',
-    name: 'API Integration Sprint',
-    sourceTask: 'Integrate third-party APIs',
-    agents: ['Code Assistant', 'Debug Agent'],
-    duration: '1h 20min',
-    log: '## API Integration Log\n\n1. Reviewed API documentation\n2. Implemented auth flow\n3. Added rate limiting\n4. Created error handlers\n5. Wrote integration tests',
-    date: '5h ago',
-  },
-  {
-    id: 'wl-3',
-    name: 'Security Audit',
-    sourceTask: 'Full security audit',
-    agents: ['Security Analyst'],
-    duration: '2h 10min',
-    log: '## Security Audit Log\n\n1. Scanned for vulnerabilities\n2. Reviewed auth mechanisms\n3. Checked data encryption\n4. Analyzed access patterns\n5. Generated report',
-    date: '1d ago',
-  },
-  {
-    id: 'wl-4',
-    name: 'Frontend Optimization',
-    sourceTask: 'Optimize React app performance',
-    agents: ['Frontend Expert', 'Tech Lead'],
-    duration: '55 min',
-    log: '## Optimization Log\n\n1. Profiled render performance\n2. Identified bottlenecks\n3. Implemented memoization\n4. Lazy loaded components\n5. Reduced bundle size by 40%',
-    date: '2d ago',
-  },
-]
-
 /* ── Animation helpers ──────────────────────────────────────────── */
 
 const staggerContainer = {
@@ -427,7 +126,9 @@ const fadeUp = {
 
 export default function Memory() {
   const { addToast } = useToast()
-  const [memories, setMemories] = useState<Memory[]>(MOCK_MEMORIES)
+  const [memories, setMemories] = useState<Memory[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('list')
   const [typeFilter, setTypeFilter] = useState<'All' | MemoryType>('All')
@@ -435,6 +136,24 @@ export default function Memory() {
   const [showNewModal, setShowNewModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true)
+        setError(null)
+        const res = await fetchMemories()
+        const data = res.data || res
+        setMemories(Array.isArray(data) ? data : [])
+      } catch (e: any) {
+        setError(e?.message || '加载记忆失败')
+        setMemories([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
 
   /* Filter */
   const filtered = useMemo(() => {
@@ -530,6 +249,20 @@ export default function Memory() {
               {memories.length} memories
             </span>
           </div>
+
+      {loading && (
+        <div className="card p-6 text-center mt-4">
+          <Loader2 className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2 animate-spin" />
+          <p className="text-sm text-[var(--sage-400)]">加载中...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="card p-6 text-center mt-4">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
@@ -1653,7 +1386,7 @@ function ImportWorkLogModal({ onClose, onImport }: { onClose: () => void; onImpo
           <>
             <p className="mb-3 text-sm text-text-secondary">Select a work log to import:</p>
             <div className="max-h-56 overflow-y-auto space-y-2 mb-4">
-              {MOCK_WORK_LOGS.map((log) => (
+              {[]/* TODO: load real work logs from API */.map((log) => (
                 <button
                   key={log.id}
                   onClick={() => setSelectedLog(log.id)}
@@ -1679,7 +1412,7 @@ function ImportWorkLogModal({ onClose, onImport }: { onClose: () => void; onImpo
               <label className="mb-1.5 block text-xs text-text-secondary">Target</label>
               <select className="h-9 w-full rounded-lg border border-surface-4 bg-surface-0 px-3 text-sm text-text-primary outline-none focus:border-brand">
                 <option>Create new memory</option>
-                {MOCK_MEMORIES.slice(0, 4).map((m) => (
+                {[]/* TODO: load real memories from API */.slice(0, 4).map((m) => (
                   <option key={m.id} value={m.id}>Append to: {m.name}</option>
                 ))}
               </select>

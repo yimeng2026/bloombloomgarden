@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import { fetchEvents, fetchEventStats } from '@/api/client';
 
 interface SystemEvent {
   id: string;
@@ -12,91 +13,6 @@ interface SystemEvent {
   relatedId?: string;
   acknowledged: boolean;
 }
-
-const MOCK_EVENTS: SystemEvent[] = [
-  {
-    id: 'evt-001',
-    level: 'info',
-    category: 'system',
-    title: '系统启动完成',
-    message: '千界花园后端服务启动成功，所有模块已加载',
-    timestamp: '2024-05-29T08:00:00Z',
-    source: 'SystemBootstrap',
-    acknowledged: true
-  },
-  {
-    id: 'evt-002',
-    level: 'info',
-    category: 'agent',
-    title: 'Agent SYLVA 已激活',
-    message: 'Agent SYLVA 已完成初始化，角色模板：软件工程师，模型：Kimi Code',
-    timestamp: '2024-05-29T08:01:15Z',
-    source: 'AgentService',
-    relatedId: 'agent-sylva',
-    acknowledged: true
-  },
-  {
-    id: 'evt-003',
-    level: 'warning',
-    category: 'api',
-    title: 'Kimi Code API 响应延迟偏高',
-    message: '最近5次请求平均响应时间 3.2s，超过阈值 2.0s',
-    timestamp: '2024-05-29T08:15:30Z',
-    source: 'KimiClusterOrchestrator',
-    acknowledged: false
-  },
-  {
-    id: 'evt-004',
-    level: 'error',
-    category: 'integration',
-    title: '外部平台 Discord 连接中断',
-    message: 'WebSocket连接异常关闭，错误代码：1006，正在自动重试...',
-    timestamp: '2024-05-29T08:20:00Z',
-    source: 'BridgeAdapter',
-    acknowledged: false
-  },
-  {
-    id: 'evt-005',
-    level: 'critical',
-    category: 'security',
-    title: '异常登录尝试 detected',
-    message: 'IP 192.168.x.x 连续5次登录失败，已自动加入临时黑名单',
-    timestamp: '2024-05-29T08:25:10Z',
-    source: 'SecurityService',
-    acknowledged: false
-  },
-  {
-    id: 'evt-006',
-    level: 'info',
-    category: 'backup',
-    title: '增量备份完成',
-    message: '知识库增量备份成功，新增文档 23 个，索引已更新',
-    timestamp: '2024-05-29T08:30:00Z',
-    source: 'BackupService',
-    acknowledged: true
-  },
-  {
-    id: 'evt-007',
-    level: 'warning',
-    category: 'agent',
-    title: 'Agent memory 使用量接近上限',
-    message: 'AgentZero 的上下文窗口使用 3800/4096 tokens，建议清理历史消息',
-    timestamp: '2024-05-29T08:35:00Z',
-    source: 'ContextMonitor',
-    relatedId: 'agent-zero',
-    acknowledged: false
-  },
-  {
-    id: 'evt-008',
-    level: 'info',
-    category: 'api',
-    title: 'OpenRouter API 连通性测试通过',
-    message: '新配置的 OpenRouter API Key 验证成功，模型列表已获取',
-    timestamp: '2024-05-29T08:40:00Z',
-    source: 'APIKeyService',
-    acknowledged: true
-  }
-];
 
 const LEVEL_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
   info: { color: 'text-blue-400', bg: 'bg-blue-500/10', label: '信息' },
@@ -115,11 +31,38 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<SystemEvent[]>(MOCK_EVENTS);
+  const [events, setEvents] = useState<SystemEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [eventStats, setEventStats] = useState<any>(null);
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showAcknowledged, setShowAcknowledged] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<SystemEvent | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [evRes, stRes] = await Promise.allSettled([
+          fetchEvents(),
+          fetchEventStats(),
+        ]);
+        if (evRes.status === 'fulfilled' && evRes.value?.data) {
+          setEvents(Array.isArray(evRes.value.data) ? evRes.value.data : []);
+        }
+        if (stRes.status === 'fulfilled' && stRes.value?.data) {
+          setEventStats(stRes.value.data);
+        }
+      } catch (e: any) {
+        setError(e.message || '加载事件数据失败');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   const filtered = events.filter(e => {
     if (levelFilter !== 'all' && e.level !== levelFilter) return false;
@@ -135,7 +78,7 @@ export default function EventsPage() {
       const res = await fetch(`/api/events/${id}/acknowledge`, { method: 'PATCH' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (e) {
-      console.warn('后端确认不可用，仅更新本地状态:', e);
+      console.error('Acknowledge failed:', e);
     }
     setEvents(prev => prev.map(e => e.id === id ? { ...e, acknowledged: true } : e));
   };
@@ -145,12 +88,12 @@ export default function EventsPage() {
       const res = await fetch('/api/events/acknowledge-all', { method: 'PATCH' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (e) {
-      console.warn('后端批量确认不可用，仅更新本地状态:', e);
+      console.error('AcknowledgeAll failed:', e);
     }
     setEvents(prev => prev.map(e => ({ ...e, acknowledged: true })));
   };
 
-  // SSE实时事件流（后端可用时自动启用）
+  // SSE实时事件流
   useEffect(() => {
     let evtSource: EventSource | null = null;
     try {
@@ -160,15 +103,15 @@ export default function EventsPage() {
           const event = JSON.parse(e.data);
           setEvents(prev => [event, ...prev]);
         } catch (err) {
-          console.warn('SSE消息解析失败:', err);
+          console.error('SSE消息解析失败:', err);
         }
       };
       evtSource.onerror = () => {
-        console.warn('SSE连接异常，关闭实时流');
+        console.error('SSE连接异常，关闭实时流');
         evtSource?.close();
       };
     } catch (e) {
-      console.warn('SSE不可用（Mock环境正常现象）:', e);
+      console.error('SSE不可用:', e);
     }
     return () => evtSource?.close();
   }, []);
@@ -193,6 +136,13 @@ export default function EventsPage() {
               </button>
             )}
           </div>
+
+          {loading && (
+            <div className="text-center text-sm text-[var(--sage-400)] py-4">加载中...</div>
+          )}
+          {error && (
+            <div className="text-center text-sm text-red-500 py-4">⚠️ {error}</div>
+          )}
 
           {/* 统计 */}
           <div className="flex gap-4 mt-4">
@@ -247,9 +197,17 @@ export default function EventsPage() {
 
             {/* 列表 */}
             <div className="space-y-2">
-              {filtered.map(event => {
-                const levelCfg = LEVEL_CONFIG[event.level];
-                return (
+              {loading ? (
+                <div className="p-12 text-center text-sm text-[var(--sage-400)]">加载中...</div>
+              ) : filtered.length === 0 ? (
+                <div className="p-12 text-center text-gray-500">
+                  <div className="text-4xl mb-2">📭</div>
+                  <p>暂无匹配事件</p>
+                </div>
+              ) : (
+                filtered.map(event => {
+                  const levelCfg = LEVEL_CONFIG[event.level];
+                  return (
                   <div
                     key={event.id}
                     onClick={() => setSelectedEvent(event)}
@@ -292,12 +250,7 @@ export default function EventsPage() {
                     </div>
                   </div>
                 );
-              })}
-              {filtered.length === 0 && (
-                <div className="p-12 text-center text-gray-500">
-                  <div className="text-4xl mb-2">📭</div>
-                  <p>暂无匹配事件</p>
-                </div>
+              })
               )}
             </div>
           </div>

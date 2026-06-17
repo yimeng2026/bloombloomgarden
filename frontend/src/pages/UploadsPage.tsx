@@ -1,10 +1,11 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  Upload, File, X, Loader2, CheckCircle, AlertCircle,
+  Upload, File, X, Loader2, CheckCircle, AlertCircle, AlertTriangle,
   FolderOpen, Search, Filter, Grid, List, Link as LinkIcon,
   Database, Trash2, RefreshCw, ChevronDown, ChevronRight,
   FileText, Image, Code, Music, Video, Archive, FileSpreadsheet
 } from 'lucide-react';
+import { fetchKnowledgeBases, uploadFile } from '@/api/client';
 
 // ===================== 类型定义 =====================
 interface UploadedFile {
@@ -49,53 +50,15 @@ function getFileIcon(type: string) {
   return <File className="w-5 h-5 text-gray-400" />;
 }
 
-// ===================== Mock数据 =====================
-const MOCK_KB: KnowledgeBase[] = [
-  { id: 'kb-1', name: '产品知识库', description: '产品文档、PRD、设计稿', documentCount: 42 },
-  { id: 'kb-2', name: '技术文档库', description: 'API文档、架构设计、技术规范', documentCount: 128 },
-  { id: 'kb-3', name: '运营资料库', description: '运营策略、数据分析、用户反馈', documentCount: 67 },
-  { id: 'kb-4', name: '法律法规库', description: '合规文档、法律条文、隐私政策', documentCount: 15 },
-];
-
-const MOCK_FILES: UploadedFile[] = [
-  {
-    id: 'f-1', name: '产品需求文档_v3.pdf', size: 2458000, type: 'application/pdf',
-    status: 'completed', progress: 100, uploadedAt: '2026-05-28 14:30',
-    knowledgeBaseId: 'kb-1', knowledgeBaseName: '产品知识库',
-    extractedText: '本文档描述了千界花园V3版本的核心功能需求...',
-    metadata: { pages: 45, author: '产品经理A' }
-  },
-  {
-    id: 'f-2', name: 'API接口规范.md', size: 45600, type: 'text/markdown',
-    status: 'completed', progress: 100, uploadedAt: '2026-05-28 13:15',
-    knowledgeBaseId: 'kb-2', knowledgeBaseName: '技术文档库',
-    extractedText: '# 3DACP API接口规范\n\n## 认证方式...',
-    metadata: { lines: 1200, commits: 15 }
-  },
-  {
-    id: 'f-3', name: '用户增长数据_Q2.xlsx', size: 1250000, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    status: 'processing', progress: 75, uploadedAt: '2026-05-28 15:00',
-    knowledgeBaseId: 'kb-3', knowledgeBaseName: '运营资料库',
-    metadata: { sheets: 5, rows: 5000 }
-  },
-  {
-    id: 'f-4', name: '系统架构图.png', size: 890000, type: 'image/png',
-    status: 'completed', progress: 100, uploadedAt: '2026-05-28 12:00',
-    knowledgeBaseId: 'kb-2', knowledgeBaseName: '技术文档库',
-    metadata: { width: 1920, height: 1080 }
-  },
-  {
-    id: 'f-5', name: '待处理的日志文件.zip', size: 15600000, type: 'application/zip',
-    status: 'error', progress: 30, uploadedAt: '2026-05-28 16:20',
-    errorMessage: '压缩包内文件数量超过限制（最大1000个文件）',
-    metadata: { innerFiles: 1500 }
-  },
-];
+// ===================== Mock data =====================
+// Removed: MOCK_KB and MOCK_FILES — now loaded from real APIs
 
 // ===================== 主组件 =====================
 export default function UploadsPage() {
-  const [files, setFiles] = useState<UploadedFile[]>(MOCK_FILES);
-  const [kbs] = useState<KnowledgeBase[]>(MOCK_KB);
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [kbs, setKbs] = useState<KnowledgeBase[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedKb, setSelectedKb] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchQuery, setSearchQuery] = useState('');
@@ -106,6 +69,28 @@ export default function UploadsPage() {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
+
+  // 加载真实知识库列表
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchKnowledgeBases()
+      .then((res: any) => {
+        if (!cancelled) {
+          const data = res.data || res;
+          setKbs(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError('加载知识库失败: ' + (err.message || '未知错误'));
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  // 注意：client.ts 中暂无 fetchUploads / fetchFiles API，文件列表保持为空
+  // 等后端提供 /uploads GET 接口后，可在此添加第二个 useEffect 加载文件列表
 
   // ===================== 拖拽处理 =====================
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -300,6 +285,20 @@ export default function UploadsPage() {
         <h1 className="text-2xl font-bold mb-1">📤 上传管理中心</h1>
         <p className="text-gray-500 text-sm">管理文档上传、知识库关联与处理状态</p>
       </div>
+
+      {loading && (
+        <div className="card p-6 text-center">
+          <Loader2 className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2 animate-spin" />
+          <p className="text-sm text-[var(--sage-400)]">加载中...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="card p-6 text-center mb-6">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
 
       {/* 统计卡片 */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">

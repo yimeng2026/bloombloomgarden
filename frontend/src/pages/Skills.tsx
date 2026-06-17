@@ -4,6 +4,7 @@ import {
   Wrench, Plus, Search, Zap, Trash2, Copy, Check, X, Code,
   Terminal, Database, Globe, Mail, Image, BarChart3, Shield,
   Workflow, FileCode, FileText, Music, Video, MapPin, Calculator,
+  AlertTriangle, Loader2,
 } from 'lucide-react'
 import { useToast } from '@/contexts/ToastContext'
 
@@ -56,254 +57,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Custom': '#c97b84',
 }
 
-const MOCK_SKILLS: Skill[] = [
-  {
-    id: 'sk-1',
-    name: 'Web Search',
-    description: 'Search the web for real-time information. Supports multiple search engines and result filtering.',
-    platforms: ['Kimi', 'Claude', 'Gemini', 'Grok', 'DeepSeek'],
-    category: 'Web Search',
-    params: [
-      { name: 'query', type: 'string', required: true, description: 'Search query string' },
-      { name: 'engine', type: 'string', required: false, default: 'google', description: 'Search engine to use' },
-      { name: 'results_count', type: 'number', required: false, default: 10, description: 'Number of results to return' },
-    ],
-    usageCount: 156,
-    enabled: true,
-    icon: 'Globe',
-    codeSnippet: `async function webSearch({ query, engine = 'google', results_count = 10 }) {
-  const results = await searchEngine[engine].query(query, { limit: results_count });
-  return results.map(r => ({ title: r.title, url: r.url, snippet: r.snippet }));
-}`,
-    usageExample: 'webSearch({ query: "latest AI news", engine: "google", results_count: 5 })',
-  },
-  {
-    id: 'sk-2',
-    name: 'Code Runner',
-    description: 'Execute code in sandboxed environments. Supports Python, JavaScript, TypeScript, and more.',
-    platforms: ['Kimi', 'Claude', 'Gemini', 'Grok', 'DeepSeek'],
-    category: 'Code Execution',
-    params: [
-      { name: 'code', type: 'string', required: true, description: 'Code to execute' },
-      { name: 'language', type: 'string', required: true, default: 'python', description: 'Programming language' },
-      { name: 'timeout', type: 'number', required: false, default: 30, description: 'Execution timeout in seconds' },
-    ],
-    usageCount: 234,
-    enabled: true,
-    icon: 'Terminal',
-    codeSnippet: `async function runCode({ code, language = 'python', timeout = 30 }) {
-  const sandbox = await createSandbox(language, { timeout });
-  const result = await sandbox.execute(code);
-  return { output: result.stdout, errors: result.stderr, exitCode: result.code };
-}`,
-    usageExample: 'runCode({ code: "print(1+1)", language: "python" })',
-  },
-  {
-    id: 'sk-3',
-    name: 'File Manager',
-    description: 'Manage files with read, write, delete, and search operations. Supports multiple storage backends.',
-    platforms: ['Kimi', 'Claude', 'Sylva'],
-    category: 'File Operations',
-    params: [
-      { name: 'operation', type: 'string', required: true, description: 'Operation type: read, write, delete, list' },
-      { name: 'path', type: 'string', required: true, description: 'File or directory path' },
-      { name: 'content', type: 'string', required: false, description: 'Content for write operations' },
-    ],
-    usageCount: 89,
-    enabled: true,
-    icon: 'FileCode',
-    codeSnippet: `async function fileManager({ operation, path, content }) {
-  switch (operation) {
-    case 'read': return await fs.readFile(path, 'utf8');
-    case 'write': return await fs.writeFile(path, content);
-    case 'delete': return await fs.unlink(path);
-    case 'list': return await fs.readdir(path);
-  }
-}`,
-    usageExample: 'fileManager({ operation: "read", path: "/docs/readme.md" })',
-  },
-  {
-    id: 'sk-4',
-    name: 'Data Analyzer',
-    description: 'Perform statistical analysis on datasets. Supports descriptive statistics, correlation analysis, and data visualization.',
-    platforms: ['Kimi', 'Claude', 'Gemini', 'Grok', 'DeepSeek'],
-    category: 'Data Analysis',
-    params: [
-      { name: 'dataset', type: 'string', required: true, description: 'Dataset identifier or file path' },
-      { name: 'analysis_type', type: 'string', required: true, default: 'descriptive', description: 'Type of analysis to perform' },
-      { name: 'columns', type: 'array', required: false, description: 'Columns to analyze' },
-    ],
-    usageCount: 67,
-    enabled: true,
-    icon: 'BarChart3',
-    codeSnippet: `async function analyzeData({ dataset, analysis_type = 'descriptive', columns = [] }) {
-  const data = await loadDataset(dataset);
-  const analyzer = new DataAnalyzer(data);
-  return await analyzer[analysis_type](columns);
-}`,
-    usageExample: 'analyzeData({ dataset: "sales_2024.csv", analysis_type: "correlation" })',
-  },
-  {
-    id: 'sk-5',
-    name: 'Image Generator',
-    description: 'Generate images from text descriptions using AI models. Supports various styles and resolutions.',
-    platforms: ['Kimi', 'Claude', 'Gemini'],
-    category: 'Image Generation',
-    params: [
-      { name: 'prompt', type: 'string', required: true, description: 'Image description' },
-      { name: 'style', type: 'string', required: false, default: 'realistic', description: 'Image style' },
-      { name: 'size', type: 'string', required: false, default: '1024x1024', description: 'Image dimensions' },
-    ],
-    usageCount: 45,
-    enabled: true,
-    icon: 'Image',
-    codeSnippet: `async function generateImage({ prompt, style = 'realistic', size = '1024x1024' }) {
-  const [width, height] = size.split('x').map(Number);
-  return await imageModel.generate(prompt, { style, width, height });
-}`,
-    usageExample: 'generateImage({ prompt: "A futuristic city at sunset", style: "cyberpunk" })',
-  },
-  {
-    id: 'sk-6',
-    name: 'Email Sender',
-    description: 'Send emails with support for templates, attachments, and scheduling.',
-    platforms: ['Kimi', 'Claude', 'Sylva'],
-    category: 'Communication',
-    params: [
-      { name: 'to', type: 'string', required: true, description: 'Recipient email address' },
-      { name: 'subject', type: 'string', required: true, description: 'Email subject' },
-      { name: 'body', type: 'string', required: true, description: 'Email body content' },
-      { name: 'template', type: 'string', required: false, description: 'Template name to use' },
-    ],
-    usageCount: 123,
-    enabled: true,
-    icon: 'Mail',
-    codeSnippet: `async function sendEmail({ to, subject, body, template }) {
-  const email = template ? await renderTemplate(template, { to, subject, body }) : { to, subject, body };
-  return await emailService.send(email);
-}`,
-    usageExample: 'sendEmail({ to: "user@example.com", subject: "Welcome", body: "Hello!" })',
-  },
-  {
-    id: 'sk-7',
-    name: 'System Monitor',
-    description: 'Monitor system health, resource usage, and service status in real-time.',
-    platforms: ['Kimi', 'Claude', 'DeepSeek', 'Sylva'],
-    category: 'System',
-    params: [
-      { name: 'metric', type: 'string', required: true, description: 'Metric to monitor: cpu, memory, disk, network' },
-      { name: 'duration', type: 'number', required: false, default: 60, description: 'Monitoring duration in seconds' },
-    ],
-    usageCount: 78,
-    enabled: true,
-    icon: 'Shield',
-    codeSnippet: `async function monitorSystem({ metric, duration = 60 }) {
-  const monitor = new SystemMonitor();
-  return await monitor.collect(metric, { duration, interval: 1 });
-}`,
-    usageExample: 'monitorSystem({ metric: "cpu", duration: 120 })',
-  },
-  {
-    id: 'sk-8',
-    name: 'Workflow Engine',
-    description: 'Create and execute automated workflows with conditional logic and parallel execution.',
-    platforms: ['Kimi', 'Claude', 'Sylva'],
-    category: 'System',
-    params: [
-      { name: 'workflow_id', type: 'string', required: true, description: 'Workflow identifier' },
-      { name: 'inputs', type: 'object', required: false, description: 'Workflow input parameters' },
-      { name: 'async', type: 'boolean', required: false, default: false, description: 'Run asynchronously' },
-    ],
-    usageCount: 156,
-    enabled: true,
-    icon: 'Workflow',
-    codeSnippet: `async function runWorkflow({ workflow_id, inputs = {}, async = false }) {
-  const workflow = await loadWorkflow(workflow_id);
-  const runner = new WorkflowRunner(workflow);
-  return async ? runner.runAsync(inputs) : runner.run(inputs);
-}`,
-    usageExample: 'runWorkflow({ workflow_id: "data-pipeline", inputs: { source: "db" } })',
-  },
-  {
-    id: 'sk-9',
-    name: 'Document Parser',
-    description: 'Extract text and structured data from PDF, DOCX, and other document formats.',
-    platforms: ['Kimi', 'Claude', 'Gemini'],
-    category: 'File Operations',
-    params: [
-      { name: 'file_path', type: 'string', required: true, description: 'Path to the document file' },
-      { name: 'output_format', type: 'string', required: false, default: 'text', description: 'Output format: text, json, markdown' },
-    ],
-    usageCount: 34,
-    enabled: true,
-    icon: 'FileText',
-    codeSnippet: `async function parseDocument({ file_path, output_format = 'text' }) {
-  const parser = await DocumentParser.create(file_path);
-  return await parser.extract({ format: output_format });
-}`,
-    usageExample: 'parseDocument({ file_path: "/docs/report.pdf", output_format: "markdown" })',
-  },
-  {
-    id: 'sk-10',
-    name: 'Database Query',
-    description: 'Execute SQL queries and manage database connections. Supports multiple database types.',
-    platforms: ['Kimi', 'Claude', 'DeepSeek', 'Sylva'],
-    category: 'Data Analysis',
-    params: [
-      { name: 'query', type: 'string', required: true, description: 'SQL query string' },
-      { name: 'connection', type: 'string', required: true, description: 'Database connection string' },
-      { name: 'params', type: 'array', required: false, description: 'Query parameters' },
-    ],
-    usageCount: 189,
-    enabled: true,
-    icon: 'Database',
-    codeSnippet: `async function queryDatabase({ query, connection, params = [] }) {
-  const db = await Database.connect(connection);
-  return await db.query(query, params);
-}`,
-    usageExample: 'queryDatabase({ query: "SELECT * FROM users WHERE age > ?", connection: "postgres://...", params: [18] })',
-  },
-  {
-    id: 'sk-11',
-    name: 'Audio Transcription',
-    description: 'Convert audio files to text using speech recognition. Supports multiple languages.',
-    platforms: ['Kimi', 'Claude', 'Gemini'],
-    category: 'Custom',
-    params: [
-      { name: 'audio_path', type: 'string', required: true, description: 'Path to audio file' },
-      { name: 'language', type: 'string', required: false, default: 'auto', description: 'Audio language' },
-      { name: 'speaker_detection', type: 'boolean', required: false, default: false, description: 'Enable speaker detection' },
-    ],
-    usageCount: 23,
-    enabled: true,
-    icon: 'Music',
-    codeSnippet: `async function transcribeAudio({ audio_path, language = 'auto', speaker_detection = false }) {
-  const transcriber = new AudioTranscriber({ language, speaker_detection });
-  return await transcriber.process(audio_path);
-}`,
-    usageExample: 'transcribeAudio({ audio_path: "/meeting.mp3", speaker_detection: true })',
-  },
-  {
-    id: 'sk-12',
-    name: 'Video Analyzer',
-    description: 'Analyze video content for objects, scenes, and text. Generate summaries and timestamps.',
-    platforms: ['Kimi', 'Claude', 'Gemini'],
-    category: 'Custom',
-    params: [
-      { name: 'video_path', type: 'string', required: true, description: 'Path to video file' },
-      { name: 'analysis_type', type: 'string', required: false, default: 'summary', description: 'Analysis type' },
-    ],
-    usageCount: 12,
-    enabled: false,
-    icon: 'Video',
-    codeSnippet: `async function analyzeVideo({ video_path, analysis_type = 'summary' }) {
-  const analyzer = new VideoAnalyzer();
-  return await analyzer.analyze(video_path, { type: analysis_type });
-}`,
-    usageExample: 'analyzeVideo({ video_path: "/lecture.mp4", analysis_type: "chapters" })',
-  },
-]
-
 const PLATFORM_OPTIONS = ['All', 'Kimi', 'Claude', 'Ollama', 'DeepSeek', 'Gemini', 'Grok', 'Sylva']
 const CATEGORY_OPTIONS = ['All', 'Web Search', 'Code Execution', 'File Operations', 'Data Analysis', 'Image Generation', 'Communication', 'System', 'Custom']
 
@@ -312,6 +65,7 @@ const CATEGORY_OPTIONS = ['All', 'Web Search', 'Code Execution', 'File Operation
 export default function Skills() {
   const [skills, setSkills] = useState<Skill[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [platformFilter, setPlatformFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
@@ -323,10 +77,13 @@ export default function Skills() {
     async function load() {
       try {
         setLoading(true)
+        setError(null)
         const res = await fetchSkills()
-        setSkills(res.data?.length > 0 ? res.data : MOCK_SKILLS)
-      } catch (e) {
-        setSkills(MOCK_SKILLS)
+        const data = res.data || res
+        setSkills(Array.isArray(data) ? data : [])
+      } catch (e: any) {
+        setError(e?.message || '加载技能失败')
+        setSkills([])
       } finally {
         setLoading(false)
       }
@@ -434,10 +191,22 @@ export default function Skills() {
         </select>
       </div>
 
+      {/* Loading / Error */}
+      {loading && (
+        <div className="text-center py-16 text-[var(--sage-500)]">
+          <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin" />
+          <p>Loading...</p>
+        </div>
+      )}
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+
       {/* Skills Grid */}
-      {loading ? (
-        <div className="text-center py-16 text-[var(--sage-500)]">Loading...</div>
-      ) : filtered.length === 0 ? (
+      {!loading && !error && filtered.length === 0 ? (
         <div className="card text-center py-16">
           <Zap className="w-12 h-12 text-[var(--sage-400)] mx-auto mb-3" />
           <p className="text-[var(--sage-500)]">No skills found</p>

@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { MessageSquare, Clock, Trash2, Bot, Plus, Search, Filter, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { MessageSquare, Clock, Trash2, Bot, Plus, Search, Filter, X, AlertTriangle } from 'lucide-react'
+import { fetchAuthSessions } from '@/api/client'
 
 interface Session {
   id: string
@@ -14,15 +15,6 @@ interface Session {
   tags: string[]
 }
 
-const MOCK_SESSIONS: Session[] = [
-  { id: 'sess-1', name: '代码审查 PR#123', agentName: 'CodeReviewer', agentIcon: '🔍', messageCount: 45, tokenUsed: 12500, lastActivity: '2026-05-24 16:30', createdAt: '2026-05-24 10:00', status: 'active', tags: ['代码', '审查'] },
-  { id: 'sess-2', name: 'API 文档生成', agentName: 'DocWriter', agentIcon: '📝', messageCount: 12, tokenUsed: 3400, lastActivity: '2026-05-24 14:00', createdAt: '2026-05-24 13:30', status: 'active', tags: ['文档', 'API'] },
-  { id: 'sess-3', name: 'Q2 销售数据分析', agentName: 'DataAnalyst', agentIcon: '📊', messageCount: 89, tokenUsed: 28900, lastActivity: '2026-05-24 10:00', createdAt: '2026-05-24 08:00', status: 'closed', tags: ['数据', '分析'] },
-  { id: 'sess-4', name: '生产环境故障排查', agentName: 'Debugger', agentIcon: '🐛', messageCount: 23, tokenUsed: 7800, lastActivity: '2026-05-23 18:00', createdAt: '2026-05-23 15:00', status: 'closed', tags: ['运维', '紧急'] },
-  { id: 'sess-5', name: '产品需求讨论', agentName: 'ProductManager', agentIcon: '💡', messageCount: 56, tokenUsed: 15600, lastActivity: '2026-05-23 12:00', createdAt: '2026-05-23 09:00', status: 'archived', tags: ['产品', '需求'] },
-  { id: 'sess-6', name: '前端性能优化', agentName: 'FrontendExpert', agentIcon: '⚡', messageCount: 34, tokenUsed: 11200, lastActivity: '2026-05-22 16:00', createdAt: '2026-05-22 14:00', status: 'archived', tags: ['前端', '性能'] },
-]
-
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
   active: { color: '#10b981', label: '活跃' },
   closed: { color: '#6b7a5a', label: '已关闭' },
@@ -30,10 +22,40 @@ const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
 }
 
 export default function Sessions() {
-  const [sessions, setSessions] = useState<Session[]>(MOCK_SESSIONS)
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selected, setSelected] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchAuthSessions()
+      .then((data: any) => {
+        if (!cancelled) {
+          const list = (data?.data || []).map((s: any) => ({
+            id: s.id || 'unknown',
+            name: s.name || s.sessionName || `会话 ${(s.id || '').slice(-4)}`,
+            agentName: s.agentName || s.agent?.name || 'System',
+            agentIcon: s.agentIcon || '🤖',
+            messageCount: s.messageCount || s.messages || 0,
+            tokenUsed: s.tokenUsed || s.tokens || 0,
+            lastActivity: s.lastActivity || s.lastLogin || s.updatedAt || '-',
+            createdAt: s.createdAt || s.created_at || '-',
+            status: s.status || 'active',
+            tags: s.tags || [],
+          }))
+          setSessions(list)
+        }
+      })
+      .catch((err: any) => {
+        if (!cancelled) setError(err.message || '加载会话列表失败')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const filtered = sessions.filter((s) => {
     if (search && !s.name.toLowerCase().includes(search.toLowerCase()) && !s.agentName.toLowerCase().includes(search.toLowerCase())) return false
@@ -50,6 +72,21 @@ export default function Sessions() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center h-[calc(100vh-120px)]">
+          <div className="flex items-center gap-3 text-[var(--sage-500)]">
+            <div className="w-5 h-5 border-2 border-[var(--sage-300)] border-t-[var(--sage-500)] rounded-full animate-spin" />
+            <span className="text-sm">加载会话列表...</span>
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-6 h-6 text-[var(--sage-500)]" />
@@ -121,6 +158,11 @@ export default function Sessions() {
           </tbody>
         </table>
       </div>
+      {filtered.length === 0 && !loading && (
+        <div className="text-center text-sm text-[var(--sage-400)]">暂无数据</div>
+      )}
+        </>
+      )}
     </div>
   )
 }

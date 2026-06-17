@@ -5,6 +5,7 @@ import {
   ChevronDown, ChevronUp, Activity, User, FileText, Ban, RefreshCw
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { fetchSecurityLogs, fetchSecurityMetrics, fetchSecurityAudit } from '@/api/client';
 
 interface AuditLog {
   id: string;
@@ -42,35 +43,6 @@ interface AccessRule {
   scope: string;
 }
 
-const MOCK_LOGS: AuditLog[] = [
-  { id: 'log-001', timestamp: '2024-01-15T10:30:00Z', actor: 'admin', action: 'API_KEY_CREATED', target: 'sk-****-1234', targetType: 'api_key', status: 'success', details: '创建了 OpenAI API Key', ip: '192.168.1.5', userAgent: 'Mozilla/5.0' },
-  { id: 'log-002', timestamp: '2024-01-15T10:28:00Z', actor: 'Agent-Alpha', action: 'AGENT_EXECUTED', target: 'task-001', targetType: 'task', status: 'success', details: '执行了 IntentClassifier 任务', ip: '127.0.0.1' },
-  { id: 'log-003', timestamp: '2024-01-15T10:15:00Z', actor: 'dev', action: 'LOGIN_FAILED', target: 'dev@trg.local', targetType: 'user', status: 'failure', details: '密码错误，第 2 次尝试', ip: '203.45.67.89' },
-  { id: 'log-004', timestamp: '2024-01-15T09:50:00Z', actor: 'admin', action: 'WORKSPACE_DELETED', target: 'ws-old-001', targetType: 'workspace', status: 'warning', details: '删除了旧工作空间（包含 3 个Agent）' },
-  { id: 'log-005', timestamp: '2024-01-15T09:30:00Z', actor: 'Agent-Beta', action: 'LLM_API_CALLED', target: 'kimi-code', targetType: 'provider', status: 'success', details: '调用 Kimi Code API，消耗 1,240 tokens', ip: '127.0.0.1' },
-  { id: 'log-006', timestamp: '2024-01-15T08:45:00Z', actor: 'system', action: 'KEY_ROTATION_SCHEDULED', target: 'key-001', targetType: 'api_key', status: 'warning', details: 'API Key 90天轮换提醒', ip: 'internal' },
-  { id: 'log-007', timestamp: '2024-01-14T22:10:00Z', actor: 'unknown', action: 'UNAUTHORIZED_ACCESS', target: '/api/admin', targetType: 'endpoint', status: 'failure', details: '尝试访问管理员接口被拒绝', ip: '45.123.45.67' },
-  { id: 'log-008', timestamp: '2024-01-14T16:30:00Z', actor: 'admin', action: 'OLLAMA_INSTANCE_ADDED', target: 'oll-local-002', targetType: 'ollama', status: 'success', details: '添加本地 Ollama 实例 http://192.168.1.10:11434' },
-];
-
-const MOCK_KEYS: ApiKeyAudit[] = [
-  { id: 'key-001', provider: 'openai', providerName: 'OpenAI', keyShort: 'sk-****-1234', createdAt: '2024-01-01T00:00:00Z', lastUsedAt: '2024-01-15T10:28:00Z', usageCount: 245, isActive: true, isValid: true, riskLevel: 'low', rotationDue: false },
-  { id: 'key-002', provider: 'kimi-code', providerName: 'Kimi Code', keyShort: 'sk-****-5678', createdAt: '2023-11-20T00:00:00Z', lastUsedAt: '2024-01-15T10:30:00Z', usageCount: 892, isActive: true, isValid: true, riskLevel: 'medium', rotationDue: true },
-  { id: 'key-003', provider: 'anthropic', providerName: 'Anthropic', keyShort: 'sk-****-9abc', createdAt: '2024-01-10T00:00:00Z', lastUsedAt: null, usageCount: 0, isActive: false, isValid: null, riskLevel: 'low', rotationDue: false },
-  { id: 'key-004', provider: 'deepseek', providerName: 'DeepSeek', keyShort: 'sk-****-def0', createdAt: '2023-10-05T00:00:00Z', lastUsedAt: '2024-01-14T08:00:00Z', usageCount: 1560, isActive: true, isValid: true, riskLevel: 'high', rotationDue: true },
-];
-
-const MOCK_RULES: AccessRule[] = [
-  { id: 'rule-001', role: 'admin', resource: '*', action: '*', allowed: true, scope: 'global' },
-  { id: 'rule-002', role: 'developer', resource: 'workspace', action: 'read,write,delete', allowed: true, scope: 'owned' },
-  { id: 'rule-003', role: 'developer', resource: 'api_key', action: 'read,write', allowed: true, scope: 'own' },
-  { id: 'rule-004', role: 'developer', resource: 'agent', action: 'read,write,execute', allowed: true, scope: 'owned' },
-  { id: 'rule-005', role: 'viewer', resource: 'workspace', action: 'read', allowed: true, scope: 'assigned' },
-  { id: 'rule-006', role: 'viewer', resource: 'api_key', action: 'read', allowed: false, scope: 'own' },
-  { id: 'rule-007', role: 'agent', resource: 'llm_api', action: 'call', allowed: true, scope: 'approved' },
-  { id: 'rule-008', role: 'agent', resource: 'knowledge_base', action: 'read', allowed: true, scope: 'assigned' },
-];
-
 const STATUS_ICON = {
   success: <ShieldCheck className="w-4 h-4 text-green-400" />,
   failure: <ShieldAlert className="w-4 h-4 text-red-400" />,
@@ -90,14 +62,46 @@ const RISK_COLOR = {
 };
 
 export default function SecurityCenter() {
-  const [logs, setLogs] = useState<AuditLog[]>(MOCK_LOGS);
-  const [keys] = useState<ApiKeyAudit[]>(MOCK_KEYS);
-  const [rules] = useState<AccessRule[]>(MOCK_RULES);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [keys, setKeys] = useState<ApiKeyAudit[]>([]);
+  const [rules, setRules] = useState<AccessRule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'logs' | 'keys' | 'rules'>('logs');
   const [showKeyDetails, setShowKeyDetails] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [logsRes, metricsRes, auditRes] = await Promise.allSettled([
+          fetchSecurityLogs(),
+          fetchSecurityMetrics(),
+          fetchSecurityAudit(),
+        ]);
+        if (logsRes.status === 'fulfilled') {
+          setLogs(logsRes.value?.data || logsRes.value || []);
+        }
+        if (metricsRes.status === 'fulfilled') {
+          const data = metricsRes.value?.data || metricsRes.value || {};
+          setKeys(data.keys || []);
+        }
+        if (auditRes.status === 'fulfilled') {
+          const data = auditRes.value?.data || auditRes.value || {};
+          setRules(data.rules || []);
+        }
+      } catch (e: any) {
+        setError(e.message || '加载安全数据失败');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   const filteredLogs = logs.filter(l => {
     const matchesSearch = l.actor.toLowerCase().includes(searchQuery.toLowerCase()) ||

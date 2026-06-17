@@ -31,18 +31,10 @@ const CHANNEL_TYPES = [
   { value: 'webhook', label: 'Webhook', desc: '自定义 Webhook', icon: Globe, color: '#c97b84' },
 ]
 
-const MOCK_CHANNELS: Channel[] = [
-  { id: 'ch-1', name: 'WebChat 主站', type: 'webchat', config: '{"theme":"light"}', is_active: true, agent_name: '客服 Agent', created_at: '2026-05-01', last_message: '刚刚', message_count: 4523, connected_users: 12 },
-  { id: 'ch-2', name: 'Telegram Bot', type: 'telegram', config: '{"bot_token":"***"}', is_active: true, agent_name: 'Telegram Agent', created_at: '2026-05-02', last_message: '2分钟前', message_count: 1876, connected_users: 89 },
-  { id: 'ch-3', name: 'Discord 服务器', type: 'discord', config: '{"guild_id":"***"}', is_active: false, agent_name: 'Discord Agent', created_at: '2026-05-03', last_message: '1小时前', message_count: 3421, connected_users: 0 },
-  { id: 'ch-4', name: 'Slack 工作区', type: 'slack', config: '{"workspace":"sylva"}', is_active: true, agent_name: 'Slack Agent', created_at: '2026-05-04', last_message: '5分钟前', message_count: 234, connected_users: 15 },
-  { id: 'ch-5', name: '微信服务号', type: 'wechat', config: '{"app_id":"***"}', is_active: true, agent_name: 'WeChat Agent', created_at: '2026-05-05', last_message: '10分钟前', message_count: 5678, connected_users: 234 },
-  { id: 'ch-6', name: '系统告警', type: 'webhook', config: '{"url":"https://hooks.example.com/alerts"}', is_active: true, agent_name: 'Monitor Agent', created_at: '2026-05-06', last_message: '30秒前', message_count: 12340, connected_users: 1 },
-]
-
 export default function Channels() {
   const [channels, setChannels] = useState<Channel[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', type: 'webchat', config: '{}' })
   const [search, setSearch] = useState('')
@@ -51,17 +43,17 @@ export default function Channels() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetchChannels()
-        setChannels(res.data?.length > 0 ? res.data : MOCK_CHANNELS)
-      } catch (e) {
-        setChannels(MOCK_CHANNELS)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
+    let cancelled = false
+    setLoading(true)
+    fetchChannels()
+      .then((data: any) => {
+        if (!cancelled) setChannels(data?.data || [])
+      })
+      .catch((err: any) => {
+        if (!cancelled) setError(err.message || '加载频道列表失败')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [])
 
   const handleSubmit = async () => {
@@ -123,6 +115,12 @@ export default function Channels() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-6 h-6 text-[var(--sage-500)]" />
@@ -272,10 +270,8 @@ export default function Channels() {
         })}
       </div>
 
-      {filtered.length === 0 && (
-        <div className="card p-8 text-center text-sm text-[var(--sage-400)]">
-          没有匹配的频道
-        </div>
+      {filtered.length === 0 && !loading && (
+        <div className="text-center text-sm text-[var(--sage-400)]">暂无数据</div>
       )}
 
       {/* Modal */}

@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Shield, Users, Key, Database, Globe, Activity, Trash2, Plus, Search, Filter, ChevronDown, ChevronRight, Edit3, Lock, Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Shield, Users, Key, Database, Globe, Activity, Trash2, Plus, Search, Filter, ChevronDown, ChevronRight, Edit3, Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import { fetchAuthSessions } from '@/api/client'
 
 interface User {
   id: string
@@ -13,14 +14,6 @@ interface User {
   avatar: string
 }
 
-const MOCK_USERS: User[] = [
-  { id: 'u-1', name: 'Admin', email: 'admin@sylva.local', role: 'admin', status: 'active', createdAt: '2026-05-01', lastLogin: '刚刚', apiCalls: 45231, avatar: '👤' },
-  { id: 'u-2', name: 'Developer', email: 'dev@sylva.local', role: 'user', status: 'active', createdAt: '2026-05-02', lastLogin: '10分钟前', apiCalls: 18765, avatar: '💻' },
-  { id: 'u-3', name: 'Guest', email: 'guest@sylva.local', role: 'viewer', status: 'inactive', createdAt: '2026-05-03', lastLogin: '3天前', apiCalls: 234, avatar: '👀' },
-  { id: 'u-4', name: 'Data Analyst', email: 'analyst@sylva.local', role: 'user', status: 'active', createdAt: '2026-05-04', lastLogin: '1小时前', apiCalls: 9876, avatar: '📊' },
-  { id: 'u-5', name: 'Ops Engineer', email: 'ops@sylva.local', role: 'user', status: 'active', createdAt: '2026-05-05', lastLogin: '30分钟前', apiCalls: 23456, avatar: '⚙️' },
-]
-
 const ROLE_CONFIG: Record<string, { color: string; label: string }> = {
   admin: { color: '#ef4444', label: '管理员' },
   user: { color: '#3b82f6', label: '用户' },
@@ -28,11 +21,40 @@ const ROLE_CONFIG: Record<string, { color: string; label: string }> = {
 }
 
 export default function Admin() {
-  const [users, setUsers] = useState<User[]>(MOCK_USERS)
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', role: 'user' as const })
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchAuthSessions()
+      .then((data: any) => {
+        if (!cancelled) {
+          const list = (data?.data || []).map((s: any) => ({
+            id: s.id || s.userId || 'unknown',
+            name: s.user?.name || s.user?.email || s.name || '用户',
+            email: s.user?.email || s.email || '-',
+            role: s.user?.role || s.role || 'user',
+            status: s.status || 'active',
+            createdAt: s.createdAt || s.created_at || new Date().toISOString().split('T')[0],
+            lastLogin: s.lastLogin || s.last_login || '从未',
+            apiCalls: s.apiCalls || s.api_calls || 0,
+            avatar: s.user?.avatar || s.avatar || '👤',
+          }))
+          setUsers(list)
+        }
+      })
+      .catch((err: any) => {
+        if (!cancelled) setError(err.message || '加载用户列表失败')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const handleDelete = (id: string) => {
     setUsers(users.filter((u) => u.id !== id))
@@ -66,6 +88,21 @@ export default function Admin() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center h-[calc(100vh-120px)]">
+          <div className="flex items-center gap-3 text-[var(--sage-500)]">
+            <div className="w-5 h-5 border-2 border-[var(--sage-300)] border-t-[var(--sage-500)] rounded-full animate-spin" />
+            <span className="text-sm">加载用户列表...</span>
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Shield className="w-6 h-6 text-[var(--sage-500)]" />
@@ -160,6 +197,9 @@ export default function Admin() {
           </tbody>
         </table>
       </div>
+      {filtered.length === 0 && !loading && (
+        <div className="text-center text-sm text-[var(--sage-400)]">暂无数据</div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
@@ -181,6 +221,8 @@ export default function Admin() {
           </div>
         </div>
       )}
+    </>
+  )}
     </div>
   )
 }

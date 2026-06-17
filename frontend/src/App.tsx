@@ -70,6 +70,8 @@ const DialogCenter           = lazy(() => import('@/pages/DialogCenter'))
 const UnifiedGUI             = lazy(() => import('@/pages/UnifiedGUI'))
 const Ecosystem3D            = lazy(() => import('@/pages/Ecosystem3D'))
 const ProtocolAdmin          = lazy(() => import('@/pages/ProtocolAdmin'))
+const HandoffPage            = lazy(() => import('@/pages/HandoffPage'))
+const IntegrationsPage       = lazy(() => import('@/pages/IntegrationsPage'))
 
 /* ── Suspense fallback ───────────────────────────────────────── */
 
@@ -160,8 +162,6 @@ export default function App() {
             <Route path="/ai-search" element={<AiSearchPage />} />
             <Route path="/events" element={<EventsMonitorPage />} />
             <Route path="/events-page" element={<EventsPage />} />
-            <Route path="/scheduler" element={<TaskSchedulerPage />} />
-            <Route path="/scheduler-page" element={<SchedulerPage />} />
             <Route path="/tasks-deep" element={<TasksDeepPage />} />
             <Route path="/backups" element={<BackupManagerPage />} />
             <Route path="/processes" element={<ProcessMonitorPage />} />
@@ -182,6 +182,8 @@ export default function App() {
             <Route path="/unified" element={<UnifiedGUI />} />
             <Route path="/ecosystem" element={<Ecosystem3D />} />
             <Route path="/protocol-admin" element={<ProtocolAdmin />} />
+            <Route path="/handoff" element={<HandoffPage />} />
+            <Route path="/integrations" element={<IntegrationsPage />} />
             <Route path="*" element={<StubPage />} />
           </Routes>
         </Suspense>

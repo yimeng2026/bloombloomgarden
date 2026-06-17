@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../components/Sidebar';
+import { aiSearch } from '@/api/client';
 
 interface SearchResult {
   id: string;
@@ -18,59 +19,6 @@ interface SearchFilters {
   minScore: number;
 }
 
-const MOCK_RESULTS: SearchResult[] = [
-  {
-    id: '1',
-    title: '3DACP 协议设计规范',
-    content: '3DACP（3D Axis Connection Protocol）是千界花园的核心通信协议，支持X/Y/Z三轴自由连接。协议消息格式包含axisX/axisY/axisZ三维坐标定位...',
-    source: '知识库 / 架构文档',
-    sourceType: 'knowledge_base',
-    relevanceScore: 0.96,
-    timestamp: '2024-05-20T10:30:00Z',
-    metadata: { kbId: 'kb-001', docId: 'doc-42' }
-  },
-  {
-    id: '2',
-    title: 'AgentZero 干预机制说明',
-    content: 'AgentZero是系统内置的超级管理员Agent，支持4级干预权限：observe（观察）、suggest（建议）、override（覆盖）、shutdown（关闭）...',
-    source: 'Agent记忆 / AgentZero',
-    sourceType: 'agent_memory',
-    relevanceScore: 0.89,
-    timestamp: '2024-05-22T14:15:00Z',
-    metadata: { agentId: 'agent-zero', memoryId: 'mem-108' }
-  },
-  {
-    id: '3',
-    title: 'Kimi Code API 集成笔记',
-    content: 'Kimi Code API需要特殊User-Agent头：claude-code/0.7.8。响应格式包含content和reasoning_content双字段，reasoning_content包含思维链内容...',
-    source: '文档 / API集成',
-    sourceType: 'document',
-    relevanceScore: 0.87,
-    timestamp: '2024-05-25T09:00:00Z',
-    metadata: { fileName: 'kimi-integration.md' }
-  },
-  {
-    id: '4',
-    title: '群聊会话 #project-alpha',
-    content: '用户：我们需要在下周完成3DACP的负载均衡优化。SYLVA：已经设计了KimiClusterOrchestrator，支持活动模式检测和动态参数优化...',
-    source: '会话 / project-alpha',
-    sourceType: 'conversation',
-    relevanceScore: 0.82,
-    timestamp: '2024-05-28T16:45:00Z',
-    metadata: { sessionId: 'sess-331', participants: 4 }
-  },
-  {
-    id: '5',
-    title: 'UnifiedLLMAdapter 设计文档',
-    content: '统一LLM适配器支持10大Provider：OpenAI、Azure、Anthropic、DeepSeek、Moonshot、Kimi Code、Qwen、Gemini、GLM、OpenRouter...',
-    source: '知识库 / 后端架构',
-    sourceType: 'knowledge_base',
-    relevanceScore: 0.95,
-    timestamp: '2024-05-26T11:20:00Z',
-    metadata: { kbId: 'kb-002', docId: 'doc-57' }
-  }
-];
-
 const SOURCE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   knowledge_base: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', label: '知识库' },
   agent_memory: { bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Agent记忆' },
@@ -83,6 +31,7 @@ export default function AiSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [filters, setFilters] = useState<SearchFilters>({
     sourceTypes: [],
     dateRange: 'all',
@@ -102,59 +51,24 @@ export default function AiSearch() {
     setIsSearching(true);
     setHasSearched(true);
     setSelectedResult(null);
+    setSearchError(null);
 
-    const performSearch = async (q: string, filters: SearchFilters) => {
-    setIsSearching(true);
     try {
-      const params = new URLSearchParams({
-        query: q,
-        minScore: filters.minScore.toString(),
-        dateRange: filters.dateRange,
-        sources: filters.sourceTypes.join(',')
-      });
-      const res = await fetch(`/api/knowledge/search?${params.toString()}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data.data?.results) {
-        setResults(data.data.results);
-        setIsSearching(false);
-        return;
+      const data = await aiSearch(query);
+      const searchResults = data?.data?.results || data?.data || data || [];
+      let filtered = Array.isArray(searchResults) ? searchResults : [];
+      if (filters.sourceTypes.length > 0) {
+        filtered = filtered.filter((r: SearchResult) => filters.sourceTypes.includes(r.sourceType));
       }
-    } catch (e) {
-      console.warn('后端搜索不可用，使用本地Mock:', e);
+      filtered = filtered.filter((r: SearchResult) => r.relevanceScore >= filters.minScore);
+      filtered.sort((a: SearchResult, b: SearchResult) => b.relevanceScore - a.relevanceScore);
+      setResults(filtered);
+    } catch (e: any) {
+      setSearchError(e.message || '搜索失败');
+      setResults([]);
+    } finally {
+      setIsSearching(false);
     }
-    // 降级：本地Mock过滤
-    let filtered = MOCK_RESULTS.filter(r =>
-      r.title.toLowerCase().includes(q.toLowerCase()) ||
-      r.content.toLowerCase().includes(q.toLowerCase())
-    );
-    if (filters.sourceTypes.length > 0) {
-      filtered = filtered.filter(r => filters.sourceTypes.includes(r.sourceType));
-    }
-    filtered = filtered.filter(r => r.relevanceScore >= filters.minScore);
-    setResults(filtered);
-    setIsSearching(false);
-  };
-    // const res = await fetch('/api/knowledge/search', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ query, filters, topK: 20 })
-    // });
-    // const data = await res.json();
-
-    await new Promise(r => setTimeout(r, 800));
-
-    let filtered = MOCK_RESULTS.filter(r => {
-      if (filters.sourceTypes.length > 0 && !filters.sourceTypes.includes(r.sourceType)) return false;
-      if (r.relevanceScore < filters.minScore) return false;
-      return r.title.includes(query) || r.content.includes(query);
-    });
-
-    // 模拟相关性排序
-    filtered.sort((a, b) => b.relevanceScore - a.relevanceScore);
-
-    setResults(filtered);
-    setIsSearching(false);
 
     if (!searchHistory.includes(query)) {
       setSearchHistory(prev => [query, ...prev].slice(0, 10));
@@ -261,6 +175,11 @@ export default function AiSearch() {
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <div className="w-8 h-8 border-2 border-gray-700 border-t-[var(--sage-500)] rounded-full animate-spin mb-4" />
                 <p>正在检索向量数据库...</p>
+              </div>
+            ) : searchError ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <div className="text-6xl mb-4 opacity-50">⚠️</div>
+                <p className="text-lg text-red-400">{searchError}</p>
               </div>
             ) : results.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500">

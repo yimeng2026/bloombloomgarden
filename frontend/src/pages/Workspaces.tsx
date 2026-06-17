@@ -6,6 +6,7 @@ import {
   Lock, Globe, Zap
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import { fetchWorkspaces } from '../api/client';
 
 interface Workspace {
   id: string;
@@ -41,83 +42,14 @@ const COLORS = [
   { bg: 'bg-teal-500/20', text: 'text-teal-400', border: 'border-teal-500/30' },
 ];
 
-const MOCK_WORKSPACES: Workspace[] = [
-  {
-    id: 'ws-001',
-    name: '千界花园核心开发',
-    description: '主项目开发工作区 — 3DACP架构、Agent系统、前端工程',
-    color: '0',
-    icon: 'Zap',
-    members: 4,
-    agents: 6,
-    tasks: 12,
-    lastActivity: '2024-01-15T10:30:00Z',
-    isStarred: true,
-    isPublic: false,
-    owner: 'admin',
-    tags: ['核心', '开发'],
-  },
-  {
-    id: 'ws-002',
-    name: 'AI 模型评测',
-    description: '多模型对比测试、Benchmark 自动化评测',
-    color: '1',
-    icon: 'Activity',
-    members: 3,
-    agents: 4,
-    tasks: 8,
-    lastActivity: '2024-01-14T16:45:00Z',
-    isStarred: false,
-    isPublic: true,
-    owner: 'dev',
-    tags: ['评测', 'AI'],
-  },
-  {
-    id: 'ws-003',
-    name: '知识库构建',
-    description: '文档索引、向量数据库管理、RAG 优化',
-    color: '2',
-    icon: 'Folder',
-    members: 2,
-    agents: 3,
-    tasks: 5,
-    lastActivity: '2024-01-13T09:20:00Z',
-    isStarred: true,
-    isPublic: false,
-    owner: 'admin',
-    tags: ['知识库', 'RAG'],
-  },
-  {
-    id: 'ws-004',
-    name: '前端 UI 组件库',
-    description: 'React 组件开发、Storybook 文档、设计规范',
-    color: '5',
-    icon: 'Layout',
-    members: 2,
-    agents: 2,
-    tasks: 6,
-    lastActivity: '2024-01-12T14:10:00Z',
-    isStarred: false,
-    isPublic: true,
-    owner: 'dev',
-    tags: ['前端', 'UI'],
-  },
-];
-
-const MOCK_ACTIVITIES: ActivityLog[] = [
-  { id: 'act-001', workspaceId: 'ws-001', action: '任务完成', actor: 'Agent-Alpha', timestamp: '2024-01-15T10:30:00Z', details: '完成了 3DACP 消息格式设计文档' },
-  { id: 'act-002', workspaceId: 'ws-001', action: '新任务', actor: 'admin', timestamp: '2024-01-15T09:15:00Z', details: '创建了 "IntentClassifier 实现" 任务' },
-  { id: 'act-003', workspaceId: 'ws-002', action: '模型测试', actor: 'Agent-Beta', timestamp: '2024-01-14T16:45:00Z', details: 'Kimi Code API 连通性测试通过' },
-  { id: 'act-004', workspaceId: 'ws-003', action: '文档上传', actor: 'dev', timestamp: '2024-01-13T09:20:00Z', details: '上传了 15 份技术文档到知识库' },
-];
-
 export default function Workspaces() {
   const navigate = useNavigate();
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(MOCK_WORKSPACES);
-  const [activities] = useState<ActivityLog[]>(MOCK_ACTIVITIES);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   // Create form
@@ -128,11 +60,35 @@ export default function Workspaces() {
 
   // Load from API
   useEffect(() => {
-    fetch('/api/workspaces')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.success) setWorkspaces(data.data); })
-      .catch(() => {});
-  }, []);
+    let cancelled = false
+    setLoading(true)
+    fetchWorkspaces()
+      .then((data: any) => {
+        if (!cancelled) {
+          const list = (data?.data || []).map((w: any) => ({
+            id: w.id,
+            name: w.name,
+            description: w.description || '无描述',
+            color: w.color || '0',
+            icon: w.icon || 'Folder',
+            members: w.members || 0,
+            agents: w.agents || 0,
+            tasks: w.tasks || 0,
+            lastActivity: w.lastActivity || w.last_activity || new Date().toISOString(),
+            isStarred: w.isStarred || false,
+            isPublic: w.isPublic || false,
+            owner: w.owner || 'unknown',
+            tags: w.tags || [],
+          }))
+          setWorkspaces(list)
+        }
+      })
+      .catch((err: any) => {
+        if (!cancelled) setError(err.message || '加载工作空间失败')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const filtered = workspaces.filter(w =>
     w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -143,23 +99,23 @@ export default function Workspaces() {
   const toggleStar = async (id: string) => {
     try {
       await fetch(`/api/workspaces/${id}/star`, { method: 'PATCH' });
-    } catch {
-      // ignore
+      setWorkspaces(prev => prev.map(w =>
+        w.id === id ? { ...w, isStarred: !w.isStarred } : w
+      ));
+    } catch (err: any) {
+      setError('收藏操作失败: ' + (err.message || '网络错误'));
     }
-    setWorkspaces(prev => prev.map(w =>
-      w.id === id ? { ...w, isStarred: !w.isStarred } : w
-    ));
   };
 
   const deleteWorkspace = async (id: string) => {
     if (!confirm('确定删除此工作空间？此操作不可恢复。')) return;
     try {
       await fetch(`/api/workspaces/${id}`, { method: 'DELETE' });
-    } catch {
-      // ignore
+      setWorkspaces(prev => prev.filter(w => w.id !== id));
+      setSuccess('工作空间已删除');
+    } catch (err: any) {
+      setError('删除失败: ' + (err.message || '网络错误'));
     }
-    setWorkspaces(prev => prev.filter(w => w.id !== id));
-    setSuccess('工作空间已删除');
   };
 
   const createWorkspace = async (e: React.FormEvent) => {
@@ -195,19 +151,19 @@ export default function Workspaces() {
         } else {
           setWorkspaces(prev => [ws, ...prev]);
         }
+        setNewName('');
+        setNewDesc('');
+        setNewColor('0');
+        setNewPublic(false);
+        setShowCreate(false);
+        setSuccess('工作空间创建成功');
       } else {
-        setWorkspaces(prev => [ws, ...prev]);
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || '创建失败');
       }
-    } catch {
-      setWorkspaces(prev => [ws, ...prev]);
+    } catch (err: any) {
+      setError('创建失败: ' + (err.message || '网络错误'));
     }
-
-    setNewName('');
-    setNewDesc('');
-    setNewColor('0');
-    setNewPublic(false);
-    setShowCreate(false);
-    setSuccess('工作空间创建成功');
   };
 
   const enterWorkspace = (id: string) => {
@@ -249,6 +205,15 @@ export default function Workspaces() {
         {success && (
           <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2 text-green-400 text-sm">
             <CheckCircle className="w-4 h-4" /> {success}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-3 text-gray-500">
+              <div className="w-5 h-5 border-2 border-gray-700 border-t-gray-500 rounded-full animate-spin" />
+              <span className="text-sm">加载工作空间...</span>
+            </div>
           </div>
         )}
 
@@ -465,10 +430,9 @@ export default function Workspaces() {
               </div>
             )}
 
-            {filtered.length === 0 && (
-              <div className="text-center py-12 text-gray-600">
-                <Folder className="w-12 h-12 mx-auto mb-3 text-gray-700" />
-                <p>未找到匹配的工作空间</p>
+            {filtered.length === 0 && !loading && (
+              <div className="text-center text-sm text-gray-400">
+                暂无数据
               </div>
             )}
           </div>

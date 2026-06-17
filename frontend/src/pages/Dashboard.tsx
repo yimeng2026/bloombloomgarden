@@ -17,30 +17,6 @@ interface StatCard {
   color: string
 }
 
-const MOCK_STATS: StatCard[] = [
-  { label: '活跃智能体', value: '12', change: '+3', trend: 'up', icon: Bot, color: '#10b981' },
-  { label: '今日任务', value: '234', change: '+12%', trend: 'up', icon: Layers, color: '#3b82f6' },
-  { label: 'API调用', value: '15.2K', change: '+8%', trend: 'up', icon: Zap, color: '#f59e0b' },
-  { label: '平均响应', value: '145ms', change: '-12ms', trend: 'up', icon: Clock, color: '#8b5cf6' },
-]
-
-const MOCK_ACTIVITIES = [
-  { id: 1, type: 'agent', title: 'Agent-7 完成代码审查', time: '2分钟前', status: 'success' },
-  { id: 2, type: 'task', title: '数据备份任务完成', time: '15分钟前', status: 'success' },
-  { id: 3, type: 'alert', title: 'API响应时间超过阈值', time: '32分钟前', status: 'warning' },
-  { id: 4, type: 'agent', title: 'Agent-3 启动新会话', time: '1小时前', status: 'neutral' },
-  { id: 5, type: 'task', title: '周报生成任务失败', time: '2小时前', status: 'error' },
-]
-
-const MOCK_SERVICES = [
-  { name: 'API Server', status: 'running', uptime: '15d 3h', load: 32 },
-  { name: 'Frontend', status: 'running', uptime: '15d 3h', load: 18 },
-  { name: 'Database', status: 'running', uptime: '15d 3h', load: 45 },
-  { name: 'Redis', status: 'running', uptime: '15d 3h', load: 12 },
-  { name: 'Ollama', status: 'running', uptime: '5d 12h', load: 78 },
-  { name: 'Agent Zero', status: 'idle', uptime: '2d 8h', load: 5 },
-]
-
 interface AgentOption {
   id: string
   name: string
@@ -49,15 +25,21 @@ interface AgentOption {
 }
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<StatCard[]>(MOCK_STATS)
+  const [stats, setStats] = useState<StatCard[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [agents, setAgents] = useState<AgentOption[]>([])
   const [selectedAgentId, setSelectedAgentId] = useState<string>('')
   const [selectedAgent, setSelectedAgent] = useState<AgentOption | null>(null)
+  const [activities, setActivities] = useState<any[]>([])
+  const [services, setServices] = useState<any[]>([])
+  const [activitiesLoading, setActivitiesLoading] = useState(true)
+  const [servicesLoading, setServicesLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
       setLoading(true)
+      setError(null)
       try {
         const [agentsRes, tasks, platforms, channels, skills, monitor] = await Promise.allSettled([
           fetchAgents(),
@@ -68,7 +50,12 @@ export default function Dashboard() {
           fetchMonitorData(),
         ])
 
-        const newStats = [...MOCK_STATS]
+        const newStats: StatCard[] = [
+          { label: '活跃智能体', value: '0', change: '+0', trend: 'up', icon: Bot, color: '#10b981' },
+          { label: '今日任务', value: '0', change: '+0%', trend: 'up', icon: Layers, color: '#3b82f6' },
+          { label: 'API调用', value: '0', change: '+0%', trend: 'up', icon: Zap, color: '#f59e0b' },
+          { label: '平均响应', value: '0', change: '-0ms', trend: 'up', icon: Clock, color: '#8b5cf6' },
+        ]
 
         if (agentsRes.status === 'fulfilled' && agentsRes.value?.data?.length > 0) {
           newStats[0] = { ...newStats[0], value: agentsRes.value.data.length.toString() }
@@ -94,9 +81,18 @@ export default function Dashboard() {
           newStats[3] = { ...newStats[3], value: channels.value.data.length.toString() }
         }
 
+        if (monitor.status === 'fulfilled' && monitor.value?.data?.activities) {
+          setActivities(monitor.value.data.activities)
+          setActivitiesLoading(false)
+        }
+        if (monitor.status === 'fulfilled' && monitor.value?.data?.services) {
+          setServices(monitor.value.data.services)
+          setServicesLoading(false)
+        }
+
         setStats(newStats)
-      } catch (e) {
-        // Keep mock data on error
+      } catch (e: any) {
+        setError(e.message || '加载仪表盘数据失败')
       } finally {
         setLoading(false)
       }
@@ -207,7 +203,12 @@ export default function Dashboard() {
             </button>
           </div>
           <div className="divide-y" style={{ borderColor: 'var(--sage-100)' }}>
-            {MOCK_ACTIVITIES.map((activity) => (
+            {activitiesLoading ? (
+              <div className="text-center text-sm text-[var(--sage-400)] py-4">加载中...</div>
+            ) : activities.length === 0 ? (
+              <div className="text-center text-sm text-[var(--sage-400)] py-4">暂无数据</div>
+            ) : (
+              activities.map((activity) => (
               <div key={activity.id} className="flex items-center gap-3 px-4 py-3">
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
@@ -237,7 +238,7 @@ export default function Dashboard() {
                   <p className="text-[10px] text-[var(--sage-400)]">{activity.time}</p>
                 </div>
               </div>
-            ))}
+            )))}
           </div>
         </div>
 
@@ -248,7 +249,12 @@ export default function Dashboard() {
             <h2 className="font-semibold text-sm text-[var(--sage-800)]">服务状态</h2>
           </div>
           <div className="divide-y" style={{ borderColor: 'var(--sage-100)' }}>
-            {MOCK_SERVICES.map((service) => (
+            {servicesLoading ? (
+              <div className="text-center text-sm text-[var(--sage-400)] py-4">加载中...</div>
+            ) : services.length === 0 ? (
+              <div className="text-center text-sm text-[var(--sage-400)] py-4">暂无数据</div>
+            ) : (
+              services.map((service) => (
               <div key={service.name} className="px-4 py-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-[var(--sage-800)]">{service.name}</span>
@@ -277,7 +283,7 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
-            ))}
+            )))}
           </div>
         </div>
       </div>

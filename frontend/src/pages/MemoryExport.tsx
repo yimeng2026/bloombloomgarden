@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Download, FileJson, FileText, FileSpreadsheet, CheckCircle, Clock,
   Plus, Trash2, Filter, Search, Eye, Copy, Check, Archive, Calendar,
-  Database, Layers, Tag, ChevronDown, X, Play, Pause,
+  Database, Layers, Tag, ChevronDown, X, Play, Pause, AlertTriangle,
+  Loader2,
 } from 'lucide-react'
 
 interface ExportJob {
@@ -18,16 +19,6 @@ interface ExportJob {
   tags: string[]
   description: string
 }
-
-const MOCK_JOBS: ExportJob[] = [
-  { id: 'exp-1', name: '记忆全量导出', format: 'json', scope: 'full', status: 'completed', size: '2.3 MB', itemCount: 12456, createdAt: '2026-05-24 10:00', completedAt: '2026-05-24 10:05', tags: ['备份', '全量'], description: '导出所有记忆数据，包括节点、边和元数据' },
-  { id: 'exp-2', name: '会话记录导出', format: 'csv', scope: 'timerange', status: 'running', size: '156 KB', itemCount: 234, createdAt: '2026-05-25 14:00', tags: ['会话', 'CSV'], description: '导出最近7天的会话记录' },
-  { id: 'exp-3', name: '知识库导出', format: 'markdown', scope: 'partial', status: 'pending', createdAt: '2026-05-25 16:00', tags: ['知识库'], description: '导出知识库中的文档和笔记' },
-  { id: 'exp-4', name: 'Agent 配置备份', format: 'json', scope: 'full', status: 'completed', size: '45 KB', itemCount: 12, createdAt: '2026-05-23 09:00', completedAt: '2026-05-23 09:01', tags: ['配置', '备份'], description: '导出所有 Agent 的配置文件和参数' },
-  { id: 'exp-5', name: '工作流日志导出', format: 'csv', scope: 'timerange', status: 'failed', createdAt: '2026-05-22 18:00', tags: ['工作流', '日志'], description: '导出工作流执行日志和统计信息' },
-  { id: 'exp-6', name: '系统状态报告', format: 'pdf', scope: 'partial', status: 'completed', size: '1.2 MB', itemCount: 1, createdAt: '2026-05-21 12:00', completedAt: '2026-05-21 12:03', tags: ['报告', '系统'], description: '生成系统状态和性能报告' },
-  { id: 'exp-7', name: '记忆图谱导出', format: 'xml', scope: 'full', status: 'paused', size: '890 KB', itemCount: 5678, createdAt: '2026-05-20 08:00', tags: ['图谱', 'GraphML'], description: '导出记忆图谱为 GraphML 格式' },
-]
 
 const FORMAT_CONFIG: Record<string, { icon: any; label: string; color: string; ext: string }> = {
   json: { icon: FileJson, label: 'JSON', color: '#3b82f6', ext: '.json' },
@@ -52,7 +43,9 @@ const STATUS_CONFIG: Record<string, { color: string; label: string; icon: any }>
 }
 
 export default function MemoryExport() {
-  const [jobs, setJobs] = useState<ExportJob[]>(MOCK_JOBS)
+  const [jobs, setJobs] = useState<ExportJob[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState<{ name: string; format: ExportJob['format']; scope: ExportJob['scope']; description: string }>({ name: '', format: 'json', scope: 'full', description: '' })
   const [search, setSearch] = useState('')
@@ -60,6 +53,12 @@ export default function MemoryExport() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set())
   const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  // 注意：client.ts 中暂无 fetchExportJobs API，保持空列表
+  // 等后端提供 /memories/exports 或类似 GET 接口后，可在此加载真实数据
+  useEffect(() => {
+    setLoading(false)
+  }, [])
 
   const toggleSelect = (id: string) => {
     const next = new Set(selectedJobs)
@@ -133,6 +132,20 @@ export default function MemoryExport() {
           <Plus className="w-4 h-4" /> 新建导出
         </button>
       </div>
+
+      {loading && (
+        <div className="card p-6 text-center">
+          <Loader2 className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2 animate-spin" />
+          <p className="text-sm text-[var(--sage-400)]">加载中...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="card p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
