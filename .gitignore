@@ -1,64 +1,55 @@
-# 依赖目录
-node_modules/
-**/node_modules/
-.pnpm-store/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# 构建产物
-dist/
-dist/
-!frontend/dist/        # 保留前端构建产物供 Vercel/Railway 部署
-build/
-**/build/
-out/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# 环境变量（敏感信息）
-.env
-.env.local
-.env.*.local
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-debug.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
 !.env.example
 
-# 数据库
-*.db
-*.db-journal
-**/prisma/dev.db
-**/prisma/test.db
-/data/
+# vercel
+.vercel
 
-# 上传文件
-uploads/
-**/uploads/
-
-# 日志
-*.log
-logs/
-**/logs/
-npm-debug.log*
-pnpm-debug.log*
-
-# 操作系统
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# 测试覆盖率
-coverage/
-**/.nyc_output/
-
-# TypeScript
+# typescript
 *.tsbuildinfo
-**/*.tsbuildinfo
+next-env.d.ts
 
-# Electron
-/dist-electron/
-/release/
+/src/generated/prisma
 
-# 缓存
-.cache/
-.parcel-cache/
-.eslintcache
+# skills - 不需要部署到生产环境
+/skills/
+
+# 临时文件
+/tool-results/
+/upload/
+/download/
+
+# 数据库
+/db/*.db
