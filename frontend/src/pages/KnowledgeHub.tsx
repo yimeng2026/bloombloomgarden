@@ -67,41 +67,7 @@ interface DocumentItem {
   modifiedAt: string;
 }
 
-interface SearchResult {
-  id: string;
-  source: string;
-  path: string;
-  similarity: number;
-  snippet: string;
-  highlights: string[];
-  section: string;
-  lines: string;
-}
-
 /* ──────────────────────── mock data ──────────────────────── */
-
-const searchResults: SearchResult[] = [
-  {
-    id: 'sr-1', source: '技术文档库', path: '技术文档库 > API文档 > authentication.md',
-    similarity: 94, snippet: '...用户的认证流程包括以下步骤：首先，客户端需要向 /auth token 端点发送请求，包含 API key 和 secret...',
-    highlights: ['认证流程', 'API key'], section: '第3节 "认证流程"', lines: '第12-18行',
-  },
-  {
-    id: 'sr-2', source: '技术文档库', path: '技术文档库 > 数据库 > database-config.pdf',
-    similarity: 87, snippet: '...数据库连接字符串格式：postgresql://user:password@host:5432/dbname?sslmode=require...',
-    highlights: ['连接字符串', '数据库'], section: '第2节 "连接配置"', lines: '第8-14行',
-  },
-  {
-    id: 'sr-3', source: '技术文档库', path: '技术文档库 > 最佳实践 > error-handling.md',
-    similarity: 91, snippet: '...错误处理最佳实践：始终使用 try-catch 块包装异步操作，并为每种错误类型提供有意义的错误消息...',
-    highlights: ['错误处理', '最佳实践'], section: '第1节 "概述"', lines: '第3-9行',
-  },
-  {
-    id: 'sr-4', source: '技术文档库', path: '技术文档库 > 部署 > deployment-guide.docx',
-    similarity: 78, snippet: '...Docker 部署步骤：首先构建镜像 docker build -t app:latest .，然后运行容器 docker run -p 8080:8080...',
-    highlights: ['Docker', '部署'], section: '第5节 "Docker部署"', lines: '第45-52行',
-  },
-];
 
 const tagCloud = [
   { name: 'API', count: 45, color: '#7fa3b0' },
@@ -152,8 +118,6 @@ const docStatusLabels: Record<string, string> = {
   error: '错误',
 };
 
-const suggestions = ['API认证', '部署流程', '数据库连接', '错误处理', 'Docker容器'];
-
 /* ──────────────────────── easing helpers ──────────────────────── */
 
 const easeGentle = [0.22, 1, 0.36, 1] as [number, number, number, number];
@@ -176,6 +140,7 @@ export default function KnowledgeHub() {
   const [openMenuKb, setOpenMenuKb] = useState<string | null>(null);
   const [kbData, setKbData] = useState<KnowledgeBaseItem[]>([]);
   const [docData, setDocData] = useState<DocumentItem[]>([]);
+  const [searchResults, setSearchResults] = useState<KnowledgeBaseItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -215,6 +180,13 @@ export default function KnowledgeHub() {
 
   const handleSemanticSearch = () => {
     if (!semanticQuery.trim()) return;
+    const query = semanticQuery.trim().toLowerCase();
+    const filtered = kbData.filter((kb) =>
+      kb.name.toLowerCase().includes(query) ||
+      kb.description.toLowerCase().includes(query) ||
+      kb.tags.some((tag) => tag.toLowerCase().includes(query))
+    );
+    setSearchResults(filtered);
     setHasSearched(true);
   };
 
@@ -336,6 +308,7 @@ export default function KnowledgeHub() {
           >
             <KBOverviewSection />
             <KBGridSection
+              kbData={kbData}
               openMenuKb={openMenuKb}
               setOpenMenuKb={setOpenMenuKb}
               selectedTag={selectedTag}
@@ -382,10 +355,14 @@ export default function KnowledgeHub() {
             className="space-y-6"
           >
             <SemanticSearchSection
+              kbData={kbData}
               query={semanticQuery}
               setQuery={setSemanticQuery}
               hasSearched={hasSearched}
               onSearch={handleSemanticSearch}
+              searchResults={searchResults}
+              openMenuKb={openMenuKb}
+              setOpenMenuKb={setOpenMenuKb}
             />
           </motion.div>
         )}
@@ -475,11 +452,13 @@ function KBOverviewSection() {
    ═══════════════════════════════════════════════════════════════ */
 
 function KBGridSection({
+  kbData,
   openMenuKb,
   setOpenMenuKb,
   selectedTag,
   setSelectedTag,
 }: {
+  kbData: KnowledgeBaseItem[];
   openMenuKb: string | null;
   setOpenMenuKb: (id: string | null) => void;
   selectedTag: string | null;
@@ -1126,15 +1105,23 @@ function DocDetailDrawer({ doc, onClose }: { doc: DocumentItem; onClose: () => v
    ═══════════════════════════════════════════════════════════════ */
 
 function SemanticSearchSection({
+  kbData,
   query,
   setQuery,
   hasSearched,
   onSearch,
+  searchResults,
+  openMenuKb,
+  setOpenMenuKb,
 }: {
+  kbData: KnowledgeBaseItem[];
   query: string;
   setQuery: (q: string) => void;
   hasSearched: boolean;
   onSearch: () => void;
+  searchResults: KnowledgeBaseItem[];
+  openMenuKb: string | null;
+  setOpenMenuKb: (id: string | null) => void;
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [similarityThreshold, setSimilarityThreshold] = useState(75);
@@ -1142,12 +1129,6 @@ function SemanticSearchSection({
   const [selectedKBs, setSelectedKBs] = useState<string[]>([]);
 
   const kbOptions = kbData.map((kb) => kb.name);
-
-  const getSimilarityColor = (score: number) => {
-    if (score >= 90) return 'var(--bloom-mint)';
-    if (score >= 70) return 'var(--bloom-amber)';
-    return 'var(--bloom-rose)';
-  };
 
   return (
     <div className="space-y-6">
@@ -1177,22 +1158,11 @@ function SemanticSearchSection({
             </button>
           </div>
 
-          {/* Suggestions */}
-          <div className="flex flex-wrap items-center gap-2 mt-3">
-            <span className="text-xs" style={{ color: 'var(--sage-400)' }}>快速搜索:</span>
-            {suggestions.map((s) => (
-              <button
-                key={s}
-                onClick={() => { setQuery(s); }}
-                className="px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
-                style={{ backgroundColor: 'var(--sage-100)', color: 'var(--sage-600)' }}
-              >
-                {s}
-              </button>
-            ))}
+          {/* Advanced Toggle */}
+          <div className="flex items-center justify-end mt-3">
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center gap-1 ml-auto text-xs font-medium transition-colors"
+              className="flex items-center gap-1 text-xs font-medium transition-colors"
               style={{ color: 'var(--sage-500)' }}
             >
               <Filter size={12} />
@@ -1291,79 +1261,27 @@ function SemanticSearchSection({
             title="搜索结果"
             subtitle={`找到 ${searchResults.length} 个相关结果`}
           >
-            <div className="space-y-4 mt-4">
-              {searchResults.map((result, i) => (
-                <motion.div
-                  key={result.id}
-                  className="rounded-card border p-5 transition-all duration-200 hover:bg-[var(--sage-50)]"
-                  style={{ backgroundColor: '#fff', borderColor: 'var(--sage-200)', boxShadow: 'var(--shadow-card)' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: easeGentle, delay: i * 0.1 }}
-                >
-                  {/* Source Path */}
-                  <div className="flex items-center gap-2 text-xs mb-3" style={{ color: 'var(--bloom-sky)' }}>
-                    <FileText size={12} />
-                    <span>{result.path}</span>
-                  </div>
-
-                  {/* Similarity */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-sm font-semibold" style={{ color: getSimilarityColor(result.similarity) }}>
-                      {result.similarity}%
-                    </span>
-                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--sage-200)' }}>
-                      <motion.div
-                        className="h-full rounded-full"
-                        style={{ backgroundColor: getSimilarityColor(result.similarity) }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${result.similarity}%` }}
-                        transition={{ duration: 0.6, ease: easeGentle, delay: 0.2 + i * 0.1 }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Snippet */}
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--sage-700)' }}>
-                    {result.snippet.split(new RegExp(`(${result.highlights.join('|')})`, 'g')).map((part, j) =>
-                      result.highlights.includes(part) ? (
-                        <mark key={j} className="px-0.5 rounded" style={{ backgroundColor: 'rgba(212,163,115,0.3)', color: 'var(--sage-800)', fontWeight: 500 }}>
-                          {part}
-                        </mark>
-                      ) : (
-                        <span key={j}>{part}</span>
-                      )
-                    )}
-                  </p>
-
-                  {/* Source Location */}
-                  <div className="flex items-center gap-2 mt-3 text-xs" style={{ color: 'var(--sage-400)' }}>
-                    <span>{result.section}</span>
-                    <span>·</span>
-                    <span>{result.lines}</span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 mt-4 pt-3 border-t" style={{ borderColor: 'var(--sage-100)' }}>
-                    <button className="flex items-center gap-1 px-3 py-1.5 rounded-card-sm text-xs font-medium"
-                      style={{ backgroundColor: 'var(--sage-100)', color: 'var(--sage-700)' }}>
-                      <Eye size={12} />
-                      查看完整文档
-                    </button>
-                    <button className="flex items-center gap-1 px-3 py-1.5 rounded-card-sm text-xs font-medium"
-                      style={{ backgroundColor: 'var(--sage-100)', color: 'var(--sage-700)' }}>
-                      <Copy size={12} />
-                      复制片段
-                    </button>
-                    <button className="flex items-center gap-1 px-3 py-1.5 rounded-card-sm text-xs font-medium"
-                      style={{ backgroundColor: 'var(--sage-100)', color: 'var(--sage-700)' }}>
-                      <BookOpen size={12} />
-                      添加到知识库
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {searchResults.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-4">
+                {searchResults.map((kb, i) => (
+                  <KBCard
+                    key={kb.id}
+                    kb={kb}
+                    index={i}
+                    isMenuOpen={openMenuKb === kb.id}
+                    onMenuToggle={() => setOpenMenuKb(openMenuKb === kb.id ? null : kb.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--sage-100)' }}>
+                  <Search size={28} style={{ color: 'var(--sage-300)' }} />
+                </div>
+                <p className="mt-4 text-base font-medium" style={{ color: 'var(--sage-500)' }}>未找到匹配的知识库</p>
+                <p className="mt-1 text-sm" style={{ color: 'var(--sage-400)' }}>尝试其他关键词或清除筛选条件</p>
+              </div>
+            )}
           </ContentCard>
         </motion.div>
       )}

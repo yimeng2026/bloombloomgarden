@@ -34,13 +34,13 @@ import {
   FileSpreadsheet,
   FileCode,
   FileImage,
-  File,
   Hash,
   Tag,
   Minus,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 import ContentCard from '@/components/ContentCard';
+import { fetchWorkspaces } from '@/api/client';
 
 /* ───────────────────── types ───────────────────── */
 
@@ -64,6 +64,7 @@ interface FolderNode {
   name: string;
   fileCount: number;
   children?: FolderNode[];
+  description?: string;
 }
 
 interface MemoryFile {
@@ -95,58 +96,6 @@ interface TaskGroup {
 }
 
 /* ───────────────────── mock data ───────────────────── */
-
-const folderTree: FolderNode[] = [
-  {
-    id: 'root', name: '根目录 (Root)', fileCount: 1247,
-    children: [
-      {
-        id: 'memories', name: 'agent-memories', fileCount: 156,
-        children: [
-          { id: 'code-mem', name: 'code-assistant', fileCount: 45 },
-          { id: 'data-mem', name: 'data-analyst', fileCount: 38 },
-          { id: 'doc-mem', name: 'doc-writer', fileCount: 73 },
-        ],
-      },
-      {
-        id: 'tasks', name: 'task-outputs', fileCount: 892,
-        children: [
-          { id: 't2847', name: 'task-2847', fileCount: 12 },
-          { id: 't2846', name: 'task-2846', fileCount: 8 },
-          { id: 't2845', name: 'task-2845', fileCount: 23 },
-          { id: 't2844', name: 'task-2844', fileCount: 15 },
-          { id: 't2843', name: 'task-2843', fileCount: 19 },
-        ],
-      },
-      { id: 'knowledge', name: 'shared-knowledge', fileCount: 67 },
-      { id: 'logs', name: 'system-logs', fileCount: 45 },
-      { id: 'uploads', name: 'uploads', fileCount: 87 },
-    ],
-  },
-];
-
-const filesData: FileItem[] = [
-  { id: 'f1', name: 'project-spec.md', type: 'markdown', ext: 'md', size: '24 KB', sizeBytes: 24576, modifiedAt: '2小时前', agentId: 'agent-3', agentName: '文档撰写-B', folderPath: '/uploads', tags: ['spec', 'project'], content: '# 项目规格说明\n\n## 概述\n本项目是一个多智能体协作平台...\n\n## 技术栈\n- React + TypeScript\n- Tailwind CSS\n- Node.js\n' },
-  { id: 'f2', name: 'api-schema.json', type: 'json', ext: 'json', size: '156 KB', sizeBytes: 159744, modifiedAt: '3小时前', agentId: 'agent-1', agentName: '代码助手-01', folderPath: '/task-outputs/task-2847', tags: ['api', 'schema'], content: '{\n  "openapi": "3.0.0",\n  "info": {\n    "title": "Bloom API",\n    "version": "1.0.0"\n  }\n}' },
-  { id: 'f3', name: 'sales-data-q4.csv', type: 'csv', ext: 'csv', size: '2.1 MB', sizeBytes: 2202009, modifiedAt: '5小时前', agentId: 'agent-2', agentName: '数据分析-A', folderPath: '/task-outputs/task-2846', tags: ['data', 'sales'], content: 'region,product,revenue\nNorth,Widget-A,45000\nSouth,Widget-B,32000\nEast,Widget-C,67000\n' },
-  { id: 'f4', name: 'translation-ja.po', type: 'po', ext: 'po', size: '89 KB', sizeBytes: 91136, modifiedAt: '6小时前', agentId: 'agent-4', agentName: '翻译专员', folderPath: '/task-outputs/task-2845', tags: ['i18n', 'ja'], content: 'msgid "Hello"\nmsgstr "こんにちは"\n\nmsgid "Goodbye"\nmsgstr "さようなら"\n' },
-  { id: 'f5', name: 'test-results.xml', type: 'xml', ext: 'xml', size: '456 KB', sizeBytes: 466944, modifiedAt: '8小时前', agentId: 'agent-5', agentName: '测试工程师', folderPath: '/task-outputs/task-2847', tags: ['test', 'ci'], content: '<?xml version="1.0"?>\n<testsuite tests="42" failures="0" errors="0">\n  <testcase name="test_login"/>\n</testsuite>' },
-  { id: 'f6', name: 'README.md', type: 'markdown', ext: 'md', size: '12 KB', sizeBytes: 12288, modifiedAt: '1天前', folderPath: '/shared-knowledge', tags: ['doc', 'readme'], content: '# 千界花园\n\n## 项目介绍\n千界花园是一个多智能体协作平台。\n\n## 快速开始\nnpm install && npm run dev\n' },
-  { id: 'f7', name: 'config.yaml', type: 'yaml', ext: 'yaml', size: '8 KB', sizeBytes: 8192, modifiedAt: '1天前', folderPath: '/shared-knowledge', tags: ['config'], content: 'app:\n  name: 千界花园\n  version: 1.0.0\n  port: 3000\n' },
-  { id: 'f8', name: 'user-data.csv', type: 'csv', ext: 'csv', size: '156 KB', sizeBytes: 159744, modifiedAt: '2天前', agentId: 'agent-2', agentName: '数据分析-A', folderPath: '/task-outputs/task-2845', tags: ['data', 'users'], content: 'id,name,role\n1,Alice,admin\n2,Bob,editor\n3,Carol,viewer\n' },
-  { id: 'f9', name: 'deploy.sh', type: 'shell', ext: 'sh', size: '4 KB', sizeBytes: 4096, modifiedAt: '2天前', agentId: 'agent-1', agentName: '代码助手-01', folderPath: '/task-outputs/task-2847', tags: ['deploy', 'script'], content: '#!/bin/bash\necho "Deploying..."\nnpm run build\nscp -r dist/* server:/var/www/\n' },
-  { id: 'f10', name: 'logo.svg', type: 'image', ext: 'svg', size: '32 KB', sizeBytes: 32768, modifiedAt: '3天前', folderPath: '/uploads', tags: ['design', 'asset'], content: '<svg viewBox="0 0 100 100">...</svg>' },
-  { id: 'f11', name: 'database.sql', type: 'sql', ext: 'sql', size: '64 KB', sizeBytes: 65536, modifiedAt: '3天前', agentId: 'agent-2', agentName: '数据分析-A', folderPath: '/shared-knowledge', tags: ['db', 'schema'], content: 'CREATE TABLE agents (\n  id VARCHAR(36) PRIMARY KEY,\n  name VARCHAR(255),\n  status VARCHAR(50)\n);\n' },
-  { id: 'f12', name: 'analysis-report.pdf', type: 'pdf', ext: 'pdf', size: '1.2 MB', sizeBytes: 1258291, modifiedAt: '4天前', agentId: 'agent-2', agentName: '数据分析-A', folderPath: '/task-outputs/task-2846', tags: ['report'], content: '%PDF-1.4\n... binary content ...' },
-  { id: 'f13', name: 'main.py', type: 'python', ext: 'py', size: '18 KB', sizeBytes: 18432, modifiedAt: '4天前', agentId: 'agent-1', agentName: '代码助手-01', folderPath: '/task-outputs/task-2847', tags: ['code', 'main'], content: 'def main():\n    print("Hello from 千界花园")\n\nif __name__ == "__main__":\n    main()\n' },
-  { id: 'f14', name: 'styles.css', type: 'css', ext: 'css', size: '42 KB', sizeBytes: 43008, modifiedAt: '5天前', folderPath: '/shared-knowledge', tags: ['css', 'style'], content: ':root {\n  --primary: #6b7a5a;\n  --accent: #7fb89f;\n}\n\nbody {\n  font-family: "Inter", sans-serif;\n}\n' },
-  { id: 'f15', name: 'app.tsx', type: 'typescript', ext: 'tsx', size: '8 KB', sizeBytes: 8192, modifiedAt: '5天前', agentId: 'agent-1', agentName: '代码助手-01', folderPath: '/task-outputs/task-2847', tags: ['code', 'react'], content: 'import React from "react";\nimport { BrowserRouter } from "react-router-dom";\n\nfunction App() {\n  return <BrowserRouter>...</BrowserRouter>;\n}\n' },
-  { id: 'f16', name: 'env.example', type: 'env', ext: 'env', size: '1 KB', sizeBytes: 1024, modifiedAt: '6天前', folderPath: '/shared-knowledge', tags: ['config'], content: 'DATABASE_URL=postgresql://...\nREDIS_URL=redis://...\nAPI_KEY=sk-...\n' },
-  { id: 'f17', name: 'Dockerfile', type: 'docker', ext: 'dockerfile', size: '3 KB', sizeBytes: 3072, modifiedAt: '1周前', folderPath: '/uploads', tags: ['docker', 'devops'], content: 'FROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\nCOPY . .\nCMD ["npm", "start"]\n' },
-  { id: 'f18', name: 'metrics.json', type: 'json', ext: 'json', size: '34 KB', sizeBytes: 34816, modifiedAt: '1周前', folderPath: '/task-outputs/task-2846', tags: ['data', 'metrics'], content: '{\n  "requests": 15234,\n  "avgLatency": 45.2,\n  "errors": 12\n}\n' },
-  { id: 'f19', name: 'CHANGELOG.md', type: 'markdown', ext: 'md', size: '22 KB', sizeBytes: 22528, modifiedAt: '1周前', folderPath: '/shared-knowledge', tags: ['doc', 'changelog'], content: '# 更新日志\n\n## v1.0.0\n- 初始版本发布\n- 支持多智能体协作\n' },
-  { id: 'f20', name: 'docker-compose.yml', type: 'yaml', ext: 'yml', size: '5 KB', sizeBytes: 5120, modifiedAt: '2周前', folderPath: '/uploads', tags: ['docker', 'compose'], content: 'version: "3.8"\nservices:\n  app:\n    build: .\n    ports:\n      - "3000:3000"\n' },
-];
 
 const memoryFiles: MemoryFile[] = [
   { id: 'm1', agentName: '代码助手-01', agentAvatar: 'leaf', type: 'conversation', description: '记录了与用户的代码审查对话，包含Python最佳实践的讨论和代码示例...', fileCount: 12, size: '45 KB', lastUsed: '10分钟前' },
@@ -438,21 +387,40 @@ function HeroHeader({ t, searchQuery, onSearchChange }: {
 
 function FileBrowserTab({ t, searchQuery }: { t: (zh: string, en: string) => string; searchQuery: string }) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [activeFolder, setActiveFolder] = useState('root');
+  const [activeFolder, setActiveFolder] = useState('');
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [filterType, setFilterType] = useState('all');
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root', 'memories', 'tasks']));
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set([]));
   const [isDragOver, setIsDragOver] = useState(false);
+  const [workspaces, setWorkspaces] = useState<FolderNode[]>([]);
+  const [wsLoading, setWsLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setWsLoading(true);
+    fetchWorkspaces()
+      .then((data: any) => {
+        if (!cancelled) {
+          const list = (data?.data || []).map((w: any) => ({
+            id: w.id,
+            name: w.name,
+            fileCount: w.tasks || w.agents || 0,
+            description: w.description,
+          }));
+          setWorkspaces(list);
+        }
+      })
+      .catch(() => { if (!cancelled) setWorkspaces([]); })
+      .finally(() => { if (!cancelled) setWsLoading(false); });
+    return () => { cancelled = true };
+  }, []);
 
   const toggleFolder = (id: string) => {
     setExpandedFolders((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   };
 
-  const filteredFiles = filesData.filter((f) => {
-    const matchSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchFilter = filterType === 'all' || f.type === filterType || (filterType === 'doc' && ['markdown', 'pdf', 'po'].includes(f.type)) || (filterType === 'code' && ['python', 'typescript', 'css', 'shell', 'xml', 'json', 'yaml'].includes(f.type)) || (filterType === 'data' && ['csv', 'sql', 'xlsx'].includes(f.type)) || (filterType === 'image' && f.type === 'image');
-    return matchSearch && matchFilter;
-  });
+  const filteredFiles: FileItem[] = [];
+  const selectedWorkspace = workspaces.find((w) => w.id === activeFolder);
 
   const filterPills = [
     { id: 'all', label: t('全部', 'All') },
@@ -473,9 +441,19 @@ function FileBrowserTab({ t, searchQuery }: { t: (zh: string, en: string) => str
       >
         <div className="rounded-card-lg p-3" style={{ backgroundColor: '#fff', border: '1px solid var(--sage-200)', boxShadow: 'var(--shadow-card)' }}>
           <h3 className="text-xs font-semibold uppercase tracking-wider px-3 py-2" style={{ color: 'var(--sage-400)' }}>
-            {t('文件夹', 'Folders')}
+            {t('工作空间', 'Workspaces')}
           </h3>
-          {folderTree.map((node) => renderFolderNode(node, 0, activeFolder, setActiveFolder, expandedFolders, toggleFolder, t))}
+          {wsLoading ? (
+            <div className="px-3 py-4 text-xs text-center" style={{ color: 'var(--sage-400)' }}>
+              {t('加载中...', 'Loading...')}
+            </div>
+          ) : workspaces.length === 0 ? (
+            <div className="px-3 py-4 text-xs text-center" style={{ color: 'var(--sage-400)' }}>
+              {t('暂无工作空间', 'No workspaces')}
+            </div>
+          ) : (
+            workspaces.map((node) => renderFolderNode(node, 0, activeFolder, setActiveFolder, expandedFolders, toggleFolder, t))
+          )}
         </div>
       </motion.div>
 
@@ -516,6 +494,14 @@ function FileBrowserTab({ t, searchQuery }: { t: (zh: string, en: string) => str
           </div>
         </div>
 
+        {/* Workspace description */}
+        {activeFolder && selectedWorkspace?.description && (
+          <div className="rounded-card-lg p-4 mb-4" style={{ backgroundColor: 'var(--sage-50)', border: '1px solid var(--sage-200)' }}>
+            <h4 className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--sage-400)' }}>{t('工作空间', 'Workspace')}</h4>
+            <p className="text-xs" style={{ color: 'var(--sage-600)' }}>{selectedWorkspace.description}</p>
+          </div>
+        )}
+
         {/* Files */}
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -552,7 +538,7 @@ function FileBrowserTab({ t, searchQuery }: { t: (zh: string, en: string) => str
                 )}
               </motion.div>
             ))}
-            {filteredFiles.length === 0 && <EmptyState t={t} message={t('此文件夹为空', 'This folder is empty')} />}
+            {filteredFiles.length === 0 && <EmptyState t={t} message={activeFolder ? t('暂无文件', 'No files') : t('选择工作空间查看文件', 'Select a workspace to view files')} />}
           </div>
         ) : (
           /* List View */
@@ -597,6 +583,18 @@ function FileBrowserTab({ t, searchQuery }: { t: (zh: string, en: string) => str
                     </td>
                   </motion.tr>
                 ))}
+                {filteredFiles.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ backgroundColor: 'var(--sage-100)' }}>
+                        <FolderOpen size={28} style={{ color: 'var(--sage-300)' }} />
+                      </div>
+                      <p className="text-sm font-medium" style={{ color: 'var(--sage-500)' }}>
+                        {activeFolder ? t('暂无文件', 'No files') : t('选择工作空间查看文件', 'Select a workspace to view files')}
+                      </p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

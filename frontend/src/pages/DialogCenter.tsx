@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronDown,
@@ -18,7 +18,11 @@ import {
   Settings,
   Bot,
   Check,
+  Plus,
+  Loader2,
 } from 'lucide-react';
+import { fetchDialogs, createDialog, deleteDialog } from '../api/client';
+import { useToast } from '../components/ToastProvider';
 
 /* ─────────────────────────── types ─────────────────────────── */
 
@@ -64,161 +68,44 @@ interface RecentAction {
   color: string;
 }
 
-/* ─────────────────────── mock data ─────────────────────── */
+interface Dialog {
+  id: string;
+  title?: string;
+  name?: string;
+  status?: string;
+  model?: string;
+  provider?: string;
+  knowledgeBases?: string[];
+  contextItems?: ContextItem[];
+  recentMessages?: number;
+  [key: string]: any;
+}
 
-const mockAgents: MockAgent[] = [
-  {
-    id: 'agent-1',
-    name: 'CodeBuilder',
-    status: 'active',
-    model: 'GPT-4 Turbo',
-    provider: 'OpenAI',
-    knowledgeBases: ['代码规范', 'API文档'],
-    initial: 'C',
-    gradient: 'linear-gradient(135deg, #38BDF8, #0EA5E9)',
-    recentMessages: 5,
-    contextItems: [
-      {
-        id: 'ctx-1',
-        label: 'context/',
-        type: 'folder',
-        children: [
-          { name: 'main.py', editedAt: '2分钟前' },
-          { name: 'utils.py', editedAt: '15分钟前' },
-          { name: 'requirements.txt', editedAt: '1小时前' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'agent-2',
-    name: 'DataMiner',
-    status: 'paused',
-    model: 'Claude 3.5 Sonnet',
-    provider: 'Anthropic',
-    knowledgeBases: ['数据字典', 'SQL参考'],
-    initial: 'D',
-    gradient: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
-    recentMessages: 2,
-    contextItems: [
-      {
-        id: 'ctx-2',
-        label: 'data/',
-        type: 'folder',
-        children: [
-          { name: 'dataset.csv', editedAt: '30分钟前' },
-          { name: 'schema.sql', editedAt: '2小时前' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'agent-3',
-    name: 'UI-Designer',
-    status: 'active',
-    model: 'GPT-4o',
-    provider: 'OpenAI',
-    knowledgeBases: ['设计系统', '组件库'],
-    initial: 'U',
-    gradient: 'linear-gradient(135deg, #F472B6, #DB2777)',
-    recentMessages: 8,
-    contextItems: [
-      {
-        id: 'ctx-3',
-        label: 'design/',
-        type: 'folder',
-        children: [
-          { name: 'layout.fig', editedAt: '5分钟前' },
-          { name: 'tokens.json', editedAt: '20分钟前' },
-          { name: 'components.tsx', editedAt: '1小时前' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'agent-4',
-    name: 'Analytics-Agent',
-    status: 'active',
-    model: 'Gemini 1.5 Pro',
-    provider: 'Google',
-    knowledgeBases: ['分析指标', '报表模板'],
-    initial: 'A',
-    gradient: 'linear-gradient(135deg, #4ADE80, #16A34A)',
-    recentMessages: 3,
-    contextItems: [
-      {
-        id: 'ctx-4',
-        label: 'analytics/',
-        type: 'folder',
-        children: [
-          { name: 'dashboard.json', editedAt: '10分钟前' },
-          { name: 'events.log', editedAt: '45分钟前' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'agent-5',
-    name: 'TestEngineer',
-    status: 'error',
-    model: 'GPT-4 Turbo',
-    provider: 'OpenAI',
-    knowledgeBases: ['测试用例', 'Bug记录'],
-    initial: 'T',
-    gradient: 'linear-gradient(135deg, #FB7185, #E11D48)',
-    recentMessages: 0,
-    contextItems: [
-      {
-        id: 'ctx-5',
-        label: 'tests/',
-        type: 'folder',
-        children: [
-          { name: 'unit.test.ts', editedAt: '1小时前' },
-          { name: 'e2e.spec.ts', editedAt: '3小时前' },
-        ],
-      },
-    ],
-  },
-];
-
-const mockMessages: Message[] = [
-  {
-    id: 'msg-1',
-    agentId: 'agent-1',
-    role: 'user',
-    content: '你好，请帮我优化这段代码',
-    timestamp: '14:32',
-    attachments: [{ name: 'utils.py', size: '2.4KB' }],
-  },
-  {
-    id: 'msg-2',
-    agentId: 'agent-1',
-    role: 'agent',
-    content: '我来帮你优化这段代码。以下是优化方案：\n\n1. 使用列表推导式替代循环\n2. 添加类型注解\n3. 使用生成器表达式节省内存\n\n```python\ndef process(data: list[int]) -> int:\n    return sum(x for x in data if x > 0)\n\ndef filter_items(items: list[str]) -> list[str]:\n    return [item.strip().lower() for item in items if item]\n```\n\n主要改进点：\n- 类型注解让代码更易维护\n- 列表推导式性能更好\n- 生成器表达式节省内存',
-    timestamp: '14:33',
-  },
-  {
-    id: 'msg-3',
-    agentId: 'agent-1',
-    role: 'user',
-    content: '太好了，能不能再加个异常处理？',
-    timestamp: '14:35',
-  },
-  {
-    id: 'msg-4',
-    agentId: 'agent-1',
-    role: 'agent',
-    content: '当然，加上异常处理让代码更健壮：\n\n```python\nfrom typing import List\n\ndef process_safe(data: List[int]) -> int:\n    try:\n        if not data:\n            return 0\n        return sum(x for x in data if x > 0)\n    except TypeError as e:\n        logger.error(f"Invalid data type: {e}")\n        return 0\n    except Exception as e:\n        logger.error(f"Unexpected error: {e}")\n        raise\n```',
-    timestamp: '14:36',
-  },
-  {
-    id: 'msg-5',
-    agentId: 'agent-1',
-    role: 'system',
-    content: 'CodeBuilder 正在处理文件分析...',
-    timestamp: '14:40',
-  },
-];
+function adaptDialogToAgent(dialog: Dialog): MockAgent {
+  const name = dialog.title || dialog.name || '未命名对话';
+  const initial = name.charAt(0).toUpperCase();
+  const gradients = [
+    'linear-gradient(135deg, #38BDF8, #0EA5E9)',
+    'linear-gradient(135deg, #A78BFA, #7C3AED)',
+    'linear-gradient(135deg, #F472B6, #DB2777)',
+    'linear-gradient(135deg, #4ADE80, #16A34A)',
+    'linear-gradient(135deg, #FB7185, #E11D48)',
+    'linear-gradient(135deg, #FBBF24, #D97706)',
+  ];
+  const gradient = gradients[dialog.id.length % gradients.length];
+  return {
+    id: dialog.id,
+    name,
+    status: (dialog.status as AgentStatus) || 'active',
+    model: dialog.model || '通用模型',
+    provider: dialog.provider || '本地',
+    knowledgeBases: dialog.knowledgeBases || [],
+    initial,
+    gradient,
+    contextItems: dialog.contextItems || [],
+    recentMessages: dialog.recentMessages || 0,
+  };
+}
 
 const recentActions: RecentAction[] = [
   { description: '创建了任务 #1242', timestamp: '2分钟前', color: '#4ADE80' },
@@ -280,9 +167,13 @@ function TypingIndicator() {
 /* ──────────────────── main page ──────────────────── */
 
 export default function DialogCenter() {
-  const [selectedAgentId, setSelectedAgentId] = useState(mockAgents[0].id);
-  const [expandedAgents, setExpandedAgents] = useState<Set<string>>(new Set([mockAgents[0].id]));
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const toast = useToast();
+  const { addToast } = toast;
+  const [dialogs, setDialogs] = useState<Dialog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState('');
+  const [expandedAgents, setExpandedAgents] = useState<Set<string>>(new Set());
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [infoPanelOpen, setInfoPanelOpen] = useState(true);
@@ -292,7 +183,49 @@ export default function DialogCenter() {
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedAgent = mockAgents.find((a) => a.id === selectedAgentId) ?? mockAgents[0];
+  const selectedAgent = useMemo(() => {
+    const dialog = dialogs.find((d) => d.id === selectedAgentId);
+    if (!dialog) {
+      return {
+        id: '',
+        name: '未选择对话',
+        status: 'active' as AgentStatus,
+        model: '—',
+        provider: '—',
+        knowledgeBases: [],
+        initial: '?',
+        gradient: 'linear-gradient(135deg, #38BDF8, #0EA5E9)',
+        contextItems: [],
+        recentMessages: 0,
+      };
+    }
+    return adaptDialogToAgent(dialog);
+  }, [dialogs, selectedAgentId]);
+
+  // 加载真实对话列表
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await fetchDialogs();
+        const list = Array.isArray(res) ? res : (res?.data || []);
+        if (!mounted) return;
+        setDialogs(list);
+        if (list.length > 0) {
+          setSelectedAgentId(list[0].id);
+          setExpandedAgents(new Set([list[0].id]));
+        }
+      } catch (err) {
+        console.error('加载对话失败:', err);
+        addToast({ type: 'error', title: '加载失败', message: '无法获取对话列表' });
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, [addToast]);
 
   // Auto-scroll
   useEffect(() => {
@@ -313,8 +246,49 @@ export default function DialogCenter() {
     });
   }, []);
 
+  const handleCreateDialog = useCallback(async () => {
+    try {
+      const res = await createDialog({ title: '新对话' });
+      const newDialog = res?.data || res;
+      addToast({ type: 'success', title: '创建成功', message: '新对话已创建' });
+      // 刷新列表
+      const refreshRes = await fetchDialogs();
+      const list = Array.isArray(refreshRes) ? refreshRes : (refreshRes?.data || []);
+      setDialogs(list);
+      if (newDialog?.id) {
+        setSelectedAgentId(newDialog.id);
+        setExpandedAgents(new Set([newDialog.id]));
+      } else if (list.length > 0) {
+        setSelectedAgentId(list[list.length - 1].id);
+        setExpandedAgents(new Set([list[list.length - 1].id]));
+      }
+    } catch (err) {
+      console.error('创建对话失败:', err);
+      addToast({ type: 'error', title: '创建失败', message: '无法创建对话' });
+    }
+  }, [addToast]);
+
+  const handleDeleteDialog = useCallback(async (id: string) => {
+    try {
+      await deleteDialog(id);
+      addToast({ type: 'success', title: '删除成功', message: '对话已删除' });
+      setDialogs((prev) => prev.filter((d) => d.id !== id));
+      if (selectedAgentId === id) {
+        setSelectedAgentId('');
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error('删除对话失败:', err);
+      addToast({ type: 'error', title: '删除失败', message: '无法删除对话' });
+    }
+  }, [selectedAgentId, addToast]);
+
   const handleSend = useCallback(() => {
     if (!inputText.trim() && attachments.length === 0) return;
+    if (!selectedAgentId) {
+      addToast({ type: 'warning', title: '提示', message: '请先选择对话' });
+      return;
+    }
 
     const newMsg: Message = {
       id: `msg-${Date.now()}`,
@@ -328,41 +302,8 @@ export default function DialogCenter() {
     setMessages((prev) => [...prev, newMsg]);
     setInputText('');
     setAttachments([]);
-    setIsTyping(true);
-
-    // 真实 API 调用后端对话服务
-    (async () => {
-      try {
-        const res = await fetch(`/api/dialog/${selectedAgentId}/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: newMsg.content, role: 'user' }),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        setIsTyping(false);
-        const reply = json?.data?.content || json?.content || '（无回复）';
-        const response: Message = {
-          id: `msg-${Date.now() + 1}`,
-          agentId: selectedAgentId,
-          role: 'agent',
-          content: reply,
-          timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages((prev) => [...prev, response]);
-      } catch (err) {
-        setIsTyping(false);
-        const response: Message = {
-          id: `msg-${Date.now() + 1}`,
-          agentId: selectedAgentId,
-          role: 'agent',
-          content: `请求失败：${(err as Error).message}。请检查后端是否启动（localhost:3001）。`,
-          timestamp: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages((prev) => [...prev, response]);
-      }
-    })();
-  }, [inputText, attachments, selectedAgentId]);
+    addToast({ type: 'info', title: '提示', message: '消息发送功能需后端支持消息API', duration: 3000 });
+  }, [inputText, attachments, selectedAgentId, addToast]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -391,7 +332,7 @@ export default function DialogCenter() {
 
   return (
     <div className="flex h-full" onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop}>
-      {/* ========== Column 1: Agent Context Tree (260px) ========== */}
+      {/* ========== Column 1: Dialog List (260px) ========== */}
       <div
         className="w-[260px] shrink-0 flex flex-col overflow-hidden"
         style={{
@@ -399,12 +340,35 @@ export default function DialogCenter() {
           borderRight: '1px solid rgba(148, 163, 184, 0.08)',
         }}
       >
-        <div className="px-4 h-12 flex items-center shrink-0" style={{ borderBottom: '1px solid rgba(148, 163, 184, 0.08)' }}>
-          <span className="text-sm font-semibold text-text-primary">Agent 上下文</span>
+        <div className="px-4 h-12 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid rgba(148, 163, 184, 0.08)' }}>
+          <span className="text-sm font-semibold text-text-primary">对话列表</span>
+          <button
+            onClick={handleCreateDialog}
+            className="w-7 h-7 flex items-center justify-center rounded-md transition-colors hover:bg-white/[0.04]"
+            title="创建对话"
+          >
+            <Plus size={14} className="text-text-secondary" />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-2">
-          {mockAgents.map((agent, index) => {
+          {loading && dialogs.length === 0 && (
+            <div className="flex items-center justify-center py-8 text-text-tertiary">
+              <Loader2 size={18} className="animate-spin mr-2" />
+              <span className="text-xs">加载中...</span>
+            </div>
+          )}
+
+          {!loading && dialogs.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-8 px-4 text-text-tertiary">
+              <Bot size={28} className="mb-2 opacity-30" />
+              <p className="text-xs text-center">暂无对话</p>
+              <p className="text-[10px] text-center mt-1 opacity-60">点击上方 + 创建新对话</p>
+            </div>
+          )}
+
+          {dialogs.map((dialog, index) => {
+            const agent = adaptDialogToAgent(dialog);
             const isExpanded = expandedAgents.has(agent.id);
             const isSelected = selectedAgentId === agent.id;
 
@@ -563,7 +527,7 @@ export default function DialogCenter() {
                 {selectedAgent.initial}
               </div>
               <span className="text-sm font-medium text-text-primary">{selectedAgent.name}</span>
-              <StatusBadge status={selectedAgent.status} size="sm" />
+              {selectedAgent.id && <StatusBadge status={selectedAgent.status} size="sm" />}
               <ChevronDown size={14} className="text-text-tertiary" />
             </button>
 
@@ -584,28 +548,34 @@ export default function DialogCenter() {
                       border: '1px solid rgba(148,163,184,0.12)',
                     }}
                   >
-                    {mockAgents.map((agent) => (
-                      <button
-                        key={agent.id}
-                        className="w-full flex items-center gap-2 px-3 py-2 transition-colors hover:bg-accent-blue/8 text-left"
-                        style={{
-                          background: agent.id === selectedAgentId ? 'rgba(56,189,248,0.08)' : 'transparent',
-                        }}
-                        onClick={() => {
-                          setSelectedAgentId(agent.id);
-                          setShowAgentDropdown(false);
-                        }}
-                      >
-                        <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0"
-                          style={{ background: agent.gradient, color: '#0A0C0E' }}
+                    {dialogs.length === 0 && (
+                      <div className="px-3 py-2 text-xs text-text-tertiary">暂无对话</div>
+                    )}
+                    {dialogs.map((dialog) => {
+                      const agent = adaptDialogToAgent(dialog);
+                      return (
+                        <button
+                          key={agent.id}
+                          className="w-full flex items-center gap-2 px-3 py-2 transition-colors hover:bg-accent-blue/8 text-left"
+                          style={{
+                            background: agent.id === selectedAgentId ? 'rgba(56,189,248,0.08)' : 'transparent',
+                          }}
+                          onClick={() => {
+                            setSelectedAgentId(agent.id);
+                            setShowAgentDropdown(false);
+                          }}
                         >
-                          {agent.initial}
-                        </div>
-                        <span className="text-sm text-text-primary flex-1">{agent.name}</span>
-                        {agent.id === selectedAgentId && <Check size={12} className="text-accent-blue" />}
-                      </button>
-                    ))}
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0"
+                            style={{ background: agent.gradient, color: '#0A0C0E' }}
+                          >
+                            {agent.initial}
+                          </div>
+                          <span className="text-sm text-text-primary flex-1">{agent.name}</span>
+                          {agent.id === selectedAgentId && <Check size={12} className="text-accent-blue" />}
+                        </button>
+                      );
+                    })}
                   </motion.div>
                 </>
               )}
@@ -615,7 +585,7 @@ export default function DialogCenter() {
           {/* Center: Hint */}
           <div className="flex items-center gap-1.5 text-xs text-text-tertiary">
             <Globe size={12} />
-            <span>所有 Agent 上下文已聚合</span>
+            <span>所有对话上下文已聚合</span>
           </div>
 
           {/* Right: Actions */}
@@ -630,7 +600,11 @@ export default function DialogCenter() {
                 <PanelRightOpen size={16} className="text-text-secondary" />
               )}
             </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-white/[0.04]">
+            <button
+              onClick={() => selectedAgentId && handleDeleteDialog(selectedAgentId)}
+              disabled={!selectedAgentId}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-white/[0.04] disabled:opacity-30 disabled:cursor-not-allowed"
+            >
               <Trash2 size={16} className="text-text-secondary" />
             </button>
           </div>
@@ -639,7 +613,7 @@ export default function DialogCenter() {
         {/* Messages Area */}
         <div
           ref={chatScrollRef}
-          className="flex-1 overflow-y-auto px-6 py-4 space-y-4"
+          className="flex-1 overflow-y-auto px-6 py-4 space-y-4 relative"
         >
           <AnimatePresence>
             {messages
@@ -791,6 +765,15 @@ export default function DialogCenter() {
               </div>
             </div>
           )}
+
+          {/* 空状态提示 */}
+          {messages.filter((m) => m.agentId === selectedAgentId || m.role === 'system').length === 0 && !isTyping && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-text-tertiary pointer-events-none">
+              <Bot size={48} className="mb-3 opacity-20" />
+              <p className="text-sm">选择对话查看消息</p>
+              <p className="text-xs mt-1 opacity-50">消息发送功能需后端支持消息API</p>
+            </div>
+          )}
         </div>
 
         {/* Input Bar */}
@@ -852,14 +835,15 @@ export default function DialogCenter() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`输入消息给 ${selectedAgent.name}...`}
-              className="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none min-h-[40px] max-h-[200px]"
+              placeholder={selectedAgentId ? `输入消息给 ${selectedAgent.name}...` : '请先选择对话...'}
+              disabled={!selectedAgentId}
+              className="flex-1 resize-none rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary outline-none min-h-[40px] max-h-[200px] disabled:opacity-50"
               style={{
                 background: '#0A0C0E',
                 border: '1px solid rgba(148,163,184,0.12)',
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#38BDF8';
+                if (selectedAgentId) e.currentTarget.style.borderColor = '#38BDF8';
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(148,163,184,0.12)';
@@ -871,13 +855,14 @@ export default function DialogCenter() {
             <motion.button
               whileTap={{ scale: 0.93 }}
               onClick={handleSend}
-              className="w-8 h-8 flex items-center justify-center rounded-full shrink-0 mb-1 transition-all duration-200"
+              disabled={!selectedAgentId}
+              className="w-8 h-8 flex items-center justify-center rounded-full shrink-0 mb-1 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
               style={{
-                background: inputText.trim() || attachments.length > 0 ? '#38BDF8' : '#22292E',
-                boxShadow: inputText.trim() || attachments.length > 0 ? '0 0 16px rgba(56,189,248,0.3)' : 'none',
+                background: (inputText.trim() || attachments.length > 0) && selectedAgentId ? '#38BDF8' : '#22292E',
+                boxShadow: (inputText.trim() || attachments.length > 0) && selectedAgentId ? '0 0 16px rgba(56,189,248,0.3)' : 'none',
               }}
             >
-              <Send size={14} style={{ color: inputText.trim() || attachments.length > 0 ? '#0A0C0E' : '#4A5562' }} />
+              <Send size={14} style={{ color: (inputText.trim() || attachments.length > 0) && selectedAgentId ? '#0A0C0E' : '#4A5562' }} />
             </motion.button>
           </div>
         </div>
@@ -909,8 +894,8 @@ export default function DialogCenter() {
                   {selectedAgent.initial}
                 </div>
                 <h3 className="text-lg font-semibold text-text-primary mb-1">{selectedAgent.name}</h3>
-                <code className="text-[11px] font-jetbrains-mono text-text-tertiary mb-3">{selectedAgent.id}</code>
-                <StatusBadge status={selectedAgent.status} />
+                <code className="text-[11px] font-jetbrains-mono text-text-tertiary mb-3">{selectedAgent.id || '—'}</code>
+                {selectedAgent.id && <StatusBadge status={selectedAgent.status} />}
               </div>
 
               {/* Configuration Summary */}

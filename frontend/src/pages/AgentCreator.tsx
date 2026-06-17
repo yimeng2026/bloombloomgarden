@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   Bot, Users, ChevronRight, ChevronLeft, CheckCircle, Plus, X, Loader2,
   Search, Server, Key, Cpu, MessageSquare, Sparkles, Wand2, ArrowLeft,
+  ArrowRightLeft, GitBranch, Layers, Zap, Eye, Radio,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -106,7 +107,9 @@ export default function AgentCreator() {
   // Group mode
   const [existingAgents, setExistingAgents] = useState<AgentOption[]>([])
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
-  const [groupMode, setGroupMode] = useState('parallel')
+  const [swarmMode, setSwarmMode] = useState('parallel')
+  const [groupType, setGroupType] = useState('swarm')
+  const [showAdvancedConfig, setShowAdvancedConfig] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -274,7 +277,8 @@ export default function AgentCreator() {
         description,
         type: 'group',
         members: selectedMembers,
-        groupMode,
+        groupMode: swarmMode,
+        groupType,
       })
       setCreationSuccess(true)
     } catch (e) {
@@ -429,8 +433,12 @@ export default function AgentCreator() {
             existingAgents={existingAgents}
             selectedMembers={selectedMembers}
             toggleMember={toggleMember}
-            groupMode={groupMode}
-            setGroupMode={setGroupMode}
+            swarmMode={swarmMode}
+            setSwarmMode={setSwarmMode}
+            groupType={groupType}
+            setGroupType={setGroupType}
+            showAdvancedConfig={showAdvancedConfig}
+            setShowAdvancedConfig={setShowAdvancedConfig}
           />
         )}
       </div>
@@ -481,7 +489,9 @@ export default function AgentCreator() {
     setPersonality('')
     setNewCapability('')
     setSelectedMembers([])
-    setGroupMode('parallel')
+    setSwarmMode('parallel')
+    setGroupType('swarm')
+    setShowAdvancedConfig(false)
     setCreationSuccess(false)
     setShowTemplates(false)
   }
@@ -1003,7 +1013,9 @@ function PersonalizationFields({
 function GroupForm({
   step, name, setName, description, setDescription,
   existingAgents, selectedMembers, toggleMember,
-  groupMode, setGroupMode,
+  swarmMode, setSwarmMode,
+  groupType, setGroupType,
+  showAdvancedConfig, setShowAdvancedConfig,
 }: any) {
   const [search, setSearch] = useState('')
 
@@ -1080,30 +1092,103 @@ function GroupForm({
   }
 
   if (step === 3) {
+    const SWARM_MODES = [
+      { value: 'sequential', label: '顺序执行', desc: '成员按序接力，单线流转完成', icon: ArrowRightLeft, color: '#10b981', bg: 'bg-emerald-50' },
+      { value: 'parallel', label: '并行执行', desc: '多路同时分支，结果汇总', icon: GitBranch, color: '#3b82f6', bg: 'bg-blue-50' },
+      { value: 'hierarchical', label: '层级执行', desc: '分层管理，上下级协同决策', icon: Layers, color: '#f59e0b', bg: 'bg-amber-50' },
+      { value: 'dynamic', label: '动态编排', desc: '实时自适应，灵活调整策略', icon: Zap, color: '#8b5cf6', bg: 'bg-violet-50' },
+    ]
+
+    const GROUP_TYPES = [
+      { value: 'swarm', label: '蜂群', icon: Users, desc: '分布式自主协作' },
+      { value: 'pipeline', label: '流水线', icon: ArrowRightLeft, desc: '阶段化顺序处理' },
+      { value: 'committee', label: '委员会', icon: MessageSquare, desc: '集体讨论决策' },
+      { value: 'debate', label: '辩论', icon: MessageSquare, desc: '正反观点交锋' },
+      { value: 'review-chain', label: '评审链', icon: Eye, desc: '多级审核把关' },
+      { value: 'broadcast', label: '广播', icon: Radio, desc: '一对多信息分发' },
+    ]
+
     return (
       <div className="space-y-4">
-        <h3 className="text-sm font-medium text-[var(--sage-700)]">协作模式</h3>
-        <div className="space-y-3">
-          {[
-            { value: 'parallel', label: '并行', desc: '所有成员同时处理，结果汇总' },
-            { value: 'serial', label: '串行', desc: '成员按顺序接力处理' },
-            { value: 'vote', label: '投票', desc: '多个成员独立判断，多数决' },
-            { value: 'delegate', label: '委派', desc: '协调者分配任务给执行者' },
-          ].map((m) => (
-            <button
-              key={m.value}
-              onClick={() => setGroupMode(m.value)}
-              className={`w-full card p-4 text-left transition-all hover:shadow-md ${groupMode === m.value ? 'ring-2 ring-[var(--sage-500)] bg-[var(--sage-50)]' : ''}`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-sm text-[var(--sage-800)]">{m.label}</h3>
-                  <p className="text-xs text-[var(--sage-500)] mt-1">{m.desc}</p>
+        <h3 className="text-sm font-medium text-[var(--sage-700)]">蜂群协作模式</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {SWARM_MODES.map((m) => {
+            const Icon = m.icon
+            const isSelected = swarmMode === m.value
+            return (
+              <motion.button
+                key={m.value}
+                onClick={() => setSwarmMode(m.value)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`card p-4 text-left transition-all hover:shadow-md border-2 ${
+                  isSelected ? 'bg-[var(--sage-50)]' : 'border-transparent'
+                }`}
+                style={isSelected ? { borderColor: m.color } : {}}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSelected ? m.bg : 'bg-[var(--sage-100)]'}`}>
+                    <Icon className="w-5 h-5" style={{ color: isSelected ? m.color : 'var(--sage-500)' }} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-[var(--sage-800)]">{m.label}</h3>
+                      {isSelected && <CheckCircle className="w-4 h-4" style={{ color: m.color }} />}
+                    </div>
+                  </div>
                 </div>
-                {groupMode === m.value && <CheckCircle className="w-5 h-5 text-[var(--sage-500)]" />}
-              </div>
-            </button>
-          ))}
+                <p className="text-xs text-[var(--sage-500)]">{m.desc}</p>
+              </motion.button>
+            )
+          })}
+        </div>
+
+        {/* 高级配置 */}
+        <div className="pt-2">
+          <button
+            onClick={() => setShowAdvancedConfig(!showAdvancedConfig)}
+            className="flex items-center gap-2 text-xs text-[var(--sage-600)] hover:text-[var(--sage-800)] transition-colors"
+          >
+            <span>{showAdvancedConfig ? '收起' : '展开'}高级配置</span>
+            <ChevronRight className={`w-3 h-3 transition-transform ${showAdvancedConfig ? 'rotate-90' : ''}`} />
+          </button>
+          <AnimatePresence>
+            {showAdvancedConfig && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="mt-3 space-y-3 overflow-hidden"
+              >
+                <div className="card p-4 bg-[var(--sage-50)]">
+                  <h4 className="text-xs font-medium text-[var(--sage-700)] mb-3">群组类型</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {GROUP_TYPES.map((t) => {
+                      const Icon = t.icon
+                      const isSelected = groupType === t.value
+                      return (
+                        <button
+                          key={t.value}
+                          onClick={() => setGroupType(t.value)}
+                          className={`card p-2.5 text-left transition-all hover:shadow-md ${
+                            isSelected ? 'ring-2 ring-[var(--sage-500)] bg-white' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Icon className="w-4 h-4" style={{ color: isSelected ? 'var(--sage-500)' : 'var(--sage-400)' }} />
+                            <span className="text-xs font-medium text-[var(--sage-800)]">{t.label}</span>
+                            {isSelected && <CheckCircle className="w-3 h-3 text-[var(--sage-500)]" />}
+                          </div>
+                          <p className="text-[10px] text-[var(--sage-500)]">{t.desc}</p>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     )
