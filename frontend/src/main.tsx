@@ -1,13 +1,14 @@
 import { createRoot } from 'react-dom/client'
+import { StrictMode } from 'react'
 import { HashRouter } from 'react-router-dom'
-import { ToastProvider } from '@/contexts/ToastContext'
-import './index.css'
 import App from './App.tsx'
+import './index.css'
 
 createRoot(document.getElementById('root')!).render(
-  <HashRouter>
-    <ToastProvider>
+  <StrictMode>
+    <HashRouter>
       <App />
-    </ToastProvider>
-  </HashRouter>,
+    </HashRouter>
+  </StrictMode>,
 )
+
