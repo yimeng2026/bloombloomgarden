@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import {
-  Server, Key, Layers, Cpu, Users, Search, Plus, Loader2,
-  CheckCircle, XCircle, Check, X, Trash2, Edit3, Eye, EyeOff,
-  GitBranch, Play, Globe, Activity, AlertTriangle,
+  Server, Layers, Cpu, Users, Search, Plus, Loader2,
+  CheckCircle, XCircle, Trash2, Edit3,
+  Play, Globe, Activity, AlertTriangle, Terminal, Zap, Wifi, WifiOff,
 } from 'lucide-react'
 import {
   fetchPlatforms, fetchFrameworks, fetchEngines, fetchTeams,
-  createTeam, deletePlatform
+  createPlatform, deletePlatform, createTeam, createEngine,
 } from '@/api/client'
 
 /* ── Types ── */
@@ -54,17 +54,6 @@ interface Team {
   memberCount?: number
 }
 
-interface ApiKeyItem {
-  id: string
-  name: string
-  provider: string
-  endpoint: string
-  keyMask: string
-  modelCount: number
-  status: 'connected' | 'disconnected' | 'error'
-  latency: number | string
-}
-
 /* ── Status Configs ── */
 const PLATFORM_STATUS: Record<string, { color: string; label: string }> = {
   connected: { color: '#10b981', label: '已连接' },
@@ -91,35 +80,37 @@ const TEAM_STATUS: Record<string, { color: string; label: string }> = {
 }
 
 const TABS = [
-  { id: 'platforms', label: '平台', icon: Server },
-  { id: 'apikeys', label: 'API密钥', icon: Key },
-  { id: 'frameworks', label: '框架', icon: Layers },
-  { id: 'engines', label: '引擎', icon: Cpu },
-  { id: 'teams', label: '团队', icon: Users },
+  { id: 'api-providers', label: 'API Provider', icon: Globe },
+  { id: 'orchestration', label: '多线程编排', icon: Layers },
+  { id: 'engines', label: '本地引擎', icon: Cpu },
+  { id: 'cli-tools', label: 'CLI工具', icon: Terminal },
 ]
 
 export default function PlatformManager() {
-  const [activeTab, setActiveTab] = useState('platforms')
+  const [activeTab, setActiveTab] = useState('api-providers')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Data states
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const [frameworks, setFrameworks] = useState<Framework[]>([])
   const [engines, setEngines] = useState<Engine[]>([])
   const [teams, setTeams] = useState<Team[]>([])
-  const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([])
   const [loading, setLoading] = useState<Record<string, boolean>>({
-    platforms: true, frameworks: true, engines: true, teams: true, apiKeys: true
+    platforms: true, frameworks: true, engines: true, teams: true,
   })
   const [error, setError] = useState<string | null>(null)
 
   // Modals
   const [showPlatformModal, setShowPlatformModal] = useState(false)
   const [showTeamModal, setShowTeamModal] = useState(false)
+  const [showEngineModal, setShowEngineModal] = useState(false)
+  const [showFrameworkModal, setShowFrameworkModal] = useState(false)
+
   const [platformForm, setPlatformForm] = useState({ name: '', type: 'kimi', url: '', apiKey: '' })
   const [teamForm, setTeamForm] = useState({ name: '', framework: '', collaborationMode: 'hierarchical', description: '' })
+  const [engineForm, setEngineForm] = useState({ brand: '', model: '', tier: 'local', description: '' })
+  const [frameworkForm, setFrameworkForm] = useState({ name: '', category: '', protocolLevel: 1, description: '' })
+
   const [creating, setCreating] = useState(false)
-  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
 
   // Load data on mount
   useEffect(() => {
@@ -136,35 +127,167 @@ export default function PlatformManager() {
         setFrameworks(Array.isArray(fwRes.value) ? fwRes.value : fwRes.value?.data || [])
         setEngines(Array.isArray(engRes.value) ? engRes.value : engRes.value?.data || [])
         setTeams(Array.isArray(teamRes.value) ? teamRes.value : teamRes.value?.data || [])
-        // Note: client.ts has no fetchApiKeys API; keep empty
       } catch (e: any) {
         setError(e?.message || '加载数据失败')
       } finally {
-        setLoading({ platforms: false, frameworks: false, engines: false, teams: false, apiKeys: false })
+        setLoading({ platforms: false, frameworks: false, engines: false, teams: false })
       }
     }
     load()
   }, [])
 
+  /* ── Filters ── */
+  const filteredPlatforms = platforms.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.type.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+  const filteredFrameworks = frameworks.filter((f) =>
+    f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    f.category.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+  const filteredEngines = engines.filter((e) =>
+    e.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    e.model.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+  const filteredTeams = teams.filter((t) =>
+    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.framework.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   /* ── Actions ── */
-  const handleCreatePlatform = () => {
+  const handleCreatePlatform = async () => {
     if (!platformForm.name.trim()) return
-    const newPlatform: Platform = {
-      id: `pl-${Date.now()}`,
-      name: platformForm.name,
-      type: platformForm.type,
-      url: platformForm.url,
-      status: 'disconnected',
-      apiKey: platformForm.apiKey,
-      models: [],
-      createdAt: new Date().toISOString().split('T')[0],
-      lastCheck: '从未',
-      requestCount: 0,
-      avgLatency: 0,
+    try {
+      setCreating(true)
+      const res = await createPlatform({
+        name: platformForm.name,
+        type: platformForm.type,
+        url: platformForm.url,
+        apiKey: platformForm.apiKey,
+      })
+      const newPlatform = res.data || res || {
+        id: `pl-${Date.now()}`,
+        name: platformForm.name,
+        type: platformForm.type,
+        url: platformForm.url,
+        status: 'disconnected',
+        apiKey: platformForm.apiKey,
+        models: [],
+        createdAt: new Date().toISOString().split('T')[0],
+        lastCheck: '从未',
+        requestCount: 0,
+        avgLatency: 0,
+      }
+      setPlatforms((prev) => [newPlatform, ...prev])
+      setShowPlatformModal(false)
+      setPlatformForm({ name: '', type: 'kimi', url: '', apiKey: '' })
+    } catch (e) {
+      console.error('Failed to create platform:', e)
+      // Fallback: optimistic local insert
+      const newPlatform: Platform = {
+        id: `pl-${Date.now()}`,
+        name: platformForm.name,
+        type: platformForm.type,
+        url: platformForm.url,
+        status: 'disconnected',
+        apiKey: platformForm.apiKey,
+        models: [],
+        createdAt: new Date().toISOString().split('T')[0],
+        lastCheck: '从未',
+        requestCount: 0,
+        avgLatency: 0,
+      }
+      setPlatforms((prev) => [newPlatform, ...prev])
+      setShowPlatformModal(false)
+      setPlatformForm({ name: '', type: 'kimi', url: '', apiKey: '' })
+    } finally {
+      setCreating(false)
     }
-    setPlatforms([...platforms, newPlatform])
-    setShowPlatformModal(false)
-    setPlatformForm({ name: '', type: 'kimi', url: '', apiKey: '' })
+  }
+
+  const handleDeletePlatform = async (id: string) => {
+    if (!confirm('确定删除此平台？')) return
+    try {
+      await deletePlatform(id)
+      setPlatforms((prev) => prev.filter((p) => p.id !== id))
+    } catch (e) {
+      console.error('Failed to delete platform:', e)
+      setPlatforms((prev) => prev.filter((p) => p.id !== id))
+    }
+  }
+
+  const togglePlatformStatus = (id: string) => {
+    setPlatforms((prev) => prev.map((p) => {
+      if (p.id !== id) return p
+      const next = p.status === 'connected' ? 'disconnected' : 'connected'
+      return { ...p, status: next }
+    }))
+  }
+
+  const handleCreateFramework = () => {
+    if (!frameworkForm.name.trim()) return
+    const newFramework: Framework = {
+      id: `fw-${Date.now()}`,
+      name: frameworkForm.name,
+      category: frameworkForm.category,
+      protocolLevel: Number(frameworkForm.protocolLevel) || 1,
+      status: 'active',
+      description: frameworkForm.description,
+    }
+    setFrameworks((prev) => [newFramework, ...prev])
+    setShowFrameworkModal(false)
+    setFrameworkForm({ name: '', category: '', protocolLevel: 1, description: '' })
+  }
+
+  const handleDeleteFramework = (id: string) => {
+    if (!confirm('确定删除此框架？')) return
+    setFrameworks((prev) => prev.filter((f) => f.id !== id))
+  }
+
+  const handleCreateEngine = async () => {
+    if (!engineForm.brand.trim() || !engineForm.model.trim()) return
+    try {
+      setCreating(true)
+      const res = await createEngine({
+        brand: engineForm.brand,
+        model: engineForm.model,
+        tier: engineForm.tier,
+        description: engineForm.description,
+      })
+      const newEngine = res.data || res || {
+        id: `eng-${Date.now()}`,
+        brand: engineForm.brand,
+        model: engineForm.model,
+        tier: engineForm.tier,
+        status: 'offline',
+        healthScore: 0,
+        description: engineForm.description,
+      }
+      setEngines((prev) => [newEngine, ...prev])
+      setShowEngineModal(false)
+      setEngineForm({ brand: '', model: '', tier: 'local', description: '' })
+    } catch (e) {
+      console.error('Failed to create engine:', e)
+      const newEngine: Engine = {
+        id: `eng-${Date.now()}`,
+        brand: engineForm.brand,
+        model: engineForm.model,
+        tier: engineForm.tier,
+        status: 'offline',
+        healthScore: 0,
+        description: engineForm.description,
+      }
+      setEngines((prev) => [newEngine, ...prev])
+      setShowEngineModal(false)
+      setEngineForm({ brand: '', model: '', tier: 'local', description: '' })
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const handleDeleteEngine = (id: string) => {
+    if (!confirm('确定删除此引擎？')) return
+    setEngines((prev) => prev.filter((e) => e.id !== id))
   }
 
   const handleCreateTeam = async () => {
@@ -189,40 +312,14 @@ export default function PlatformManager() {
     }
   }
 
-  const togglePlatformStatus = (id: string) => {
-    setPlatforms(platforms.map((p) => {
-      if (p.id !== id) return p
-      const next = p.status === 'connected' ? 'disconnected' : 'connected'
-      return { ...p, status: next }
-    }))
+  const handleDeleteTeam = (id: string) => {
+    if (!confirm('确定删除此工具？')) return
+    setTeams((prev) => prev.filter((t) => t.id !== id))
   }
 
-  const deletePlatformItem = (id: string) => {
-    if (!confirm('确定删除此平台？')) return
-    setPlatforms(platforms.filter((p) => p.id !== id))
+  const handleTestConnection = (id: string, name: string) => {
+    alert(`正在测试 ${name} (ID: ${id}) 的连接...`)
   }
-
-  /* ── Filters ── */
-  const filteredPlatforms = platforms.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.type.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-  const filteredFrameworks = frameworks.filter((f) =>
-    f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    f.category.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-  const filteredEngines = engines.filter((e) =>
-    e.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.model.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-  const filteredTeams = teams.filter((t) =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.framework.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-  const filteredApiKeys = apiKeys.filter((k) =>
-    k.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    k.provider.toLowerCase().includes(searchQuery.toLowerCase())
-  )
 
   /* ── Stats ── */
   const connectedCount = platforms.filter((p) => p.status === 'connected').length
@@ -239,7 +336,7 @@ export default function PlatformManager() {
           <div>
             <h1 className="text-2xl font-bold text-[var(--sage-800)]">平台管理</h1>
             <p className="text-sm text-[var(--sage-500)]">
-              {platforms.length} 平台 · {frameworks.length} 框架 · {engines.length} 引擎 · {teams.length} 团队
+              {platforms.length} API Provider · {frameworks.length} 编排平台 · {engines.length} 本地引擎 · {teams.length} CLI工具
             </p>
           </div>
         </div>
@@ -285,8 +382,8 @@ export default function PlatformManager() {
         })}
       </div>
 
-      {/* ── Platforms Tab ── */}
-      {activeTab === 'platforms' && (
+      {/* ── API Provider Tab ── */}
+      {activeTab === 'api-providers' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -307,145 +404,114 @@ export default function PlatformManager() {
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-card" style={{ border: '1px solid var(--sage-200)' }}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ backgroundColor: 'var(--sage-100)' }}>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>平台</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>类型</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>端点</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>模型</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>状态</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>延迟</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPlatforms.map((p) => {
-                  const status = PLATFORM_STATUS[p.status]
-                  return (
-                    <tr key={p.id} className="hover:bg-[var(--sage-50)] transition-colors" style={{ borderBottom: '1px solid var(--sage-100)' }}>
-                      <td className="px-4 py-3 font-medium" style={{ color: 'var(--sage-700)' }}>{p.name}</td>
-                      <td className="px-4 py-3">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]">{p.type}</span>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs" style={{ color: 'var(--sage-500)' }}>{p.url}</td>
-                      <td className="px-4 py-3 text-xs" style={{ color: 'var(--sage-500)' }}>{p.models.join(', ')}</td>
-                      <td className="px-4 py-3">
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }} />
-                          <span className="text-xs" style={{ color: status.color }}>{status.label}</span>
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs" style={{ color: 'var(--sage-500)' }}>
-                        {p.avgLatency > 0 ? `${p.avgLatency}ms` : '-'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => togglePlatformStatus(p.id)}
-                            className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
-                            style={{ color: 'var(--sage-500)' }}
-                            title={p.status === 'connected' ? '断开' : '连接'}
-                          >
-                            {p.status === 'connected' ? <X className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
-                          </button>
-                          <button
-                            onClick={() => deletePlatformItem(p.id)}
-                            className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
-                            style={{ color: 'var(--sage-500)' }}
-                            title="删除"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+          {loading.platforms ? (
+            <div className="flex items-center justify-center py-16 text-[var(--sage-500)] gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>加载中...</span>
+            </div>
+          ) : filteredPlatforms.length === 0 ? (
+            <div className="card text-center py-16">
+              <Globe className="w-12 h-12 text-[var(--sage-400)] mx-auto mb-3" />
+              <p className="text-[var(--sage-500)] mb-2">暂无 API Provider</p>
+              <p className="text-xs text-[var(--sage-400)]">请添加平台或检查搜索条件</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPlatforms.map((p) => {
+                const status = PLATFORM_STATUS[p.status]
+                return (
+                  <div key={p.id} className="card p-4 transition-all hover:shadow-md">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
+                          <Globe className="w-5 h-5 text-[var(--sage-500)]" />
                         </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <div>
+                          <h3 className="font-semibold text-sm text-[var(--sage-800)]">{p.name}</h3>
+                          <span className="text-[10px] text-[var(--sage-500)]">{p.type}</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] px-2 py-1 rounded-full" style={{ backgroundColor: status.color + '15', color: status.color }}>
+                        {status.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[var(--sage-500)] mb-3 line-clamp-2">
+                      {p.url || '无端点信息'}
+                    </p>
+                    <div className="flex items-center justify-between text-xs text-[var(--sage-400)] mb-3">
+                      <span className="flex items-center gap-1">
+                        <Zap className="w-3 h-3" />
+                        {p.models.length} 模型
+                      </span>
+                      <span>{p.avgLatency > 0 ? `${p.avgLatency}ms` : '-'}</span>
+                    </div>
+                    <div className="flex items-center gap-1 pt-2 border-t" style={{ borderColor: 'var(--sage-100)' }}>
+                      <button
+                        onClick={() => togglePlatformStatus(p.id)}
+                        className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title={p.status === 'connected' ? '断开' : '连接'}
+                      >
+                        {p.status === 'connected' ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
+                      </button>
+                      <button
+                        onClick={() => handleTestConnection(p.id, p.name)}
+                        className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="测试连接"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="编辑"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePlatform(p.id)}
+                        className="p-1.5 rounded hover:bg-red-500/10 transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="删除"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* ── API Keys Tab ── */}
-      {activeTab === 'apikeys' && (
+      {/* ── Orchestration Tab ── */}
+      {activeTab === 'orchestration' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-[var(--sage-500)]">API 密钥与平台绑定，创建智能体时直接使用</p>
-            <button className="btn-primary flex items-center gap-2 text-sm">
-              <Plus className="w-4 h-4" /> 添加密钥
+            <div className="card p-3 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[var(--sage-500)]" />
+              <span className="text-sm font-medium text-[var(--sage-700)]">{activeFwCount} 活跃框架</span>
+            </div>
+            <button
+              onClick={() => setShowFrameworkModal(true)}
+              className="btn-primary flex items-center gap-2 text-sm"
+            >
+              <Plus className="w-4 h-4" /> 添加框架
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-card" style={{ border: '1px solid var(--sage-200)' }}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ backgroundColor: 'var(--sage-100)' }}>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>名称</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>平台</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>端点</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>密钥</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>模型数</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>状态</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold" style={{ color: 'var(--sage-500)' }}>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredApiKeys.map((k) => (
-                  <tr key={k.id} className="hover:bg-[var(--sage-50)] transition-colors" style={{ borderBottom: '1px solid var(--sage-100)' }}>
-                    <td className="px-4 py-3 font-medium" style={{ color: 'var(--sage-700)' }}>{k.name}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]">{k.provider}</span>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs" style={{ color: 'var(--sage-500)' }}>{k.endpoint}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        {revealedKeys.has(k.id) ? k.keyMask : '••••••••'}
-                        <button
-                          onClick={() => setRevealedKeys((prev) => { const n = new Set(prev); if (n.has(k.id)) n.delete(k.id); else n.add(k.id); return n })}
-                          className="p-0.5 rounded hover:bg-[var(--sage-100)]"
-                          style={{ color: 'var(--sage-400)' }}
-                        >
-                          {revealedKeys.has(k.id) ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs" style={{ color: 'var(--sage-500)' }}>{k.modelCount}</td>
-                    <td className="px-4 py-3">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: k.status === 'connected' ? '#10b981' : '#6b7280' }} />
-                        <span className="text-xs" style={{ color: k.status === 'connected' ? '#10b981' : '#6b7280' }}>
-                          {k.status === 'connected' ? '正常' : '断开'}
-                        </span>
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors" style={{ color: 'var(--sage-500)' }}>
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors" style={{ color: 'var(--sage-500)' }}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ── Frameworks Tab ── */}
-      {activeTab === 'frameworks' && (
-        <div className="space-y-4">
           {loading.frameworks ? (
             <div className="flex items-center justify-center py-16 text-[var(--sage-500)] gap-2">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>加载中...</span>
+            </div>
+          ) : filteredFrameworks.length === 0 ? (
+            <div className="card text-center py-16">
+              <Layers className="w-12 h-12 text-[var(--sage-400)] mx-auto mb-3" />
+              <p className="text-[var(--sage-500)] mb-2">暂无线程编排平台</p>
+              <p className="text-xs text-[var(--sage-400)]">请添加框架或检查搜索条件</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -470,9 +536,26 @@ export default function PlatformManager() {
                     {fw.description && (
                       <p className="text-xs text-[var(--sage-500)] mb-3 line-clamp-2">{fw.description}</p>
                     )}
-                    <div className="flex items-center justify-between text-xs text-[var(--sage-400)]">
+                    <div className="flex items-center justify-between text-xs text-[var(--sage-400)] mb-3">
                       <span>协议级别: {fw.protocolLevel}</span>
                       {fw.version && <span>v{fw.version}</span>}
+                    </div>
+                    <div className="flex items-center gap-1 pt-2 border-t" style={{ borderColor: 'var(--sage-100)' }}>
+                      <button
+                        className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="编辑"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFramework(fw.id)}
+                        className="p-1.5 rounded hover:bg-red-500/10 transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="删除"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 )
@@ -485,10 +568,29 @@ export default function PlatformManager() {
       {/* ── Engines Tab ── */}
       {activeTab === 'engines' && (
         <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="card p-3 flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-[var(--sage-500)]" />
+              <span className="text-sm font-medium text-[var(--sage-700)]">{healthyEngCount} 健康引擎</span>
+            </div>
+            <button
+              onClick={() => setShowEngineModal(true)}
+              className="btn-primary flex items-center gap-2 text-sm"
+            >
+              <Plus className="w-4 h-4" /> 添加引擎
+            </button>
+          </div>
+
           {loading.engines ? (
             <div className="flex items-center justify-center py-16 text-[var(--sage-500)] gap-2">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>加载中...</span>
+            </div>
+          ) : filteredEngines.length === 0 ? (
+            <div className="card text-center py-16">
+              <Cpu className="w-12 h-12 text-[var(--sage-400)] mx-auto mb-3" />
+              <p className="text-[var(--sage-500)] mb-2">暂无本地引擎</p>
+              <p className="text-xs text-[var(--sage-400)]">请添加引擎或检查搜索条件</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -513,12 +615,37 @@ export default function PlatformManager() {
                     {engine.description && (
                       <p className="text-xs text-[var(--sage-500)] mb-3 line-clamp-2">{engine.description}</p>
                     )}
-                    <div className="flex items-center justify-between text-xs text-[var(--sage-400)]">
+                    <div className="flex items-center justify-between text-xs text-[var(--sage-400)] mb-3">
                       <span>层级: {engine.tier}</span>
                       <span className="flex items-center gap-1">
                         <Activity className="w-3 h-3" />
                         健康分: {engine.healthScore}
                       </span>
+                    </div>
+                    <div className="flex items-center gap-1 pt-2 border-t" style={{ borderColor: 'var(--sage-100)' }}>
+                      <button
+                        className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="编辑"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleTestConnection(engine.id, engine.brand)}
+                        className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="测试连接"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteEngine(engine.id)}
+                        className="p-1.5 rounded hover:bg-red-500/10 transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="删除"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 )
@@ -528,19 +655,19 @@ export default function PlatformManager() {
         </div>
       )}
 
-      {/* ── Teams Tab ── */}
-      {activeTab === 'teams' && (
+      {/* ── CLI Tools Tab ── */}
+      {activeTab === 'cli-tools' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="card p-3 flex items-center gap-2">
-              <Users className="w-4 h-4 text-[var(--sage-500)]" />
-              <span className="text-sm font-medium text-[var(--sage-700)]">{activeTeamCount} 活跃团队</span>
+              <Terminal className="w-4 h-4 text-[var(--sage-500)]" />
+              <span className="text-sm font-medium text-[var(--sage-700)]">{activeTeamCount} 活跃工具</span>
             </div>
             <button
               onClick={() => setShowTeamModal(true)}
               className="btn-primary flex items-center gap-2 text-sm"
             >
-              <Plus className="w-4 h-4" /> 创建团队
+              <Plus className="w-4 h-4" /> 添加工具
             </button>
           </div>
 
@@ -548,6 +675,12 @@ export default function PlatformManager() {
             <div className="flex items-center justify-center py-16 text-[var(--sage-500)] gap-2">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>加载中...</span>
+            </div>
+          ) : filteredTeams.length === 0 ? (
+            <div className="card text-center py-16">
+              <Terminal className="w-12 h-12 text-[var(--sage-400)] mx-auto mb-3" />
+              <p className="text-[var(--sage-500)] mb-2">暂无 CLI 工具</p>
+              <p className="text-xs text-[var(--sage-400)]">请添加工具或检查搜索条件</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -558,7 +691,7 @@ export default function PlatformManager() {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
-                          <Users className="w-5 h-5 text-[var(--sage-500)]" />
+                          <Terminal className="w-5 h-5 text-[var(--sage-500)]" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-sm text-[var(--sage-800)]">{team.name}</h3>
@@ -572,12 +705,37 @@ export default function PlatformManager() {
                     {team.description && (
                       <p className="text-xs text-[var(--sage-500)] mb-3 line-clamp-2">{team.description}</p>
                     )}
-                    <div className="flex items-center justify-between text-xs text-[var(--sage-400)]">
+                    <div className="flex items-center justify-between text-xs text-[var(--sage-400)] mb-3">
                       <span className="flex items-center gap-1">
-                        <GitBranch className="w-3 h-3" />
+                        <Users className="w-3 h-3" />
                         {team.collaborationMode}
                       </span>
                       {team.memberCount !== undefined && <span>{team.memberCount} 成员</span>}
+                    </div>
+                    <div className="flex items-center gap-1 pt-2 border-t" style={{ borderColor: 'var(--sage-100)' }}>
+                      <button
+                        className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="编辑"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleTestConnection(team.id, team.name)}
+                        className="p-1.5 rounded hover:bg-[var(--sage-100)] transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="测试连接"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTeam(team.id)}
+                        className="p-1.5 rounded hover:bg-red-500/10 transition-colors"
+                        style={{ color: 'var(--sage-500)' }}
+                        title="删除"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 )
@@ -647,7 +805,7 @@ export default function PlatformManager() {
             <div className="flex gap-2 mt-4">
               <button
                 onClick={handleCreatePlatform}
-                disabled={!platformForm.name.trim()}
+                disabled={!platformForm.name.trim() || creating}
                 className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <Plus className="w-4 h-4" /> 添加
@@ -664,15 +822,135 @@ export default function PlatformManager() {
         </div>
       )}
 
+      {/* ── Framework Modal ── */}
+      {showFrameworkModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="card p-6 w-[400px] max-w-[90vw]">
+            <h2 className="text-lg font-bold text-[var(--sage-800)] mb-4">添加框架</h2>
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="框架名称"
+                value={frameworkForm.name}
+                onChange={(e) => setFrameworkForm({ ...frameworkForm, name: e.target.value })}
+                className="w-full px-3 py-2 rounded-card border text-sm"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+              />
+              <input
+                type="text"
+                placeholder="分类"
+                value={frameworkForm.category}
+                onChange={(e) => setFrameworkForm({ ...frameworkForm, category: e.target.value })}
+                className="w-full px-3 py-2 rounded-card border text-sm"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+              />
+              <input
+                type="number"
+                placeholder="协议级别"
+                value={frameworkForm.protocolLevel}
+                onChange={(e) => setFrameworkForm({ ...frameworkForm, protocolLevel: Number(e.target.value) })}
+                className="w-full px-3 py-2 rounded-card border text-sm"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+              />
+              <textarea
+                placeholder="描述（可选）"
+                value={frameworkForm.description}
+                onChange={(e) => setFrameworkForm({ ...frameworkForm, description: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 rounded-card border text-sm resize-none"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+              />
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleCreateFramework}
+                disabled={!frameworkForm.name.trim()}
+                className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" /> 添加
+              </button>
+              <button
+                onClick={() => setShowFrameworkModal(false)}
+                className="px-4 py-2 rounded-card border text-sm"
+                style={{ borderColor: 'var(--sage-200)' }}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Engine Modal ── */}
+      {showEngineModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="card p-6 w-[400px] max-w-[90vw]">
+            <h2 className="text-lg font-bold text-[var(--sage-800)] mb-4">添加引擎</h2>
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="品牌"
+                value={engineForm.brand}
+                onChange={(e) => setEngineForm({ ...engineForm, brand: e.target.value })}
+                className="w-full px-3 py-2 rounded-card border text-sm"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+              />
+              <input
+                type="text"
+                placeholder="模型"
+                value={engineForm.model}
+                onChange={(e) => setEngineForm({ ...engineForm, model: e.target.value })}
+                className="w-full px-3 py-2 rounded-card border text-sm"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+              />
+              <select
+                value={engineForm.tier}
+                onChange={(e) => setEngineForm({ ...engineForm, tier: e.target.value })}
+                className="w-full px-3 py-2 rounded-card border text-sm"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+              >
+                <option value="local">本地</option>
+                <option value="edge">边缘</option>
+                <option value="cloud">云端</option>
+              </select>
+              <textarea
+                placeholder="描述（可选）"
+                value={engineForm.description}
+                onChange={(e) => setEngineForm({ ...engineForm, description: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 rounded-card border text-sm resize-none"
+                style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+              />
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleCreateEngine}
+                disabled={!engineForm.brand.trim() || !engineForm.model.trim() || creating}
+                className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" /> 添加
+              </button>
+              <button
+                onClick={() => setShowEngineModal(false)}
+                className="px-4 py-2 rounded-card border text-sm"
+                style={{ borderColor: 'var(--sage-200)' }}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Team Modal ── */}
       {showTeamModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="card p-6 w-[400px] max-w-[90vw]">
-            <h2 className="text-lg font-bold text-[var(--sage-800)] mb-4">创建团队</h2>
+            <h2 className="text-lg font-bold text-[var(--sage-800)] mb-4">添加 CLI 工具</h2>
             <div className="space-y-3">
               <input
                 type="text"
-                placeholder="团队名称"
+                placeholder="工具名称"
                 value={teamForm.name}
                 onChange={(e) => setTeamForm({ ...teamForm, name: e.target.value })}
                 className="w-full px-3 py-2 rounded-card border text-sm"

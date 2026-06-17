@@ -37,6 +37,7 @@ import {
   createGroup,
   deleteGroup,
   executeGroup,
+  updateGroup,
   updateGroupStatus,
   fetchAgents,
   fetchGroupStats,
@@ -67,6 +68,8 @@ interface Group {
   name: string
   entityType: 'mixed' | 'agents' | 'groups'
   type: 'sequential' | 'parallel' | 'hierarchical' | 'dynamic'
+  swarmMode?: 'sequential' | 'parallel' | 'hierarchical' | 'dynamic'
+  executionMode?: 'sequential' | 'parallel' | 'hierarchical' | 'dynamic'
   groupType?: string
   status: 'active' | 'paused' | 'completed'
   description: string
@@ -77,6 +80,8 @@ interface Group {
   tasks: GroupTask[]
   children?: Group[]
   health?: { overall: string; issues: string[] }
+  healthScore?: number
+  taskStats?: { completed: number; failed: number; pending: number }
   accentColor?: string
   color?: string
   icon?: string
@@ -116,6 +121,33 @@ const typeLabels: Record<string, string> = {
   parallel: '并行',
   hierarchical: '层级',
   dynamic: '动态',
+}
+
+const swarmModeIcons: Record<string, React.ElementType> = {
+  sequential: Play,
+  parallel: GitBranch,
+  hierarchical: Layers,
+  dynamic: Zap,
+}
+
+const swarmModeLabels: Record<string, string> = {
+  sequential: '顺序',
+  parallel: '并行',
+  hierarchical: '层级',
+  dynamic: '动态',
+}
+
+const swarmModeColors: Record<string, string> = {
+  sequential: '#3B82F6',
+  parallel: '#10B981',
+  hierarchical: '#8B5CF6',
+  dynamic: '#F59E0B',
+}
+
+function getHealthColor(score: number): string {
+  if (score >= 80) return '#10B981'
+  if (score >= 50) return '#F59E0B'
+  return '#EF4444'
 }
 
 /* ── Tree Node Component ────────────────────────────────────────── */
@@ -208,11 +240,61 @@ function TreeNode({
                 {groupTypeConfig?.label || group.groupType}
               </span>
             )}
+            {(group.swarmMode || group.executionMode) && (
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 text-white flex items-center gap-1"
+                style={{ backgroundColor: swarmModeColors[group.swarmMode || group.executionMode || ''] || '#6B7280' }}
+              >
+                {(() => {
+                  const Icon = swarmModeIcons[group.swarmMode || group.executionMode || '']
+                  return Icon ? <Icon className="w-3 h-3" /> : null
+                })()}
+                {swarmModeLabels[group.swarmMode || group.executionMode || ''] || (group.swarmMode || group.executionMode)}
+              </span>
+            )}
           </div>
           <p className={`text-xs mt-0.5 truncate ${isSelected ? 'text-white/70' : 'text-[var(--sage-500)]'}`}>
             {(group.entities?.length || group.entityIds?.length || 0)} 成员 · {typeLabels[group.type]}
             {group.coordinatorName && ` · 协调: ${group.coordinatorName}`}
           </p>
+          {/* Health & Task Stats */}
+          <div className="flex items-center gap-2 mt-1">
+            {typeof group.healthScore === 'number' && (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="w-16 h-1.5 rounded-full bg-[var(--sage-200)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${group.healthScore}%`,
+                      backgroundColor: getHealthColor(group.healthScore),
+                    }}
+                  />
+                </div>
+                <span className={`text-[10px] ${isSelected ? 'text-white/70' : 'text-[var(--sage-500)]'}`}>
+                  {group.healthScore}
+                </span>
+              </div>
+            )}
+            {group.taskStats && (
+              <div className="flex items-center gap-1">
+                {typeof group.taskStats.completed === 'number' && group.taskStats.completed > 0 && (
+                  <span className={`text-[10px] px-1 py-0.5 rounded-full flex-shrink-0 ${isSelected ? 'bg-green-500/30 text-white' : 'bg-green-500/15 text-green-600'}`}>
+                    {group.taskStats.completed} 完成
+                  </span>
+                )}
+                {typeof group.taskStats.failed === 'number' && group.taskStats.failed > 0 && (
+                  <span className={`text-[10px] px-1 py-0.5 rounded-full flex-shrink-0 ${isSelected ? 'bg-red-500/30 text-white' : 'bg-red-500/15 text-red-600'}`}>
+                    {group.taskStats.failed} 失败
+                  </span>
+                )}
+                {typeof group.taskStats.pending === 'number' && group.taskStats.pending > 0 && (
+                  <span className={`text-[10px] px-1 py-0.5 rounded-full flex-shrink-0 ${isSelected ? 'bg-amber-500/30 text-white' : 'bg-amber-500/15 text-amber-600'}`}>
+                    {group.taskStats.pending} 待处理
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Quick Actions */}
@@ -599,6 +681,7 @@ export default function Groups() {
               onToggleStatus={() => handleToggleStatus(selectedGroup.id, selectedGroup.status)}
               onDelete={() => handleDelete(selectedGroup.id)}
               executing={executingId === selectedGroup.id}
+              onRefresh={loadGroups}
             />
           ) : (
             <div className="card text-center py-16">
@@ -635,6 +718,7 @@ function GroupPreview({
   onToggleStatus,
   onDelete,
   executing,
+  onRefresh,
 }: {
   group: Group
   onNavigate: (id: string) => void
@@ -642,7 +726,25 @@ function GroupPreview({
   onToggleStatus: () => void
   onDelete: () => void
   executing: boolean
+  onRefresh?: () => void
 }) {
+  const [swarmModeEditing, setSwarmModeEditing] = useState(false)
+  const [swarmModeUpdating, setSwarmModeUpdating] = useState(false)
+
+  async function handleSwarmModeChange(newMode: string) {
+    setSwarmModeUpdating(true)
+    try {
+      await updateGroup(group.id, { swarmMode: newMode })
+      setSwarmModeEditing(false)
+      onRefresh?.()
+    } catch (e) {
+      console.error('Failed to update swarm mode:', e)
+      alert('更新蜂群模式失败')
+    } finally {
+      setSwarmModeUpdating(false)
+    }
+  }
+
   const TypeIcon = typeIcons[group.type] || Users
   const memberCount = group.entities?.length || group.entityIds?.length || 0
   const agentCount = group.entities?.filter((e) => e.type === 'agent').length || 0
@@ -678,7 +780,7 @@ function GroupPreview({
               </div>
               <div>
                 <h2 className="text-lg font-bold text-[var(--sage-800)]">{group.name}</h2>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--sage-100)] text-[var(--sage-600)]">
                     {typeLabels[group.type]}
                   </span>
@@ -710,6 +812,18 @@ function GroupPreview({
                       混合
                     </span>
                   )}
+                  {(group.swarmMode || group.executionMode) && (
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full text-white flex items-center gap-1"
+                      style={{ backgroundColor: swarmModeColors[group.swarmMode || group.executionMode || ''] || '#6B7280' }}
+                    >
+                      {(() => {
+                        const Icon = swarmModeIcons[group.swarmMode || group.executionMode || '']
+                        return Icon ? <Icon className="w-3 h-3" /> : null
+                      })()}
+                      {swarmModeLabels[group.swarmMode || group.executionMode || ''] || (group.swarmMode || group.executionMode)}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -733,6 +847,39 @@ function GroupPreview({
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Swarm Mode Edit */}
+            <div className="relative">
+              {swarmModeEditing ? (
+                <div className="flex items-center gap-1">
+                  <select
+                    value={group.swarmMode || group.executionMode || group.type || 'parallel'}
+                    onChange={(e) => handleSwarmModeChange(e.target.value)}
+                    disabled={swarmModeUpdating}
+                    className="text-xs px-2 py-1.5 rounded-lg border text-[var(--sage-700)] outline-none focus:border-[var(--sage-500)] bg-white"
+                    style={{ borderColor: 'var(--sage-200)' }}
+                  >
+                    <option value="sequential">顺序</option>
+                    <option value="parallel">并行</option>
+                    <option value="hierarchical">层级</option>
+                    <option value="dynamic">动态</option>
+                  </select>
+                  <button
+                    onClick={() => setSwarmModeEditing(false)}
+                    className="p-1.5 text-[var(--sage-400)] hover:bg-[var(--sage-100)] rounded-lg transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setSwarmModeEditing(true)}
+                  className="p-2 text-[var(--sage-500)] hover:bg-[var(--sage-100)] rounded-lg transition-colors"
+                  title="切换蜂群模式"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              )}
+            </div>
             <button
               onClick={onExecute}
               disabled={executing}
@@ -784,6 +931,52 @@ function GroupPreview({
             </div>
           ))}
         </div>
+
+        {/* Health Score & Task Stats */}
+        {(typeof group.healthScore === 'number' || group.taskStats) && (
+          <div className="mt-4 space-y-3">
+            {typeof group.healthScore === 'number' && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-[var(--sage-500)]">健康度</span>
+                <div className="flex-1 h-2 rounded-full bg-[var(--sage-200)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${group.healthScore}%`,
+                      backgroundColor: getHealthColor(group.healthScore),
+                    }}
+                  />
+                </div>
+                <span className="text-xs font-medium" style={{ color: getHealthColor(group.healthScore) }}>
+                  {group.healthScore}
+                </span>
+              </div>
+            )}
+            {group.taskStats && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-[var(--sage-500)]">任务统计:</span>
+                {typeof group.taskStats.completed === 'number' && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-green-500/10 text-green-600 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    {group.taskStats.completed} 完成
+                  </span>
+                )}
+                {typeof group.taskStats.failed === 'number' && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-600 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    {group.taskStats.failed} 失败
+                  </span>
+                )}
+                {typeof group.taskStats.pending === 'number' && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-600 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {group.taskStats.pending} 待处理
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Role Definitions */}
