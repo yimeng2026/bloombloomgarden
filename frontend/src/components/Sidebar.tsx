@@ -27,7 +27,6 @@ import {
   HardDrive,
   Files,
   Layers,
-  Box,
   Users,
   Send, DollarSign, Globe, ClipboardList, Key, Terminal, Zap,
 } from 'lucide-react';
@@ -44,7 +43,6 @@ const navItems: NavItem[] = [
   { id: 'dashboard', label: '仪表盘', icon: LayoutDashboard, route: '/dashboard' },
   { id: 'platform', label: '平台管理', icon: Server, route: '/platform' },
   { id: 'blueprints', label: '蓝图编排', icon: Workflow, route: '/blueprints' },
-  { id: 'ecosystem',  label: '3D生态坐标系', icon: Box, route: '/ecosystem' },
   { id: 'workspace', label: '工作空间', icon: FolderOpen, route: '/workspace' },
   { id: 'files', label: '文件浏览', icon: Files, route: '/files' },
   { id: 'knowledge', label: '知识库', icon: BookOpen, route: '/knowledge' },

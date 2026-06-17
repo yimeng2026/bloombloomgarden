@@ -1,363 +1,274 @@
-/* ── LLM API Client — OpenAI-Compatible Direct Client ──
- * 前端直连 LLM Provider（OpenRouter / OpenAI / Kimi / Claude 等）
- * 支持 SSE 流式输出 + 非流式请求
- * 配置存储在 localStorage，用户首次使用时需配置
+/**
+ * llmApi.ts — 通用 OpenAI 兼容 LLM API 客户端
+ * 支持前端直连模式，SSE 流式输出
  */
 
-export interface LLMConfig {
-  baseUrl: string
-  apiKey: string
-  model: string
-  temperature: number
-  maxTokens?: number
-  topP?: number
-  provider?: 'openrouter' | 'openai' | 'kimi' | 'anthropic' | 'custom'
-}
-
 export interface LLMMessage {
-  role: 'system' | 'user' | 'assistant'
-  content: string
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string;
+  name?: string;
+  tool_calls?: any[];
 }
 
-export interface LLMRequest {
-  messages: LLMMessage[]
-  model?: string
-  temperature?: number
-  maxTokens?: number
-  topP?: number
-  stream?: boolean
+export interface LLMConfig {
+  apiKey: string;
+  baseURL?: string;
+  model: string;
+  provider: 'openai' | 'kimi' | 'deepseek' | 'zhipu' | 'anthropic' | 'custom';
+  temperature?: number;
+  maxTokens?: number;
+  topP?: number;
+  timeout?: number;
 }
 
-export interface LLMChunk {
-  content: string
-  done: boolean
-  usage?: {
-    promptTokens: number
-    completionTokens: number
-    totalTokens: number
-  }
-  model?: string
+export interface LLMResponseChunk {
+  content: string;
+  done: boolean;
+  usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  model?: string;
 }
 
-/* ── 默认配置 ── */
-const DEFAULT_CONFIG: LLMConfig = {
-  baseUrl: 'https://openrouter.ai/api/v1',
-  apiKey: '',
-  model: 'moonshotai/kimi-k2.5',
-  temperature: 0.7,
-  maxTokens: 4096,
-  topP: 1.0,
-  provider: 'openrouter',
+export interface LLMStreamCallbacks {
+  onChunk: (chunk: LLMResponseChunk) => void;
+  onError?: (error: Error) => void;
+  onComplete?: (fullText: string) => void;
 }
 
-const STORAGE_KEY = 'sylva_llm_config'
+// Provider 默认配置
+const PROVIDER_DEFAULTS: Record<string, { baseURL: string; model: string }> = {
+  openai: { baseURL: 'https://api.openai.com/v1', model: 'gpt-4o' },
+  kimi: { baseURL: 'https://api.moonshot.cn/v1', model: 'kimi-latest' },
+  deepseek: { baseURL: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+  zhipu: { baseURL: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
+  anthropic: { baseURL: 'https://api.anthropic.com/v1', model: 'claude-3-5-sonnet-20241022' },
+};
 
-/* ── 配置读写 ── */
-export function loadLLMConfig(): LLMConfig {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      return { ...DEFAULT_CONFIG, ...parsed }
-    }
-  } catch {
-    // ignore parse errors
-  }
-  return { ...DEFAULT_CONFIG }
-}
-
-export function saveLLMConfig(config: Partial<LLMConfig>) {
-  const current = loadLLMConfig()
-  const merged = { ...current, ...config }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged))
-  return merged
-}
-
-export function clearLLMConfig() {
-  localStorage.removeItem(STORAGE_KEY)
-}
-
-export function hasLLMConfig(): boolean {
-  const cfg = loadLLMConfig()
-  return !!(cfg.apiKey && cfg.apiKey.trim().length > 0)
-}
-
-export function maskApiKey(key: string): string {
-  if (!key || key.length < 8) return '***'
-  return key.slice(0, 6) + '...' + key.slice(-4)
-}
-
-/* ── 预设 Provider 配置 ── */
-export const PRESET_PROVIDERS: { label: string; value: LLMConfig['provider']; baseUrl: string; models: string[] }[] = [
-  {
-    label: 'OpenRouter',
-    value: 'openrouter',
-    baseUrl: 'https://openrouter.ai/api/v1',
-    models: [
-      'moonshotai/kimi-k2.5',
-      'openai/gpt-4o',
-      'anthropic/claude-3.5-sonnet',
-      'deepseek/deepseek-chat',
-      'openai/gpt-3.5-turbo',
-      'meta-llama/llama-3.3-70b-instruct',
-    ],
-  },
-  {
-    label: 'OpenAI',
-    value: 'openai',
-    baseUrl: 'https://api.openai.com/v1',
-    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'],
-  },
-  {
-    label: 'Kimi (Moonshot)',
-    value: 'kimi',
-    baseUrl: 'https://api.moonshot.cn/v1',
-    models: ['kimi-k2.5', 'kimi-latest', 'moonshot-v1-8k', 'moonshot-v1-128k'],
-  },
-  {
-    label: 'Anthropic (Claude)',
-    value: 'anthropic',
-    baseUrl: 'https://api.anthropic.com/v1',
-    models: ['claude-3-5-sonnet-20241022', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'],
-  },
-  {
-    label: '自定义',
-    value: 'custom',
-    baseUrl: '',
-    models: [],
-  },
-]
-
-/* ── 核心请求函数 ── */
-export async function* streamLLM(
-  req: LLMRequest,
-  config?: Partial<LLMConfig>
-): AsyncGenerator<LLMChunk, void, unknown> {
-  const cfg = { ...loadLLMConfig(), ...config }
-  if (!cfg.apiKey) throw new Error('LLM API Key 未配置，请先在 Dashboard 配置')
-
-  const url = `${cfg.baseUrl.replace(/\/+$/, '')}/chat/completions`
-  const model = req.model || cfg.model
-  const body = {
-    model,
-    messages: req.messages,
-    temperature: req.temperature ?? cfg.temperature ?? 0.7,
-    max_tokens: req.maxTokens ?? cfg.maxTokens ?? 4096,
-    top_p: req.topP ?? cfg.topP ?? 1.0,
-    stream: true,
-  }
-
+function getHeaders(config: LLMConfig): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${cfg.apiKey}`,
+  };
+
+  switch (config.provider) {
+    case 'anthropic':
+      headers['x-api-key'] = config.apiKey;
+      headers['anthropic-version'] = '2023-06-01';
+      break;
+    case 'zhipu':
+      headers['Authorization'] = `Bearer ${config.apiKey}`;
+      break;
+    default:
+      headers['Authorization'] = `Bearer ${config.apiKey}`;
+      break;
   }
 
-  // OpenRouter 额外头
-  if (cfg.provider === 'openrouter' || cfg.baseUrl.includes('openrouter')) {
-    headers['HTTP-Referer'] = window.location.origin || 'https://sylva.local'
-    headers['X-Title'] = 'SYLVA Platform'
+  return headers;
+}
+
+function buildRequestBody(config: LLMConfig, messages: LLMMessage[]): any {
+  const baseURL = config.baseURL || PROVIDER_DEFAULTS[config.provider]?.baseURL;
+  const isAnthropic = config.provider === 'anthropic';
+
+  if (isAnthropic) {
+    return {
+      model: config.model,
+      messages: messages.filter((m) => m.role !== 'system'),
+      system: messages.find((m) => m.role === 'system')?.content,
+      max_tokens: config.maxTokens || 4096,
+      temperature: config.temperature,
+      top_p: config.topP,
+      stream: true,
+    };
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  })
+  return {
+    model: config.model,
+    messages,
+    temperature: config.temperature ?? 0.7,
+    max_tokens: config.maxTokens || 4096,
+    top_p: config.topP ?? 1,
+    stream: true,
+  };
+}
 
-  if (!response.ok) {
-    const text = await response.text()
-    throw new Error(`LLM API ${response.status}: ${text}`)
+function getChatEndpoint(config: LLMConfig): string {
+  const baseURL = config.baseURL || PROVIDER_DEFAULTS[config.provider]?.baseURL;
+
+  if (config.provider === 'anthropic') {
+    return `${baseURL}/messages`;
   }
+  return `${baseURL}/chat/completions`;
+}
 
-  const reader = response.body?.getReader()
-  if (!reader) throw new Error('Response body 不可读')
+/**
+ * SSE 流式聊天
+ */
+export async function chatStream(
+  config: LLMConfig,
+  messages: LLMMessage[],
+  callbacks: LLMStreamCallbacks,
+): Promise<void> {
+  const { onChunk, onError, onComplete } = callbacks;
+  const abortController = new AbortController();
+  const timeout = config.timeout || 120000;
 
-  const decoder = new TextDecoder()
-  let buffer = ''
+  const timeoutId = setTimeout(() => {
+    abortController.abort();
+    onError?.(new Error('Request timeout'));
+  }, timeout);
 
   try {
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
+    const endpoint = getChatEndpoint(config);
+    const body = buildRequestBody(config, messages);
+    const headers = getHeaders(config);
 
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: abortController.signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
-        const trimmed = line.trim()
-        if (!trimmed || trimmed === 'data: [DONE]') continue
-        if (!trimmed.startsWith('data:')) continue
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data: ')) continue;
+        const data = trimmed.slice(6);
 
-        const jsonStr = trimmed.slice(5).trim()
-        if (!jsonStr) continue
+        if (data === '[DONE]') continue;
 
         try {
-          const data = JSON.parse(jsonStr)
-          const delta = data.choices?.[0]?.delta
-          // Handle both standard content and reasoning fields (e.g., OpenRouter kimi-k2.5)
-          const content = delta?.content || delta?.reasoning || ''
-          const finishReason = data.choices?.[0]?.finish_reason
+          const parsed = JSON.parse(data);
+          let content = '';
+          let finishReason = null;
 
-          yield {
-            content,
-            done: !!finishReason,
-            usage: data.usage
-              ? {
-                  promptTokens: data.usage.prompt_tokens ?? 0,
-                  completionTokens: data.usage.completion_tokens ?? 0,
-                  totalTokens: data.usage.total_tokens ?? 0,
-                }
-              : undefined,
-            model: data.model,
+          if (config.provider === 'anthropic') {
+            // Anthropic SSE format
+            if (parsed.type === 'content_block_delta') {
+              content = parsed.delta?.text || '';
+            } else if (parsed.type === 'message_stop') {
+              finishReason = 'stop';
+            }
+          } else {
+            // OpenAI compatible format
+            const delta = parsed.choices?.[0]?.delta;
+            content = delta?.content || '';
+            finishReason = parsed.choices?.[0]?.finish_reason;
           }
-        } catch {
-          // ignore malformed JSON lines
+
+          if (content) {
+            fullText += content;
+            onChunk({ content, done: false });
+          }
+
+          if (finishReason) {
+            onChunk({ content: '', done: true, usage: parsed.usage, model: parsed.model });
+          }
+        } catch (e) {
+          // 忽略解析失败的行
         }
       }
     }
-  } finally {
-    reader.releaseLock()
-  }
-}
 
-/* ── 非流式请求 ── */
-export async function chatLLM(
-  req: LLMRequest,
-  config?: Partial<LLMConfig>
-): Promise<{ content: string; usage?: LLMChunk['usage']; model?: string }> {
-  const cfg = { ...loadLLMConfig(), ...config }
-  if (!cfg.apiKey) throw new Error('LLM API Key 未配置，请先在 Dashboard 配置')
-
-  const url = `${cfg.baseUrl.replace(/\/+$/, '')}/chat/completions`
-  const model = req.model || cfg.model
-  const body = {
-    model,
-    messages: req.messages,
-    temperature: req.temperature ?? cfg.temperature ?? 0.7,
-    max_tokens: req.maxTokens ?? cfg.maxTokens ?? 4096,
-    top_p: req.topP ?? cfg.topP ?? 1.0,
-    stream: false,
-  }
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${cfg.apiKey}`,
-  }
-
-  if (cfg.provider === 'openrouter' || cfg.baseUrl.includes('openrouter')) {
-    headers['HTTP-Referer'] = window.location.origin || 'https://sylva.local'
-    headers['X-Title'] = 'SYLVA Platform'
-  }
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  })
-
-  if (!response.ok) {
-    const text = await response.text()
-    throw new Error(`LLM API ${response.status}: ${text}`)
-  }
-
-  const data = await response.json()
-  const msg = data.choices?.[0]?.message || {}
-  // Handle both content and reasoning fields (OpenRouter kimi-k2.5 etc.)
-  const content = msg.content || msg.reasoning || ''
-
-  return {
-    content,
-    usage: data.usage
-      ? {
-          promptTokens: data.usage.prompt_tokens ?? 0,
-          completionTokens: data.usage.completion_tokens ?? 0,
-          totalTokens: data.usage.total_tokens ?? 0,
-        }
-      : undefined,
-    model: data.model,
-  }
-}
-
-/* ── 辅助：流式聚合为完整字符串 ── */
-export async function streamToString(
-  req: LLMRequest,
-  config?: Partial<LLMConfig>
-): Promise<{ content: string; usage?: LLMChunk['usage']; model?: string }> {
-  let content = ''
-  let usage: LLMChunk['usage'] | undefined
-  let model: string | undefined
-
-  for await (const chunk of streamLLM(req, config)) {
-    content += chunk.content
-    if (chunk.usage) usage = chunk.usage
-    if (chunk.model) model = chunk.model
-  }
-
-  return { content, usage, model }
-}
-
-/* ── 测试连接 ── */
-export async function testLLMConnection(config?: Partial<LLMConfig>): Promise<{
-  ok: boolean
-  latency: number
-  error?: string
-  model?: string
-}> {
-  const cfg = { ...loadLLMConfig(), ...config }
-  // Validate config before testing
-  if (!cfg.apiKey || cfg.apiKey.trim().length < 8) {
-    return { ok: false, latency: 0, error: 'API Key 未填写或格式不正确' }
-  }
-  const start = performance.now()
-
-  try {
-    const url = `${cfg.baseUrl.replace(/\/+$/, '')}/models`
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${cfg.apiKey}` },
-    })
-    const latency = Math.round(performance.now() - start)
-
-    if (!res.ok) {
-      const text = await res.text()
-      return { ok: false, latency, error: `${res.status}: ${text}` }
+    onComplete?.(fullText);
+  } catch (err: any) {
+    if (err.name !== 'AbortError') {
+      onError?.(err);
     }
-
-    // 如果 /models 可用，尝试获取可用模型列表
-    const data = await res.json().catch(() => ({}))
-    const firstModel = data.data?.[0]?.id || data.data?.[0] || cfg.model
-
-    return { ok: true, latency, model: firstModel }
-  } catch (e: any) {
-    return { ok: false, latency: Math.round(performance.now() - start), error: e.message }
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
-/* ── 快捷封装：单轮对话 ── */
-export async function askLLM(
-  prompt: string,
-  system?: string,
-  config?: Partial<LLMConfig>
-): Promise<string> {
-  const messages: LLMMessage[] = []
-  if (system) messages.push({ role: 'system', content: system })
-  messages.push({ role: 'user', content: prompt })
+/**
+ * 非流式聊天（一次性返回）
+ */
+export async function chat(
+  config: LLMConfig,
+  messages: LLMMessage[],
+): Promise<{ content: string; usage?: any; model?: string }> {
+  return new Promise((resolve, reject) => {
+    let fullText = '';
 
-  const { content } = await chatLLM({ messages }, config)
-  return content
+    chatStream(config, messages, {
+      onChunk: (chunk) => {
+        if (!chunk.done) {
+          fullText += chunk.content;
+        }
+      },
+      onError: reject,
+      onComplete: (text) => {
+        resolve({ content: text || fullText });
+      },
+    }).catch(reject);
+  });
 }
 
-export async function* askLLMStream(
-  prompt: string,
-  system?: string,
-  config?: Partial<LLMConfig>
-): AsyncGenerator<string, void, unknown> {
-  const messages: LLMMessage[] = []
-  if (system) messages.push({ role: 'system', content: system })
-  messages.push({ role: 'user', content: prompt })
+/**
+ * 检测 Provider 可用性
+ */
+export async function testProvider(config: LLMConfig): Promise<{ ok: boolean; latency: number; error?: string }> {
+  const start = performance.now();
+  try {
+    const endpoint = getChatEndpoint(config);
+    const headers = getHeaders(config);
 
-  for await (const chunk of streamLLM({ messages }, config)) {
-    yield chunk.content
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: config.model,
+        messages: [{ role: 'user', content: 'Hi' }],
+        max_tokens: 5,
+      }),
+    });
+
+    const latency = Math.round(performance.now() - start);
+    if (response.ok) {
+      return { ok: true, latency };
+    }
+    const errorText = await response.text().catch(() => 'Unknown');
+    return { ok: false, latency, error: `HTTP ${response.status}: ${errorText}` };
+  } catch (err: any) {
+    return { ok: false, latency: Math.round(performance.now() - start), error: err.message };
   }
 }
+
+/**
+ * 获取 Provider 默认配置
+ */
+export function getProviderDefaults(provider: string): { baseURL: string; model: string } | null {
+  return PROVIDER_DEFAULTS[provider] || null;
+}
+
+/**
+ * 支持的 Provider 列表
+ */
+export const SUPPORTED_PROVIDERS = [
+  { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'o3-mini'] },
+  { id: 'kimi', name: 'Moonshot/Kimi', models: ['kimi-latest', 'kimi-k2'] },
+  { id: 'deepseek', name: 'DeepSeek', models: ['deepseek-chat', 'deepseek-reasoner'] },
+  { id: 'zhipu', name: '智谱AI', models: ['glm-4-flash', 'glm-4-plus', 'glm-5.1'] },
+  { id: 'anthropic', name: 'Anthropic', models: ['claude-3-5-sonnet', 'claude-3-opus'] },
+  { id: 'custom', name: '自定义', models: ['custom'] },
+];
