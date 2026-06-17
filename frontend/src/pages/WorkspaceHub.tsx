@@ -95,7 +95,7 @@ interface TaskGroup {
   }[];
 }
 
-/* ───────────────────── mock data ───────────────────── */
+/* ───────────────────── 数据加载 ───────────────────── */
 
 const memoryFiles: MemoryFile[] = [
   { id: 'm1', agentName: '代码助手-01', agentAvatar: 'leaf', type: 'conversation', description: '记录了与用户的代码审查对话，包含Python最佳实践的讨论和代码示例...', fileCount: 12, size: '45 KB', lastUsed: '10分钟前' },

@@ -67,7 +67,7 @@ interface DocumentItem {
   modifiedAt: string;
 }
 
-/* ──────────────────────── mock data ──────────────────────── */
+/* ──────────────────────── 数据层 ──────────────────────── */
 
 const tagCloud = [
   { name: 'API', count: 45, color: '#7fa3b0' },

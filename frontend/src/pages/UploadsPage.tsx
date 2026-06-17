@@ -50,7 +50,7 @@ function getFileIcon(type: string) {
   return <File className="w-5 h-5 text-gray-400" />;
 }
 
-// ===================== Mock data =====================
+// ===================== 数据加载 =====================
 // Removed: MOCK_KB and MOCK_FILES — now loaded from real APIs
 
 // ===================== 主组件 =====================
