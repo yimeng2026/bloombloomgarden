@@ -1,8 +1,19 @@
 import React from 'react'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Pause, Square, Plus, ChevronRight, Clock, Bot, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { monitorTasks } from './mockData';
+
+interface MonitorTask {
+  id: string;
+  name: string;
+  agents: string[];
+  status: 'running' | 'completed' | 'failed' | 'pending';
+  progress: number;
+  startTime: string;
+  estimatedComplete: string;
+  priority: 'high' | 'medium' | 'low';
+  description: string;
+}
 
 const statusConfig: Record<string, { color: string; bg: string; icon: React.ElementType; label: string }> = {
   running: { color: '#7fb89f', bg: 'rgba(127,184,159,0.15)', icon: Loader2, label: '运行中' },
@@ -12,14 +23,37 @@ const statusConfig: Record<string, { color: string; bg: string; icon: React.Elem
 };
 
 export default function TasksPanel() {
+  const [tasks, setTasks] = useState<MonitorTask[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  const filteredTasks = filterStatus === 'all'
-    ? monitorTasks
-    : monitorTasks.filter((t) => t.status === filterStatus);
+  useEffect(() => {
+    fetch('/api/tasks')
+      .then((r) => r.json())
+      .then((data) => {
+        const list = data.data || data || [];
+        setTasks(list.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          agents: t.agents || [t.agentId],
+          status: t.status || 'pending',
+          progress: t.progress || 0,
+          startTime: t.startTime || t.createdAt,
+          estimatedComplete: t.estimatedComplete || '',
+          priority: t.priority || 'medium',
+          description: t.description || '',
+        })));
+      })
+      .catch(() => setTasks([]))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const selected = monitorTasks.find((t) => t.id === selectedTask);
+  const filteredTasks = filterStatus === 'all'
+    ? tasks
+    : tasks.filter((t) => t.status === filterStatus);
+
+  const selected = tasks.find((t) => t.id === selectedTask);
 
   return (
     <div className="flex gap-4 h-full" style={{ minHeight: 480 }}>

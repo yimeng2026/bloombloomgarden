@@ -5,7 +5,6 @@ import {
   Save, Clock, Shield, Bot, CheckCircle, Terminal,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { streamTokens, systemPrompt, jsonParams, checkpoints, interventionHistory } from './mockData';
 
 const controlButtons = [
   { id: 'pause', label: '暂停', icon: Pause, color: '#d4a373', bg: 'rgba(212,163,115,0.2)', hoverBg: 'rgba(212,163,115,0.35)' },
@@ -18,8 +17,8 @@ const controlButtons = [
 
 export default function InterventionPanel() {
   const [activeControl, setActiveControl] = useState<string | null>(null);
-  const [promptText, setPromptText] = useState(systemPrompt);
-  const [jsonText, setJsonText] = useState(JSON.stringify(jsonParams, null, 2));
+  const [promptText, setPromptText] = useState('');
+  const [jsonText, setJsonText] = useState('{}');
   const [saved, setSaved] = useState(false);
   const streamRef = useRef<HTMLDivElement>(null);
 
@@ -47,24 +46,9 @@ export default function InterventionPanel() {
             className="p-4 font-mono text-xs space-y-1 overflow-y-auto"
             style={{ maxHeight: 160, color: 'var(--dark-text)', lineHeight: 1.7 }}
           >
-            {streamTokens.map((token, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                style={{ color: i === streamTokens.length - 1 ? 'var(--bloom-mint)' : 'var(--sage-300)' }}
-              >
-                <span style={{ color: 'var(--bloom-sky)' }}>&gt;</span> {token}
-              </motion.div>
-            ))}
-            <motion.span
-              animate={{ opacity: [1, 0, 1] }}
-              transition={{ duration: 0.8, repeat: Infinity }}
-              style={{ color: 'var(--bloom-mint)' }}
-            >
-              _
-            </motion.span>
+            <div className="text-sm text-center py-4" style={{ color: 'var(--sage-400)' }}>
+              等待流输出...
+            </div>
           </div>
         </div>
 
@@ -184,34 +168,8 @@ export default function InterventionPanel() {
           <div className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--sage-400)' }}>
             检查点列表
           </div>
-          <div className="space-y-2">
-            {checkpoints.map((cp, i) => (
-              <motion.div
-                key={cp.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06 }}
-                className="flex items-center gap-3 p-2.5 rounded-lg transition-all hover:bg-white/5"
-                style={{ background: 'var(--dark-surface)' }}
-              >
-                <Save size={14} style={{ color: 'var(--bloom-sky)' }} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold truncate" style={{ color: 'var(--dark-text)' }}>{cp.label}</div>
-                  <div className="flex items-center gap-2">
-                    <Clock size={10} style={{ color: 'var(--sage-400)' }} />
-                    <span className="text-[10px]" style={{ color: 'var(--sage-400)' }}>{cp.timestamp}</span>
-                    <Bot size={10} style={{ color: 'var(--sage-400)' }} />
-                    <span className="text-[10px]" style={{ color: 'var(--sage-400)' }}>{cp.agent}</span>
-                  </div>
-                </div>
-                <button
-                  className="px-2.5 py-1 rounded-md text-[10px] font-bold transition-all hover:scale-105 flex-shrink-0"
-                  style={{ background: 'var(--bloom-sky)', color: '#fff' }}
-                >
-                  恢复
-                </button>
-              </motion.div>
-            ))}
+          <div className="text-sm text-center py-4" style={{ color: 'var(--sage-400)' }}>
+            暂无检查点
           </div>
         </div>
 
@@ -223,36 +181,8 @@ export default function InterventionPanel() {
           <div className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--sage-400)' }}>
             干预历史
           </div>
-          <div className="space-y-2">
-            {interventionHistory.map((rec, i) => (
-              <motion.div
-                key={rec.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06 }}
-                className="flex items-start gap-2.5 p-2.5 rounded-lg"
-                style={{ background: 'var(--dark-surface)' }}
-              >
-                <Shield size={13} style={{ color: 'var(--bloom-mint)', marginTop: 2, flexShrink: 0 }} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono" style={{ color: 'var(--bloom-sky)' }}>{rec.timestamp}</span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(127,184,159,0.15)', color: 'var(--bloom-mint)' }}>
-                      {rec.user}
-                    </span>
-                  </div>
-                  <div className="text-xs mt-0.5" style={{ color: 'var(--dark-text)' }}>
-                    <span className="font-semibold">{rec.action}</span>
-                    {' '}
-                    <span style={{ color: 'var(--sage-400)' }}>→ {rec.agent}</span>
-                  </div>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <CheckCircle size={10} style={{ color: 'var(--bloom-mint)' }} />
-                    <span className="text-[11px]" style={{ color: 'var(--bloom-mint)' }}>{rec.result}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+          <div className="text-sm text-center py-4" style={{ color: 'var(--sage-400)' }}>
+            暂无干预记录
           </div>
         </div>
       </div>

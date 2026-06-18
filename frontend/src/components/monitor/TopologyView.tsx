@@ -12,7 +12,6 @@ import {
   type ConnectionMode,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { monitorAgents, monitorEdges } from './mockData';
 
 const avatarMap: Record<string, string> = {
   leaf: '\u{1F343}', flower: '\u{1F33C}', tree: '\u{1F332}', fern: '\u{1F33F}',
@@ -183,41 +182,8 @@ function AgentNode({ data }: { data: Record<string, unknown> }) {
 const nodeTypes = { agentNode: AgentNode };
 
 export default function TopologyView() {
-  const initialNodes: Node[] = useMemo(() =>
-    monitorAgents.map((agent) => ({
-      id: agent.id,
-      type: 'agentNode',
-      position: agent.position,
-      data: {
-        name: agent.name,
-        status: agent.status,
-        platform: agent.platform,
-        progress: agent.progress,
-        avatar: agent.avatar,
-        type: agent.type,
-        currentTask: agent.currentTask,
-      },
-    })), []);
-
-  const initialEdges: Edge[] = useMemo(() =>
-    monitorEdges.map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      label: edge.label,
-      type: 'smoothstep',
-      animated: edge.status === 'active',
-      style: {
-        stroke: edge.status === 'active' ? 'var(--bloom-mint)' : edge.status === 'error' ? 'var(--bloom-rose)' : edge.status === 'pending' ? 'var(--bloom-amber)' : 'var(--sage-400)',
-        strokeWidth: edge.status === 'active' ? 2.5 : 2,
-        strokeDasharray: edge.status === 'pending' ? '6 3' : 'none',
-      },
-      labelStyle: {
-        fill: 'var(--sage-400)',
-        fontSize: 11,
-        fontWeight: 600,
-      },
-    })), []);
+  const initialNodes: Node[] = [];
+  const initialEdges: Edge[] = [];
 
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, , onEdgesChange] = useEdgesState(initialEdges);
