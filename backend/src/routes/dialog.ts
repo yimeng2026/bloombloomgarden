@@ -90,6 +90,9 @@ router.get('/', asyncHandler(async (_req, res) => {
 router.post('/', asyncHandler(async (req, res) => {
   const { agentId, title = '新对话' } = req.body;
   const session = { id: `sess_${Date.now()}`, agentId, title, createdAt: new Date().toISOString() };
+  // 建立内存上下文，使 GET /api/dialog 能列出此会话
+  const service = getDialogService();
+  await service.getOrCreateContext(agentId);
   res.json({ success: true, data: session });
 }));
 

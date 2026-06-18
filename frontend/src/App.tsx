@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from '@/components/Layout'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { ToastProvider } from '@/components/ToastProvider'
 
 /* ── Code Splitting — lazy load every page ─────────────────────── */
 
@@ -90,10 +91,11 @@ export default function App() {
   return (
     <Layout>
       <ErrorBoundary>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+        <ToastProvider>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
 
             {/* Platform — 统一管理 */}
             <Route path="/platform" element={<PlatformManager />} />
@@ -183,8 +185,9 @@ export default function App() {
             <Route path="*" element={<StubPage />} />
           </Routes>
         </Suspense>
-      </ErrorBoundary>
-    </Layout>
+      </ToastProvider>
+    </ErrorBoundary>
+  </Layout>
   )
 }
 // trigger 1780265431

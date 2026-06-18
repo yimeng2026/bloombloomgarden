@@ -1,8 +1,7 @@
 /* ── API Client �?Unified Backend (v2) ── */
 // 分离部署：前�?Vercel) �?后端(Railway)
 // 优先从环境变量读取，否则回退到本地开发地址
-const API_BASE = import.meta.env.VITE_API_BASE_URL
-  || (import.meta.env.PROD ? 'https://bloombloomgarden-production.up.railway.app/api' : 'http://localhost:3001/api');
+const API_BASE = 'http://localhost:3001/api';
 
 // Electron 环境检测：如果运行在 Electron 中，强制使用本地后端
 function isElectron() {
