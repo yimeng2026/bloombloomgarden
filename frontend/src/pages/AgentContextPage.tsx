@@ -28,41 +28,21 @@ export default function AgentContextPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const agents = data.data || data;
-      // 为每个Agent获取上下文
       const full = await Promise.all(agents.map(async (a: any) => {
         try {
           const r = await fetch(`/api/agents/${a.id}/context`);
           const d = await r.json();
           return { agentId: a.id, agentName: a.name, model: a.model, status: a.status, ...d.data };
         } catch (e) {
-          return mockContext(a);
+          return null;
         }
       }));
-      setContexts(full);
+      setContexts(full.filter(Boolean));
     } catch (e) {
       console.warn('获取Agent上下文失败:', e);
-      setContexts([
-        mockContext({ id: 'agent-1', name: '产品经理-Alpha', model: 'kimi-code', status: 'idle' }),
-        mockContext({ id: 'agent-2', name: '架构师-Beta', model: 'deepseek', status: 'busy' }),
-        mockContext({ id: 'agent-3', name: '开发-Gamma', model: 'qwen', status: 'idle' }),
-      ]);
+      setContexts([]);
     }
   };
-
-  const mockContext = (a: any): AgentContext => ({
-    agentId: a.id,
-    agentName: a.name,
-    model: a.model,
-    status: a.status,
-    systemPrompt: `你是${a.name}，一位专业的AI助手...`,
-    history: [
-      { role: 'user', content: '请分析这个需求', timestamp: new Date().toISOString() },
-      { role: 'assistant', content: '经过分析，我认为...', timestamp: new Date().toISOString() },
-    ],
-    toolCalls: [],
-    knowledgeRefs: ['kb-1'],
-    tokenUsage: { prompt: 120, completion: 340, total: 460 },
-  });
 
   const active = contexts.find(c => c.agentId === selected) || contexts[0];
 

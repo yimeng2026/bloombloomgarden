@@ -869,13 +869,6 @@ interface HandoffStep {
   timestamp: string;
 }
 
-const mockHandoffFlow: HandoffStep[] = [
-  { id: 'h1', from: { id: 'a1', name: '需求分析', color: '#7fb89f' }, to: { id: 'a2', name: '代码助手', color: '#7fa3b0' }, status: 'completed', message: '需求文档已交付', timestamp: '09:30:15' },
-  { id: 'h2', from: { id: 'a2', name: '代码助手', color: '#7fa3b0' }, to: { id: 'a3', name: '测试工程师', color: '#c97b84' }, status: 'completed', message: '代码实现完成', timestamp: '09:45:22' },
-  { id: 'h3', from: { id: 'a3', name: '测试工程师', color: '#c97b84' }, to: { id: 'a4', name: '文档撰写', color: '#d4a373' }, status: 'active', message: '测试通过，交付文档', timestamp: '10:00:05' },
-  { id: 'h4', from: { id: 'a4', name: '文档撰写', color: '#d4a373' }, to: { id: 'a5', name: '部署专家', color: '#a78b9a' }, status: 'pending', message: '等待文档完成', timestamp: '' },
-];
-
 interface CollabAgent {
   id: string;
   name: string;
@@ -886,14 +879,6 @@ interface CollabAgent {
   color: string;
   avatarType: string;
 }
-
-const mockCollabAgents: CollabAgent[] = [
-  { id: 'a1', name: '需求分析', status: 'completed', role: '分析', progress: 100, currentTask: '已完成', color: '#7fb89f', avatarType: 'leaf' },
-  { id: 'a2', name: '代码助手', status: 'completed', role: '开发', progress: 100, currentTask: '已实现', color: '#7fa3b0', avatarType: 'mushroom' },
-  { id: 'a3', name: '测试工程师', status: 'running', role: '测试', progress: 75, currentTask: '集成测试', color: '#c97b84', avatarType: 'flower' },
-  { id: 'a4', name: '文档撰写', status: 'idle', role: '文档', progress: 0, currentTask: '等待中', color: '#d4a373', avatarType: 'tree' },
-  { id: 'a5', name: '部署专家', status: 'idle', role: '运维', progress: 0, currentTask: '等待中', color: '#a78b9a', avatarType: 'vine' },
-];
 
 /* ------------------------------------------------------------------ */
 /*  Handoff Flow Visualization                                        */
@@ -1322,7 +1307,7 @@ export default function AgentCollab() {
                 <Users size={16} style={{ color: 'var(--sage-500)' }} />
                 参与协作的 Agent
               </h3>
-              <RealtimeStatusPanel agents={mockCollabAgents} />
+              <RealtimeStatusPanel agents={[]} />
             </div>
 
             {/* Handoff Flow Visualization */}
@@ -1334,7 +1319,7 @@ export default function AgentCollab() {
                 <Route size={16} style={{ color: 'var(--sage-500)' }} />
                 手递手（Handoff）流程
               </h3>
-              <HandoffFlowViz steps={mockHandoffFlow} />
+              <HandoffFlowViz steps={[]} />
             </div>
           </motion.div>
         )}

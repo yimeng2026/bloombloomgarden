@@ -89,189 +89,6 @@ interface Group {
   createdAt?: string
 }
 
-/* ── Mock Data ──────────────────────────────────────────────────── */
-
-const mockGroupDetail: Record<string, Group> = {
-  'g-1': {
-    id: 'g-1', name: '产品研发总部', entityType: 'mixed', type: 'hierarchical', status: 'active',
-    description: '负责全产品线的研发管理，包含前端、后端、测试、运维子团队',
-    coordinatorId: 'a-1', coordinatorName: '张总监',
-    entityIds: ['a-1', 'g-2', 'g-3', 'g-4'],
-    entities: [
-      { id: 'a-1', type: 'agent', name: '张总监', role: '技术总监', status: 'online', accentColor: '#6b7a5a' },
-      { id: 'g-2', type: 'group', name: '前端开发组' },
-      { id: 'g-3', type: 'group', name: '后端开发组' },
-      { id: 'g-4', type: 'group', name: '测试运维组' },
-    ],
-    tasks: [
-      { id: 't1', title: '产品迭代规划', status: 'in_progress', assigneeId: 'a-1', priority: 'high', progress: 60 },
-    ],
-    children: [
-      {
-        id: 'g-2', name: '前端开发组', entityType: 'agents', type: 'parallel', status: 'active',
-        description: 'React/Vue前端开发团队',
-        coordinatorId: 'a-2', coordinatorName: '李前端',
-        entityIds: ['a-2', 'a-3', 'a-4'],
-        entities: [
-          { id: 'a-2', type: 'agent', name: '李前端', role: '前端负责人', status: 'online', accentColor: '#7fb89f' },
-          { id: 'a-3', type: 'agent', name: '王组件', role: 'UI组件开发', status: 'busy', accentColor: '#7fa3b0' },
-          { id: 'a-4', type: 'agent', name: '赵页面', role: '页面开发', status: 'online', accentColor: '#d4a373' },
-        ],
-        tasks: [
-          { id: 't2', title: '设计系统升级', status: 'in_progress', assigneeId: 'a-3', priority: 'high', progress: 45 },
-          { id: 't3', title: '仪表盘重构', status: 'pending', assigneeId: 'a-4', priority: 'medium', progress: 0 },
-        ],
-      },
-      {
-        id: 'g-3', name: '后端开发组', entityType: 'agents', type: 'sequential', status: 'active',
-        description: 'API服务与数据库开发',
-        coordinatorId: 'a-5', coordinatorName: '陈后端',
-        entityIds: ['a-5', 'a-6'],
-        entities: [
-          { id: 'a-5', type: 'agent', name: '陈后端', role: '后端负责人', status: 'online', accentColor: '#8f9a7d' },
-          { id: 'a-6', type: 'agent', name: '刘数据库', role: 'DBA', status: 'offline', accentColor: '#c97b84' },
-        ],
-        tasks: [
-          { id: 't4', title: 'API v2开发', status: 'in_progress', assigneeId: 'a-5', priority: 'high', progress: 70 },
-        ],
-      },
-      {
-        id: 'g-4', name: '测试运维组', entityType: 'agents', type: 'dynamic', status: 'paused',
-        description: '自动化测试与CI/CD运维',
-        coordinatorId: 'a-7', coordinatorName: '周测试',
-        entityIds: ['a-7', 'a-8'],
-        entities: [
-          { id: 'a-7', type: 'agent', name: '周测试', role: '测试负责人', status: 'online', accentColor: '#a78b9a' },
-          { id: 'a-8', type: 'agent', name: '吴运维', role: 'DevOps', status: 'busy', accentColor: '#c9a96e' },
-        ],
-        tasks: [
-          { id: 't5', title: 'CI流水线优化', status: 'completed', assigneeId: 'a-8', priority: 'medium', progress: 100 },
-        ],
-      },
-    ],
-    createdAt: '2024-01-15T08:00:00Z',
-  },
-  'g-2': {
-    id: 'g-2', name: '前端开发组', entityType: 'agents', type: 'parallel', status: 'active',
-    description: 'React/Vue前端开发团队',
-    coordinatorId: 'a-2', coordinatorName: '李前端',
-    entityIds: ['a-2', 'a-3', 'a-4'],
-    entities: [
-      { id: 'a-2', type: 'agent', name: '李前端', role: '前端负责人', status: 'online', accentColor: '#7fb89f' },
-      { id: 'a-3', type: 'agent', name: '王组件', role: 'UI组件开发', status: 'busy', accentColor: '#7fa3b0' },
-      { id: 'a-4', type: 'agent', name: '赵页面', role: '页面开发', status: 'online', accentColor: '#d4a373' },
-    ],
-    tasks: [
-      { id: 't2', title: '设计系统升级', status: 'in_progress', assigneeId: 'a-3', priority: 'high', progress: 45 },
-      { id: 't3', title: '仪表盘重构', status: 'pending', assigneeId: 'a-4', priority: 'medium', progress: 0 },
-    ],
-    createdAt: '2024-01-20T08:00:00Z',
-  },
-  'g-3': {
-    id: 'g-3', name: '后端开发组', entityType: 'agents', type: 'sequential', status: 'active',
-    description: 'API服务与数据库开发',
-    coordinatorId: 'a-5', coordinatorName: '陈后端',
-    entityIds: ['a-5', 'a-6'],
-    entities: [
-      { id: 'a-5', type: 'agent', name: '陈后端', role: '后端负责人', status: 'online', accentColor: '#8f9a7d' },
-      { id: 'a-6', type: 'agent', name: '刘数据库', role: 'DBA', status: 'offline', accentColor: '#c97b84' },
-    ],
-    tasks: [
-      { id: 't4', title: 'API v2开发', status: 'in_progress', assigneeId: 'a-5', priority: 'high', progress: 70 },
-    ],
-    createdAt: '2024-02-01T08:00:00Z',
-  },
-  'g-4': {
-    id: 'g-4', name: '测试运维组', entityType: 'agents', type: 'dynamic', status: 'paused',
-    description: '自动化测试与CI/CD运维',
-    coordinatorId: 'a-7', coordinatorName: '周测试',
-    entityIds: ['a-7', 'a-8'],
-    entities: [
-      { id: 'a-7', type: 'agent', name: '周测试', role: '测试负责人', status: 'online', accentColor: '#a78b9a' },
-      { id: 'a-8', type: 'agent', name: '吴运维', role: 'DevOps', status: 'busy', accentColor: '#c9a96e' },
-    ],
-    tasks: [
-      { id: 't5', title: 'CI流水线优化', status: 'completed', assigneeId: 'a-8', priority: 'medium', progress: 100 },
-    ],
-    createdAt: '2024-02-10T08:00:00Z',
-  },
-  'g-5': {
-    id: 'g-5', name: '数据分析中心', entityType: 'mixed', type: 'sequential', status: 'active',
-    description: '数据采集→清洗→分析→可视化',
-    coordinatorId: 'a-9', coordinatorName: '郑分析',
-    entityIds: ['a-9', 'g-6'],
-    entities: [
-      { id: 'a-9', type: 'agent', name: '郑分析', role: '分析负责人', status: 'online', accentColor: '#7fb89f' },
-      { id: 'g-6', type: 'group', name: '数据工程组' },
-    ],
-    tasks: [],
-    children: [
-      {
-        id: 'g-6', name: '数据工程组', entityType: 'agents', type: 'parallel', status: 'active',
-        description: 'ETL管道与数据仓库',
-        coordinatorId: 'a-10', coordinatorName: '孙工程',
-        entityIds: ['a-10', 'a-11'],
-        entities: [
-          { id: 'a-10', type: 'agent', name: '孙工程', role: '数据工程师', status: 'online', accentColor: '#7fa3b0' },
-          { id: 'a-11', type: 'agent', name: '钱ETL', role: 'ETL开发', status: 'busy', accentColor: '#d4a373' },
-        ],
-        tasks: [
-          { id: 't6', title: '实时数仓搭建', status: 'in_progress', assigneeId: 'a-10', priority: 'high', progress: 30 },
-        ],
-        createdAt: '2024-03-01T08:00:00Z',
-      },
-    ],
-    createdAt: '2024-03-15T08:00:00Z',
-  },
-  'g-6': {
-    id: 'g-6', name: '数据工程组', entityType: 'agents', type: 'parallel', status: 'active',
-    description: 'ETL管道与数据仓库',
-    coordinatorId: 'a-10', coordinatorName: '孙工程',
-    entityIds: ['a-10', 'a-11'],
-    entities: [
-      { id: 'a-10', type: 'agent', name: '孙工程', role: '数据工程师', status: 'online', accentColor: '#7fa3b0' },
-      { id: 'a-11', type: 'agent', name: '钱ETL', role: 'ETL开发', status: 'busy', accentColor: '#d4a373' },
-    ],
-    tasks: [
-      { id: 't6', title: '实时数仓搭建', status: 'in_progress', assigneeId: 'a-10', priority: 'high', progress: 30 },
-    ],
-    createdAt: '2024-03-01T08:00:00Z',
-  },
-  'g-7': {
-    id: 'g-7', name: '内容创作团队', entityType: 'agents', type: 'dynamic', status: 'active',
-    description: '研究→写作→翻译→审校',
-    coordinatorId: 'a-12', coordinatorName: '林创作',
-    entityIds: ['a-12', 'a-13', 'a-14'],
-    entities: [
-      { id: 'a-12', type: 'agent', name: '林创作', role: '内容总监', status: 'online', accentColor: '#6b7a5a' },
-      { id: 'a-13', type: 'agent', name: '黄写作', role: '撰稿人', status: 'busy', accentColor: '#c97b84' },
-      { id: 'a-14', type: 'agent', name: '何翻译', role: '翻译员', status: 'online', accentColor: '#8f9a7d' },
-    ],
-    tasks: [
-      { id: 't7', title: '产品白皮书撰写', status: 'in_progress', assigneeId: 'a-13', priority: 'high', progress: 55 },
-    ],
-    createdAt: '2024-04-01T08:00:00Z',
-  },
-}
-
-const mockExecutionHistory: Record<string, ExecutionRecord[]> = {
-  'g-1': [
-    { id: 'ex-1', timestamp: '2024-12-01 09:30:00', status: 'success', duration: '12m 34s', triggeredBy: '手动触发', output: '迭代规划完成，已分配任务' },
-    { id: 'ex-2', timestamp: '2024-12-02 14:15:00', status: 'success', duration: '8m 12s', triggeredBy: '定时任务', output: '日会同步完成' },
-    { id: 'ex-3', timestamp: '2024-12-03 10:00:00', status: 'running', duration: '进行中', triggeredBy: '手动触发', output: '' },
-  ],
-  'g-2': [
-    { id: 'ex-4', timestamp: '2024-12-01 11:00:00', status: 'success', duration: '15m 20s', triggeredBy: '手动触发', output: '设计系统组件库更新完成' },
-    { id: 'ex-5', timestamp: '2024-12-02 16:30:00', status: 'failure', duration: '3m 45s', triggeredBy: '自动触发', output: '构建失败：依赖冲突' },
-  ],
-  'g-3': [
-    { id: 'ex-6', timestamp: '2024-12-01 13:00:00', status: 'success', duration: '22m 10s', triggeredBy: '手动触发', output: 'API v2接口开发进度70%' },
-  ],
-  'g-4': [
-    { id: 'ex-7', timestamp: '2024-11-28 08:00:00', status: 'success', duration: '45m 00s', triggeredBy: '定时任务', output: 'CI流水线优化完成' },
-  ],
-}
-
 /* ── Helpers ────────────────────────────────────────────────────── */
 
 const typeIcons: Record<string, React.ElementType> = {
@@ -345,18 +162,10 @@ export default function GroupDetail() {
       if (res.data) {
         setGroup(res.data)
       } else {
-        // Fallback to mock
-        const mock = mockGroupDetail[groupId]
-        if (mock) setGroup(mock)
-        else setError('群组不存在')
+        setError('群组不存在')
       }
     } catch (e: any) {
-      const mock = mockGroupDetail[groupId]
-      if (mock) {
-        setGroup(mock)
-      } else {
-        setError(e?.message || '加载失败')
-      }
+      setError(e?.message || '加载失败')
     } finally {
       setLoading(false)
     }
@@ -367,15 +176,6 @@ export default function GroupDetail() {
     setExecuting(true)
     try {
       await executeGroup(group.id)
-      // Add mock execution record
-      const newRecord: ExecutionRecord = {
-        id: `ex-${Date.now()}`,
-        timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-        status: 'running',
-        duration: '进行中',
-        triggeredBy: '手动触发',
-      }
-      mockExecutionHistory[group.id] = [...(mockExecutionHistory[group.id] || []), newRecord]
     } catch (e) {
       console.error(e)
     } finally {

@@ -54,7 +54,6 @@ const navItems: NavItem[] = [
     children: [
       { id: 'list',   label: '列表', route: '/agents' },
       { id: 'create', label: '创建', route: '/agents/create' },
-      { id: 'swarm',  label: '蜂群', route: '/swarm' },
     ],
   },
   {

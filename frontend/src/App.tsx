@@ -21,7 +21,6 @@ const Monitoring     = lazy(() => import('@/pages/Monitoring'))
 const Groups         = lazy(() => import('@/pages/Groups'))
 const GroupDetail    = lazy(() => import('@/pages/GroupDetail'))
 const Collaboration  = lazy(() => import('@/pages/Collaboration'))
-const SwarmPanel     = lazy(() => import('@/pages/SwarmPanel'))
 const WebhooksPage   = lazy(() => import('@/pages/WebhooksPage'))
 const APITest        = lazy(() => import('@/pages/APITest'))
 const StubPage       = lazy(() => import('@/pages/StubPage'))
@@ -143,11 +142,10 @@ export default function App() {
             <Route path="/webhooks" element={<WebhooksPage />} />
             <Route path="/api-test" element={<APITest />} />
 
-            {/* Groups & Swarm */}
+            {/* Groups & Collaboration */}
             <Route path="/groups" element={<Groups />} />
             <Route path="/groups/:id" element={<GroupDetail />} />
             <Route path="/collaboration" element={<Collaboration />} />
-            <Route path="/swarm" element={<SwarmPanel />} />
 
             {/* Settings & Admin */}
             <Route path="/settings" element={<SettingsHub />} />

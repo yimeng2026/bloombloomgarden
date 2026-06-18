@@ -17,11 +17,80 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useAppStore } from '@/stores/appStore';
 import StatsCard from '@/components/StatsCard';
 import ContentCard from '@/components/ContentCard';
-import {
-  agents, statsData, quickAccessTiles, statusItems,
-  healthMetrics, activityEvents, taskActivityData,
-} from '@/data/mockData';
 import type { ActivityEvent } from '@/types';
+
+/* ─── Inline UI config (not business mock data) ─── */
+const statsData = [
+  { label: '运行中智能体', labelEn: 'Running Agents', value: 12, trend: '+3 今日新增', trendType: 'up' as const, color: '#7fb89f', icon: 'Bot' },
+  { label: '今日任务', labelEn: 'Tasks Today', value: 48, trend: '89% 完成率', trendType: 'up' as const, color: '#7fa3b0', icon: 'CheckSquare' },
+  { label: '已连接平台', labelEn: 'Platforms', value: 5, trend: '全部正常', trendType: 'neutral' as const, color: '#c9a96e', icon: 'Server' },
+  { label: '知识库条目', labelEn: 'Knowledge Bases', value: 23, trend: '+156 本周新增', trendType: 'up' as const, color: '#a78b9a', icon: 'BookOpen' },
+  { label: '工作文件', labelEn: 'Workspace Files', value: 1247, trend: '+89 今日', trendType: 'up' as const, color: '#d4a373', icon: 'FolderOpen' },
+  { label: '协作群组', labelEn: 'Collaborations', value: 8, trend: '3 活跃中', trendType: 'up' as const, color: '#c97b84', icon: 'Users' },
+];
+
+const quickAccessTiles = [
+  { id: 'qa-1', label: '新建智能体', labelEn: 'New Agent', icon: 'Bot', color: '#6b7a5a', route: '/agents/create' },
+  { id: 'qa-2', label: '新建任务', labelEn: 'New Task', icon: 'PlusCircle', color: '#7fb89f', route: '#' },
+  { id: 'qa-3', label: '平台管理', labelEn: 'Platform Hub', icon: 'Server', color: '#c9a96e', route: '/platform' },
+  { id: 'qa-4', label: '工作空间', labelEn: 'Workspace', icon: 'FolderOpen', color: '#d4a373', route: '/workspace' },
+  { id: 'qa-5', label: '知识库', labelEn: 'Knowledge', icon: 'BookOpen', color: '#a78b9a', route: '/knowledge' },
+  { id: 'qa-6', label: '监控中心', labelEn: 'Monitor', icon: 'Activity', color: '#c97b84', route: '/agents/monitor' },
+];
+
+const statusItems = [
+  { id: 'st-1', name: 'OpenAI GPT-4', status: 'online', detail: '正常 · 延迟 23ms', time: '刚刚' },
+  { id: 'st-2', name: 'Kimi k1.5', status: 'online', detail: '正常 · 延迟 156ms', time: '1分钟前' },
+  { id: 'st-3', name: 'Ollama (本地)', status: 'online', detail: '运行中 · 模型 loaded', time: '5分钟前' },
+  { id: 'st-4', name: 'Agent-代码助手', status: 'busy', detail: '执行任务 #2847', time: '进行中' },
+  { id: 'st-5', name: 'Agent-数据分析', status: 'busy', detail: '等待手递手', time: '10秒前' },
+  { id: 'st-6', name: 'Agent-文档撰写', status: 'idle', detail: '空闲', time: '3分钟前' },
+];
+
+const healthMetrics = [
+  { id: 'hm-1', name: 'API 响应延迟', nameEn: 'API Latency', value: '平均 45ms', current: 45, max: 200, unit: 'ms', status: '优秀', statusEn: 'Excellent' },
+  { id: 'hm-2', name: '智能体内存占用', nameEn: 'Agent Memory', value: '2.3 GB / 8 GB', current: 2.3, max: 8, unit: 'GB', status: '正常', statusEn: 'Normal' },
+  { id: 'hm-3', name: '知识库索引状态', nameEn: 'KB Index', value: '23 个索引 · 全部就绪', current: 100, max: 100, unit: '%', status: '已同步', statusEn: 'Synced' },
+  { id: 'hm-4', name: '磁盘空间', nameEn: 'Disk Space', value: '47 GB / 256 GB', current: 47, max: 256, unit: 'GB', status: '充足', statusEn: 'Adequate' },
+];
+
+const taskActivityData = {
+  today: [
+    { hour: '00:00', created: 2, completed: 1, failed: 0 },
+    { hour: '01:00', created: 1, completed: 0, failed: 0 },
+    { hour: '02:00', created: 0, completed: 1, failed: 0 },
+    { hour: '03:00', created: 0, completed: 0, failed: 0 },
+    { hour: '04:00', created: 0, completed: 0, failed: 0 },
+    { hour: '05:00', created: 1, completed: 1, failed: 0 },
+    { hour: '06:00', created: 3, completed: 2, failed: 1 },
+    { hour: '07:00', created: 5, completed: 3, failed: 0 },
+    { hour: '08:00', created: 8, completed: 6, failed: 1 },
+    { hour: '09:00', created: 12, completed: 8, failed: 0 },
+    { hour: '10:00', created: 15, completed: 10, failed: 1 },
+    { hour: '11:00', created: 10, completed: 9, failed: 0 },
+    { hour: '12:00', created: 7, completed: 8, failed: 1 },
+    { hour: '13:00', created: 9, completed: 7, failed: 0 },
+    { hour: '14:00', created: 11, completed: 8, failed: 1 },
+    { hour: '15:00', created: 6, completed: 5, failed: 0 },
+  ],
+  week: [
+    { hour: '周一', created: 45, completed: 38, failed: 3 },
+    { hour: '周二', created: 52, completed: 48, failed: 1 },
+    { hour: '周三', created: 38, completed: 35, failed: 2 },
+    { hour: '周四', created: 61, completed: 54, failed: 4 },
+    { hour: '周五', created: 42, completed: 40, failed: 1 },
+    { hour: '周六', created: 28, completed: 25, failed: 2 },
+    { hour: '周日', created: 15, completed: 12, failed: 1 },
+  ],
+  month: [
+    { hour: '第1周', created: 180, completed: 165, failed: 8 },
+    { hour: '第2周', created: 220, completed: 198, failed: 12 },
+    { hour: '第3周', created: 195, completed: 185, failed: 5 },
+    { hour: '第4周', created: 281, completed: 247, failed: 14 },
+  ],
+};
+
+const activityEvents: ActivityEvent[] = [];
 
 /* ─── Hero Section ─── */
 function HeroSection() {
@@ -256,6 +325,13 @@ function LiveStatusPanel() {
 function ActiveAgents() {
   const { language } = useAppStore();
   const navigate = useNavigate();
+  const [agents, setAgents] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchAgents()
+      .then((res) => setAgents(res.data || []))
+      .catch(() => setAgents([]));
+  }, []);
 
   const getAvatarSvg = (type: string, color: string) => {
     switch (type) {
