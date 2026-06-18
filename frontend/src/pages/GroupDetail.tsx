@@ -318,7 +318,7 @@ export default function GroupDetail() {
   }
 
   const TypeIcon = typeIcons[group.type] || Users
-  const executionHistory = mockExecutionHistory[group.id] || []
+  const executionHistory: ExecutionRecord[] = []
   const hasNestedGroups = group.entities?.some((e) => e.type === 'group') || (group.children && group.children.length > 0)
   const agentMembers = group.entities?.filter((e) => e.type === 'agent') || []
   const groupMembers = group.entities?.filter((e) => e.type === 'group') || []

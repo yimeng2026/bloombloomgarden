@@ -746,7 +746,7 @@ export default function Home() {
           tasks: tasksRes.status === 'fulfilled' ? (tasksRes.value.data?.length || 0) : 0,
           platforms: platformsRes.status === 'fulfilled' ? (platformsRes.value.data?.length || 0) : 0,
           knowledge: knowledgeRes.status === 'fulfilled' ? (knowledgeRes.value.data?.length || 0) : 0,
-          files: 1247, // keep mock for now
+          files: 0, // no files API yet
           groups: groupsRes.status === 'fulfilled' ? (groupsRes.value.data?.length || 0) : 0,
         });
       } catch (e) {
