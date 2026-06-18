@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  fetchEngines, fetchPlatforms, fetchApiKeys, createAgent, fetchAgents,
+  fetchEngines, fetchPlatforms, fetchFrameworks, fetchApiKeys, createAgent, fetchAgents,
   fetchAgentTemplates
 } from '@/api/client'
 import AgentTypeSelector, { AGENT_TYPES, AgentTypeConfig } from '@/components/AgentTypeSelector'
@@ -112,6 +112,7 @@ export default function AgentCreator() {
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(false)
 
   const [loading, setLoading] = useState(false)
+  const [dataLoading, setDataLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [creationSuccess, setCreationSuccess] = useState(false)
 
@@ -120,16 +121,49 @@ export default function AgentCreator() {
   useEffect(() => {
     async function load() {
       try {
-        const [platRes, engRes, keyRes, agentRes]: any = await Promise.all([
+        setDataLoading(true)
+        const [platRes, fwRes, engRes, keyRes, agentRes]: any = await Promise.allSettled([
           fetchPlatforms(),
+          fetchFrameworks(),
           fetchEngines(),
           fetchApiKeys(),
           fetchAgents(),
         ])
-        setPlatforms(Array.isArray(platRes) ? platRes : platRes.data || [])
-        setEngines(Array.isArray(engRes) ? engRes : engRes.data || [])
-        setApiKeys(Array.isArray(keyRes) ? keyRes : keyRes.data || [])
-        const agents = Array.isArray(agentRes) ? agentRes : agentRes.data || []
+
+        const plats = platRes.status === 'fulfilled'
+          ? (Array.isArray(platRes.value) ? platRes.value : platRes.value?.data || [])
+          : []
+        const fws = fwRes.status === 'fulfilled'
+          ? (Array.isArray(fwRes.value) ? fwRes.value : fwRes.value?.data || [])
+          : []
+        const engs = engRes.status === 'fulfilled'
+          ? (Array.isArray(engRes.value) ? engRes.value : engRes.value?.data || [])
+          : []
+        const keys = keyRes.status === 'fulfilled'
+          ? (Array.isArray(keyRes.value) ? keyRes.value : keyRes.value?.data || [])
+          : []
+        const agents = agentRes.status === 'fulfilled'
+          ? (Array.isArray(agentRes.value) ? agentRes.value : agentRes.value?.data || [])
+          : []
+
+        setPlatforms(plats)
+        // 将 frameworks 也作为 L2 平台补充（适配多线程编排架构）
+        const fwAsPlatforms: Platform[] = fws.map((f: any) => ({
+          id: f.id || f.brand,
+          name: f.name || f.brand,
+          category: f.category || 'orchestrator',
+          protocolLevel: Number(f.protocolLevel) || 2,
+          status: f.status || 'active',
+          models: f.defaultConfig?.models || f.presetRoles?.map((r: any) => r.name) || ['default'],
+          apiKeyConfigured: false,
+        }))
+        setPlatforms((prev) => {
+          const existingIds = new Set(prev.map(p => p.id))
+          const newOnes = fwAsPlatforms.filter((p: Platform) => !existingIds.has(p.id))
+          return [...prev, ...newOnes]
+        })
+        setEngines(engs)
+        setApiKeys(keys)
         setExistingAgents(agents.map((a: any) => ({
           id: a.id,
           name: a.name,
@@ -138,6 +172,8 @@ export default function AgentCreator() {
         })))
       } catch (e) {
         console.error('Failed to load data:', e)
+      } finally {
+        setDataLoading(false)
       }
     }
     load()
@@ -154,10 +190,10 @@ export default function AgentCreator() {
   }, [mode, showTemplates])
 
   const l1Platforms = platforms.filter(
-    (p) => p.protocolLevel === 1 && ['cloud', 'local', 'local-engine'].includes(p.category)
+    (p) => Number(p.protocolLevel) === 1 && ['cloud', 'local', 'local-engine', 'code-agent'].includes(p.category)
   )
   const l2Platforms = platforms.filter(
-    (p) => p.protocolLevel === 2 && p.category === 'orchestrator'
+    (p) => Number(p.protocolLevel) === 2 && (p.category === 'orchestrator' || p.category === 'multi-agent')
   )
   const availablePlatforms = [...l1Platforms, ...l2Platforms]
 
@@ -165,7 +201,7 @@ export default function AgentCreator() {
     ? apiKeys.filter((k) => k.provider === selectedPlatform.id)
     : []
 
-  const isL2Platform = selectedPlatform?.protocolLevel === 2
+  const isL2Platform = Number(selectedPlatform?.protocolLevel) === 2
 
   const canNext = () => {
     if (mode === 'agent') {
@@ -422,6 +458,7 @@ export default function AgentCreator() {
             setShowTemplates={setShowTemplates}
             onImportTemplate={handleImportTemplate}
             isL2Platform={isL2Platform}
+            dataLoading={dataLoading}
           />
         ) : (
           <GroupForm
@@ -512,6 +549,7 @@ function AgentForm({
   personality, setPersonality,
   templates, showTemplates, setShowTemplates,
   onImportTemplate, isL2Platform,
+  dataLoading,
 }: any) {
   const [search, setSearch] = useState('')
   const [platSearch, setPlatSearch] = useState('')
@@ -608,8 +646,8 @@ function AgentForm({
     const filtered = sortedPlatforms.filter((p: Platform) =>
       !platSearch || p.name.toLowerCase().includes(platSearch.toLowerCase())
     )
-    const l1Filtered = filtered.filter((p: Platform) => p.protocolLevel === 1)
-    const l2Filtered = filtered.filter((p: Platform) => p.protocolLevel === 2)
+    const l1Filtered = filtered.filter((p: Platform) => Number(p.protocolLevel) === 1)
+    const l2Filtered = filtered.filter((p: Platform) => Number(p.protocolLevel) === 2)
     const recommendedFiltered = filtered.filter((p: Platform) =>
       recommendedIds.some(rp => p.id.toLowerCase().includes(rp.toLowerCase()) || p.name.toLowerCase().includes(rp.toLowerCase()))
     )
@@ -627,50 +665,62 @@ function AgentForm({
           />
         </div>
 
-        {/* Recommended */}
-        {recommendedFiltered.length > 0 && !platSearch && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">推荐平台</span>
-              <span className="text-xs text-[var(--sage-400)]">{recommendedFiltered.length} 个</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {recommendedFiltered.map((p: Platform) => PlatformCard(p))}
-            </div>
+        {dataLoading && (
+          <div className="flex items-center justify-center py-12 text-[var(--sage-500)] gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>加载平台数据中...</span>
           </div>
         )}
 
-        {/* L1 基础框架 */}
-        {l1Filtered.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">基础框架</span>
-              <span className="text-xs text-[var(--sage-400)]">{l1Filtered.length} 个平台</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {l1Filtered.map((p: Platform) => PlatformCard(p))}
-            </div>
-          </div>
-        )}
-
-        {/* L2 编排器 */}
-        {l2Filtered.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">编排器</span>
-              <span className="text-xs text-[var(--sage-400)]">{l2Filtered.length} 个</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {l2Filtered.map((p: Platform) => PlatformCard(p))}
-            </div>
-          </div>
-        )}
-
-        {filtered.length === 0 && (
+        {!dataLoading && filtered.length === 0 && (
           <div className="card text-center py-8">
             <Search className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
             <p className="text-sm text-[var(--sage-500)]">未找到匹配的平台</p>
+            <p className="text-xs text-[var(--sage-400)] mt-1">请检查后端服务是否正常运行</p>
           </div>
+        )}
+
+        {!dataLoading && (
+          <>
+            {/* Recommended */}
+            {recommendedFiltered.length > 0 && !platSearch && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">推荐平台</span>
+                  <span className="text-xs text-[var(--sage-400)]">{recommendedFiltered.length} 个</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {recommendedFiltered.map((p: Platform) => PlatformCard(p))}
+                </div>
+              </div>
+            )}
+
+            {/* L1 基础框架 */}
+            {l1Filtered.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">基础框架</span>
+                  <span className="text-xs text-[var(--sage-400)]">{l1Filtered.length} 个平台</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {l1Filtered.map((p: Platform) => PlatformCard(p))}
+                </div>
+              </div>
+            )}
+
+            {/* L2 编排器 */}
+            {l2Filtered.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">编排器</span>
+                  <span className="text-xs text-[var(--sage-400)]">{l2Filtered.length} 个</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {l2Filtered.map((p: Platform) => PlatformCard(p))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {selectedPlatform && (
