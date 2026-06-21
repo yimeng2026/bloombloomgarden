@@ -79,8 +79,8 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ─── 全局速率限制 ─────────────────────────────────────
-app.use(rateLimit({ windowMs: 60 * 1000, maxRequests: 100 }));
+// ─── 全局速率限制（仅 API 路由）───────────────────────
+app.use('/api', rateLimit({ windowMs: 60 * 1000, maxRequests: 100 }));
 
 // ─── 可选认证（解析用户信息但不强制�?──────────────────
 app.use(optionalAuth);

@@ -8,7 +8,9 @@ import { AxisClient } from './AxisClient';
 
 // 全局单例（与现有 client.ts 行为一致）
 const axisClient = new AxisClient({
-  baseUrl: import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin.replace(/:3000$/, ':3001') : 'http://localhost:3001'),
+  baseUrl: (typeof window !== 'undefined' && window.location.port === '3000')
+    ? window.location.origin.replace(/:3000$/, ':3001')
+    : '/api',
   defaultSource: { x: 'web-frontend', y: 'any', z: 'rest' },
   timeout: 30000,
   retryCount: 2,

@@ -377,7 +377,7 @@ export default function Chat() {
     // ============ 群组模式 ============
     if (targetType === 'group') {
       try {
-        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'
+        const API_BASE = '/api'
         const res = await fetch(`${API_BASE}/groups/${targetId}/swarm-execute`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -419,7 +419,7 @@ export default function Chat() {
 
     // ============ Agent 流式对话模式 ============
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'
+      const API_BASE = '/api'
       const url = `${API_BASE}/dialog/${targetId}/stream`
 
       const response = await fetch(url, {

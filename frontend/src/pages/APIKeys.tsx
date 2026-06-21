@@ -37,16 +37,22 @@ interface StoredKey {
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   commercial: <Globe className="w-4 h-4 text-blue-400" />,
+  cloud: <Globe className="w-4 h-4 text-blue-400" />,
   open_source: <Bot className="w-4 h-4 text-green-400" />,
   local: <Server className="w-4 h-4 text-purple-400" />,
+  'local-engine': <Server className="w-4 h-4 text-purple-400" />,
   aggregator: <Cpu className="w-4 h-4 text-orange-400" />,
+  gateway: <Cpu className="w-4 h-4 text-orange-400" />,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
   commercial: '商用',
+  cloud: '云',
   open_source: '开源',
   local: '本地',
+  'local-engine': '本地引擎',
   aggregator: '聚合',
+  gateway: '网关',
 };
 
 export default function APIKeysPage() {

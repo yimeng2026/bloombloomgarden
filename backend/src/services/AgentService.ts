@@ -95,6 +95,9 @@ export interface CreateAgentInput {
   color?: string;
   icon?: string;
   stats?: Record<string, unknown>;
+  // L2 Orchestrator fields
+  engineId?: string;
+  orchestratedEngines?: string[];
 }
 
 // ─── 校验工具 ───────────────────────────────────────────
@@ -218,12 +221,41 @@ export class AgentService extends EventEmitter {
     const mode = data.mode ?? 'A';
     const dashboardType = data.dashboardType || getDashboardType(protocolLevel);
 
+    // 合并 L2 编排器字段到 config
+    const config = data.config || {};
+    if (data.engineId) {
+      config.engineId = data.engineId;
+    }
+    if (data.orchestratedEngines && data.orchestratedEngines.length > 0) {
+      config.orchestratedEngines = data.orchestratedEngines;
+    }
+
+    // 自动注入 L1 引擎：所有 L2 编排器（protocolLevel === 2 或 category === 'orchestrator'）
+    // 如果未配置 engineId / orchestratedEngines，自动 fallback 到 zhipu
+    if (!config.engineId && (!(config.orchestratedEngines as string[]) || (config.orchestratedEngines as string[]).length === 0)) {
+      const isL2ByLevel = protocolLevel === 2;
+      let isL2ByProvider = false;
+      if (data.platformId) {
+        try {
+          const providersConfig = require('../config/providers.json');
+          const provider = (providersConfig.providers || []).find((p: any) => p.id === data.platformId);
+          if (provider && (provider.protocolLevel === 2 || provider.category === 'orchestrator')) {
+            isL2ByProvider = true;
+          }
+        } catch { /* ignore providers.json missing */ }
+      }
+      if (isL2ByLevel || isL2ByProvider) {
+        config.engineId = 'zhipu';
+        config.orchestratedEngines = ['zhipu'];
+      }
+    }
+
     return {
       id: crypto.randomUUID(),
       name: data.name.trim(),
       role: data.role.trim(),
       status: AgentStatus.ACTIVE,
-      config: safeJSONStringify(data.config || {}),
+      config: safeJSONStringify(config),
       knowledgeBaseIds: safeJSONStringify(data.knowledgeBaseIds || []),
       skillIds: safeJSONStringify(data.skillIds || []),
       workspaceId: data.workspaceId || null,

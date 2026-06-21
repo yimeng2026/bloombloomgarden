@@ -92,6 +92,9 @@ export default function AgentCreator() {
   const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null)
   const [selectedEngine, setSelectedEngine] = useState('')
 
+  // L2 Orchestrator: engines to be orchestrated
+  const [orchestratedEngines, setOrchestratedEngines] = useState<string[]>([])
+
   // Personalization
   const [systemPrompt, setSystemPrompt] = useState('')
   const [capabilities, setCapabilities] = useState<string[]>([])
@@ -282,11 +285,13 @@ export default function AgentCreator() {
       setCreating(true)
       await createAgent({
         name,
+        role: selectedType?.id || 'general',
         description,
         platformId: selectedPlatform?.id,
         apiKeyId: selectedApiKey?.id || undefined,
         model: selectedModel || selectedPlatform?.models[0],
         engineId: selectedEngine || undefined,
+        orchestratedEngines: isL2Platform ? orchestratedEngines : undefined,
         agentType: selectedType?.id || 'general',
         systemPrompt,
         capabilities,
@@ -436,6 +441,8 @@ export default function AgentCreator() {
             engines={engines}
             selectedEngine={selectedEngine}
             setSelectedEngine={setSelectedEngine}
+            orchestratedEngines={orchestratedEngines}
+            setOrchestratedEngines={setOrchestratedEngines}
             name={name}
             setName={setName}
             description={description}
@@ -519,6 +526,7 @@ export default function AgentCreator() {
     setSelectedModel('')
     setSelectedApiKey(null)
     setSelectedEngine('')
+    setOrchestratedEngines([])
     setSystemPrompt('')
     setCapabilities([])
     setColor('')
@@ -541,6 +549,7 @@ function AgentForm({
   selectedModel, setSelectedModel,
   apiKeys, selectedApiKey, setSelectedApiKey,
   engines, selectedEngine, setSelectedEngine,
+  orchestratedEngines, setOrchestratedEngines,
   name, setName, description, setDescription,
   systemPrompt, setSystemPrompt,
   capabilities, addCapability, removeCapability,
@@ -686,7 +695,7 @@ function AgentForm({
             {recommendedFiltered.length > 0 && !platSearch && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">推荐平台</span>
+                  <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">推荐</span>
                   <span className="text-xs text-[var(--sage-400)]">{recommendedFiltered.length} 个</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -699,8 +708,8 @@ function AgentForm({
             {l1Filtered.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">基础框架</span>
-                  <span className="text-xs text-[var(--sage-400)]">{l1Filtered.length} 个平台</span>
+                  <span className="text-xs font-medium text-[var(--sage-600)] bg-[var(--sage-100)] px-2 py-0.5 rounded-full">基础平台</span>
+                  <span className="text-xs text-[var(--sage-400)]">{l1Filtered.length} 个</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {l1Filtered.map((p: Platform) => PlatformCard(p))}
@@ -805,7 +814,18 @@ function AgentForm({
             {apiKeys.length === 0 ? (
               <div className="card text-center py-6">
                 <Key className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
-                <p className="text-sm text-[var(--sage-500)]">暂无 API Key，请先在平台管理中配置</p>
+                <p className="text-sm text-[var(--sage-500)] mb-3">暂无 API Key</p>
+                <AddApiKeyInline
+                  platformId={selectedPlatform?.id || ''}
+                  platformName={selectedPlatform?.name || ''}
+                  onAdded={() => {
+                    // Refresh API keys
+                    fetchApiKeys().then((res: any) => {
+                      const keys = Array.isArray(res) ? res : res.data || []
+                      setApiKeys(keys)
+                    })
+                  }}
+                />
               </div>
             ) : (
               <div className="space-y-2">
@@ -892,15 +912,72 @@ function AgentForm({
       )
     }
 
-    // L2 platform: show only personalization
+    // L2 platform: show orchestration engine selection + personalization
     return (
       <div className="space-y-5">
-        <div className="card p-3 bg-amber-50 border-amber-200">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span className="text-xs text-amber-700">L2 编排器无需配置 API Key 和引擎，直接进行个性化配置</span>
+        {/* Orchestration Engine Selection */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-medium text-[var(--sage-700)]">
+              <span className="flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-amber-500" />
+                编排引擎配置
+              </span>
+            </h4>
+            <span className="text-xs text-[var(--sage-500)]">
+              {orchestratedEngines.length > 0 ? `${orchestratedEngines.length} 个已选` : '选择被编排的引擎'}
+            </span>
           </div>
+          <p className="text-xs text-[var(--sage-500)] mb-3">
+            {selectedPlatform?.name} 作为 L2 编排器，可以选择多个 L1 引擎作为被编排对象。创建后，系统将自动为这些引擎分配角色。
+          </p>
+
+          {engines.length === 0 ? (
+            <div className="card text-center py-6">
+              <Cpu className="w-8 h-8 text-[var(--sage-400)] mx-auto mb-2" />
+              <p className="text-sm text-[var(--sage-500)]">暂无可用引擎</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {engines.map((e: Engine) => {
+                const isSelected = orchestratedEngines.includes(e.id)
+                return (
+                  <button
+                    key={e.id}
+                    onClick={() => {
+                      setOrchestratedEngines(prev =>
+                        prev.includes(e.id) ? prev.filter(id => id !== e.id) : [...prev, e.id]
+                      )
+                    }}
+                    className={`card p-3 text-left transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-amber-400 bg-amber-50/50' : ''}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--sage-100)]">
+                          <Cpu className="w-4 h-4 text-[var(--sage-500)]" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-sm text-[var(--sage-800)]">{e.brand}</h3>
+                          <span className="text-[10px] text-[var(--sage-500)]">{e.model} · {e.tier}</span>
+                        </div>
+                      </div>
+                      {isSelected && <CheckCircle className="w-5 h-5 text-amber-500" />}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-[var(--sage-500)]">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.status === 'healthy' || e.status === 'available' ? '#10b981' : e.status === 'unhealthy' ? '#f59e0b' : '#6b7280' }} />
+                      {e.status === 'healthy' || e.status === 'available' ? '可用' : e.status === 'unhealthy' ? '异常' : '离线'}
+                      <span className="text-[var(--sage-400)]">· 健康分: {e.healthScore}</span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
+
+        {/* Divider */}
+        <div className="border-t" style={{ borderColor: 'var(--sage-200)' }} />
+
         <PersonalizationFields
           name={name} setName={setName}
           description={description} setDescription={setDescription}
@@ -930,6 +1007,11 @@ function AgentForm({
             <>
               <SummaryItem label="API Key" value={selectedApiKey?.displayName || '—'} />
               <SummaryItem label="引擎" value={selectedEngine ? engines.find((e: Engine) => e.id === selectedEngine)?.brand : '—'} />
+            </>
+          )}
+          {isL2Platform && (
+            <>
+              <SummaryItem label="编排引擎" value={orchestratedEngines.length > 0 ? orchestratedEngines.map(id => engines.find((e: Engine) => e.id === id)?.brand || id).join(', ') : '未选择（将使用默认配置）'} />
             </>
           )}
           <SummaryItem label="系统提示词" value={systemPrompt.slice(0, 60) + (systemPrompt.length > 60 ? '...' : '')} />
@@ -1245,4 +1327,109 @@ function GroupForm({
   }
 
   return null
+}
+function AddApiKeyInline({ platformId, platformName, onAdded }: { platformId: string; platformName: string; onAdded: () => void }) {
+  const [showForm, setShowForm] = useState(false)
+  const [apiKey, setApiKey] = useState('')
+  const [baseUrl, setBaseUrl] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSave = async () => {
+    if (!apiKey.trim()) {
+      setError('请输入 API Key')
+      return
+    }
+    setError(null)
+    setSaving(true)
+    try {
+      const res = await fetch('http://localhost:3001/api/apikeys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: platformId,
+          apiKey: apiKey.trim(),
+          baseUrl: baseUrl.trim() || undefined,
+          isActive: true,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setApiKey('')
+        setBaseUrl('')
+        setShowForm(false)
+        onAdded()
+      } else {
+        setError(data.error || '保存失败')
+      }
+    } catch (err: any) {
+      setError(err.message || '网络错误')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!showForm) {
+    return (
+      <button
+        onClick={() => setShowForm(true)}
+        className="btn-primary text-sm flex items-center gap-1.5"
+      >
+        <Plus className="w-3.5 h-3.5" />
+        添加 API Key
+      </button>
+    )
+  }
+
+  return (
+    <div className="card p-4 mt-2 text-left">
+      <h5 className="text-xs font-medium text-[var(--sage-700)] mb-2">
+        为 {platformName} 添加 API Key
+      </h5>
+      <div className="space-y-2">
+        <div>
+          <label className="text-[10px] text-[var(--sage-500)]">API Key</label>
+          <input
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder={`输入 ${platformName} 的 API Key`}
+            className="w-full px-3 py-2 rounded-card border text-sm"
+            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+          />
+        </div>
+        <div>
+          <label className="text-[10px] text-[var(--sage-500)]">Base URL（可选）</label>
+          <input
+            type="text"
+            value={baseUrl}
+            onChange={(e) => setBaseUrl(e.target.value)}
+            placeholder="自定义 API 地址，留空使用默认"
+            className="w-full px-3 py-2 rounded-card border text-sm"
+            style={{ borderColor: 'var(--sage-200)', backgroundColor: 'var(--sage-50)' }}
+          />
+        </div>
+        {error && (
+          <p className="text-xs text-red-500">{error}</p>
+        )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-primary text-sm flex items-center gap-1.5"
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+            保存
+          </button>
+          <button
+            onClick={() => { setShowForm(false); setError(null); setApiKey(''); setBaseUrl('') }}
+            className="px-3 py-1.5 rounded-card border text-sm text-[var(--sage-600)]"
+            style={{ borderColor: 'var(--sage-200)' }}
+          >
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }

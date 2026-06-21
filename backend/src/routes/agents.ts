@@ -146,6 +146,8 @@ router.post('/', asyncHandler(async (req, res) => {
     swarmEnabled, swarmMode, roleInGroup, coordinatorId,
     // Agent Type System 新字段
     agentType, capabilities, personality, systemPrompt, tags, color, icon, stats,
+    // L2 Orchestrator 新字段
+    engineId, orchestratedEngines,
   } = req.body;
 
   // 路由层只做空值校验
@@ -196,6 +198,9 @@ router.post('/', asyncHandler(async (req, res) => {
       color,
       icon,
       stats,
+      // L2 Orchestrator
+      engineId,
+      orchestratedEngines,
     });
     res.status(201).json({ success: true, data: agent });
   } catch (err: any) {

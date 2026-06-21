@@ -1,55 +1,34 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# 日志文件
+*.log
+e2e-result.log
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# 截图和临时文件
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+temp_*.json
+swarm_results.json
+batch*.json
+ss*.json
 
-# testing
-/coverage
+# 运行时临时文件
+server.pid
+*.pid
 
-# next.js
-/.next/
-/out/
+# 检查脚本
+check_*.js
 
-# production
-/build
-
-# misc
+# 开发环境
+.vscode/
+.idea/
 .DS_Store
-*.pem
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-debug.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-!.env.example
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-/src/generated/prisma
-
-# skills - 不需要部署到生产环境
-/skills/
-
-# 临时文件
-/tool-results/
-/upload/
-/download/
-
-# 数据库
-/db/*.db
+# 前端构建缓存（不需要重复推送）
+frontend/.vite/
+frontend/dev.log
+frontend/frontend.log
+frontend/preview.log
+frontend/vite.log
+frontend/dist/

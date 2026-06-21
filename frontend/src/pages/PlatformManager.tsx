@@ -7,11 +7,26 @@ import {
   Network, GitBranch, Cog, Shield, Code, FileText, Monitor,
 } from 'lucide-react'
 import {
-  fetchPlatforms, fetchFrameworks, fetchEngines, fetchTeams,
+  fetchPlatforms, fetchFrameworks, fetchEngines, fetchTeams, fetchApiKeys,
   createPlatform, deletePlatform, createTeam, createEngine,
 } from '@/api/client'
 
 /* ── Types (matching backend schema) ── */
+interface ApiKey {
+  id: string
+  provider: string
+  providerName: string
+  displayName: string
+  maskedKey: string
+  baseUrl?: string
+  isActive: boolean
+  isValid: boolean | null
+  lastTestedAt: string | null
+  latencyMs: number | null
+  errorMessage: string | null
+  createdAt: string
+  updatedAt: string
+}
 interface Framework {
   id: string
   brand: string
@@ -165,10 +180,13 @@ export default function PlatformManager() {
   const [frameworks, setFrameworks] = useState<Framework[]>([])
   const [engines, setEngines] = useState<Engine[]>([])
   const [teams, setTeams] = useState<Team[]>([])
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState<Record<string, boolean>>({
-    platforms: true, frameworks: true, engines: true, teams: true,
+    platforms: true, frameworks: true, engines: true, teams: true, apiKeys: true,
   })
   const [error, setError] = useState<string | null>(null)
+  const [testingConnection, setTestingConnection] = useState<string | null>(null)
+  const [testResult, setTestResult] = useState<{ id: string; success: boolean; message: string; latencyMs: number } | null>(null)
 
   // Modals
   const [showPlatformModal, setShowPlatformModal] = useState(false)
@@ -188,11 +206,12 @@ export default function PlatformManager() {
     async function load() {
       try {
         setError(null)
-        const [platRes, fwRes, engRes, teamRes]: any = await Promise.allSettled([
+        const [platRes, fwRes, engRes, teamRes, keyRes]: any = await Promise.allSettled([
           fetchPlatforms(),
           fetchFrameworks(),
           fetchEngines(),
           fetchTeams(),
+          fetchApiKeys(),
         ])
 
         const plats = platRes.status === 'fulfilled'
@@ -207,15 +226,19 @@ export default function PlatformManager() {
         const tms = teamRes.status === 'fulfilled'
           ? (Array.isArray(teamRes.value) ? teamRes.value : teamRes.value?.data || [])
           : []
+        const keys = keyRes.status === 'fulfilled'
+          ? (Array.isArray(keyRes.value) ? keyRes.value : keyRes.value?.data || [])
+          : []
 
         setPlatforms(plats)
         setFrameworks(fws)
         setEngines(engs)
         setTeams(tms)
+        setApiKeys(keys)
       } catch (e: any) {
         setError(e?.message || '加载数据失败')
       } finally {
-        setLoading({ platforms: false, frameworks: false, engines: false, teams: false })
+        setLoading({ platforms: false, frameworks: false, engines: false, teams: false, apiKeys: false })
       }
     }
     load()
@@ -512,8 +535,35 @@ export default function PlatformManager() {
     setTeams((prev) => prev.filter((t) => t.id !== id))
   }
 
-  const handleTestConnection = (id: string, name: string) => {
-    alert(`正在测试 ${name} (ID: ${id}) 的连接...`)
+  const handleTestConnection = async (id: string, name: string) => {
+    // 查找该平台对应的 API Key
+    const key = apiKeys.find((k) => k.provider === id || k.providerName === name)
+    if (!key) {
+      alert(`未找到 ${name} 的 API Key，请先在 API Keys 页面配置`)
+      return
+    }
+
+    setTestingConnection(id)
+    setTestResult(null)
+    try {
+      const res = await fetch(`http://localhost:3001/api/apikeys/${key.id}/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setTestResult({ id, success: data.data.success, message: data.data.message, latencyMs: data.data.latencyMs })
+        alert(`✅ ${name} 测试成功\n延迟: ${data.data.latencyMs}ms\n${data.data.message}`)
+      } else {
+        setTestResult({ id, success: false, message: data.error || '测试失败', latencyMs: 0 })
+        alert(`❌ ${name} 测试失败\n${data.error || '未知错误'}`)
+      }
+    } catch (err: any) {
+      setTestResult({ id, success: false, message: err.message || '网络错误', latencyMs: 0 })
+      alert(`❌ ${name} 测试失败\n${err.message || '网络错误'}`)
+    } finally {
+      setTestingConnection(null)
+    }
   }
 
   /* ── Render helpers ── */
@@ -926,8 +976,9 @@ export default function PlatformManager() {
                                 className="p-1 rounded hover:bg-[var(--sage-100)] transition-colors"
                                 style={{ color: 'var(--sage-500)' }}
                                 title="测试连接"
+                                disabled={testingConnection === id}
                               >
-                                <Play className="w-3 h-3" />
+                                {testingConnection === id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
                               </button>
                               <button
                                 className="p-1 rounded hover:bg-[var(--sage-100)] transition-colors"

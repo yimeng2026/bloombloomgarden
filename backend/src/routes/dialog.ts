@@ -1,9 +1,50 @@
 import { Router } from 'express';
 import { getDialogService, getAgentService, getRoleService } from '../services';
 import { getBackendRouter } from '../services/BackendRouter';
+import { apiKeyService } from '../services/APIKeyService';
+import { OpenAICompatibleAdapter } from '../adapters/OpenAICompatibleAdapter';
 import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
+
+// 辅助函数：动态注册后端（从 APIKeyService 获取 Key）
+async function ensureBackendRegistered(platformId: string): Promise<boolean> {
+  const backendRouter = getBackendRouter();
+  if (backendRouter.getBackend(platformId)) {
+    return true; // 已注册
+  }
+
+  // 从 APIKeyService 查找 Key
+  const keyData = apiKeyService.getDecryptedByProvider(platformId);
+  if (!keyData) {
+    return false; // 没有配置 Key
+  }
+
+  // 从 providers.json 获取平台配置
+  const providersConfig = require('../config/providers.json');
+  const provider = (providersConfig.providers || []).find((p: any) => p.id === platformId);
+  if (!provider) {
+    return false;
+  }
+
+  // 创建 OpenAI 兼容适配器
+  const config = {
+    provider: platformId,
+    baseUrl: keyData.baseUrl || provider.baseUrl || 'https://api.openai.com',
+    apiKey: keyData.apiKey,
+    defaultModel: provider.defaultModel || 'gpt-4o',
+    maxRetries: 3,
+    timeout: 60000,
+    apiKeyPrefix: provider.apiKeyPrefix || 'Bearer',
+    chatPath: '/chat/completions',
+    modelsPath: '/models',
+    extraHeaders: provider.extraHeaders || {},
+  };
+
+  backendRouter.register(platformId, new OpenAICompatibleAdapter(config), true);
+  console.log(`[dialog] Dynamically registered backend ${platformId} with APIKeyService key`);
+  return true;
+}
 
 // 辅助函数：获取 Agent 绑定的平台和模型
 async function resolveAgentPlatform(agentId: string): Promise<{ platformId: string; model: string; apiKeyId?: string; systemPrompt?: string }> {
@@ -53,7 +94,30 @@ async function resolveAgentPlatform(agentId: string): Promise<{ platformId: stri
     model = 'deepseek/deepseek-chat-v3-0324';
   }
 
-  // 5. 收集 systemPrompt（如果 Agent 有个性化配置）
+  // 5. 检查 L2 编排器：需要从 config 中读取 L1 引擎
+  if (platformId) {
+    const providersConfig = require('../config/providers.json');
+    const provider = (providersConfig.providers || []).find((p: any) => p.id === platformId);
+    if (provider && (provider.protocolLevel === 2 || provider.category === 'orchestrator')) {
+      // 是 L2 编排器，需要解析 L1 引擎
+      const l1EngineId = (agent.config?.engineId as string) || (agent.config?.orchestratedEngines as string[])?.[0];
+      if (l1EngineId) {
+        const { getEngineScheduler } = require('../services');
+        const scheduler = getEngineScheduler();
+        const engine = await scheduler.getById(l1EngineId);
+        if (engine) {
+          platformId = engine.brand;
+          model = engine.model;
+        } else {
+          throw new Error(`L2 编排器配置的 L1 引擎 ${l1EngineId} 未找到，请检查引擎配置`);
+        }
+      } else {
+        throw new Error(`L2 编排器 ${platformId} 需要配置 L1 引擎，请在创建 Agent 时选择引擎或在 config 中设置 engineId / orchestratedEngines`);
+      }
+    }
+  }
+
+  // 6. 收集 systemPrompt（如果 Agent 有个性化配置）
   const systemPrompt = agent.systemPrompt || undefined;
 
   return { platformId, model, apiKeyId, systemPrompt };
@@ -98,40 +162,55 @@ router.post('/', asyncHandler(async (req, res) => {
 
 // 2. POST /api/dialog/:agentId/chat — 调用 LLM API（非流式，支持 systemPrompt）
 router.post('/:agentId/chat', asyncHandler(async (req, res) => {
-  const { content, role = 'user' } = req.body;
-  const service = getDialogService();
+  try {
+    const { content, role = 'user' } = req.body;
+    const service = getDialogService();
 
-  // 保存用户消息到上下文
-  await service.sendMessage(req.params.agentId, { content, role });
+    // 保存用户消息到上下文
+    await service.sendMessage(req.params.agentId, { content, role });
 
-  // 获取完整上下文
-  const context = await service.getContext(req.params.agentId);
-  let messages = (context?.messages || []).map((m: any) => ({
-    role: m.role === 'agent' ? 'assistant' : m.role,
-    content: m.content,
-  }));
+    // 获取完整上下文
+    const context = await service.getContext(req.params.agentId);
+    let messages = (context?.messages || []).map((m: any) => ({
+      role: m.role === 'agent' ? 'assistant' : m.role,
+      content: m.content,
+    }));
 
-  // 解析 Agent 绑定的平台和模型
-  const { platformId, model, systemPrompt } = await resolveAgentPlatform(req.params.agentId);
+    // 解析 Agent 绑定的平台和模型
+    const { platformId, model, systemPrompt } = await resolveAgentPlatform(req.params.agentId);
 
-  // 注入 Agent 的 systemPrompt（如果存在）
-  messages = injectSystemPrompt(messages, systemPrompt);
+    // 注入 Agent 的 systemPrompt（如果存在）
+    messages = injectSystemPrompt(messages, systemPrompt);
 
-  // 调用 LLM API（通过 Agent/Role 绑定的平台）
-  const backendRouter = getBackendRouter();
-  const response = await backendRouter.chat(platformId, {
-    messages,
-    model,
-    temperature: 0.7,
-  });
+    // 调用 LLM API（通过 Agent/Role 绑定的平台）
+    const backendRouter = getBackendRouter();
+    
+    // 确保后端已注册（支持从 APIKeyService 动态获取 Key）
+    const hasBackend = await ensureBackendRegistered(platformId);
+    if (!hasBackend) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `未找到 ${platformId} 的后端配置，请先在 API Keys 页面配置密钥` 
+      });
+    }
+    
+    const response = await backendRouter.chat(platformId, {
+      messages,
+      model,
+      temperature: 0.7,
+    });
 
-  // 保存 AI 回复到上下文
-  await service.sendMessage(req.params.agentId, {
-    content: response.content,
-    role: 'agent',
-  });
+    // 保存 AI 回复到上下文
+    await service.sendMessage(req.params.agentId, {
+      content: response.content,
+      role: 'agent',
+    });
 
-  res.json({ success: true, data: response });
+    res.json({ success: true, data: response });
+  } catch (err: any) {
+    console.error(`[dialog] Chat error for agent ${req.params.agentId}:`, err.message);
+    res.status(400).json({ success: false, error: err.message || '对话失败' });
+  }
 }));
 
 // 3. GET /api/dialog/:agentId/stream — SSE 流式调用 LLM API
@@ -161,30 +240,41 @@ router.post('/:agentId/stream', asyncHandler(async (req, res) => {
 async function handleStream(req: any, res: any, message: string) {
   const service = getDialogService();
 
-  // 保存用户消息
-  await service.sendMessage(req.params.agentId, {
-    content: message,
-    role: 'user',
-  });
-
-  // 获取上下文
-  const context = await service.getContext(req.params.agentId);
-  let messages = (context?.messages || []).map((m: any) => ({
-    role: m.role === 'agent' ? 'assistant' : m.role,
-    content: m.content,
-  }));
-
-  // 解析 Agent 绑定的平台和模型
-  const { platformId, model, systemPrompt } = await resolveAgentPlatform(req.params.agentId);
-
-  // 注入 Agent 的 systemPrompt（如果存在）
-  messages = injectSystemPrompt(messages, systemPrompt);
-
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-
   try {
+    // 保存用户消息
+    await service.sendMessage(req.params.agentId, {
+      content: message,
+      role: 'user',
+    });
+
+    // 获取上下文
+    const context = await service.getContext(req.params.agentId);
+    let messages = (context?.messages || []).map((m: any) => ({
+      role: m.role === 'agent' ? 'assistant' : m.role,
+      content: m.content,
+    }));
+
+    // 解析 Agent 绑定的平台和模型
+    const { platformId, model, systemPrompt } = await resolveAgentPlatform(req.params.agentId);
+
+    // 注入 Agent 的 systemPrompt（如果存在）
+    messages = injectSystemPrompt(messages, systemPrompt);
+
+    // 确保后端已注册（支持从 APIKeyService 动态获取 Key）
+    const hasBackend = await ensureBackendRegistered(platformId);
+    if (!hasBackend) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.write(`event: error\ndata: ${JSON.stringify({ error: `未找到 ${platformId} 的后端配置，请先在 API Keys 页面配置密钥` })}\n\n`);
+      res.end();
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
     const backendRouter = getBackendRouter();
     let fullContent = '';
 
@@ -204,10 +294,17 @@ async function handleStream(req: any, res: any, message: string) {
     });
 
     res.write(`event: chat_complete\ndata: {}\n\n`);
+    res.end();
   } catch (err) {
-    res.write(`event: error\ndata: ${JSON.stringify({ error: (err as Error).message })}\n\n`);
+    // 统一错误处理：确保 SSE 格式返回错误
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+    }
+    res.write(`event: error\ndata: ${JSON.stringify({ error: (err as Error).message || '对话处理失败' })}\n\n`);
+    res.end();
   }
-  res.end();
 }
 
 // 4. POST /api/dialog/:agentId/files — 上传附件

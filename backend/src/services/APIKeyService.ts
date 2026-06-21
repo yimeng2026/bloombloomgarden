@@ -1,13 +1,19 @@
 /**
  * APIKeyService.ts — API 密钥管理服务
  * 支持：增删改查、加密存储、自动连通性测试
+ * 【修复】统一 providers.json 和 LLMProviderRegistry 数据源
+ * 【新增】从数据库加载已保存的 Key，持久化存储
  */
 
 import crypto from 'crypto';
+import { prisma } from './PrismaService';
 import { getProviderConfig } from './LLMProviderRegistry';
+import providersData from '../config/providers.json';
 
 const ALGORITHM = 'aes-256-gcm';
 const MASTER_KEY = process.env.API_KEY_MASTER_SECRET || crypto.randomBytes(32).toString('hex');
+
+const allProviders: any[] = (providersData as any).providers || [];
 
 export interface StoredKey {
   id: string;
@@ -25,7 +31,7 @@ export interface StoredKey {
   updatedAt: string;
 }
 
-// 内存存储（生产环境应接入数据库）
+// 内存缓存
 const KEY_STORE = new Map<string, StoredKey>();
 
 function encrypt(text: string): string {
@@ -46,112 +52,183 @@ function decrypt(ciphertext: string): string {
   return decrypted;
 }
 
+/**
+ * 统一解析 Provider 配置
+ */
+function resolveProviderConfig(providerId: string): {
+  id: string; name: string; displayName: string; baseUrl: string;
+  defaultModel: string; authType: 'bearer' | 'api_key' | 'custom';
+  authHeaderName: string; category: string; optimization?: any;
+  supportsVision?: boolean; supportsFunctions?: boolean; requiresUserAgent?: boolean;
+} | null {
+  const registry = getProviderConfig(providerId);
+  if (registry) {
+    return {
+      id: registry.id, name: registry.name, displayName: registry.displayName,
+      baseUrl: registry.baseUrl, defaultModel: registry.defaultModel,
+      authType: registry.authType, authHeaderName: registry.authHeaderName,
+      category: registry.category, optimization: registry.optimization,
+      supportsVision: registry.supportsVision, supportsFunctions: registry.supportsFunctions,
+      requiresUserAgent: registry.requiresUserAgent,
+    };
+  }
+  const jsonProvider = allProviders.find((p: any) => p.id === providerId);
+  if (jsonProvider) {
+    return {
+      id: jsonProvider.id, name: jsonProvider.id,
+      displayName: jsonProvider.name || jsonProvider.id,
+      baseUrl: jsonProvider.baseUrl || '', defaultModel: jsonProvider.defaultModel || 'default',
+      authType: 'bearer', authHeaderName: 'Authorization',
+      category: jsonProvider.category || 'cloud', optimization: undefined,
+      supportsVision: true, supportsFunctions: true, requiresUserAgent: false,
+    };
+  }
+  return null;
+}
+
 export class APIKeyService {
-  /**
-   * 列出所有已保存的密钥（脱敏）
-   */
+  constructor() {
+    this.loadFromDatabase().catch(err => {
+      console.error('[APIKeyService] Failed to load from database:', err.message);
+    });
+  }
+
+  private async loadFromDatabase(): Promise<void> {
+    const dbKeys = await prisma.apiKey.findMany({
+      where: { status: { in: ['active', 'revoked'] } },
+    });
+
+    for (const dbKey of dbKeys) {
+      let extra: any = {};
+      try { extra = JSON.parse(dbKey.permissions || '{}'); } catch { /* ignore */ }
+
+      const stored: StoredKey = {
+        id: dbKey.id, provider: dbKey.providerId,
+        providerName: extra.providerName || dbKey.providerId,
+        displayName: dbKey.name || dbKey.providerId,
+        apiKey: dbKey.keyHash, baseUrl: extra.baseUrl || undefined,
+        isActive: dbKey.status === 'active',
+        isValid: extra.isValid ?? null, lastTestedAt: extra.lastTestedAt || null,
+        latencyMs: extra.latencyMs ?? null, errorMessage: extra.errorMessage || null,
+        createdAt: dbKey.createdAt.toISOString(), updatedAt: dbKey.updatedAt.toISOString(),
+      };
+      KEY_STORE.set(stored.id, stored);
+    }
+
+    console.log(`[APIKeyService] Loaded ${dbKeys.length} keys from database`);
+  }
+
   list(): Array<Omit<StoredKey, 'apiKey'> & { maskedKey: string }> {
     return Array.from(KEY_STORE.values()).map(k => {
       const { apiKey, ...rest } = k;
-      const decrypted = decrypt(apiKey);
-      const maskedKey = decrypted.length > 8
-        ? decrypted.slice(0, 4) + '****' + decrypted.slice(-4)
-        : '****';
+      let decrypted = '';
+      try { decrypted = decrypt(apiKey); } catch { decrypted = '****'; }
+      const maskedKey = decrypted.length > 8 ? decrypted.slice(0, 4) + '****' + decrypted.slice(-4) : '****';
       return { ...rest, maskedKey };
     });
   }
 
-  /**
-   * 根据 provider 获取有效密钥
-   */
   getByProvider(provider: string): string | null {
     const key = Array.from(KEY_STORE.values()).find(
       k => k.provider === provider && k.isActive && k.isValid === true
     );
     if (!key) return null;
-    try {
-      return decrypt(key.apiKey);
-    } catch {
-      return null;
-    }
+    try { return decrypt(key.apiKey); } catch { return null; }
   }
 
-  /**
-   * 保存密钥（新增或更新）
-   */
-  save(data: { provider: string; apiKey: string; baseUrl?: string; isActive?: boolean }): StoredKey {
-    const config = getProviderConfig(data.provider);
-    if (!config) {
-      throw new Error(`不支持的 Provider: ${data.provider}`);
-    }
+  async save(data: { provider: string; apiKey: string; baseUrl?: string; isActive?: boolean }): Promise<StoredKey> {
+    const config = resolveProviderConfig(data.provider);
+    if (!config) throw new Error(`不支持的 Provider: ${data.provider}`);
 
-    // 检查是否已存在同 provider 的 key，存在则更新
     const existing = Array.from(KEY_STORE.values()).find(k => k.provider === data.provider);
     const id = existing?.id || `key-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const now = new Date().toISOString();
 
+    const encryptedKey = encrypt(data.apiKey);
     const stored: StoredKey = {
-      id,
-      provider: data.provider,
-      providerName: config.name,
-      displayName: config.displayName,
-      apiKey: encrypt(data.apiKey),
-      baseUrl: data.baseUrl || config.baseUrl,
-      isActive: data.isActive !== false,
-      isValid: existing ? existing.isValid : null,
+      id, provider: data.provider, providerName: config.name, displayName: config.displayName,
+      apiKey: encryptedKey, baseUrl: data.baseUrl || config.baseUrl,
+      isActive: data.isActive !== false, isValid: existing ? existing.isValid : null,
       lastTestedAt: existing ? existing.lastTestedAt : null,
       latencyMs: existing ? existing.latencyMs : null,
       errorMessage: existing ? existing.errorMessage : null,
-      createdAt: existing ? existing.createdAt : now,
-      updatedAt: now,
+      createdAt: existing ? existing.createdAt : now, updatedAt: now,
     };
 
     KEY_STORE.set(id, stored);
+
+    try {
+      await prisma.apiKey.upsert({
+        where: { id },
+        update: {
+          name: stored.displayName, keyHash: encryptedKey, providerId: data.provider,
+          status: stored.isActive ? 'active' : 'revoked',
+          permissions: JSON.stringify({
+            providerName: config.name, baseUrl: stored.baseUrl,
+            isValid: stored.isValid, lastTestedAt: stored.lastTestedAt,
+            latencyMs: stored.latencyMs, errorMessage: stored.errorMessage,
+          }),
+        },
+        create: {
+          id, name: stored.displayName, keyHash: encryptedKey, providerId: data.provider,
+          status: stored.isActive ? 'active' : 'revoked',
+          permissions: JSON.stringify({ providerName: config.name, baseUrl: stored.baseUrl }),
+        },
+      });
+    } catch (err: any) {
+      console.error(`[APIKeyService] Failed to save to database: ${err.message}`);
+    }
+
     return stored;
   }
 
-  /**
-   * 删除密钥
-   */
-  delete(id: string): boolean {
-    return KEY_STORE.delete(id);
+  async delete(id: string): Promise<boolean> {
+    const existed = KEY_STORE.delete(id);
+    if (!existed) return false;
+    try { await prisma.apiKey.delete({ where: { id } }).catch(() => {}); } catch {}
+    return true;
   }
 
-  /**
-   * 切换激活状态
-   */
-  toggleActive(id: string): StoredKey | null {
+  async toggleActive(id: string): Promise<StoredKey | null> {
     const key = KEY_STORE.get(id);
     if (!key) return null;
     key.isActive = !key.isActive;
     key.updatedAt = new Date().toISOString();
+
+    try {
+      await prisma.apiKey.update({
+        where: { id },
+        data: {
+          status: key.isActive ? 'active' : 'revoked',
+          permissions: JSON.stringify({
+            providerName: key.providerName, baseUrl: key.baseUrl,
+            isValid: key.isValid, lastTestedAt: key.lastTestedAt,
+            latencyMs: key.latencyMs, errorMessage: key.errorMessage,
+          }),
+        },
+      });
+    } catch (err: any) {
+      console.error(`[APIKeyService] Failed to update status: ${err.message}`);
+    }
     return key;
   }
 
-  /**
-   * 自动测试密钥连通性
-   */
   async test(id: string): Promise<{ success: boolean; latencyMs: number; message: string }> {
     const key = KEY_STORE.get(id);
     if (!key) throw new Error('密钥不存在');
 
-    const config = getProviderConfig(key.provider);
+    const config = resolveProviderConfig(key.provider);
     if (!config) throw new Error('Provider 配置不存在');
 
     let decryptedKey: string;
-    try {
-      decryptedKey = decrypt(key.apiKey);
-    } catch {
-      throw new Error('密钥解密失败');
-    }
+    try { decryptedKey = decrypt(key.apiKey); } catch { throw new Error('密钥解密失败'); }
 
     const start = Date.now();
 
     try {
-      // 构建测试请求
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...config.optimization.customHeaders,
+        ...(config.optimization?.customHeaders || {}),
       };
 
       if (config.authType === 'bearer') {
@@ -160,41 +237,25 @@ export class APIKeyService {
         headers[config.authHeaderName] = decryptedKey;
       }
 
-      // 使用标准的 /chat/completions 端点测试（OpenAI兼容格式）
       const testEndpoint = key.baseUrl || config.baseUrl;
       let url = `${testEndpoint}/chat/completions`;
-      let body: any;
+      let body: any = {
+        model: config.defaultModel,
+        messages: [{ role: 'user', content: '你好，这是一个连通性测试' }],
+        max_tokens: 50,
+      };
 
-      if (config.optimization.requestFormatter) {
-        // 使用 provider 自定义格式
-        body = config.optimization.requestFormatter(
-          [{ role: 'user', content: '你好，这是一个连通性测试' }],
-          { model: config.defaultModel, stream: false, max_tokens: 50 }
-        );
-      } else {
-        body = {
-          model: config.defaultModel,
-          messages: [{ role: 'user', content: '你好，这是一个连通性测试' }],
-          max_tokens: 50,
-        };
-      }
-
-      // Gemini 特殊处理
       if (key.provider === 'gemini') {
         url = `${testEndpoint}/models/${config.defaultModel}:generateContent?key=${decryptedKey}`;
         delete headers.Authorization;
-        body = {
-          contents: [{ role: 'user', parts: [{ text: '你好' }] }],
-        };
+        body = { contents: [{ role: 'user', parts: [{ text: '你好' }] }] };
       }
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
 
       const resp = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body),
+        method: 'POST', headers, body: JSON.stringify(body),
         signal: controller.signal,
       });
 
@@ -205,43 +266,47 @@ export class APIKeyService {
         const errorText = await resp.text().catch(() => '');
         key.isValid = false;
         key.errorMessage = `HTTP ${resp.status}: ${errorText.slice(0, 200)}`;
-        key.lastTestedAt = new Date().toISOString();
-        key.latencyMs = latencyMs;
+        key.lastTestedAt = new Date().toISOString(); key.latencyMs = latencyMs;
+        await this.persistTestResult(id, key);
         return { success: false, latencyMs, message: key.errorMessage };
       }
 
       const data = await resp.json() as any;
-      key.isValid = true;
-      key.errorMessage = null;
-      key.lastTestedAt = new Date().toISOString();
-      key.latencyMs = latencyMs;
+      key.isValid = true; key.errorMessage = null;
+      key.lastTestedAt = new Date().toISOString(); key.latencyMs = latencyMs;
+      await this.persistTestResult(id, key);
 
-      // 尝试提取响应内容用于展示
       let preview = '';
-      if (data.choices?.[0]?.message?.content) {
-        preview = data.choices[0].message.content.slice(0, 50);
-      } else if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        preview = data.candidates[0].content.parts[0].text.slice(0, 50);
-      }
+      if (data.choices?.[0]?.message?.content) preview = data.choices[0].message.content.slice(0, 50);
+      else if (data.candidates?.[0]?.content?.parts?.[0]?.text) preview = data.candidates[0].content.parts[0].text.slice(0, 50);
 
-      return {
-        success: true,
-        latencyMs,
-        message: `连通性正常${preview ? ` — 响应: ${preview}...` : ''}`,
-      };
+      return { success: true, latencyMs, message: `连通性正常${preview ? ` — 响应: ${preview}...` : ''}` };
     } catch (err: any) {
       const latencyMs = Date.now() - start;
-      key.isValid = false;
-      key.errorMessage = err.message || String(err);
-      key.lastTestedAt = new Date().toISOString();
-      key.latencyMs = latencyMs;
+      key.isValid = false; key.errorMessage = err.message || String(err);
+      key.lastTestedAt = new Date().toISOString(); key.latencyMs = latencyMs;
+      await this.persistTestResult(id, key);
       return { success: false, latencyMs, message: key.errorMessage };
     }
   }
 
-  /**
-   * 批量测试所有密钥
-   */
+  private async persistTestResult(id: string, key: StoredKey): Promise<void> {
+    try {
+      await prisma.apiKey.update({
+        where: { id },
+        data: {
+          permissions: JSON.stringify({
+            providerName: key.providerName, baseUrl: key.baseUrl,
+            isValid: key.isValid, lastTestedAt: key.lastTestedAt,
+            latencyMs: key.latencyMs, errorMessage: key.errorMessage,
+          }),
+        },
+      });
+    } catch (err: any) {
+      console.error(`[APIKeyService] Failed to persist test result: ${err.message}`);
+    }
+  }
+
   async testAll(): Promise<Array<{ provider: string; success: boolean; latencyMs: number; message: string }>> {
     const keys = Array.from(KEY_STORE.values()).filter(k => k.isActive);
     return Promise.all(keys.map(async k => {
@@ -250,21 +315,10 @@ export class APIKeyService {
     }));
   }
 
-  /**
-   * 获取解密后的密钥（供服务层使用）
-   */
-  getDecrypted(id: string): { provider: string; apiKey: string; baseUrl?: string } | null {
-    const key = KEY_STORE.get(id);
-    if (!key || !key.isActive) return null;
-    try {
-      return {
-        provider: key.provider,
-        apiKey: decrypt(key.apiKey),
-        baseUrl: key.baseUrl,
-      };
-    } catch {
-      return null;
-    }
+  getDecryptedByProvider(provider: string): { provider: string; apiKey: string; baseUrl?: string } | null {
+    const key = Array.from(KEY_STORE.values()).find(k => k.provider === provider && k.isActive);
+    if (!key) return null;
+    try { return { provider: key.provider, apiKey: decrypt(key.apiKey), baseUrl: key.baseUrl }; } catch { return null; }
   }
 }
 

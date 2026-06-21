@@ -4,7 +4,7 @@ const providersConfig = require('../config/providers.json');
 
 /**
  * 启动时从 providers.json 批量同步 Framework 和 Engine 到数据库
- * 使用 upsert 避免重复插入
+ * 使用 upsert 减少数据库调用次数
  */
 export async function syncProvidersToDatabase(): Promise<{
   frameworks: { created: number; updated: number };
@@ -20,11 +20,13 @@ export async function syncProvidersToDatabase(): Promise<{
     (p: any) => p.category === 'orchestrator'
   );
 
-  for (const provider of orchestratorProviders) {
-    const existing = await prisma.framework.findUnique({
-      where: { brand: provider.id },
-    });
+  // 批量预查已存在的 framework
+  const existingFw = await prisma.framework.findMany({
+    select: { brand: true },
+  });
+  const existingFwSet = new Set(existingFw.map((f) => f.brand));
 
+  for (const provider of orchestratorProviders) {
     const data = {
       brand: provider.id,
       name: provider.name || provider.id,
@@ -43,17 +45,15 @@ export async function syncProvidersToDatabase(): Promise<{
       status: 'active',
     };
 
-    if (existing) {
-      await prisma.framework.update({
-        where: { brand: provider.id },
-        data: {
-          ...data,
-          updatedAt: new Date(),
-        },
-      });
+    await prisma.framework.upsert({
+      where: { brand: provider.id },
+      update: { ...data, updatedAt: new Date() },
+      create: data,
+    });
+
+    if (existingFwSet.has(provider.id)) {
       stats.frameworks.updated++;
     } else {
-      await prisma.framework.create({ data });
       stats.frameworks.created++;
     }
   }
@@ -67,11 +67,13 @@ export async function syncProvidersToDatabase(): Promise<{
       p.category === 'local-engine'
   );
 
-  for (const provider of engineProviders) {
-    const existing = await prisma.engine.findUnique({
-      where: { id: provider.id },
-    });
+  // 批量预查已存在的 engine
+  const existingEng = await prisma.engine.findMany({
+    select: { id: true },
+  });
+  const existingEngSet = new Set(existingEng.map((e) => e.id));
 
+  for (const provider of engineProviders) {
     const tier = inferTier(provider.id);
     const cost = inferCost(provider.id);
 
@@ -102,17 +104,15 @@ export async function syncProvidersToDatabase(): Promise<{
       }),
     };
 
-    if (existing) {
-      await prisma.engine.update({
-        where: { id: provider.id },
-        data: {
-          ...data,
-          updatedAt: new Date(),
-        },
-      });
+    await prisma.engine.upsert({
+      where: { id: provider.id },
+      update: { ...data, updatedAt: new Date() },
+      create: data,
+    });
+
+    if (existingEngSet.has(provider.id)) {
       stats.engines.updated++;
     } else {
-      await prisma.engine.create({ data });
       stats.engines.created++;
     }
   }
