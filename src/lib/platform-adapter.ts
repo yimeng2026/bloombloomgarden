@@ -4,6 +4,7 @@
 // ================================================================
 
 import { AGENT_PLATFORMS, type AgentPlatform } from "./platforms";
+import { DifyApiClient, CozeApiClient } from "./platform-api";
 
 // ===================== 类型定义 =====================
 
@@ -39,6 +40,12 @@ export interface AgentConfig {
   agentPlatform: string;
   skills: string[];
   channels: string[];
+  /** 平台专属 API Key（如 Dify/Coze 的 Key） */
+  platformApiKey?: string;
+  /** 平台专属 API URL（如 Dify Base URL） */
+  platformApiUrl?: string;
+  /** 平台额外配置（如 Coze Bot ID） */
+  platformConfig?: Record<string, string>;
 }
 
 // ===================== LLM 供应商端点 =====================
@@ -220,13 +227,13 @@ export class OpenClawAdapter implements PlatformAdapter {
         platformLogo: this.platformLogo,
       };
 
-      // 模拟工具结果注入（真实场景调 MCP 协议）
-      const toolHint = this._getToolHint(toolName);
+      // 真实工具调用
+      const toolResult = await this._executeTool(toolName, messages);
       yield {
         type: "tool_result",
         content: `🦞 工具 ${toolName} 返回结果`,
         toolName,
-        toolResult: toolHint,
+        toolResult: toolResult,
         platformId: this.platformId,
         platformName: this.platformName,
         platformLogo: this.platformLogo,
@@ -235,7 +242,7 @@ export class OpenClawAdapter implements PlatformAdapter {
       // 把工具结果注入 messages
       const enrichedMessages = [
         ...messages,
-        { role: "system" as const, content: `[OpenClaw 工具 ${toolName} 结果]\n${toolHint}\n请基于以上工具返回结果回答用户问题。` },
+        { role: "system" as const, content: `[OpenClaw 工具 ${toolName} 结果]\n${toolResult}\n请基于以上工具返回结果回答用户问题。` },
       ];
 
       let full = "";
@@ -290,40 +297,33 @@ export class OpenClawAdapter implements PlatformAdapter {
       "summarizer": "Summarizer",
       "doc-writer": "DocWriter",
       "image-gen": "ImageGen",
-      "mind-map": "MindMap",
-      "pdf-parser": "PDFParser",
-      "chart-gen": "ChartGen",
-      "sql-query": "SQLQuery",
-      "email-sender": "EmailSender",
-      "calendar": "Calendar",
-      "knowledge-base": "KnowledgeBase",
-      "backtest-engine": "BacktestEngine",
-      "risk-analyzer": "RiskAnalyzer",
-      "alpha-research": "AlphaResearch",
-      "etf-analyzer": "ETFAnalyzer",
-      "macro-indicator": "MacroIndicator",
-      "policy-monitor": "PolicyMonitor",
-      "sentiment-analysis": "SentimentAnalysis",
-      "sector-rotation": "SectorRotation",
-      "portfolio-risk": "PortfolioRisk",
-      "image-understand": "ImageUnderstand",
-      "video-gen": "VideoGen",
-      "tts": "TTS",
+      "knowledge-graph": "KnowledgeGraph",
+      "ontology": "Ontology",
     };
     return toolMap[skills[0]] || "WebSearch";
   }
 
-  private _getToolHint(toolName: string): string {
-    const hints: Record<string, string> = {
-      WebSearch: "已搜索相关内容，获取到最新信息。",
-      MarketData: "已获取实时市场数据，包含最新价格和成交量。",
-      CodeExecutor: "代码执行完成，输出结果如下。",
-      WebScraper: "已抓取目标网页内容，提取关键信息。",
-      PDFParser: "已解析 PDF 文档，提取关键段落。",
-      BacktestEngine: "回测完成，夏普比率 1.8，最大回撤 12%。",
-      RiskAnalyzer: "风控检查通过，未触发止损线。",
-    };
-    return hints[toolName] || `工具 ${toolName} 执行完成，返回结果。`;
+  private async _executeTool(toolName: string, messages: ChatMessage[]): Promise<string> {
+    // 动态导入 tools 模块（只在服务器端运行）
+    const { executeTool } = await import("./tools");
+    // 从最后一条消息提取参数
+    const lastMsg = messages[messages.length - 1]?.content || "";
+    const params: Record<string, unknown> = {};
+    const quoted = lastMsg.match(/["']([^"']+)["']/);
+    if (quoted) {
+      params.query = quoted[1];
+    } else {
+      params.query = lastMsg.split(/[。\?\.\!]/)[0].trim();
+    }
+    const stockMatch = lastMsg.match(/\b([A-Z]{1,5}(\.\w{2})?)\b/);
+    if (stockMatch) {
+      params.symbol = stockMatch[1];
+    }
+    const urlMatch = lastMsg.match(/https?:\/\/[^\s]+/);
+    if (urlMatch) {
+      params.url = urlMatch[0];
+    }
+    return executeTool(toolName, params);
   }
 }
 
@@ -347,12 +347,22 @@ export class HermesAdapter implements PlatformAdapter {
       platformLogo: this.platformLogo,
     };
 
-    // 模拟记忆检索
-    const memoryHit = this._searchMemory(messages);
+    // 真实记忆检索（动态导入，只在服务器端运行）
+    let memoryHit: string | null = null;
+    try {
+      const { memoryStore } = await import("./memory");
+      const lastMsg = messages[messages.length - 1]?.content || "";
+      const memResults = await memoryStore.searchMemory(agent.id, lastMsg, 5);
+      if (memResults.length > 0) {
+        memoryHit = memResults.map(m => `[${m.role}]: ${m.content.slice(0, 200)}`).join("\n");
+      }
+    } catch {
+      // 记忆检索失败不影响主流程
+    }
     if (memoryHit) {
       yield {
         type: "memory_hit",
-        content: `🧠 Hermes 检索到相关记忆`,
+        content: `🧠 Hermes 检索到 ${memoryHit.split("\n").length} 条相关记忆`,
         memorySnippet: memoryHit,
         platformId: this.platformId,
         platformName: this.platformName,
@@ -380,15 +390,6 @@ export class HermesAdapter implements PlatformAdapter {
       yield { type: "error", error: e instanceof Error ? e.message : "LLM 调用失败", platformId: this.platformId, platformName: this.platformName, platformLogo: this.platformLogo };
     }
   }
-
-  private _searchMemory(messages: ChatMessage[]): string | null {
-    const lastMsg = messages[messages.length - 1]?.content?.toLowerCase() || "";
-    const memoryKeywords = ["之前", "上次", "以前", "记得", "历史", "上次你说", "你说过", "previously", "last time", "remember"];
-    if (memoryKeywords.some(kw => lastMsg.includes(kw))) {
-      return "用户之前偏好简洁的回答风格，喜欢用中文交流，关注实用性和可操作性。";
-    }
-    return null;
-  }
 }
 
 // ===================== DifyAdapter =====================
@@ -411,7 +412,29 @@ export class DifyAdapter implements PlatformAdapter {
       platformLogo: this.platformLogo,
     };
 
-    // 模拟 RAG 知识检索
+    // 如果配置了 Dify API Key，使用真实 Dify API
+    const difyKey = agent.platformApiKey;
+    const difyUrl = agent.platformApiUrl || "https://api.dify.ai/v1";
+    if (difyKey) {
+      try {
+        const client = new DifyApiClient({ apiKey: difyKey, baseUrl: difyUrl });
+        const lastMsg = messages[messages.length - 1]?.content || "";
+        for await (const event of client.chatStream(lastMsg)) {
+          yield { ...event, platformId: this.platformId, platformName: this.platformName, platformLogo: this.platformLogo };
+        }
+        return;
+      } catch (e) {
+        yield {
+          type: "error",
+          error: `Dify API 调用失败: ${e instanceof Error ? e.message : String(e)}，回退到 LLM 直连`,
+          platformId: this.platformId,
+          platformName: this.platformName,
+          platformLogo: this.platformLogo,
+        };
+      }
+    }
+
+    // 未配置 Dify API 或调用失败：回退到 LLM + 模拟知识检索
     const knowledgeHit = this._searchKnowledge(messages);
     if (knowledgeHit) {
       yield {
@@ -473,6 +496,29 @@ export class CozeAdapter implements PlatformAdapter {
       platformName: this.platformName,
       platformLogo: this.platformLogo,
     };
+
+    // 如果配置了 Coze API Key + Bot ID，使用真实 Coze API
+    const cozeKey = agent.platformApiKey;
+    const cozeBotId = agent.platformConfig?.botId;
+    const cozeUrl = agent.platformApiUrl || "https://api.coze.com";
+    if (cozeKey && cozeBotId) {
+      try {
+        const client = new CozeApiClient({ apiKey: cozeKey, botId: cozeBotId, baseUrl: cozeUrl });
+        const lastMsg = messages[messages.length - 1]?.content || "";
+        for await (const event of client.chatStream(lastMsg)) {
+          yield { ...event, platformId: this.platformId, platformName: this.platformName, platformLogo: this.platformLogo };
+        }
+        return;
+      } catch (e) {
+        yield {
+          type: "error",
+          error: `Coze API 调用失败: ${e instanceof Error ? e.message : String(e)}，回退到 LLM 直连`,
+          platformId: this.platformId,
+          platformName: this.platformName,
+          platformLogo: this.platformLogo,
+        };
+      }
+    }
 
     // Coze 特色：插件市场 + 多模态
     const skills = agent.skills || [];

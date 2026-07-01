@@ -129,6 +129,76 @@ model Conversation {
   messages  Message[]
 }
 
+// ===================== GraphRAG 知识图谱 =====================
+
+model GraphRagDocument {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  source      String   @default("manual")  // manual | upload | web
+  status      String   @default("pending")  // pending | indexing | indexed | error
+  chunkSize   Int      @default(1200)
+  chunkOverlap Int     @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  chunks      GraphRagChunk[]
+}
+
+model GraphRagChunk {
+  id          String   @id @default(uuid())
+  docId       String
+  content     String
+  orderIndex  Int
+  embedding   String   @default("")  // JSON 数组字符串，简化存储
+  createdAt   DateTime @default(now())
+
+  document    GraphRagDocument @relation(fields: [docId], references: [id], onDelete: Cascade)
+  entities    GraphRagEntity[]
+}
+
+model GraphRagEntity {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   @default("concept")  // person | organization | concept | event | location | product
+  description String   @default("")
+  chunkIds    String   @default("[]")  // JSON 数组: 来源 chunk ID
+  docIds      String   @default("[]")  // JSON 数组: 来源 document ID
+  communityId String?
+  createdAt   DateTime @default(now())
+
+  community   GraphRagCommunity? @relation(fields: [communityId], references: [id])
+  sourceChunks GraphRagChunk[]
+  sourceRelations GraphRagRelation[] @relation("SourceEntity")
+  targetRelations GraphRagRelation[] @relation("TargetEntity")
+}
+
+model GraphRagRelation {
+  id          String   @id @default(uuid())
+  sourceId    String
+  targetId    String
+  description String   @default("")
+  weight      Float    @default(1.0)
+  chunkIds    String   @default("[]")  // JSON 数组
+  createdAt   DateTime @default(now())
+
+  sourceEntity GraphRagEntity @relation("SourceEntity", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetEntity GraphRagEntity @relation("TargetEntity", fields: [targetId], references: [id], onDelete: Cascade)
+}
+
+model GraphRagCommunity {
+  id          String   @id @default(uuid())
+  level       Int      @default(0)  // 0=叶子, 1=父社区, 2=祖父社区...
+  summary     String   @default("")
+  entityIds   String   @default("[]")  // JSON 数组
+  parentId    String?
+  createdAt   DateTime @default(now())
+
+  entities    GraphRagEntity[]
+  parent      GraphRagCommunity? @relation("CommunityHierarchy", fields: [parentId], references: [id])
+  children    GraphRagCommunity[] @relation("CommunityHierarchy")
+}
+
 model Message {
   id             String   @id @default(uuid())
   conversationId String
@@ -139,4 +209,203 @@ model Message {
   createdAt      DateTime @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// ===================== Ontology 本体论系统 =====================
+
+model OntologySchema {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  version     String   @default("1.0")
+  definition  String   @default("{}")
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  objectTypes   OntologyObjectType[]
+  linkTypes     OntologyLinkType[]
+  instances     OntologyInstance[]
+  relations     OntologyRelation[]
+  rules         OntologyRule[]
+}
+
+model OntologyObjectType {
+  id          String   @id @default(uuid())
+  schemaId    String
+  name        String
+  label       String   @default("")
+  description String   @default("")
+  properties  String   @default("[]")
+  parentType  String?
+  color       String   @default("#6366f1")
+  icon        String   @default("📦")
+  createdAt   DateTime @default(now())
+
+  schema      OntologySchema @relation(fields: [schemaId], references: [id], onDelete: Cascade)
+  instances   OntologyInstance[]
+}
+
+model OntologyLinkType {
+  id          String   @id @default(uuid())
+  schemaId    String
+  name        String
+  label       String   @default("")
+  description String   @default("")
+  sourceType  String
+  targetType  String
+  properties  String   @default("[]")
+  cardinality String   @default("many-to-many")
+  createdAt   DateTime @default(now())
+
+  schema      OntologySchema @relation(fields: [schemaId], references: [id], onDelete: Cascade)
+  relations   OntologyRelation[]
+}
+
+model OntologyRule {
+  id          String   @id @default(uuid())
+  schemaId    String
+  name        String
+  description String   @default("")
+  ruleType    String   @default("custom")
+  config      String   @default("{}")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  schema      OntologySchema @relation(fields: [schemaId], references: [id], onDelete: Cascade)
+}
+
+model OntologyInstance {
+  id          String   @id @default(uuid())
+  schemaId    String
+  typeId      String
+  name        String
+  properties  String   @default("{}")
+  sourceDocId String?
+  confidence  Float    @default(1.0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  schema      OntologySchema @relation(fields: [schemaId], references: [id], onDelete: Cascade)
+  type        OntologyObjectType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  sourceRelations OntologyRelation[] @relation("SourceInstance")
+  targetRelations OntologyRelation[] @relation("TargetInstance")
+}
+
+model OntologyRelation {
+  id          String   @id @default(uuid())
+  schemaId    String
+  linkTypeId  String
+  sourceId    String
+  targetId    String
+  properties  String   @default("{}")
+  validFrom   DateTime?
+  validTo     DateTime?
+  isCurrent   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  schema      OntologySchema @relation(fields: [schemaId], references: [id], onDelete: Cascade)
+  linkType    OntologyLinkType @relation(fields: [linkTypeId], references: [id], onDelete: Cascade)
+  sourceInstance OntologyInstance @relation("SourceInstance", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetInstance OntologyInstance @relation("TargetInstance", fields: [targetId], references: [id], onDelete: Cascade)
+}
+
+// ===================== 学术研究系统 (SYLVA) =====================
+
+model ResearchModule {
+  id                String   @id @default(uuid())
+  name              String
+  displayName       String
+  category          String
+  subcategory       String
+  discipline        String
+  status            String   @default("active")  // active | deprecated | research | complete
+  lineCount         Int      @default(0)
+  sorryCount        Int      @default(0)
+  theoremCount      Int      @default(0)
+  definitionCount   Int      @default(0)
+  filePath          String   @default("")
+  leanVersion       String   @default("")
+  dependencies      String   @default("[]")  // JSON array of module names
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  theorems          ResearchTheorem[]
+  notes             ResearchNote[]
+
+  @@index([status])
+  @@index([category])
+  @@index([discipline])
+}
+
+model ResearchPaper {
+  id                String   @id @default(uuid())
+  title             String
+  type              String   @default("Hilbert")  // Hilbert | Millennium
+  number            String   @default("")
+  field             String   @default("")
+  status            String   @default("open")  // solved | partial | open
+  abstract          String   @default("")
+  keywords          String   @default("[]")  // JSON array
+  milestones        String   @default("[]")  // JSON array
+  filePath          String   @default("")
+  leanSnippetCount  Int      @default(0)
+  crossRefCount     Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  notes             ResearchNote[]
+
+  @@index([status])
+  @@index([type])
+  @@index([field])
+}
+
+model ResearchTheorem {
+  id            String   @id @default(uuid())
+  name          String
+  statement     String   @default("")
+  moduleId      String
+  status        String   @default("research")  // proven | axiom | research | placeholder
+  proofStrategy String   @default("")
+  leanCode      String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  module        ResearchModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@index([status])
+}
+
+model ResearchNote {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @default("")
+  tags      String   @default("[]")  // JSON array
+  moduleId  String?
+  paperId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module    ResearchModule?  @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  paper     ResearchPaper?   @relation(fields: [paperId], references: [id], onDelete: SetNull)
+
+  @@index([moduleId])
+  @@index([paperId])
+}
+
+model ResearchSync {
+  id           String   @id @default(uuid())
+  repoName     String   @default("TOE-SYLVA")  // TOE-SYLVA | PFE
+  commitHash   String
+  branch       String   @default("main")
+  filesChanged Int      @default(0)
+  insertions   Int      @default(0)
+  deletions    Int      @default(0)
+  syncedAt     DateTime @default(now())
+
+  @@index([repoName])
+  @@index([syncedAt])
 }

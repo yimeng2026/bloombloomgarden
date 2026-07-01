@@ -53,3 +53,13 @@ next-env.d.ts
 
 # 数据库
 /db/*.db
+dev.db
+
+# 日志文件
+*.log
+dev-*.log
+start*.log
+
+# 计划文件（构建后清理）
+plan.md
+plan-ontology.md
