@@ -1,0 +1,6 @@
+node_modules
+.vite
+*.log
+e2e-result.log
+.vscode
+.DS_Store

@@ -1,0 +1,1 @@
+Set-Location "C:/Users/一梦/.kimi_openclaw/workspace/bloombloomgarden/backend"; npm run build 2>&1 | Select-Object -Last 20

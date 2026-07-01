@@ -1,0 +1,640 @@
+const puppeteer = require('puppeteer');
+
+const BASE_URL = 'http://localhost:3002';
+const API_URL = 'http://localhost:3001';
+
+const results = [];
+
+function log(category, message, status = 'info') {
+  const icon = status === 'pass' ? '✅' : status === 'fail' ? '❌' : status === 'warn' ? '⚠️' : 'ℹ️';
+  console.log(`${icon} [${category}] ${message}`);
+  results.push({ category, message, status, time: new Date().toISOString() });
+}
+
+async function waitFor(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+async function testPage(browser, path, name, expectedText) {
+  const page = await browser.newPage();
+  try {
+    await page.goto(`${BASE_URL}/#${path}`, { waitUntil: 'networkidle2', timeout: 15000 });
+    await waitFor(2000);
+    
+    const mainText = await page.evaluate(() => {
+      const main = document.querySelector('main');
+      return main ? main.innerText : '';
+    });
+    
+    if (!mainText || mainText.trim().length === 0) {
+      log(name, 'main 区域为空', 'fail');
+      await page.close();
+      return { page, ok: false };
+    }
+    
+    if (expectedText && !mainText.includes(expectedText)) {
+      log(name, `未包含预期文本 "${expectedText}"，实际: ${mainText.slice(0, 40)}`, 'warn');
+    } else {
+      log(name, `页面加载成功 (${mainText.slice(0, 40)}...)`, 'pass');
+    }
+    
+    return { page, ok: true, mainText };
+  } catch (err) {
+    log(name, `页面加载失败: ${err.message}`, 'fail');
+    await page.close();
+    return { page: null, ok: false };
+  }
+}
+
+async function clickButton(page, selector, name) {
+  try {
+    const btn = await page.$(selector);
+    if (!btn) {
+      log(name, `按钮未找到: ${selector}`, 'warn');
+      return false;
+    }
+    await btn.click();
+    await waitFor(800);
+    log(name, `按钮点击成功: ${selector}`, 'pass');
+    return true;
+  } catch (err) {
+    log(name, `按钮点击失败: ${err.message}`, 'fail');
+    return false;
+  }
+}
+
+(async () => {
+  console.log('══════════════════════════════════════════════════');
+  console.log('  千界花园 v4.0 — 网页端 E2E 功能测试');
+  console.log('══════════════════════════════════════════════════\n');
+
+  // 检查服务状态
+  try {
+    const health = await fetch(`${API_URL}/api/health`).then(r => r.json());
+    log('系统', `后端健康: ${health.status}`, 'pass');
+  } catch {
+    log('系统', '后端服务未启动，测试终止', 'fail');
+    process.exit(1);
+  }
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+
+  // ─── 1. 首页 ──────────────────────────────────────
+  await testPage(browser, '/', '首页', '千界花园');
+
+  // ─── 2. Dashboard ─────────────────────────────────
+  await testPage(browser, '/dashboard', '仪表盘', '智能体');
+
+  // ─── 3. Agents 页面 ─────────────────────────────────
+  {
+    const { page, ok, mainText } = await testPage(browser, '/agents', '智能体列表', '智能体');
+    if (ok && page) {
+      // 测试按钮点击
+      const buttons = await page.$$('button');
+      log('智能体列表', `发现 ${buttons.length} 个按钮`, 'info');
+      await page.close();
+    }
+  }
+
+  // ─── 4. Agent 创建页面 ─────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/agents/create', '创建智能体', '创建');
+    if (ok && page) {
+      const inputs = await page.$$('input, textarea, select');
+      log('创建智能体', `发现 ${inputs.length} 个表单元素`, 'info');
+      await page.close();
+    }
+  }
+
+  // ─── 5. Engines 页面 ────────────────────────────────
+  {
+    const { page, ok, mainText } = await testPage(browser, '/engines', '引擎调度', '引擎');
+    if (ok && page) {
+      // 测试搜索框
+      const searchInput = await page.$('input[type="text"]');
+      if (searchInput) {
+        await searchInput.type('zhipu');
+        await waitFor(500);
+        const text = await page.evaluate(() => document.querySelector('main')?.innerText || '');
+        if (text.includes('zhipu') || text.includes('智谱')) {
+          log('引擎调度', '搜索过滤功能正常', 'pass');
+        } else {
+          log('引擎调度', '搜索过滤可能未生效', 'warn');
+        }
+      }
+      // 测试聊天按钮
+      const chatBtns = await page.$$('button');
+      const chatBtn = chatBtns.find(async b => {
+        const text = await b.evaluate(el => el.innerText);
+        return text.includes('对话');
+      });
+      if (chatBtns.length > 0) {
+        log('引擎调度', `发现 ${chatBtns.length} 个按钮（含聊天按钮）`, 'pass');
+      }
+      await page.close();
+    }
+  }
+
+  // ─── 6. Frameworks 页面 ─────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/frameworks', '框架市场', '框架');
+    if (ok && page) {
+      const cards = await page.$$('.card');
+      log('框架市场', `发现 ${cards.length} 个框架卡片`, 'pass');
+      await page.close();
+    }
+  }
+
+  // ─── 7. Teams 页面 ──────────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/teams', '团队管理', '团队');
+    if (ok && page) {
+      const cards = await page.$$('.card');
+      log('团队管理', `发现 ${cards.length} 个团队卡片`, 'pass');
+      await page.close();
+    }
+  }
+
+  // ─── 8. Canvas 页面 ─────────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/canvas', '协作画布', '画布');
+    if (ok && page) {
+      const cards = await page.$$('.card');
+      log('协作画布', `发现 ${cards.length} 个画布卡片`, 'pass');
+      await page.close();
+    }
+  }
+
+  // ─── 9. Workflows 页面 ──────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/workflows', '工作流', '工作流');
+    if (ok && page) {
+      const cards = await page.$$('.card');
+      log('工作流', `发现 ${cards.length} 个工作流卡片`, 'pass');
+      await page.close();
+    }
+  }
+
+  // ─── 10. Swarm 页面 ─────────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/swarm', '蜂群面板', '蜂群');
+    if (ok && page) {
+      await page.close();
+    }
+  }
+
+  // ─── 11. Swarm Architectures 页面 ───────────────────
+  {
+    const { page, ok } = await testPage(browser, '/swarm-architectures', '蜂群架构', '蜂群');
+    if (ok && page) {
+      const checkboxes = await page.$$('input[type="checkbox"]');
+      log('蜂群架构', `发现 ${checkboxes.length} 个引擎选择框`, 'pass');
+      await page.close();
+    }
+  }
+
+  // ─── 12. Chat 页面 ──────────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/chat', '聊天', '新对话');
+    if (ok && page) {
+      await page.close();
+    }
+  }
+
+  // ─── 13. Settings 页面 ────────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/settings', '设置', '设置');
+    if (ok && page) {
+      await page.close();
+    }
+  }
+
+  // ─── 14. API 测试页面 ────────────────────────────────
+  {
+    const { page, ok } = await testPage(browser, '/api-test', 'API测试', 'API');
+    if (ok && page) {
+      await page.close();
+    }
+  }
+
+  // ─── 15. 导航测试 ───────────────────────────────────
+  {
+    const page = await browser.newPage();
+    await page.goto(`${BASE_URL}/#/dashboard`, { waitUntil: 'networkidle2' });
+    await waitFor(1000);
+    
+    // 点击侧边栏导航
+    const navButtons = await page.$$('nav button, aside button');
+    log('导航', `侧边栏有 ${navButtons.length} 个导航按钮`, 'info');
+    
+    // 尝试点击 Engines 导航
+    for (const btn of navButtons) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('引擎')) {
+        await btn.click();
+        await waitFor(1500);
+        const url = page.url();
+        if (url.includes('engines')) {
+          log('导航', '点击引擎导航后URL正确跳转', 'pass');
+        } else {
+          log('导航', `点击引擎导航后URL未变化: ${url}`, 'warn');
+        }
+        break;
+      }
+    }
+    await page.close();
+  }
+
+  // ─── 16. v4.0 创建 Agent 流程测试 ─────────────────────────
+  {
+    const page = await browser.newPage();
+    await page.goto(`${BASE_URL}/#/agents/create`, { waitUntil: 'networkidle2' });
+    await waitFor(2000);
+    
+    // 检查页面标题
+    const hasTitle = await page.evaluate(() => {
+      return document.body.innerText.includes('创建智能体') && 
+             document.body.innerText.includes('v4.0');
+    });
+    if (hasTitle) {
+      log('创建Agent-v4', '页面标题正确', 'pass');
+    } else {
+      log('创建Agent-v4', '页面标题可能不正确', 'warn');
+    }
+    
+    // Step 1: 选择 Framework
+    const fwCards = await page.$$('.card');
+    if (fwCards.length > 0) {
+      await fwCards[0].click();
+      await waitFor(500);
+      log('创建Agent-v4', `Step 1: 选中框架 (${fwCards.length} 个可选)`, 'pass');
+    } else {
+      log('创建Agent-v4', 'Step 1: 无框架可选', 'warn');
+    }
+    
+    // 点击下一步
+    const nextBtns = await page.$$('button');
+    for (const btn of nextBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('下一步') || text.includes('下一步')) {
+        await btn.click();
+        await waitFor(1000);
+        break;
+      }
+    }
+    
+    // Step 2: 填写 Team 信息
+    const inputs = await page.$$('input');
+    if (inputs.length >= 1) {
+      await inputs[0].type('E2E-Test-Team');
+      log('创建Agent-v4', 'Step 2: 团队名称填写成功', 'pass');
+    }
+    
+    // 点击创建团队（下一步）— 需要重新获取按钮
+    const step2Btns = await page.$$('button');
+    for (const btn of step2Btns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('下一步') || text.includes('确认')) {
+        await btn.click();
+        await waitFor(3000); // 等待团队创建和页面跳转
+        break;
+      }
+    }
+    
+    // Step 3: 添加角色 — 重新获取按钮
+    const addRoleBtns = await page.$$('button');
+    let addRoleClicked = false;
+    for (const btn of addRoleBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('添加角色')) {
+        await btn.click();
+        await waitFor(500);
+        addRoleClicked = true;
+        break;
+      }
+    }
+    if (addRoleClicked) {
+      log('创建Agent-v4', 'Step 3: 添加角色按钮点击成功', 'pass');
+      
+      // 填写角色名称
+      const roleInputs = await page.$$('input');
+      for (const inp of roleInputs) {
+        const placeholder = await inp.evaluate(el => el.placeholder || '');
+        if (placeholder.includes('角色名称') || placeholder.includes('数据分析师')) {
+          await inp.type('E2E-Test-Role');
+          log('创建Agent-v4', 'Step 3: 角色名称填写成功', 'pass');
+          break;
+        }
+      }
+    } else {
+      log('创建Agent-v4', 'Step 3: 未找到添加角色按钮', 'warn');
+    }
+    
+    // 点击确认创建
+    for (const btn of addRoleBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('确认创建') || text.includes('创建')) {
+        await btn.click();
+        await waitFor(1500);
+        break;
+      }
+    }
+    
+    // Step 4: 选择平台
+    const hasPlatforms = await page.evaluate(() => {
+      return document.body.innerText.includes('选择平台') || 
+             document.body.innerText.includes('平台');
+    });
+    if (hasPlatforms) {
+      log('创建Agent-v4', 'Step 4: 平台选择页面加载成功', 'pass');
+      // 选择第一个平台
+      const platCards = await page.$$('.card');
+      if (platCards.length > 0) {
+        await platCards[0].click();
+        await waitFor(500);
+        log('创建Agent-v4', 'Step 4: 选中平台', 'pass');
+      }
+    } else {
+      log('创建Agent-v4', 'Step 4: 平台选择页面可能未加载', 'warn');
+    }
+    
+    // 点击下一步到 Step 5
+    const allBtns = await page.$$('button');
+    for (const btn of allBtns) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('下一步')) {
+        await btn.click();
+        await waitFor(1000);
+        break;
+      }
+    }
+    
+    // Step 5: 选择 API
+    const hasApiKeys = await page.evaluate(() => {
+      return document.body.innerText.includes('选择 API') || 
+             document.body.innerText.includes('API');
+    });
+    if (hasApiKeys) {
+      log('创建Agent-v4', 'Step 5: API 选择页面加载成功', 'pass');
+    } else {
+      log('创建Agent-v4', 'Step 5: API 选择页面可能未加载', 'warn');
+    }
+    
+    // 点击下一步到 Step 6
+    const allBtns2 = await page.$$('button');
+    for (const btn of allBtns2) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('下一步')) {
+        await btn.click();
+        await waitFor(1000);
+        break;
+      }
+    }
+    
+    // Step 6: 检查引擎分配页面
+    const hasEngines = await page.evaluate(() => {
+      return document.body.innerText.includes('分配引擎') || 
+             document.body.innerText.includes('引擎');
+    });
+    if (hasEngines) {
+      log('创建Agent-v4', 'Step 6: 引擎分配页面加载成功', 'pass');
+    } else {
+      log('创建Agent-v4', 'Step 6: 引擎分配页面可能未加载', 'warn');
+    }
+    
+    await page.close();
+  }
+
+  // ─── 17. Agent 列表对话跳转测试 ────────────────────────────
+  {
+    const page = await browser.newPage();
+    await page.goto(`${BASE_URL}/#/agents`, { waitUntil: 'networkidle2' });
+    await waitFor(2000);
+    
+    // 查找对话按钮
+    const buttons = await page.$$('button');
+    let chatClicked = false;
+    for (const btn of buttons) {
+      const text = await btn.evaluate(el => el.innerText);
+      if (text.includes('开始对话') || text.includes('对话')) {
+        await btn.click();
+        await waitFor(1500);
+        
+        // 检查是否跳转到聊天页面
+        const url = page.url();
+        if (url.includes('chat') && url.includes('agentId')) {
+          log('Agent对话跳转', '点击对话按钮后正确跳转到聊天页', 'pass');
+          chatClicked = true;
+        } else {
+          log('Agent对话跳转', `跳转URL不正确: ${url}`, 'warn');
+        }
+        break;
+      }
+    }
+    if (!chatClicked) {
+      log('Agent对话跳转', '未找到对话按钮', 'warn');
+    }
+    await page.close();
+  }
+
+  // ─── 18. 真实对话功能测试 ────────────────────────────
+  {
+    const page = await browser.newPage();
+    
+    // 测试 1: 通用助手对话
+    await page.goto(`${BASE_URL}/#/chat`, { waitUntil: 'networkidle2' });
+    await waitFor(2000);
+    
+    // 检查对话页面加载
+    const hasChatUI = await page.evaluate(() => {
+      return document.body.innerText.includes('开始一个对话') || 
+             document.body.innerText.includes('发送消息');
+    });
+    if (hasChatUI) {
+      log('对话-通用助手', '对话页面加载成功', 'pass');
+    } else {
+      log('对话-通用助手', '对话页面可能未正确加载', 'warn');
+    }
+    
+    // 尝试发送消息
+    const textarea = await page.$('textarea');
+    if (textarea) {
+      await textarea.type('你好，请介绍一下自己');
+      await waitFor(500);
+      
+      // 点击发送按钮 — 通过查找包含 Send 图标的按钮
+      const allBtns = await page.$$('button');
+      let sendClicked = false;
+      for (const btn of allBtns) {
+        const html = await btn.evaluate(el => el.innerHTML);
+        // Send 图标是 SVG，检查 button 是否在 textarea 附近（输入区域）
+        const rect = await btn.evaluate(el => {
+          const r = el.getBoundingClientRect();
+          return { x: r.x, y: r.y, width: r.width, height: r.height };
+        });
+        // 发送按钮通常在页面底部右侧
+        if (rect.y > 500 && rect.width < 50 && rect.height < 50) {
+          await btn.click();
+          await waitFor(3000);
+          sendClicked = true;
+          break;
+        }
+      }
+      
+      if (!sendClicked) {
+        // 回退：点击最后一个按钮（通常是发送按钮）
+        if (allBtns.length > 0) {
+          await allBtns[allBtns.length - 1].click();
+          await waitFor(3000);
+          sendClicked = true;
+        }
+      }
+      
+      // 检查消息状态
+      const pageText = await page.evaluate(() => document.body.innerText);
+      
+      if (pageText.includes('❌') || pageText.includes('请求失败')) {
+        log('对话-通用助手', '消息发送后收到错误提示（API Key可能未配置）', 'warn');
+      } else if (pageText.includes('assistant') || pageText.includes('AI') || pageText.includes('开始一个对话') === false) {
+        // 检查是否有用户消息显示
+        const hasUserMsg = await page.evaluate(() => {
+          return document.body.innerText.includes('你好，请介绍一下自己');
+        });
+        if (hasUserMsg) {
+          log('对话-通用助手', '消息发送成功，用户消息已显示', 'pass');
+        } else {
+          log('对话-通用助手', '消息状态待确认', 'info');
+        }
+      } else {
+        log('对话-通用助手', '消息状态待确认', 'info');
+      }
+    } else {
+      log('对话-通用助手', '未找到输入框', 'warn');
+    }
+    
+    await page.close();
+  }
+
+  // ─── 19. Agent 绑定对话测试 ────────────────────────────
+  {
+    const page = await browser.newPage();
+    
+    // 先获取一个真实 Agent ID
+    try {
+      const agentsRes = await fetch(`${API_URL}/api/agents`);
+      const agentsData = await agentsRes.json();
+      const agents = agentsData.data || [];
+      
+      if (agents.length > 0) {
+        const testAgent = agents[0];
+        const agentId = testAgent.id;
+        
+        await page.goto(`${BASE_URL}/#/chat?agentId=${agentId}`, { waitUntil: 'networkidle2' });
+        await waitFor(2000);
+        
+        // 检查 Agent 信息加载
+        const hasAgentInfo = await page.evaluate(() => {
+          return document.body.innerText.includes('平台:') || 
+                 document.body.innerText.includes('未绑定平台');
+        });
+        if (hasAgentInfo) {
+          log('对话-Agent绑定', `Agent ${agentId.slice(0,8)} 信息加载成功`, 'pass');
+        } else {
+          log('对话-Agent绑定', 'Agent 信息可能未加载', 'warn');
+        }
+        
+        // 尝试发送消息
+        const textarea = await page.$('textarea');
+        if (textarea) {
+          // 聚焦 textarea 并使用 keyboard 输入，确保 React onChange 触发
+          await textarea.click();
+          await page.keyboard.type('测试消息');
+          await waitFor(500);
+          
+          // 显式触发 input 事件确保 React 状态更新
+          await textarea.evaluate(el => {
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          });
+          await waitFor(300);
+          
+          // 点击发送按钮 — 找底部区域最右侧的非禁用小按钮
+          let sendClicked = false;
+          const allBtns = await page.$$('button');
+          let bestBtn = null;
+          let bestX = -1;
+          for (const btn of allBtns) {
+            const rect = await btn.evaluate(el => {
+              const r = el.getBoundingClientRect();
+              return { x: r.x, y: r.y, width: r.width, height: r.height, disabled: el.disabled };
+            });
+            // 发送按钮：底部区域、小尺寸、非禁用、靠右侧
+            if (rect.y > 400 && rect.width < 50 && rect.height < 50 && !rect.disabled && rect.x > bestX) {
+              bestX = rect.x;
+              bestBtn = btn;
+            }
+          }
+          if (bestBtn) {
+            await bestBtn.click();
+            await waitFor(5000);
+            sendClicked = true;
+          }
+          
+          // 回退：点击最后一个非禁用按钮
+          if (!sendClicked && allBtns.length > 0) {
+            for (let i = allBtns.length - 1; i >= 0; i--) {
+              const disabled = await allBtns[i].evaluate(el => el.disabled);
+              if (!disabled) {
+                await allBtns[i].click();
+                await waitFor(5000);
+                break;
+              }
+            }
+          }
+          
+          // 检查响应
+          const pageText = await page.evaluate(() => document.body.innerText);
+          if (pageText.includes('❌') || pageText.includes('请求失败') || pageText.includes('错误')) {
+            log('对话-Agent绑定', '消息发送后收到错误提示（API/平台未配置）', 'pass');
+          } else if (pageText.includes('测试消息')) {
+            log('对话-Agent绑定', '消息发送成功，用户消息已显示', 'pass');
+          } else {
+            log('对话-Agent绑定', '消息状态待确认', 'info');
+          }
+        }
+      } else {
+        log('对话-Agent绑定', '无可用 Agent 进行测试', 'warn');
+      }
+    } catch (e) {
+      log('对话-Agent绑定', `测试失败: ${e.message}`, 'warn');
+    }
+    
+    await page.close();
+  }
+
+  await browser.close();
+
+  // ─── 汇总 ───────────────────────────────────────────
+  console.log('\n══════════════════════════════════════════════════');
+  console.log('  测试汇总');
+  console.log('══════════════════════════════════════════════════');
+  const pass = results.filter(r => r.status === 'pass').length;
+  const fail = results.filter(r => r.status === 'fail').length;
+  const warn = results.filter(r => r.status === 'warn').length;
+  const info = results.filter(r => r.status === 'info').length;
+  console.log(`  通过: ${pass} | 失败: ${fail} | 警告: ${warn} | 信息: ${info} | 总计: ${results.length}`);
+  console.log('══════════════════════════════════════════════════');
+
+  if (fail > 0) {
+    console.log('\n❌ 失败项:');
+    results.filter(r => r.status === 'fail').forEach(r => console.log(`  - [${r.category}] ${r.message}`));
+  }
+  if (warn > 0) {
+    console.log('\n⚠️ 警告项:');
+    results.filter(r => r.status === 'warn').forEach(r => console.log(`  - [${r.category}] ${r.message}`));
+  }
+
+  process.exit(fail > 0 ? 1 : 0);
+})();

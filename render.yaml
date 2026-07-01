@@ -1,0 +1,36 @@
+# Render.com Blueprint
+# 用法:
+# 1. 登录 https://dashboard.render.com
+# 2. New + → Blueprint → 连接 GitHub 仓库（或手动上传）
+# 3. Render 自动读取此文件并部署
+
+services:
+  - type: web
+    name: thousand-realms-garden
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        value: file:/app/backend/data/dev.db
+      - key: UPLOAD_DIR
+        value: /app/backend/uploads
+      # 在下面填入你的 API Keys（生产环境）
+      # - key: OPENROUTER_API_KEY
+      #   value: sk-or-v1-...
+      # - key: GEMINI_API_KEY
+      #   value: AIzaSy...
+      # - key: KIMI_API_KEY
+      #   value: sk-kimi-...
+    disk:
+      name: data
+      mountPath: /app/backend/data
+      sizeGB: 1
+      # 注意：Render free plan 只能挂载一个 disk
+      # 如需 uploads 持久化，建议使用同一个 disk 的子目录

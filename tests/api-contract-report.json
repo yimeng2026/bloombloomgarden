@@ -1,0 +1,1191 @@
+{
+  "meta": {
+    "suite": "ThousandRealmsGarden API Contract Check v4",
+    "timestamp": "2026-05-29T03:35:50.144Z",
+    "backendCount": 182,
+    "frontendCount": 93,
+    "endpointCoverage": 14,
+    "backendServices": [
+      "agents",
+      "apikeys",
+      "auth",
+      "backups",
+      "blueprints",
+      "coordinator",
+      "dialog",
+      "events",
+      "external",
+      "groups",
+      "handoff",
+      "integrations",
+      "intervention",
+      "kimi-cluster",
+      "knowledge",
+      "monitor",
+      "platforms",
+      "processes",
+      "registry",
+      "security",
+      "settings",
+      "skills",
+      "spend",
+      "tasks",
+      "unified",
+      "workspaces"
+    ],
+    "frontendServices": [
+      "uploads",
+      "api",
+      "events",
+      "tasks",
+      "scheduler"
+    ],
+    "missingServices": [
+      "agents",
+      "apikeys",
+      "auth",
+      "backups",
+      "blueprints",
+      "coordinator",
+      "dialog",
+      "external",
+      "groups",
+      "handoff",
+      "integrations",
+      "intervention",
+      "kimi-cluster",
+      "knowledge",
+      "monitor",
+      "platforms",
+      "processes",
+      "registry",
+      "security",
+      "settings",
+      "skills",
+      "spend",
+      "unified",
+      "workspaces"
+    ],
+    "serviceCoverage": 19,
+    "issues": 223
+  },
+  "unmatchedFrontend": [
+    {
+      "file": "api/client.ts",
+      "method": "POST",
+      "path": ":id/uploads"
+    },
+    {
+      "file": "components/UploadManager.tsx",
+      "method": "GET",
+      "path": "/api/uploads"
+    },
+    {
+      "file": "components/UploadManager.tsx",
+      "method": "GET",
+      "path": "/api/uploads/:id"
+    },
+    {
+      "file": "pages/APITest.tsx",
+      "method": "GET",
+      "path": "http://localhost:3001/api/v2:id"
+    },
+    {
+      "file": "pages/EventsMonitor.tsx",
+      "method": "GET",
+      "path": "/api/events/poll?"
+    },
+    {
+      "file": "pages/EventsMonitor.tsx",
+      "method": "GET",
+      "path": "/api/events/stats"
+    },
+    {
+      "file": "pages/HierarchicalDashboard.tsx",
+      "method": "GET",
+      "path": "/api/hierarchical/tree"
+    },
+    {
+      "file": "pages/HierarchicalDashboard.tsx",
+      "method": "GET",
+      "path": "/api/hierarchical/stats"
+    },
+    {
+      "file": "pages/HierarchicalDashboard.tsx",
+      "method": "GET",
+      "path": "/api/hierarchical/alerts?acknowledged=false"
+    },
+    {
+      "file": "pages/HierarchicalDashboard.tsx",
+      "method": "GET",
+      "path": "/api/hierarchical/approvals"
+    },
+    {
+      "file": "pages/HierarchicalDashboard.tsx",
+      "method": "POST",
+      "path": "/api/hierarchical/alerts/:id/acknowledge"
+    },
+    {
+      "file": "pages/OllamaSettings.tsx",
+      "method": "GET",
+      "path": "/api/ollama/instances"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/ollama/models"
+    },
+    {
+      "file": "pages/OllamaSettings.tsx",
+      "method": "DELETE",
+      "path": "/api/ollama/instances/:id"
+    },
+    {
+      "file": "pages/OllamaSettings.tsx",
+      "method": "DELETE",
+      "path": "/api/ollama/models/:id"
+    },
+    {
+      "file": "pages/ProcessMonitor.tsx",
+      "method": "GET",
+      "path": "/api/system/processes"
+    },
+    {
+      "file": "pages/ProcessMonitor.tsx",
+      "method": "POST",
+      "path": "/api/system/processes/:id/restart"
+    },
+    {
+      "file": "pages/TaskManager.tsx",
+      "method": "GET",
+      "path": "/api/tasks"
+    },
+    {
+      "file": "pages/TaskManager.tsx",
+      "method": "GET",
+      "path": "/api/tasks/:id"
+    },
+    {
+      "file": "pages/TaskManager.tsx",
+      "method": "GET",
+      "path": "/api/tasks/:id/cancel"
+    },
+    {
+      "file": "pages/TaskScheduler.tsx",
+      "method": "GET",
+      "path": "/api/scheduler/tasks"
+    },
+    {
+      "file": "pages/TaskScheduler.tsx",
+      "method": "GET",
+      "path": "/api/scheduler/tasks/:id"
+    },
+    {
+      "file": "pages/TaskScheduler.tsx",
+      "method": "GET",
+      "path": "/api/scheduler/tasks/:id/run"
+    },
+    {
+      "file": "pages/TaskScheduler.tsx",
+      "method": "GET",
+      "path": "/api/scheduler/tasks/:id/pause"
+    },
+    {
+      "file": "pages/TaskScheduler.tsx",
+      "method": "GET",
+      "path": "/api/scheduler/tasks/:id/resume"
+    },
+    {
+      "file": "pages/TasksPage.tsx",
+      "method": "POST",
+      "path": "/api/tasks/:id/cancel"
+    },
+    {
+      "file": "pages/TasksPage.tsx",
+      "method": "POST",
+      "path": "/api/tasks/:id/retry"
+    },
+    {
+      "file": "pages/UnifiedGUI.tsx",
+      "method": "GET",
+      "path": "/api/hierarchical/status"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/workspaces"
+    },
+    {
+      "file": "pages/Workspaces.tsx",
+      "method": "PATCH",
+      "path": "/api/workspaces/:id/star"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "DELETE",
+      "path": "/api/workspaces/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/health"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/channels"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/channels/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "DELETE",
+      "path": "/api/channels/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/platforms/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/platforms/:id/health"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "DELETE",
+      "path": "/api/platforms/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/models"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/models/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/skills/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/tasks/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "DELETE",
+      "path": "/api/tasks/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/knowledge-bases"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/knowledge-bases/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "DELETE",
+      "path": "/api/knowledge-bases/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/memories"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/memories/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "DELETE",
+      "path": "/api/memories/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/webhooks"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/webhooks/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "DELETE",
+      "path": "/api/webhooks/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/scheduler"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "DELETE",
+      "path": "/api/scheduler/:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/monitor"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/monitor/metrics"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/search?q=:id"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/logs"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/groups/:id/status"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/groups/:id/meetings"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/groups/:id/relays"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/groups/:id/conflicts"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/groups/:id/health"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/groups/:id/hierarchy"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/groups/:id/reorganization"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/groups/:id/governance"
+    },
+    {
+      "file": "api/client.ts",
+      "method": "GET",
+      "path": "/api/swarm"
+    }
+  ],
+  "unusedBackend": [
+    {
+      "file": "agents.ts",
+      "method": "GET",
+      "path": "/api/agents/:id/context/stream"
+    },
+    {
+      "file": "agents.ts",
+      "method": "POST",
+      "path": "/api/agents/"
+    },
+    {
+      "file": "agents.ts",
+      "method": "PUT",
+      "path": "/api/agents/:id"
+    },
+    {
+      "file": "agents.ts",
+      "method": "POST",
+      "path": "/api/agents/:id/pause"
+    },
+    {
+      "file": "agents.ts",
+      "method": "POST",
+      "path": "/api/agents/:id/resume"
+    },
+    {
+      "file": "agents.ts",
+      "method": "POST",
+      "path": "/api/agents/:id/isolate"
+    },
+    {
+      "file": "agents.ts",
+      "method": "POST",
+      "path": "/api/agents/:id/inject"
+    },
+    {
+      "file": "apikeys.ts",
+      "method": "POST",
+      "path": "/api/apikeys/"
+    },
+    {
+      "file": "auth.ts",
+      "method": "POST",
+      "path": "/api/auth/login"
+    },
+    {
+      "file": "auth.ts",
+      "method": "POST",
+      "path": "/api/auth/register"
+    },
+    {
+      "file": "auth.ts",
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "file": "backups.ts",
+      "method": "GET",
+      "path": "/api/backups/"
+    },
+    {
+      "file": "backups.ts",
+      "method": "POST",
+      "path": "/api/backups/"
+    },
+    {
+      "file": "backups.ts",
+      "method": "GET",
+      "path": "/api/backups/:id"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "GET",
+      "path": "/api/blueprints/"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "POST",
+      "path": "/api/blueprints/"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "GET",
+      "path": "/api/blueprints/:id"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "PUT",
+      "path": "/api/blueprints/:id"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "DELETE",
+      "path": "/api/blueprints/:id"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "POST",
+      "path": "/api/blueprints/:id/execute"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "POST",
+      "path": "/api/blueprints/:id/pause"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "POST",
+      "path": "/api/blueprints/:id/resume"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "GET",
+      "path": "/api/blueprints/:id/executions"
+    },
+    {
+      "file": "blueprints.ts",
+      "method": "GET",
+      "path": "/api/blueprints/presets"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "POST",
+      "path": "/api/coordinator/chariot"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "DELETE",
+      "path": "/api/coordinator/chariot/:id"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "POST",
+      "path": "/api/coordinator/merge"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "POST",
+      "path": "/api/coordinator/split"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "POST",
+      "path": "/api/coordinator/delegate"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "POST",
+      "path": "/api/coordinator/broadcast"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "GET",
+      "path": "/api/coordinator/tree"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "GET",
+      "path": "/api/coordinator/chariot/:id"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "GET",
+      "path": "/api/coordinator/chariot/:id/children"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "GET",
+      "path": "/api/coordinator/chariot/:id/agents"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "POST",
+      "path": "/api/coordinator/chariot/:id/execute"
+    },
+    {
+      "file": "coordinator.ts",
+      "method": "GET",
+      "path": "/api/coordinator/chariot/:id/match"
+    },
+    {
+      "file": "dialog.ts",
+      "method": "GET",
+      "path": "/api/dialog/agents"
+    },
+    {
+      "file": "dialog.ts",
+      "method": "POST",
+      "path": "/api/dialog/:agentId/chat"
+    },
+    {
+      "file": "dialog.ts",
+      "method": "GET",
+      "path": "/api/dialog/:agentId/stream"
+    },
+    {
+      "file": "dialog.ts",
+      "method": "POST",
+      "path": "/api/dialog/:agentId/files"
+    },
+    {
+      "file": "dialog.ts",
+      "method": "GET",
+      "path": "/api/dialog/:agentId/context"
+    },
+    {
+      "file": "dialog.ts",
+      "method": "DELETE",
+      "path": "/api/dialog/:agentId/context"
+    },
+    {
+      "file": "events.ts",
+      "method": "GET",
+      "path": "/api/events/"
+    },
+    {
+      "file": "events.ts",
+      "method": "GET",
+      "path": "/api/events/stream"
+    },
+    {
+      "file": "events.ts",
+      "method": "POST",
+      "path": "/api/events/"
+    },
+    {
+      "file": "events.ts",
+      "method": "DELETE",
+      "path": "/api/events/:id"
+    },
+    {
+      "file": "external.ts",
+      "method": "GET",
+      "path": "/api/external/platforms"
+    },
+    {
+      "file": "external.ts",
+      "method": "GET",
+      "path": "/api/external/platforms/:id"
+    },
+    {
+      "file": "external.ts",
+      "method": "POST",
+      "path": "/api/external/platforms/:id/config"
+    },
+    {
+      "file": "external.ts",
+      "method": "POST",
+      "path": "/api/external/platforms/:id/test"
+    },
+    {
+      "file": "external.ts",
+      "method": "POST",
+      "path": "/api/external/platforms/:id/toggle"
+    },
+    {
+      "file": "external.ts",
+      "method": "DELETE",
+      "path": "/api/external/platforms/:id"
+    },
+    {
+      "file": "groups.ts",
+      "method": "POST",
+      "path": "/api/groups/"
+    },
+    {
+      "file": "groups.ts",
+      "method": "GET",
+      "path": "/api/groups/:id"
+    },
+    {
+      "file": "groups.ts",
+      "method": "PUT",
+      "path": "/api/groups/:id"
+    },
+    {
+      "file": "groups.ts",
+      "method": "POST",
+      "path": "/api/groups/:id/agents"
+    },
+    {
+      "file": "groups.ts",
+      "method": "DELETE",
+      "path": "/api/groups/:id/agents/:agentId"
+    },
+    {
+      "file": "groups.ts",
+      "method": "POST",
+      "path": "/api/groups/:id/coordinator"
+    },
+    {
+      "file": "groups.ts",
+      "method": "POST",
+      "path": "/api/groups/:id/nest"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "POST",
+      "path": "/api/handoff/initiate"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "POST",
+      "path": "/api/handoff/:id/accept"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "POST",
+      "path": "/api/handoff/:id/reject"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "POST",
+      "path": "/api/handoff/:id/start"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "POST",
+      "path": "/api/handoff/:id/complete"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "POST",
+      "path": "/api/handoff/:id/cancel"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "GET",
+      "path": "/api/handoff/:id/status"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "GET",
+      "path": "/api/handoff/list"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "POST",
+      "path": "/api/handoff/:id/execute"
+    },
+    {
+      "file": "handoff.ts",
+      "method": "GET",
+      "path": "/api/handoff/chariot/:id/stats"
+    },
+    {
+      "file": "integrations.ts",
+      "method": "GET",
+      "path": "/api/integrations/"
+    },
+    {
+      "file": "integrations.ts",
+      "method": "POST",
+      "path": "/api/integrations/"
+    },
+    {
+      "file": "integrations.ts",
+      "method": "PUT",
+      "path": "/api/integrations/:id"
+    },
+    {
+      "file": "integrations.ts",
+      "method": "DELETE",
+      "path": "/api/integrations/:id"
+    },
+    {
+      "file": "integrations.ts",
+      "method": "POST",
+      "path": "/api/integrations/:id/test"
+    },
+    {
+      "file": "integrations.ts",
+      "method": "GET",
+      "path": "/api/integrations/types"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/request"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/:id/approve"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/:id/reject"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/:id/execute"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/global-pause"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/global-resume"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/group-reorg"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/agent-isolate"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/inject-message"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/tool-review"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "GET",
+      "path": "/api/intervention/list"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "GET",
+      "path": "/api/intervention/agent/:id/history"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/agent/:id/pause"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/agent/:id/resume"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/agent/:id/terminate"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/agent/:id/emergency-stop"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "GET",
+      "path": "/api/intervention/rules"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "POST",
+      "path": "/api/intervention/rules"
+    },
+    {
+      "file": "intervention.ts",
+      "method": "DELETE",
+      "path": "/api/intervention/rules/:id"
+    },
+    {
+      "file": "kimi-cluster.ts",
+      "method": "GET",
+      "path": "/api/kimi-cluster/patterns"
+    },
+    {
+      "file": "kimi-cluster.ts",
+      "method": "POST",
+      "path": "/api/kimi-cluster/load-balance"
+    },
+    {
+      "file": "kimi-cluster.ts",
+      "method": "POST",
+      "path": "/api/kimi-cluster/endpoints"
+    },
+    {
+      "file": "knowledge.ts",
+      "method": "GET",
+      "path": "/api/knowledge/"
+    },
+    {
+      "file": "knowledge.ts",
+      "method": "POST",
+      "path": "/api/knowledge/"
+    },
+    {
+      "file": "knowledge.ts",
+      "method": "PUT",
+      "path": "/api/knowledge/:id"
+    },
+    {
+      "file": "knowledge.ts",
+      "method": "DELETE",
+      "path": "/api/knowledge/:id"
+    },
+    {
+      "file": "knowledge.ts",
+      "method": "POST",
+      "path": "/api/knowledge/:id/documents"
+    },
+    {
+      "file": "knowledge.ts",
+      "method": "DELETE",
+      "path": "/api/knowledge/:id/documents/:docId"
+    },
+    {
+      "file": "knowledge.ts",
+      "method": "POST",
+      "path": "/api/knowledge/:id/search"
+    },
+    {
+      "file": "monitor.ts",
+      "method": "GET",
+      "path": "/api/monitor/agents"
+    },
+    {
+      "file": "monitor.ts",
+      "method": "GET",
+      "path": "/api/monitor/groups"
+    },
+    {
+      "file": "monitor.ts",
+      "method": "GET",
+      "path": "/api/monitor/logs"
+    },
+    {
+      "file": "monitor.ts",
+      "method": "GET",
+      "path": "/api/monitor/stats"
+    },
+    {
+      "file": "monitor.ts",
+      "method": "GET",
+      "path": "/api/monitor/performance"
+    },
+    {
+      "file": "processes.ts",
+      "method": "GET",
+      "path": "/api/processes/"
+    },
+    {
+      "file": "processes.ts",
+      "method": "GET",
+      "path": "/api/processes/:pid"
+    },
+    {
+      "file": "processes.ts",
+      "method": "POST",
+      "path": "/api/processes/:pid/restart"
+    },
+    {
+      "file": "processes.ts",
+      "method": "POST",
+      "path": "/api/processes/:pid/stop"
+    },
+    {
+      "file": "processes.ts",
+      "method": "GET",
+      "path": "/api/processes/stats/overview"
+    },
+    {
+      "file": "registry.ts",
+      "method": "GET",
+      "path": "/api/registry/:id"
+    },
+    {
+      "file": "registry.ts",
+      "method": "GET",
+      "path": "/api/registry/axis/:x/:y/:z"
+    },
+    {
+      "file": "registry.ts",
+      "method": "GET",
+      "path": "/api/registry/search"
+    },
+    {
+      "file": "registry.ts",
+      "method": "POST",
+      "path": "/api/registry/:id/heartbeat"
+    },
+    {
+      "file": "registry.ts",
+      "method": "GET",
+      "path": "/api/registry/stats/overview"
+    },
+    {
+      "file": "security.ts",
+      "method": "GET",
+      "path": "/api/security/events"
+    },
+    {
+      "file": "security.ts",
+      "method": "GET",
+      "path": "/api/security/blocked-ips"
+    },
+    {
+      "file": "security.ts",
+      "method": "POST",
+      "path": "/api/security/blocked-ips"
+    },
+    {
+      "file": "security.ts",
+      "method": "DELETE",
+      "path": "/api/security/blocked-ips/:ip"
+    },
+    {
+      "file": "security.ts",
+      "method": "GET",
+      "path": "/api/security/audit-log"
+    },
+    {
+      "file": "security.ts",
+      "method": "GET",
+      "path": "/api/security/overview"
+    },
+    {
+      "file": "security.ts",
+      "method": "PATCH",
+      "path": "/api/security/events/:id/resolve"
+    },
+    {
+      "file": "settings.ts",
+      "method": "PUT",
+      "path": "/api/settings/:key"
+    },
+    {
+      "file": "settings.ts",
+      "method": "GET",
+      "path": "/api/settings/themes"
+    },
+    {
+      "file": "settings.ts",
+      "method": "PUT",
+      "path": "/api/settings/theme"
+    },
+    {
+      "file": "settings.ts",
+      "method": "GET",
+      "path": "/api/settings/languages"
+    },
+    {
+      "file": "settings.ts",
+      "method": "PUT",
+      "path": "/api/settings/language"
+    },
+    {
+      "file": "skills.ts",
+      "method": "POST",
+      "path": "/api/skills/"
+    },
+    {
+      "file": "skills.ts",
+      "method": "PUT",
+      "path": "/api/skills/:id/config"
+    },
+    {
+      "file": "skills.ts",
+      "method": "GET",
+      "path": "/api/skills/:id/status"
+    },
+    {
+      "file": "spend.ts",
+      "method": "GET",
+      "path": "/api/spend/overview"
+    },
+    {
+      "file": "spend.ts",
+      "method": "GET",
+      "path": "/api/spend/by-provider"
+    },
+    {
+      "file": "spend.ts",
+      "method": "GET",
+      "path": "/api/spend/by-model"
+    },
+    {
+      "file": "spend.ts",
+      "method": "GET",
+      "path": "/api/spend/history"
+    },
+    {
+      "file": "spend.ts",
+      "method": "GET",
+      "path": "/api/spend/recent"
+    },
+    {
+      "file": "spend.ts",
+      "method": "POST",
+      "path": "/api/spend/budget"
+    },
+    {
+      "file": "spend.ts",
+      "method": "GET",
+      "path": "/api/spend/budget"
+    },
+    {
+      "file": "tasks.ts",
+      "method": "POST",
+      "path": "/api/tasks/"
+    },
+    {
+      "file": "unified-api.ts",
+      "method": "POST",
+      "path": "/api/unified/detect"
+    },
+    {
+      "file": "unified-api.ts",
+      "method": "POST",
+      "path": "/api/unified/config"
+    },
+    {
+      "file": "unified-api.ts",
+      "method": "GET",
+      "path": "/api/unified/platforms"
+    },
+    {
+      "file": "unified-api.ts",
+      "method": "POST",
+      "path": "/api/unified/:id/chat"
+    },
+    {
+      "file": "unified-api.ts",
+      "method": "POST",
+      "path": "/api/unified/:id/stream"
+    },
+    {
+      "file": "unified-api.ts",
+      "method": "GET",
+      "path": "/api/unified/:id/validate"
+    },
+    {
+      "file": "workspace.ts",
+      "method": "POST",
+      "path": "/api/workspaces/tasks"
+    },
+    {
+      "file": "workspace.ts",
+      "method": "GET",
+      "path": "/api/workspaces/tasks/:id"
+    },
+    {
+      "file": "workspace.ts",
+      "method": "POST",
+      "path": "/api/workspaces/tasks/:id/import"
+    },
+    {
+      "file": "workspace.ts",
+      "method": "GET",
+      "path": "/api/workspaces/tasks/:id/download"
+    },
+    {
+      "file": "workspace.ts",
+      "method": "GET",
+      "path": "/api/workspaces/tasks/:id/files/*"
+    },
+    {
+      "file": "workspace.ts",
+      "method": "PUT",
+      "path": "/api/workspaces/tasks/:id/files/*"
+    },
+    {
+      "file": "workspace.ts",
+      "method": "DELETE",
+      "path": "/api/workspaces/tasks/:id/files/*"
+    },
+    {
+      "file": "workspace.ts",
+      "method": "POST",
+      "path": "/api/workspaces/merge"
+    }
+  ]
+}

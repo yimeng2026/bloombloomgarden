@@ -1,0 +1,754 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./prisma/dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Agent {
+  id              String   @id @default(uuid())
+  name            String
+  role            String
+  status          String   @default("active")
+  config          String   @default("{}") // JSON string
+  knowledgeBaseIds String   @default("[]")
+  skillIds        String   @default("[]")
+  workspaceId     String?
+  integrationIds  String   @default("[]")
+  groupId         String?
+  description     String?
+  avatar          String?
+
+  // --- Protocol Layer System (连连看架构) ---
+  // protocolLevel: 0=infra, 1=single-thread-LLM, 2=multi-thread-orchestrator, 3=gateway
+  protocolLevel   Int      @default(1)
+  // parentPlatform: the L2/L3 platform that orchestrates this agent (for multi-thread mode)
+  parentPlatform  String?
+  // threadPlatforms: JSON array of {threadName, platformId, model} for L2 multi-thread agents
+  threadPlatforms String   @default("[]")
+  // dashboardType: which dashboard component to render (L0/L1/L2/L3)
+  dashboardType   String   @default("L1")
+  // mode: creation mode - A=single-thread, B=multi-thread, C=gateway-direct
+  mode            String   @default("A")
+  // workFiles: JSON array of file IDs (merged with memory hub)
+  workFiles       String   @default("[]")
+
+  // --- Platform & API Binding ---
+  // platformId: the platform this agent uses for LLM calls
+  platformId      String?
+  // apiKeyId: the API key this agent uses (must belong to the platform)
+  apiKeyId        String?
+
+  // --- Swarm System ---
+  swarmEnabled    Boolean  @default(false)
+  swarmMode       String?
+  roleInGroup     String   @default("solo")
+  coordinatorId   String?
+
+  // --- Agent Type System (个性化) ---
+  // agentType: 预设类型分类
+  agentType       String   @default("general")
+  // capabilities: JSON array of capability tags ["coding", "debug", "review"]
+  capabilities    String   @default("[]")
+  // personality: 个性化特征描述
+  personality     String?
+  // systemPrompt: 系统提示词（覆盖默认）
+  systemPrompt    String?
+  // tags: JSON array of user-defined tags
+  tags            String   @default("[]")
+  // color: 主题色（hex如 #3B82F6）
+  color           String?
+  // icon: 图标名称（Lucide icon name）
+  icon            String?
+  // stats: JSON object {totalCalls, tokensUsed, avgLatency, successRate}
+  stats           String   @default("{}")
+
+  // --- Multi-Thread First: backward compatibility mapping ---
+  // If this agent was created via the new team-based flow, it maps to a Role
+  roleId          String?  // Maps to Role.id (for new architecture)
+  teamId          String?  // Maps to Team.id (for new architecture)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  group           Group?   @relation(fields: [groupId], references: [id])
+  team            Team?    @relation(fields: [teamId], references: [id])
+  roleRef         Role?    @relation(fields: [roleId], references: [id])
+
+  @@index([protocolLevel])
+  @@index([status])
+  @@index([groupId])
+  @@index([teamId])
+  @@index([roleId])
+  @@index([agentType])
+  @@index([capabilities])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Multi-Thread First Architecture — New Models
+// ═══════════════════════════════════════════════════════════════
+
+// --- Framework: Multi-thread collaboration framework brand ---
+model Framework {
+  id          String   @id @default(uuid())
+  brand       String   @unique // 'openclaw' | 'autogen' | 'crewai' | 'metagpt' | 'langgraph' | 'dify' | 'flowise'
+  name        String   // Display name: 'OpenClaw' | 'CrewAI' | 'MetaGPT'
+  tagline     String?  // One-line selling point
+  description String?
+  category    String   @default("multi-agent") // 'multi-agent' | 'code-agent' | 'gateway' | 'local'
+  
+  // Framework features (JSON array of feature keys)
+  features    String   @default("[]")
+  
+  // Default configuration template
+  defaultConfig String @default("{}") // JSON: collaboration modes, SOP flows, etc.
+  
+  // Protocol level this framework operates at
+  protocolLevel Int    @default(2) // L2 by default (multi-thread)
+  
+  // Status
+  status      String   @default("active") // active | beta | deprecated
+  
+  // Relations
+  teams       Team[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([brand])
+  @@index([status])
+}
+
+// --- Team: A collaboration team running on a framework ---
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  
+  // Framework relation
+  frameworkId String
+  framework   Framework @relation(fields: [frameworkId], references: [id])
+  
+  // Collaboration mode (framework-specific)
+  collaborationMode String @default("sequential") // sequential | parallel | dynamic | hierarchical
+  
+  // Engine allocation strategy
+  engineStrategy String @default("mixed") // flagship | balanced | economy | mixed
+  
+  // Shared resources
+  sharedKnowledgeBaseIds String @default("[]") // JSON array
+  sharedToolIds          String @default("[]") // JSON array
+  workspaceId            String?
+  
+  // Team status
+  status      String   @default("active") // active | paused | archived
+  
+  // Execution stats
+  taskStats   String   @default("{}") // JSON: totalTasks, completedTasks, etc.
+  
+  // Relations
+  roles       Role[]
+  agents      Agent[]  // Backward compatibility: old agents mapped to this team
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([frameworkId])
+  @@index([status])
+}
+
+// --- Role: A role/thread within a team (replaces Agent as primary entity) ---
+model Role {
+  id          String   @id @default(uuid())
+  name        String   // Role name: '架构师' | '工程师' | '测试员'
+  roleType    String   // Role type: architect | engineer | tester | researcher | writer | reviewer | pm | custom
+  
+  // Team relation
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id])
+  
+  // Platform & API binding — 平台与API绑定
+  platformId  String?  // 绑定的平台ID
+  apiKeyId    String?  // 绑定的API Key ID
+  
+  // Engine allocation (fallback if platform not set)
+  primaryEngine   String   // Engine ID (e.g., 'openai-gpt-4o', 'zhipu-glm-4')
+  secondaryEngine String?  // Fallback engine
+  engineTier      String   @default("professional") // flagship | professional | standard
+  temperature     Float    @default(0.7)
+  maxTokens       Int      @default(4096)
+  
+  // Capabilities (tools authorized from team pool)
+  authorizedTools String   @default("[]") // JSON array of tool IDs
+  
+  // Knowledge access
+  knowledgeBaseIds String  @default("[]") // JSON array
+  
+  // System prompt / persona
+  systemPrompt    String?
+  
+  // Role-specific config (framework-specific)
+  roleConfig      String   @default("{}") // JSON: e.g., CrewAI role config, MetaGPT SOP step
+  
+  // Status
+  status          String   @default("active") // active | busy | paused | error
+  
+  // Backward compatibility
+  agents          Agent[]  // Old agents that map to this role
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([teamId])
+  @@index([status])
+  @@index([roleType])
+  @@index([platformId])
+}
+
+// --- Engine: LLM engine node in the resource pool ---
+model Engine {
+  id          String   @id @default(uuid())
+  brand       String   // Provider brand: 'openai' | 'claude' | 'zhipu' | 'deepseek' | 'kimi' | ...
+  model       String   // Model name: 'gpt-4o' | 'claude-3-5-sonnet' | 'glm-4'
+  
+  // Resource tier
+  tier        String   @default("professional") // flagship | professional | standard | local
+  
+  // Status
+  status      String   @default("available") // available | busy | offline | error
+  healthScore Int      @default(100)
+  
+  // Performance metrics
+  latency     Int?     // Average latency in ms
+  throughput  Int?     // Tokens per second
+  
+  // Cost
+  costPer1KTokens Float? // Cost per 1K tokens in USD
+  
+  // Capabilities
+  supportsStreaming Boolean @default(true)
+  supportsVision    Boolean @default(false)
+  supportsTools     Boolean @default(true)
+  
+  // Metadata
+  metadata    String   @default("{}") // JSON: context window, training cutoff, etc.
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([brand])
+  @@index([tier])
+  @@index([status])
+  @@index([healthScore])
+}
+
+// --- Tool: Platform tool in the unified tool pool ---
+model Tool {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  category    String   // 'code-exec' | 'browser' | 'file' | 'search' | 'database' | 'sandbox' | 'cli'
+  
+  // Tool config
+  config      String   @default("{}") // JSON: executable path, API endpoint, etc.
+  
+  // Status
+  status      String   @default("active") // active | disabled | error
+  
+  // Framework compatibility
+  supportedFrameworks String @default("[]") // JSON array of framework brands
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([category])
+  @@index([status])
+}
+
+model Group {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  parentId        String?
+  coordinatorId   String?
+  executionMode   String   @default("sequential")
+  status          String   @default("active")
+  maxDepth        Int      @default(1)
+
+  // --- Unified Entity System ---
+  // entityIds: JSON array of agentIds AND/OR nested groupIds
+  // All groups are treated as agents (can be nested into parent groups)
+  entityIds       String   @default("[]")
+  // entityType of members: 'mixed' | 'agents' | 'groups'
+  entityType      String   @default("agents")
+
+  // --- Swarm System ---
+  swarmMode       String   @default("sequential")
+  healthScore     Int      @default(100)
+  taskStats       String   @default("{}") // JSON string
+
+  // --- Group Type System ---
+  // groupType: swarm | pipeline | committee | debate | review-chain | broadcast
+  groupType       String   @default("swarm")
+  // roleDefinitions: JSON array of {roleName, agentType, required, description}
+  roleDefinitions String   @default("[]")
+  // strategy: JSON object {strategyName, config}
+  strategy        String   @default("{}")
+  // outputFormat: 输出格式 markdown | json | code | summary
+  outputFormat    String   @default("markdown")
+  // color: 主题色
+  color           String?
+  // icon: 图标名称
+  icon            String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  agents          Agent[]
+
+  @@index([parentId])
+  @@index([status])
+  @@index([coordinatorId])
+  @@index([groupType])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Agent Template — 预设模板库
+// ═══════════════════════════════════════════════════════════════
+
+model AgentTemplate {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  // agentType: 对应 Agent.agentType
+  agentType       String
+  // capabilities: JSON array of capability tags
+  capabilities    String   @default("[]")
+  // personality: 个性化特征描述
+  personality     String?
+  // systemPrompt: 默认系统提示词
+  systemPrompt    String?
+  // recommendedPlatform: 推荐平台ID
+  recommendedPlatform String?
+  // recommendedModel: 推荐模型
+  recommendedModel String?
+  // tags: JSON array of tags
+  tags            String   @default("[]")
+  // color: 主题色
+  color           String?
+  // icon: 图标名称
+  icon            String?
+  // config: JSON 默认配置
+  config          String   @default("{}")
+  // isBuiltin: 是否内置模板
+  isBuiltin       Boolean  @default(false)
+  // category: 分类 coding | writing | analysis | creative | research | business
+  category        String   @default("general")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([agentType])
+  @@index([category])
+  @@index([isBuiltin])
+}
+
+model KnowledgeBase {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  documentIds     String   @default("[]")
+  embeddingModel  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("knowledgeBases")
+}
+
+model Document {
+  id              String   @id @default(uuid())
+  kbId            String
+  title           String
+  content         String
+  metadata        String   @default("{}")
+  createdAt       DateTime @default(now())
+}
+
+model Skill {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  type            String   @default("custom")
+  config          String   @default("{}")
+  enabled         Boolean  @default(true)
+  version         String   @default("1.0")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Integration {
+  id              String   @id @default(uuid())
+  name            String
+  type            String
+  config          String   @default("{}")
+  enabled         Boolean  @default(true)
+  status          String   @default("disconnected")
+  lastTestedAt    DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Blueprint {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  steps           String   @default("[]") // JSON string
+  variables       String   @default("{}")
+  tags            String   @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Settings {
+  id              String   @id @default("default")
+  theme           String   @default("system")
+  language        String   @default("zh-CN")
+  notifications   Boolean  @default(true)
+  autoSave        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ChatAccount {
+  id          String   @id @default(uuid())
+  name        String   // 显示名称，如 "微信客服号"
+  platformId  String   // 关联的平台ID（如 zhipu, openclaw）
+  channelType String   // wechat | discord | telegram | slack | whatsapp | line | teams | matrix | irc
+
+  // 凭证（加密存储）
+  credentials String   @default("{}") // JSON: {token, appId, appSecret, sessionKey, cookie}
+
+  // 配置
+  config      String   @default("{}") // JSON: {webhook, callbackUrl, groupWhitelist, autoReply}
+
+  // 状态
+  status      String   @default("pending") // pending | configuring | connected | disconnected | error
+
+  // 二维码/扫码相关（微信等）
+  qrCodeData  String?  // Base64二维码图片或扫码URL
+  qrCodeExpiresAt DateTime? // 二维码过期时间
+
+  // 连接信息
+  connectedAt DateTime?
+  lastMessageAt DateTime?
+  errorMessage String?
+
+  // 元数据
+  metadata    String   @default("{}") // JSON: {nickname, avatar, userId, botId, etc.}
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([platformId])
+  @@index([channelType])
+  @@index([status])
+}
+
+model ChatMessage {
+  id              String   @id @default(uuid())
+  agentId         String
+  role            String
+  content         String
+  metadata        String   @default("{}")
+  createdAt       DateTime @default(now())
+}
+
+model WorkspaceTask {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  status          String   @default("pending")
+  priority        String   @default("medium")
+  assignee        String?
+  dueDate         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BackendConfig {
+  id              String   @id @default("default")
+  name            String   @default("default")
+  model           String?
+  apiKey          String?
+  baseUrl         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Extended Models — Platform, Conversation, Workflow, etc.
+// ═══════════════════════════════════════════════════════════════
+
+// Platform: LLM Provider / Platform registry (mirrors providers.json)
+model Platform {
+  id              String   @id @default(uuid())
+  providerId      String   @unique // matches providers.json id
+  name            String
+  category        String
+  baseUrl         String?
+  defaultModel    String?
+  apiKeySource    String?
+  models          String   @default("[]") // JSON array
+  protocolLevel   Int      @default(1)
+  protocol        String   @default("single-thread")
+  threading       String   @default("single")
+  status          String   @default("active")
+  metadata        String   @default("{}") // JSON: description, stars, etc.
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([protocolLevel])
+}
+
+// PlatformConfig: Framework-specific LLM configuration overrides
+model PlatformConfig {
+  id              String   @id @default(uuid())
+  platformId      String
+  frameworkId     String?
+  teamId          String?
+  roleId          String?
+  // Override fields
+  baseUrl         String?
+  apiKey          String?
+  defaultModel    String?
+  extraHeaders    String   @default("{}") // JSON
+  timeout         Int?
+  retries         Int      @default(3)
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([platformId])
+  @@index([frameworkId])
+  @@index([teamId])
+}
+
+// Conversation: A chat conversation session
+model Conversation {
+  id              String   @id @default(uuid())
+  title           String?
+  agentId         String?
+  teamId          String?
+  roleId          String?
+  platformId      String?
+  status          String   @default("active") // active | archived | deleted
+  metadata        String   @default("{}") // JSON: tags, source, etc.
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  messages        Message[]
+
+  @@index([agentId])
+  @@index([teamId])
+  @@index([status])
+}
+
+// Message: Generic message entity (distinct from ChatMessage for new architecture)
+model Message {
+  id              String   @id @default(uuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id])
+
+  role            String   // system | user | assistant | tool
+  content         String
+  model           String?  // which model generated this
+  platformId      String?  // which platform was used
+  tokensUsed      Int?
+  latencyMs       Int?
+  metadata        String   @default("{}") // JSON: citations, attachments, etc.
+  createdAt       DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+}
+
+// Canvas: Collaborative canvas / whiteboard
+model Canvas {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  content         String   @default("{}") // JSON: nodes, edges, layout
+  ownerId         String?
+  teamId          String?
+  status          String   @default("active") // active | archived
+  metadata        String   @default("{}") // JSON
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  revisions       CanvasRevision[]
+
+  @@index([ownerId])
+  @@index([teamId])
+}
+
+// CanvasRevision: Version history for a canvas
+model CanvasRevision {
+  id              String   @id @default(uuid())
+  canvasId        String
+  canvas          Canvas   @relation(fields: [canvasId], references: [id])
+
+  revisionNumber  Int
+  content         String   // JSON snapshot
+  changedBy       String?
+  changeSummary   String?
+  createdAt       DateTime @default(now())
+
+  @@index([canvasId])
+  @@index([revisionNumber])
+}
+
+// Chariot: Swarm chariot (蜂群战车) — a deployable agent swarm unit
+model Chariot {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  teamId          String?
+  groupId         String?
+  config          String   @default("{}") // JSON: swarm topology, strategy
+  status          String   @default("idle") // idle | running | paused | error
+  healthScore     Int      @default(100)
+  lastDeployedAt  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  events          ChariotEvent[]
+
+  @@index([teamId])
+  @@index([groupId])
+  @@index([status])
+}
+
+// ChariotEvent: Events emitted by a chariot
+model ChariotEvent {
+  id              String   @id @default(uuid())
+  chariotId       String
+  chariot         Chariot @relation(fields: [chariotId], references: [id])
+
+  eventType       String   // deploy | start | stop | error | health | task
+  payload         String   @default("{}") // JSON
+  severity        String   @default("info") // info | warn | error | critical
+  createdAt       DateTime @default(now())
+
+  @@index([chariotId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+// Workflow: Declarative workflow definition
+model Workflow {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  definition      String   @default("{}") // JSON: nodes, edges, triggers
+  category        String   @default("general") // general | data | ai | scheduled
+  status          String   @default("draft") // draft | active | archived
+  triggerType     String   @default("manual") // manual | webhook | schedule | event
+  cronExpression  String?
+  teamId          String?
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  executions      WorkflowExecution[]
+
+  @@index([category])
+  @@index([status])
+  @@index([teamId])
+}
+
+// WorkflowExecution: A single run of a workflow
+model WorkflowExecution {
+  id              String   @id @default(uuid())
+  workflowId      String
+  workflow        Workflow @relation(fields: [workflowId], references: [id])
+
+  status          String   @default("pending") // pending | running | success | failed | cancelled
+  input           String   @default("{}") // JSON
+  output          String   @default("{}") // JSON
+  logs            String   @default("[]") // JSON array of step logs
+  startedAt       DateTime?
+  endedAt         DateTime?
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  @@index([workflowId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// EventLog: Centralized event logging
+model EventLog {
+  id              String   @id @default(uuid())
+  source          String   // agent | team | chariot | workflow | platform | system
+  sourceId        String?
+  eventType       String
+  payload         String   @default("{}") // JSON
+  severity        String   @default("info") // info | warn | error | critical
+  userId          String?
+  ipAddress       String?
+  createdAt       DateTime @default(now())
+
+  @@index([source])
+  @@index([eventType])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+// Metrics: Performance and usage metrics
+model Metrics {
+  id              String   @id @default(uuid())
+  entityType      String   // agent | team | platform | workflow | system
+  entityId        String?
+  metricName      String   // latency | tokens | cost | requests | errors
+  metricValue     Float
+  unit            String?  // ms | tokens | usd | count | percent
+  dimensions      String   @default("{}") // JSON: model, region, etc.
+  windowStart     DateTime?
+  windowEnd       DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([metricName])
+  @@index([createdAt])
+}
+
+// ApiKey: API key management
+model ApiKey {
+  id              String   @id @default(uuid())
+  name            String
+  keyHash         String   // hashed key value
+  keyPrefix       String?  // last 4 chars for display
+  providerId      String   // which platform/provider this key is for
+  scope           String   @default("global") // global | team | agent
+  scopeId         String?  // teamId or agentId if scoped
+  permissions     String   @default("[]") // JSON array of permission strings
+  rateLimit       Int      @default(60) // requests per minute
+  expiresAt       DateTime?
+  lastUsedAt      DateTime?
+  usageCount      Int      @default(0)
+  status          String   @default("active") // active | revoked | expired
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([providerId])
+  @@index([scope])
+  @@index([status])
+  @@index([createdBy])
+}

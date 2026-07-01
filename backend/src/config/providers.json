@@ -1,0 +1,2175 @@
+{
+  "version": "2.0",
+  "description": "千界花园 — 150+ LLM Provider & Platform 统一配置",
+  "providers": [
+    {
+      "id": "cli",
+      "name": "命令行终端",
+      "category": "infra",
+      "baseUrl": "local://cli",
+      "defaultModel": "bash",
+      "apiKeySource": "none",
+      "models": [
+        "bash",
+        "zsh",
+        "powershell"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "code-exec",
+      "name": "代码执行器",
+      "category": "infra",
+      "baseUrl": "local://code",
+      "defaultModel": "python",
+      "apiKeySource": "none",
+      "models": [
+        "python",
+        "node",
+        "rust"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "filesystem",
+      "name": "文件系统",
+      "category": "infra",
+      "baseUrl": "local://fs",
+      "defaultModel": "fs",
+      "apiKeySource": "none",
+      "models": [
+        "fs"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "browser",
+      "name": "浏览器",
+      "category": "infra",
+      "baseUrl": "local://browser",
+      "defaultModel": "chromium",
+      "apiKeySource": "none",
+      "models": [
+        "chromium",
+        "firefox"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "sandbox",
+      "name": "沙箱环境",
+      "category": "infra",
+      "baseUrl": "local://sandbox",
+      "defaultModel": "docker",
+      "apiKeySource": "none",
+      "models": [
+        "docker"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "jupyter",
+      "name": "Jupyter",
+      "category": "infra",
+      "baseUrl": "http://localhost:8888",
+      "defaultModel": "python3",
+      "apiKeySource": "none",
+      "models": [
+        "python3"
+      ],
+      "protocolLevel": 0,
+      "protocol": "infra",
+      "threading": "single"
+    },
+    {
+      "id": "kimi-code",
+      "name": "Kimi Code",
+      "category": "code-agent",
+      "baseUrl": "https://api.kimi.com/coding/v1",
+      "defaultModel": "kimi-for-coding",
+      "apiKeySource": "config",
+      "models": [
+        "kimi-for-coding"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "openai-codex",
+      "name": "OpenAI Codex",
+      "category": "code-agent",
+      "baseUrl": "https://api.openai.com/v1/codex",
+      "defaultModel": "codex-latest",
+      "apiKeySource": "env:OPENAI_API_KEY",
+      "models": [
+        "codex-latest",
+        "codex-preview"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code (MCP)",
+      "category": "code-agent",
+      "baseUrl": "https://api.anthropic.com/v1/codex",
+      "defaultModel": "claude-code-20241022",
+      "apiKeyHeader": "x-api-key",
+      "apiKeyPrefix": "",
+      "apiKeySource": "env:CLAUDE_API_KEY",
+      "models": [
+        "claude-code-20241022",
+        "claude-3-5-sonnet-coding"
+      ],
+      "extraHeaders": {
+        "anthropic-version": "2023-06-01"
+      },
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "github-copilot",
+      "name": "GitHub Copilot",
+      "category": "code-agent",
+      "baseUrl": "https://api.githubcopilot.com/v1",
+      "defaultModel": "copilot-chat",
+      "apiKeySource": "env:GITHUB_COPILOT_TOKEN",
+      "models": [
+        "copilot-chat",
+        "copilot-completion"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "devin",
+      "name": "Devin (Cognition)",
+      "category": "code-agent",
+      "baseUrl": "https://api.cognition.ai/v1",
+      "defaultModel": "devin-v1",
+      "apiKeySource": "env:DEVIN_API_KEY",
+      "models": [
+        "devin-v1",
+        "devin-preview"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "codeium",
+      "name": "Codeium",
+      "category": "code-agent",
+      "baseUrl": "https://api.codeium.com/v1",
+      "defaultModel": "codeium-chat",
+      "apiKeySource": "env:CODEIUM_API_KEY",
+      "models": [
+        "codeium-chat",
+        "codeium-completion"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "category": "code-agent",
+      "baseUrl": "https://api.cursor.sh/v1",
+      "defaultModel": "cursor-fast",
+      "apiKeySource": "env:CURSOR_API_KEY",
+      "models": [
+        "cursor-fast",
+        "cursor-slow"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "windsurf",
+      "name": "Windsurf (Codeium)",
+      "category": "code-agent",
+      "baseUrl": "https://api.windsurf.com/v1",
+      "defaultModel": "windsurf-chat",
+      "apiKeySource": "env:WINDSURF_API_KEY",
+      "models": [
+        "windsurf-chat",
+        "windsurf-cascade"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "tabnine",
+      "name": "Tabnine",
+      "category": "code-agent",
+      "baseUrl": "https://api.tabnine.com/v1",
+      "defaultModel": "tabnine-pro",
+      "apiKeySource": "env:TABNINE_API_KEY",
+      "models": [
+        "tabnine-pro",
+        "tabnine-lite"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "sourcegraph-cody",
+      "name": "Sourcegraph Cody",
+      "category": "code-agent",
+      "baseUrl": "https://sourcegraph.com/.api/completions/stream",
+      "defaultModel": "claude-3-sonnet-cody",
+      "apiKeySource": "env:SOURCEGRAPH_TOKEN",
+      "models": [
+        "claude-3-sonnet-cody",
+        "claude-3-haiku-cody"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "category": "cloud",
+      "baseUrl": "https://api.openai.com",
+      "defaultModel": "gpt-4.1",
+      "apiKeySource": "env:OPENAI_API_KEY",
+      "models": [
+        "gpt-4.1",
+        "gpt-4.1-mini",
+        "gpt-4.1-nano",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "o3-mini",
+        "o1"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "claude",
+      "name": "Claude",
+      "category": "cloud",
+      "baseUrl": "https://api.anthropic.com",
+      "defaultModel": "claude-sonnet-4-20250514",
+      "apiKeyHeader": "x-api-key",
+      "apiKeyPrefix": "",
+      "apiKeySource": "env:CLAUDE_API_KEY",
+      "models": [
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-20250514",
+        "claude-3-7-sonnet-20250219",
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022"
+      ],
+      "extraHeaders": {
+        "anthropic-version": "2023-06-01"
+      },
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "category": "cloud",
+      "baseUrl": "https://api.deepseek.com",
+      "defaultModel": "deepseek-chat",
+      "apiKeySource": "env:DEEPSEEK_API_KEY",
+      "models": [
+        "deepseek-chat",
+        "deepseek-reasoner",
+        "deepseek-coder"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "category": "cloud",
+      "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+      "defaultModel": "gemini-1.5-pro",
+      "apiKeyHeader": "x-goog-api-key",
+      "apiKeyPrefix": "",
+      "apiKeySource": "env:GEMINI_API_KEY",
+      "models": [
+        "gemini-1.5-pro",
+        "gemini-1.5-flash"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "grok",
+      "name": "Grok",
+      "category": "cloud",
+      "baseUrl": "https://api.x.ai",
+      "defaultModel": "grok-2",
+      "apiKeySource": "env:GROK_API_KEY",
+      "models": [
+        "grok-2",
+        "grok-2-mini"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "qwen",
+      "name": "通义千问",
+      "category": "cloud",
+      "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "defaultModel": "qwen-max",
+      "apiKeySource": "env:QWEN_API_KEY",
+      "models": [
+        "qwen-max",
+        "qwen-plus",
+        "qwen-turbo"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "mistral",
+      "name": "Mistral",
+      "category": "cloud",
+      "baseUrl": "https://api.mistral.ai",
+      "defaultModel": "mistral-large",
+      "apiKeySource": "env:MISTRAL_API_KEY",
+      "models": [
+        "mistral-large",
+        "mistral-medium",
+        "codestral"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "cohere",
+      "name": "Cohere",
+      "category": "cloud",
+      "baseUrl": "https://api.cohere.com/v1",
+      "defaultModel": "command-r-plus",
+      "apiKeySource": "env:COHERE_API_KEY",
+      "models": [
+        "command-r-plus",
+        "command-r"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "ai21",
+      "name": "AI21 Labs",
+      "category": "cloud",
+      "baseUrl": "https://api.ai21.com/studio/v1",
+      "defaultModel": "jurassic-2-ultra",
+      "apiKeySource": "env:AI21_API_KEY",
+      "models": [
+        "jurassic-2-ultra",
+        "jurassic-2-mid"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "together",
+      "name": "Together AI",
+      "category": "cloud",
+      "baseUrl": "https://api.together.xyz/v1",
+      "defaultModel": "meta-llama/Llama-3-70B",
+      "apiKeySource": "env:TOGETHER_API_KEY",
+      "models": [
+        "meta-llama/Llama-3-70B",
+        "Qwen/Qwen2-72B"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity",
+      "category": "cloud",
+      "baseUrl": "https://api.perplexity.ai",
+      "defaultModel": "sonar",
+      "apiKeySource": "env:PERPLEXITY_API_KEY",
+      "models": [
+        "sonar",
+        "sonar-pro",
+        "sonar-reasoning"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "category": "gateway",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "defaultModel": "deepseek/deepseek-chat-v3-0324",
+      "apiKeySource": "env:OPENROUTER_API_KEY",
+      "models": [
+        "deepseek/deepseek-chat-v3-0324",
+        "anthropic/claude-3.5-sonnet",
+        "qwen/qwen3-235b-a22b",
+        "google/gemini-2.5-pro-preview",
+        "meta-llama/llama-4-maverick"
+      ],
+      "extraHeaders": {
+        "HTTP-Referer": "https://thousand-realms-garden.local",
+        "X-Title": "Thousand Realms Garden"
+      },
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "fireworks",
+      "name": "Fireworks AI",
+      "category": "gateway",
+      "baseUrl": "https://api.fireworks.ai/inference/v1",
+      "defaultModel": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+      "apiKeySource": "env:FIREWORKS_API_KEY",
+      "models": [
+        "llama-v3p1-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "anyscale",
+      "name": "Anyscale",
+      "category": "gateway",
+      "baseUrl": "https://api.endpoints.anyscale.com/v1",
+      "defaultModel": "meta-llama/Llama-2-70b-chat-hf",
+      "apiKeySource": "env:ANYSCALE_API_KEY",
+      "models": [
+        "llama-3-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "azure",
+      "name": "Azure OpenAI",
+      "category": "gateway",
+      "baseUrl": "https://{resource}.openai.azure.com/openai/deployments/{deployment}",
+      "defaultModel": "gpt-4",
+      "apiKeyHeader": "api-key",
+      "apiKeyPrefix": "",
+      "apiKeySource": "env:AZURE_OPENAI_API_KEY",
+      "models": [
+        "gpt-4",
+        "gpt-35-turbo"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "category": "local",
+      "baseUrl": "http://localhost:11434",
+      "defaultModel": "llama3.2",
+      "apiKeySource": "none",
+      "models": [
+        "llama3.2",
+        "qwen2.5",
+        "deepseek-coder",
+        "mistral"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "lmstudio",
+      "name": "LM Studio",
+      "category": "local",
+      "baseUrl": "http://localhost:1234/v1",
+      "defaultModel": "loaded-model",
+      "apiKeySource": "none",
+      "models": [
+        "加载的模型"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "vllm",
+      "name": "vLLM",
+      "category": "local",
+      "baseUrl": "http://localhost:8000/v1",
+      "defaultModel": "custom",
+      "apiKeySource": "none",
+      "models": [
+        "Llama-3.1-70B",
+        "Qwen2.5-72B"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "localai",
+      "name": "LocalAI",
+      "category": "local",
+      "baseUrl": "http://localhost:8080/v1",
+      "defaultModel": "gpt-4",
+      "apiKeySource": "env:LOCALAI_API_KEY",
+      "models": [
+        "通用适配"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "jan",
+      "name": "Jan AI",
+      "category": "local",
+      "baseUrl": "http://localhost:1337/v1",
+      "defaultModel": "jan-backend",
+      "apiKeySource": "none",
+      "models": [
+        "Jan Backend"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "gpt4all",
+      "name": "GPT4All",
+      "category": "local",
+      "baseUrl": "http://localhost:4891/v1",
+      "defaultModel": "gpt4all-backend",
+      "apiKeySource": "none",
+      "models": [
+        "GPT4All Backend"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "textgenwebui",
+      "name": "Text-gen-webui",
+      "category": "local",
+      "baseUrl": "http://localhost:5000/v1",
+      "defaultModel": "custom",
+      "apiKeySource": "none",
+      "models": [
+        "自定义"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "groq",
+      "name": "Groq",
+      "category": "cloud",
+      "baseUrl": "https://api.groq.com/openai/v1",
+      "defaultModel": "llama-3.1-70b-versatile",
+      "apiKeySource": "env:GROQ_API_KEY",
+      "models": [
+        "llama-3.1-70b",
+        "mixtral-8x7b",
+        "gemma-2-9b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "novita",
+      "name": "Novita AI",
+      "category": "cloud",
+      "baseUrl": "https://api.novita.ai/v3/openai",
+      "defaultModel": "meta-llama/llama-3.1-70b-instruct",
+      "apiKeySource": "env:NOVITA_API_KEY",
+      "models": [
+        "llama-3.1-70b",
+        "mistral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "siliconflow",
+      "name": "SiliconFlow",
+      "category": "cloud",
+      "baseUrl": "https://api.siliconflow.cn/v1",
+      "defaultModel": "deepseek-ai/DeepSeek-V3",
+      "apiKeySource": "env:SILICONFLOW_API_KEY",
+      "models": [
+        "DeepSeek-V3",
+        "Qwen2.5-72B",
+        "Meta-Llama-3.1-70B"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "zhipu",
+      "name": "智谱 AI",
+      "category": "cloud",
+      "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+      "defaultModel": "glm-5.1",
+      "apiKeyHeader": "Authorization",
+      "apiKeySource": "env:ZHIPU_API_KEY",
+      "models": [
+        "glm-5.1",
+        "glm-5.1-flash",
+        "glm-5.1-air",
+        "glm-4-plus",
+        "glm-4-flash",
+        "glm-4-air",
+        "glm-4-airx",
+        "glm-4-long",
+        "glm-4-alltools"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "baichuan",
+      "name": "百川智能",
+      "category": "cloud",
+      "baseUrl": "https://api.baichuan-ai.com/v1",
+      "defaultModel": "Baichuan4",
+      "apiKeySource": "env:BAICHUAN_API_KEY",
+      "models": [
+        "Baichuan4",
+        "Baichuan3-Turbo"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "minimax",
+      "name": "MiniMax",
+      "category": "cloud",
+      "baseUrl": "https://api.minimax.chat/v1",
+      "defaultModel": "abab6.5s-chat",
+      "apiKeySource": "env:MINIMAX_API_KEY",
+      "models": [
+        "abab6.5s-chat",
+        "abab6-chat"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "hunyuan",
+      "name": "腾讯混元",
+      "category": "cloud",
+      "baseUrl": "https://hunyuan.tencentcloudapi.com",
+      "defaultModel": "hunyuan-lite",
+      "apiKeySource": "env:HUNYUAN_API_KEY",
+      "models": [
+        "hunyuan-lite",
+        "hunyuan-standard",
+        "hunyuan-pro"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "doubao",
+      "name": "豆包",
+      "category": "cloud",
+      "baseUrl": "https://ark.cn-beijing.volces.com/api/v3",
+      "defaultModel": "doubao-lite-4k",
+      "apiKeySource": "env:DOUBAO_API_KEY",
+      "models": [
+        "doubao-lite",
+        "doubao-pro"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "wenxin",
+      "name": "文心一言",
+      "category": "cloud",
+      "baseUrl": "https://qianfan.baidubce.com/v2",
+      "defaultModel": "ernie-4.0-turbo-8k",
+      "apiKeySource": "env:WENXIN_API_KEY",
+      "models": [
+        "ernie-4.0-turbo",
+        "ernie-3.5"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "spark",
+      "name": "讯飞星火",
+      "category": "cloud",
+      "baseUrl": "https://spark-api-open.xf-yun.com/v1",
+      "defaultModel": "generalv3.5",
+      "apiKeySource": "env:SPARK_API_KEY",
+      "models": [
+        "generalv3.5",
+        "generalv3",
+        "pro-128k"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "sensechat",
+      "name": "商汤日日新",
+      "category": "cloud",
+      "baseUrl": "https://api.sensenova.cn/v1",
+      "defaultModel": "SenseChat-5",
+      "apiKeySource": "env:SENSECHAT_API_KEY",
+      "models": [
+        "SenseChat-5",
+        "SenseChat-Turbo"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "replicate",
+      "name": "Replicate",
+      "category": "cloud",
+      "baseUrl": "https://api.replicate.com/v1",
+      "defaultModel": "meta/llama-2-70b-chat",
+      "apiKeySource": "env:REPLICATE_API_KEY",
+      "models": [
+        "llama-2-70b",
+        "mistral-7b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "lepton",
+      "name": "Lepton AI",
+      "category": "cloud",
+      "baseUrl": "https://api.lepton.ai",
+      "defaultModel": "llama3-70b",
+      "apiKeySource": "env:LEPTON_API_KEY",
+      "models": [
+        "llama3-70b",
+        "mixtral-8x7b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "nvidia",
+      "name": "NVIDIA NIM",
+      "category": "cloud",
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "defaultModel": "meta/llama-3.1-70b-instruct",
+      "apiKeySource": "env:NVIDIA_API_KEY",
+      "models": [
+        "llama-3.1-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "predibase",
+      "name": "Predibase",
+      "category": "cloud",
+      "baseUrl": "https://api.predibase.com/v1",
+      "defaultModel": "llama-3-8b",
+      "apiKeySource": "env:PREDIBASE_API_KEY",
+      "models": [
+        "llama-3-8b",
+        "mistral-7b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare Workers AI",
+      "category": "cloud",
+      "baseUrl": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+      "defaultModel": "@cf/meta/llama-3.1-70b",
+      "apiKeySource": "env:CLOUDFLARE_API_KEY",
+      "models": [
+        "llama-3.1-70b",
+        "mistral-7b"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "poe",
+      "name": "Poe API",
+      "category": "cloud",
+      "baseUrl": "https://api.poe.com/v1",
+      "defaultModel": "Claude-3.5-Sonnet",
+      "apiKeySource": "env:POE_API_KEY",
+      "models": [
+        "Claude-3.5-Sonnet",
+        "GPT-4o",
+        "Gemini-1.5-Pro"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "kimi-moonshot",
+      "name": "Kimi (Moonshot)",
+      "category": "cloud",
+      "baseUrl": "https://api.moonshot.cn",
+      "defaultModel": "moonshot-v1-8k",
+      "apiKeySource": "env:MOONSHOT_API_KEY",
+      "models": [
+        "moonshot-v1-8k",
+        "moonshot-v1-32k",
+        "moonshot-v1-128k"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "stepfun",
+      "name": "阶跃星辰",
+      "category": "cloud",
+      "baseUrl": "https://api.stepfun.com/v1",
+      "defaultModel": "step-1-8k",
+      "apiKeySource": "env:STEPFUN_API_KEY",
+      "models": [
+        "step-1-8k",
+        "step-1-32k",
+        "step-1-128k",
+        "step-1-flash"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "lambdalabs",
+      "name": "Lambda Labs",
+      "category": "cloud",
+      "baseUrl": "https://api.lambdalabs.com/v1",
+      "defaultModel": "hermes-3-llama-3.1-405b",
+      "apiKeySource": "env:LAMBDA_API_KEY",
+      "models": [
+        "hermes-3-405b",
+        "llama-3.1-70b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "samba",
+      "name": "SambaNova",
+      "category": "cloud",
+      "baseUrl": "https://api.sambanova.ai/v1",
+      "defaultModel": "Meta-Llama-3.1-70B-Instruct",
+      "apiKeySource": "env:SAMBANOVA_API_KEY",
+      "models": [
+        "Llama-3.1-70B",
+        "Llama-3.1-8B"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "octoai",
+      "name": "OctoAI",
+      "category": "cloud",
+      "baseUrl": "https://text.octoai.run/v1",
+      "defaultModel": "meta_llama_3_70b_instruct",
+      "apiKeySource": "env:OCTOAI_API_KEY",
+      "models": [
+        "llama-3-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "hyperbolic",
+      "name": "Hyperbolic",
+      "category": "cloud",
+      "baseUrl": "https://api.hyperbolic.xyz/v1",
+      "defaultModel": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+      "apiKeySource": "env:HYPERBOLIC_API_KEY",
+      "models": [
+        "llama-3.1-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "arctic",
+      "name": "Snowflake Arctic",
+      "category": "cloud",
+      "baseUrl": "https://api.snowflake.com/v1",
+      "defaultModel": "snowflake/arctic",
+      "apiKeySource": "env:SNOWFLAKE_API_KEY",
+      "models": [
+        "snowflake/arctic"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "vertex-gemini",
+      "name": "Vertex AI (Gemini)",
+      "category": "gateway",
+      "baseUrl": "https://us-central1-aiplatform.googleapis.com/v1",
+      "defaultModel": "gemini-1.5-pro-002",
+      "apiKeySource": "env:VERTEX_API_KEY",
+      "models": [
+        "gemini-1.5-pro",
+        "gemini-1.5-flash"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "bedrock",
+      "name": "AWS Bedrock",
+      "category": "gateway",
+      "baseUrl": "https://bedrock-runtime.{region}.amazonaws.com",
+      "defaultModel": "anthropic.claude-3-sonnet",
+      "apiKeySource": "env:AWS_ACCESS_KEY_ID",
+      "models": [
+        "claude-3-sonnet",
+        "claude-3-haiku",
+        "llama-3-70b"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "sagemaker",
+      "name": "AWS SageMaker",
+      "category": "gateway",
+      "baseUrl": "https://runtime.sagemaker.{region}.amazonaws.com",
+      "defaultModel": "custom",
+      "apiKeySource": "env:AWS_ACCESS_KEY_ID",
+      "models": [
+        "自定义端点"
+      ],
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "friendliai",
+      "name": "FriendliAI",
+      "category": "cloud",
+      "baseUrl": "https://inference.friendli.ai/v1",
+      "defaultModel": "meta-llama-3.1-70b-instruct",
+      "apiKeySource": "env:FRIENDLI_API_KEY",
+      "models": [
+        "llama-3.1-70b",
+        "mixtral-8x22b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "tencentcloud",
+      "name": "腾讯云 TI-ONE",
+      "category": "cloud",
+      "baseUrl": "https://ti-one.tencentcloudapi.com",
+      "defaultModel": "llama-3.1-70b",
+      "apiKeySource": "env:TENCENT_API_KEY",
+      "models": [
+        "llama-3.1-70b",
+        "qwen-72b"
+      ],
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "autogen",
+      "name": "AutoGen",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8080",
+      "defaultModel": "autogen",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "crewai",
+      "name": "CrewAI",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8081",
+      "defaultModel": "crew",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "openclaw",
+      "name": "OpenClaw",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8082",
+      "defaultModel": "openclaw",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "metagpt",
+      "name": "MetaGPT",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8083",
+      "defaultModel": "metagpt",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "chatdev",
+      "name": "ChatDev",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8084",
+      "defaultModel": "chatdev",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "dspy",
+      "name": "DSPy",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8085",
+      "defaultModel": "dspy",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "langgraph",
+      "name": "LangGraph",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8086",
+      "defaultModel": "langgraph",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "openswarm-vrsen",
+      "name": "OpenSwarm (VRSEN)",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8087",
+      "defaultModel": "openswarm",
+      "apiKeySource": "none",
+      "models": [
+        "orchestrator",
+        "virtual-assistant",
+        "deep-research",
+        "data-analyst",
+        "slides-agent",
+        "docs-agent",
+        "image-gen",
+        "video-gen"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "openswarm-intrect",
+      "name": "OpenSwarm (Intrect)",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8088",
+      "defaultModel": "openswarm",
+      "apiKeySource": "none",
+      "models": [
+        "worker",
+        "reviewer",
+        "tester",
+        "documenter",
+        "stuck-detector"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "hermes",
+      "name": "Hermes",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8089",
+      "defaultModel": "hermes",
+      "apiKeySource": "none",
+      "models": [
+        "orchestrator",
+        "scraper",
+        "refiner",
+        "analyser",
+        "synthesizer"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "llamaindex-workflows",
+      "name": "LlamaIndex Workflows",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8090",
+      "defaultModel": "llamaindex",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "camel-ai",
+      "name": "Camel-AI",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8091",
+      "defaultModel": "camel",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "praisonai",
+      "name": "PraisonAI",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8092",
+      "defaultModel": "praison",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "taskweaver",
+      "name": "TaskWeaver",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8093",
+      "defaultModel": "taskweaver",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "agno",
+      "name": "Agno",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8094",
+      "defaultModel": "agno",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "google-adk",
+      "name": "Google ADK",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8095",
+      "defaultModel": "google-adk",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "semantic-kernel",
+      "name": "Semantic Kernel",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8096",
+      "defaultModel": "semantic-kernel",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "autogpt-forge",
+      "name": "AutoGPT Forge",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8097",
+      "defaultModel": "autogpt",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "haystack-agents",
+      "name": "Haystack Agents",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8098",
+      "defaultModel": "haystack",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "agentops",
+      "name": "AgentOps",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8099",
+      "defaultModel": "agentops",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "smolagents",
+      "name": "SmolAgents",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8100",
+      "defaultModel": "smolagents",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "pydantic-ai",
+      "name": "PydanticAI",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8101",
+      "defaultModel": "pydantic-ai",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "mastra",
+      "name": "Mastra",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8102",
+      "defaultModel": "mastra",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "copilotkit",
+      "name": "CopilotKit",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8103",
+      "defaultModel": "copilotkit",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "qualixar-os",
+      "name": "Qualixar OS",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8104",
+      "defaultModel": "qualixar",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "aios",
+      "name": "AIOS",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8105",
+      "defaultModel": "aios",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "routa",
+      "name": "Routa",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8106",
+      "defaultModel": "routa",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "agency-swarm",
+      "name": "Agency Swarm",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8107",
+      "defaultModel": "agency-swarm",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "openai-agents-sdk",
+      "name": "OpenAI Agents SDK",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8108",
+      "defaultModel": "openai-agents",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "microsoft-agent-framework",
+      "name": "Microsoft Agent Framework",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8109",
+      "defaultModel": "ms-agent-framework",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "dify",
+      "name": "Dify",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8110",
+      "defaultModel": "dify",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "flowise",
+      "name": "Flowise",
+      "category": "orchestrator",
+      "baseUrl": "http://localhost:8111",
+      "defaultModel": "flowise",
+      "apiKeySource": "none",
+      "models": [
+        "default"
+      ],
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "litellm",
+      "name": "LiteLLM",
+      "baseUrl": "http://localhost:4000",
+      "models": [
+        "default"
+      ],
+      "apiKeySource": "none",
+      "category": "gateway-proxy",
+      "defaultModel": "default",
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "llm-api-key-proxy",
+      "name": "LLM-API-Key-Proxy",
+      "baseUrl": "http://localhost:8080",
+      "models": [
+        "default"
+      ],
+      "apiKeySource": "none",
+      "category": "gateway-proxy",
+      "defaultModel": "default",
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "apikey-rotator",
+      "name": "APIKeyRotator",
+      "baseUrl": "http://localhost:8081",
+      "models": [
+        "default"
+      ],
+      "apiKeySource": "none",
+      "category": "gateway-proxy",
+      "defaultModel": "default",
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "llmlb",
+      "name": "LLMLB",
+      "baseUrl": "http://localhost:8082",
+      "models": [
+        "default"
+      ],
+      "apiKeySource": "none",
+      "category": "gateway-proxy",
+      "defaultModel": "default",
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "smart-llm-router",
+      "name": "Smart LLM Router",
+      "baseUrl": "http://localhost:8083",
+      "models": [
+        "default"
+      ],
+      "apiKeySource": "none",
+      "category": "gateway-proxy",
+      "defaultModel": "default",
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "new-api",
+      "name": "New API Gateway",
+      "baseUrl": "http://localhost:8084",
+      "models": [
+        "default"
+      ],
+      "apiKeySource": "none",
+      "category": "gateway-proxy",
+      "defaultModel": "default",
+      "protocolLevel": 3,
+      "protocol": "gateway",
+      "threading": "gateway"
+    },
+    {
+      "id": "agentscope",
+      "name": "AgentScope",
+      "baseUrl": "http://localhost:8112",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "aflow",
+      "name": "AFlow",
+      "baseUrl": "http://localhost:8113",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "oxygent",
+      "name": "OxyGent",
+      "baseUrl": "http://localhost:8114",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "strands-agents",
+      "name": "Strands Agents",
+      "baseUrl": "http://localhost:8115",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "dapr-agents",
+      "name": "Dapr Agents",
+      "baseUrl": "http://localhost:8116",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "graphbit",
+      "name": "GraphBit",
+      "baseUrl": "http://localhost:8117",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "dyntaskmas",
+      "name": "DynTaskMAS",
+      "baseUrl": "http://localhost:8118",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "fundapod",
+      "name": "FundaPod",
+      "baseUrl": "http://localhost:8119",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "open-interpreter",
+      "name": "Open Interpreter",
+      "baseUrl": "http://localhost:8120",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "deep-agents",
+      "name": "Deep Agents",
+      "baseUrl": "http://localhost:8121",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "coze",
+      "name": "Coze",
+      "baseUrl": "http://localhost:8122",
+      "models": [
+        "default"
+      ],
+      "category": "orchestrator",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "multi-thread",
+      "threading": "multi"
+    },
+    {
+      "id": "open-webui",
+      "name": "Open WebUI",
+      "baseUrl": "http://localhost:3000",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "khoj",
+      "name": "Khoj",
+      "baseUrl": "http://localhost:8000",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "storm",
+      "name": "Storm",
+      "baseUrl": "http://localhost:8001",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "perplexica",
+      "name": "Perplexica",
+      "baseUrl": "http://localhost:8002",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "gpt-researcher",
+      "name": "GPT Researcher",
+      "baseUrl": "http://localhost:8003",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "continue-dev",
+      "name": "Continue.dev",
+      "baseUrl": "http://localhost:8004",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "roo-code",
+      "name": "Roo Code",
+      "baseUrl": "http://localhost:8005",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "janitorai",
+      "name": "JanitorAI",
+      "baseUrl": "http://localhost:8006",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "sillytavern",
+      "name": "SillyTavern",
+      "baseUrl": "http://localhost:8007",
+      "models": [
+        "default"
+      ],
+      "category": "client-ui",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "airflow",
+      "name": "Apache Airflow",
+      "baseUrl": "http://localhost:8080",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "prefect",
+      "name": "Prefect",
+      "baseUrl": "http://localhost:4200",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "dagster",
+      "name": "Dagster",
+      "baseUrl": "http://localhost:3000",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "temporal",
+      "name": "Temporal",
+      "baseUrl": "http://localhost:7233",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "kestra",
+      "name": "Kestra",
+      "baseUrl": "http://localhost:8080",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "n8n",
+      "name": "n8n",
+      "baseUrl": "http://localhost:5678",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "node-red",
+      "name": "Node-RED",
+      "baseUrl": "http://localhost:1880",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "windmill",
+      "name": "Windmill",
+      "baseUrl": "http://localhost:8000",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "controlflow",
+      "name": "ControlFlow",
+      "baseUrl": "http://localhost:8001",
+      "models": [
+        "default"
+      ],
+      "category": "workflow-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "opik",
+      "name": "Opik",
+      "baseUrl": "http://localhost:8000",
+      "models": [
+        "default"
+      ],
+      "category": "llm-testing",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "deepeval",
+      "name": "DeepEval",
+      "baseUrl": "http://localhost:8001",
+      "models": [
+        "default"
+      ],
+      "category": "llm-testing",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "ragas",
+      "name": "RAGAs",
+      "baseUrl": "http://localhost:8002",
+      "models": [
+        "default"
+      ],
+      "category": "llm-testing",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "promptfoo",
+      "name": "Promptfoo",
+      "baseUrl": "http://localhost:8003",
+      "models": [
+        "default"
+      ],
+      "category": "llm-testing",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "phoenix",
+      "name": "Phoenix",
+      "baseUrl": "http://localhost:8004",
+      "models": [
+        "default"
+      ],
+      "category": "llm-testing",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "giskard",
+      "name": "Giskard",
+      "baseUrl": "http://localhost:8005",
+      "models": [
+        "default"
+      ],
+      "category": "llm-testing",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "tgi",
+      "name": "TGI (HuggingFace)",
+      "baseUrl": "http://localhost:8080",
+      "models": [
+        "default"
+      ],
+      "category": "local-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "llama-cpp",
+      "name": "llama.cpp",
+      "baseUrl": "http://localhost:8081",
+      "models": [
+        "default"
+      ],
+      "category": "local-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "tabbyml",
+      "name": "TabbyML",
+      "baseUrl": "http://localhost:8082",
+      "models": [
+        "default"
+      ],
+      "category": "local-engine",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 1,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "workflowllm",
+      "name": "WorkflowLLM",
+      "baseUrl": "http://localhost:8000",
+      "models": [
+        "default"
+      ],
+      "category": "tool-platform",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "ml-pipeline",
+      "name": "ML Pipeline",
+      "baseUrl": "http://localhost:8001",
+      "models": [
+        "default"
+      ],
+      "category": "tool-platform",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    },
+    {
+      "id": "album",
+      "name": "Album",
+      "baseUrl": "http://localhost:8002",
+      "models": [
+        "default"
+      ],
+      "category": "tool-platform",
+      "defaultModel": "default",
+      "apiKeySource": "none",
+      "protocolLevel": 2,
+      "protocol": "single-thread",
+      "threading": "single"
+    }
+  ]
+}

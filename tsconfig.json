@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "skills"]
+  "exclude": ["node_modules", "skills", "backend", "frontend", "productive-openclaw", "docs", "electron", "nginx", "download", "desktop-frontend-fix"]
 }

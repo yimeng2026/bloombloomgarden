@@ -1,0 +1,8 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Force start.sh to use LF line endings
+backend/start.sh text eol=lf
+
+# Force all .sh files to use LF
+*.sh text eol=lf

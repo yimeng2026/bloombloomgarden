@@ -1,0 +1,92 @@
+[
+  {
+    "provider": "kimi-code",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  },
+  {
+    "provider": "moonshot",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  },
+  {
+    "provider": "openrouter",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  },
+  {
+    "provider": "deepseek",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  },
+  {
+    "provider": "anthropic",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  },
+  {
+    "provider": "glm",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  },
+  {
+    "provider": "openai",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  },
+  {
+    "provider": "gemini",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  },
+  {
+    "provider": "qwen",
+    "key_alias": "NOT_CONFIGURED",
+    "success": false,
+    "latency_ms": 0,
+    "status_code": null,
+    "error": "API Key not configured in environment",
+    "model_list": null,
+    "response_snippet": null
+  }
+]
