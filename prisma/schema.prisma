@@ -409,3 +409,137 @@ model ResearchSync {
   @@index([repoName])
   @@index([syncedAt])
 }
+model AcademicPanel {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  domain      String   @default("")  // 学科领域：mathematics | physics | biology | ai | interdisciplinary
+  status      String   @default("active")  // active | disbanded | on-hold
+  strategy    String   @default("{}")  // 专家组策略：JSON（轮询模式、讨论规则等）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members    AcademicPanelMember[]
+  workshops  AcademicWorkshop[]
+  pipelines  ManuscriptPipeline[]
+}
+
+model AcademicPanelMember {
+  id          String @id @default(uuid())
+  panelId     String
+  role        String @default("member")  // chair | reviewer | contributor | observer
+  specialty   String @default("")  // 专长标签：number_theory | formal_verification | pde etc.
+  weight      Float  @default(1.0)  // 投票权重
+  systemPrompt String @default("")  // 该成员的系统提示词
+  model       String @default("glm-5.1")
+  createdAt   DateTime @default(now())
+
+  panel AcademicPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+
+  @@index([panelId])
+  @@index([specialty])
+}
+
+model AcademicWorkshop {
+  id          String @id @default(uuid())
+  panelId     String
+  title       String
+  topic       String @default("")  // 研讨主题/论题
+  status      String @default("planning")  // planning | active | review | concluded | cancelled
+  mode        String @default("committee")  // committee | debate | sequential | parallel
+  maxRounds   Int    @default(5)
+  currentRound Int   @default(0)
+  consensus   String @default("")  // 最终共识结论
+  conclusion  String @default("")  // 详细结论报告
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  panel   AcademicPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  rounds  WorkshopRound[]
+  tasks   AcademicTask[]
+
+  @@index([panelId])
+  @@index([status])
+}
+
+model WorkshopRound {
+  id          String @id @default(uuid())
+  workshopId  String
+  roundNumber Int
+  phase       String @default("argument")  // argument | rebuttal | synthesis | conclusion
+  content     String @default("")  // 本轮内容摘要（JSON 记录各成员发言）
+  consensusLevel Float @default(0.0)  // 0-1 共识度
+  createdAt   DateTime @default(now())
+
+  workshop AcademicWorkshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  @@index([workshopId])
+  @@index([roundNumber])
+}
+
+model ManuscriptPipeline {
+  id          String @id @default(uuid())
+  panelId     String
+  title       String
+  description String @default("")
+  status      String @default("idea")  // idea | outline | draft | review | revision | final | publish | archived
+  currentStage String @default("idea")
+  content     String @default("")  // 当前阶段内容（最新稿件）
+  history     String @default("[]")  // 阶段历史 JSON 数组
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  panel   AcademicPanel @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  stages  PipelineStage[]
+  tasks   AcademicTask[]
+
+  @@index([panelId])
+  @@index([status])
+}
+
+model PipelineStage {
+  id          String @id @default(uuid())
+  pipelineId  String
+  name        String  // idea | outline | draft | review | revision | final | publish
+  order       Int
+  status      String @default("pending")  // pending | active | completed | rejected | skipped
+  assigneeRole String @default("contributor")  // 分配给专家组中的角色
+  content     String @default("")  // 阶段产出内容
+  feedback    String @default("")  // 评审反馈
+  score       Float  @default(0.0)  // 0-10 评分
+  completedAt DateTime?
+
+  pipeline ManuscriptPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+
+  @@index([pipelineId])
+  @@index([name])
+}
+
+model AcademicTask {
+  id          String @id @default(uuid())
+  workshopId  String?
+  pipelineId  String?
+  panelMemberId String @default("")  // 分配给哪个专家组成员
+  title       String
+  description String @default("")
+  type        String @default("prove")  // prove | review | verify | discover | draft | critique | audit
+  status      String @default("pending")  // pending | assigned | in-progress | completed | failed | cancelled
+  priority    String @default("normal")  // low | normal | high | critical
+  targetModule String @default("")  // 关联的 SYLVA 模块名
+  targetPaper  String @default("")  // 关联的论文标题
+  result      String @default("")  // 任务结果
+  leanCode    String @default("")  // 关联的 Lean 代码
+  score       Float  @default(0.0)  // 0-10 质量评分
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+
+  workshop    AcademicWorkshop?   @relation(fields: [workshopId], references: [id], onDelete: SetNull)
+  pipeline    ManuscriptPipeline? @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+
+  @@index([workshopId])
+  @@index([pipelineId])
+  @@index([status])
+  @@index([type])
+  @@index([targetModule])
+}
