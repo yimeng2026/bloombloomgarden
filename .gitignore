@@ -72,3 +72,22 @@ start*.log
 # 计划文件（构建后清理）
 plan.md
 plan-ontology.md
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
+
