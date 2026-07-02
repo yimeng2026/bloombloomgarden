@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
     const tasks = await prisma.academicTask.findMany({
       where,
       include: {
-        workshop: true,
-        pipeline: true,
+        academicWorkshop: true,
+        manuscriptPipeline: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -85,13 +85,13 @@ export async function POST(request: NextRequest) {
         targetModule: targetModule || "",
         targetPaper: targetPaper || "",
         panelMemberId: panelMemberId || "",
-        workshopId: workshopId || null,
-        pipelineId: pipelineId || null,
+        academicWorkshopId: workshopId || null,
+        manuscriptPipelineId: pipelineId || null,
         status: panelMemberId ? "assigned" : "pending",
       },
       include: {
-        workshop: true,
-        pipeline: true,
+        academicWorkshop: true,
+        manuscriptPipeline: true,
       },
     });
 

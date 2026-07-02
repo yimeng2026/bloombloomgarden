@@ -13,8 +13,8 @@ export async function GET(
     const task = await prisma.academicTask.findUnique({
       where: { id },
       include: {
-        workshop: true,
-        pipeline: true,
+        academicWorkshop: true,
+        manuscriptPipeline: true,
       },
     });
 
@@ -65,8 +65,8 @@ export async function PUT(
       where: { id },
       data: updateData,
       include: {
-        workshop: true,
-        pipeline: true,
+        academicWorkshop: true,
+        manuscriptPipeline: true,
       },
     });
 
