@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { generateCollaborationResponse } from "@/lib/research-prompts";
 
 export const runtime = "nodejs";
 
-// POST /api/research/workshops/[id]/conclude - 结束研讨会
+// POST /api/research/workshops/[id]/conclude - 结束研讨会（集成真实 LLM 调用）
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -33,9 +34,38 @@ export async function POST(
       );
     }
 
-    // 2. 从所有 rounds 的 content 生成最终共识结论
-    const conclusion = buildFinalConclusion(workshop.rounds, workshop.panel.members);
-    const consensus = buildConsensusStatement(workshop.rounds, workshop.panel.members);
+    // 2. 尝试使用 LLM 生成最终共识（失败自动 fallback）
+    let conclusion: string;
+    let consensus: string;
+
+    try {
+      const allRoundsContent = buildAllRoundsContent(workshop.rounds);
+
+      const res = await generateCollaborationResponse("workshop", {
+        topic: workshop.topic || workshop.title,
+        domain: workshop.panel.domain || "general",
+        mode: workshop.mode,
+        previousContent: allRoundsContent,
+        phase: "conclusion",
+        roundNumber: workshop.rounds.length,
+        maxRounds: workshop.maxRounds,
+        role: "chair",
+        specialty: "synthesis",
+      });
+
+      const failed = res.content.includes("【LLM 调用失败】");
+
+      if (failed) {
+        throw new Error("LLM conclusion failed (no API key or network error)");
+      }
+
+      conclusion = res.content;
+      consensus = `Consensus reached after ${workshop.rounds.length} rounds via LLM synthesis.`;
+    } catch (err) {
+      console.error("[WorkshopConclude] LLM conclusion failed, using fallback:", err);
+      conclusion = buildFinalConclusion(workshop.rounds, workshop.panel.members);
+      consensus = buildConsensusStatement(workshop.rounds, workshop.panel.members);
+    }
 
     // 3. 计算最终共识度（取所有 rounds 的平均值，或最后一轮的值）
     const finalConsensusLevel =
@@ -99,7 +129,36 @@ export async function POST(
   }
 }
 
-// 生成最终共识结论（从所有 rounds 的 content 汇总）
+// 构建所有 rounds 的内容摘要（用于 LLM conclusion prompt）
+function buildAllRoundsContent(
+  rounds: Array<{ roundNumber: number; phase: string; content: string; consensusLevel: number }>
+): string {
+  if (!rounds || rounds.length === 0) return "No previous rounds.";
+
+  return rounds
+    .map((r) => {
+      let parsed;
+      try {
+        parsed = JSON.parse(r.content);
+      } catch {
+        parsed = r.content;
+      }
+      const summaries = Array.isArray(parsed)
+        ? parsed
+            .map((s: any) => {
+              const role = s.role || "member";
+              const specialty = s.specialty || "";
+              const content = (s.content || "").slice(0, 400);
+              return `[${role}${specialty ? ` / ${specialty}` : ""}]: ${content}`;
+            })
+            .join("\n")
+        : String(parsed).slice(0, 800);
+      return `=== Round ${r.roundNumber} (${r.phase}, consensus: ${(r.consensusLevel * 100).toFixed(1)}%) ===\n${summaries}`;
+    })
+    .join("\n\n");
+}
+
+// Fallback：生成最终共识结论（从所有 rounds 的 content 汇总）
 function buildFinalConclusion(
   rounds: Array<{ roundNumber: number; phase: string; content: string; consensusLevel: number }>,
   members: Array<{ id: string; role: string; specialty: string }>
@@ -122,7 +181,9 @@ function buildFinalConclusion(
       statements = [{ content: round.content }];
     }
 
-    parts.push(`\n--- Round ${round.roundNumber} (${round.phase}, consensus: ${(round.consensusLevel * 100).toFixed(1)}%) ---`);
+    parts.push(
+      `\n--- Round ${round.roundNumber} (${round.phase}, consensus: ${(round.consensusLevel * 100).toFixed(1)}%) ---`
+    );
     for (const stmt of statements) {
       const role = (stmt.role as string) || "member";
       const specialty = (stmt.specialty as string) || "";
@@ -154,13 +215,15 @@ function buildFinalConclusion(
 
   parts.push("\n=== Final Consensus ===");
   parts.push("The workshop has concluded through collaborative deliberation.");
-  parts.push(`Final consensus level: ${rounds.length > 0 ? (rounds[rounds.length - 1].consensusLevel * 100).toFixed(1) : 0}%.`);
+  parts.push(
+    `Final consensus level: ${rounds.length > 0 ? (rounds[rounds.length - 1].consensusLevel * 100).toFixed(1) : 0}%.`
+  );
   parts.push("All viewpoints have been considered and synthesized.");
 
   return parts.join("\n");
 }
 
-// 生成共识度字符串
+// Fallback：生成共识度字符串
 function buildConsensusStatement(
   rounds: Array<{ roundNumber: number; consensusLevel: number }>,
   members: Array<{ role: string }>

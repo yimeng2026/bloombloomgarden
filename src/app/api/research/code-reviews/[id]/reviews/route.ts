@@ -1,10 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { generateCollaborationResponse } from "@/lib/research-prompts";
 
 export const runtime = "nodejs";
 
 const VALID_SEVERITIES = ["critical", "major", "minor", "suggestion", "praise"];
 const VALID_STATUSES = ["open", "resolved", "dismissed", "pending"];
+
+/** 从 LLM 响应中提取 severity 关键词 */
+function extractSeverity(content: string): string {
+  const lower = content.toLowerCase();
+  for (const sev of VALID_SEVERITIES) {
+    if (lower.includes(sev)) return sev;
+  }
+  // 默认规则：根据内容特征判断
+  if (lower.includes("错误") || lower.includes("error") || lower.includes("编译失败")) return "critical";
+  if (lower.includes("严重") || lower.includes("漏洞") || lower.includes("bug")) return "major";
+  if (lower.includes("建议") || lower.includes("可以改进") || lower.includes("建议优化")) return "suggestion";
+  if (lower.includes("优秀") || lower.includes("正确") || lower.includes("good")) return "praise";
+  return "suggestion";
+}
+
+/** 生成 fallback 模拟审查意见 */
+function generateMockReview(targetCode: string, reviewMode: string): { comment: string; severity: string } {
+  const hasCode = targetCode && targetCode.trim().length > 0;
+  if (!hasCode) {
+    return {
+      comment: "【模拟审查】未提供代码片段，无法生成详细审查意见。请提供目标代码。",
+      severity: "suggestion",
+    };
+  }
+  return {
+    comment: `【模拟审查 — ${reviewMode} 模式】\n\n1. 语法检查：代码结构基本正确，未发现明显编译错误。\n2. 逻辑正确性：证明/推导过程完整，策略选择合理。\n3. 代码风格：命名规范，格式清晰，建议补充更多注释。\n4. 改进建议：可考虑使用更简洁的 tactic 组合优化证明长度。\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
+    severity: "suggestion",
+  };
+}
 
 // ── GET ───────────────────────────────────────────────────
 export async function GET(
@@ -70,9 +100,11 @@ export async function POST(
       lineStart,
       lineEnd,
       targetCode,
+      targetModule,
       comment,
       severity,
       reviewerId,
+      reviewMode = "line_by_line",
     } = body;
 
     const group = await prisma.codeReviewGroup.findUnique({
@@ -86,18 +118,37 @@ export async function POST(
       );
     }
 
-    if (comment === undefined || comment === "") {
-      return NextResponse.json(
-        { success: false, error: "Missing required field: comment" },
-        { status: 400 }
-      );
+    let finalComment = comment;
+    let finalSeverity = severity;
+
+    // ── LLM 自动生成审查意见 ──
+    if (!finalComment || finalComment.trim() === "") {
+      try {
+        const llmRes = await generateCollaborationResponse(
+          "code_review",
+          {
+            topic: targetModule || "代码审查",
+            domain: "formal_verification",
+            targetCode: targetCode || "",
+            targetModule: targetModule || "",
+            mode: reviewMode,
+          },
+          { model: "glm-5.1", temperature: 0.3, provider: "zhipu" }
+        );
+        finalComment = llmRes.content;
+        finalSeverity = extractSeverity(llmRes.content);
+        console.log(`[CodeReview LLM] severity=${finalSeverity}, latency=${llmRes.latencyMs}ms`);
+      } catch (llmErr: any) {
+        console.error("[CodeReview LLM] error:", llmErr.message);
+        // fallback: 使用模拟内容或请求体中的内容
+        const mock = generateMockReview(targetCode, reviewMode);
+        finalComment = body.comment || mock.comment;
+        finalSeverity = body.severity || mock.severity;
+      }
     }
 
-    if (severity && !VALID_SEVERITIES.includes(severity)) {
-      return NextResponse.json(
-        { success: false, error: `Invalid severity. Valid: ${VALID_SEVERITIES.join(", ")}` },
-        { status: 400 }
-      );
+    if (finalSeverity && !VALID_SEVERITIES.includes(finalSeverity)) {
+      finalSeverity = extractSeverity(finalSeverity);
     }
 
     const review = await prisma.codeReview.create({
@@ -106,8 +157,8 @@ export async function POST(
         lineStart: Number(lineStart) || 0,
         lineEnd: Number(lineEnd) || 0,
         targetCode: (targetCode || "").trim(),
-        comment: comment.trim(),
-        severity: severity || "suggestion",
+        comment: (finalComment || "").trim(),
+        severity: finalSeverity || "suggestion",
         reviewerId: (reviewerId || "").trim(),
         status: "open",
       },

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { generateCollaborationResponses, PromptContext } from "@/lib/research-prompts";
 
 export const runtime = "nodejs";
 
-// POST /api/research/workshops/[id]/rounds - 执行一轮讨论
+// POST /api/research/workshops/[id]/rounds - 执行一轮讨论（集成真实 LLM 调用）
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -57,14 +58,61 @@ export async function POST(
     const nextRoundNumber = workshop.currentRound + 1;
     const topic = customPrompt?.trim() || workshop.topic || workshop.title;
 
-    // 2. 根据 workshop.mode 生成轮次内容
-    const roundContent = generateRoundContent(workshop.mode, members, nextRoundNumber, topic);
-
-    // 3. 计算 consensusLevel（0.5 + 0.1 * roundNumber，上限 0.95）
-    const consensusLevel = Math.min(0.95, 0.5 + 0.1 * nextRoundNumber);
-
-    // 4. 确定 phase
+    // 2. 确定 phase
     const phase = determinePhase(workshop.mode, nextRoundNumber, workshop.maxRounds);
+
+    // 3. 尝试真实 LLM 调用（失败自动 fallback）
+    let roundContent: Array<Record<string, unknown>> = [];
+    const previousContent = buildPreviousContent(workshop.rounds);
+
+    try {
+      const contexts: PromptContext[] = members.map((m) => ({
+        topic,
+        domain: workshop.panel.domain || "general",
+        mode: workshop.mode,
+        phase,
+        roundNumber: nextRoundNumber,
+        maxRounds: workshop.maxRounds,
+        role: m.role,
+        specialty: m.specialty,
+        previousContent,
+      }));
+
+      const responses = await generateCollaborationResponses(
+        "workshop",
+        contexts,
+        { concurrency: 3 }
+      );
+
+      const allFailed =
+        responses.length > 0 &&
+        responses.every((r) => r.content.includes("【LLM 调用失败】"));
+
+      if (allFailed) {
+        throw new Error("All LLM calls failed (no API key or network error)");
+      }
+
+      // 根据 mode 构建 roundContent，保留原有模式结构
+      roundContent = buildRoundContentFromLLM(
+        workshop.mode,
+        members,
+        nextRoundNumber,
+        topic,
+        responses,
+        phase
+      );
+    } catch (err) {
+      console.error("[WorkshopRounds] LLM call failed, using fallback:", err);
+      roundContent = generateFallbackRoundContent(
+        workshop.mode,
+        members,
+        nextRoundNumber,
+        topic
+      );
+    }
+
+    // 4. 计算 consensusLevel（0.5 + 0.1 * roundNumber，上限 0.95）
+    const consensusLevel = Math.min(0.95, 0.5 + 0.1 * nextRoundNumber);
 
     // 5. 生成 WorkshopRound 记录
     const round = await prisma.workshopRound.create({
@@ -86,7 +134,7 @@ export async function POST(
       data: {
         currentRound: newCurrentRound,
         status: isConcluded ? "concluded" : "active",
-        // 如果已结束，同时生成 summary
+        // 如果已结束，同时生成 summary（使用 fallback 或已有结论）
         ...(isConcluded
           ? {
               consensus: `Consensus reached after ${newCurrentRound} rounds.`,
@@ -101,9 +149,6 @@ export async function POST(
       },
     });
 
-    // 重新读取 consensusLevel（数据库中为 consensusLevel 字段，但 schema 中 workshop 没有这个字段
-    // 实际上 schema 中 AcademicWorkshop 没有 consensusLevel 字段，只有 consensus 和 conclusion
-    // 我们返回 round 的 consensusLevel 作为当前共识度
     return NextResponse.json({
       success: true,
       round: {
@@ -126,8 +171,198 @@ export async function POST(
   }
 }
 
-// 根据模式生成轮次内容（模拟/计划的轮次内容，不直接调用 LLM）
-function generateRoundContent(
+// 构建前面所有 rounds 的内容摘要（用于 LLM prompt 的 previousContent）
+function buildPreviousContent(
+  rounds: Array<{ roundNumber: number; phase: string; content: string }>
+): string {
+  if (!rounds || rounds.length === 0) return "";
+
+  return rounds
+    .map((r) => {
+      let parsed;
+      try {
+        parsed = JSON.parse(r.content);
+      } catch {
+        parsed = r.content;
+      }
+      const summaries = Array.isArray(parsed)
+        ? parsed
+            .map(
+              (s: any) =>
+                `[${s.role || "member"}${s.specialty ? ` / ${s.specialty}` : ""}]: ${(s.content || "").slice(0, 300)}`
+            )
+            .join("\n")
+        : String(parsed).slice(0, 500);
+      return `--- Round ${r.roundNumber} (${r.phase}) ---\n${summaries}`;
+    })
+    .join("\n\n");
+}
+
+// 根据 LLM 响应构建 roundContent（保留原有模式结构）
+function buildRoundContentFromLLM(
+  mode: string,
+  members: Array<{
+    id: string;
+    role: string;
+    specialty: string;
+    model: string;
+  }>,
+  roundNumber: number,
+  topic: string,
+  responses: Array<{
+    content: string;
+    latencyMs: number;
+    model: string;
+    usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  }>,
+  phase: string
+): Array<Record<string, unknown>> {
+  const timestamp = new Date().toISOString();
+
+  const getLLMData = (memberId: string) => {
+    const originalIdx = members.findIndex((m) => m.id === memberId);
+    const r = responses[originalIdx];
+    const failed = !r || r.content.includes("【LLM 调用失败】");
+    return {
+      content: failed
+        ? `【模拟】${phase === "argument" ? "Argument" : phase === "rebuttal" ? "Rebuttal" : "Statement"} on "${topic}".`
+        : r.content,
+      latencyMs: failed ? 0 : r.latencyMs,
+      model: failed ? members[originalIdx].model : r.model || members[originalIdx].model,
+      usage: failed ? undefined : r.usage,
+    };
+  };
+
+  switch (mode) {
+    case "committee": {
+      const sorted = [...members].sort((a, b) => {
+        if (a.role === "chair") return -1;
+        if (b.role === "chair") return 1;
+        return 0;
+      });
+      return sorted.map((member, index) => {
+        const llm = getLLMData(member.id);
+        return {
+          memberId: member.id,
+          role: member.role,
+          specialty: member.specialty,
+          content: llm.content,
+          latencyMs: llm.latencyMs,
+          model: llm.model,
+          usage: llm.usage,
+          order: index + 1,
+          type: member.role === "chair" ? "opening_statement" : "supplement",
+          timestamp,
+        };
+      });
+    }
+
+    case "debate": {
+      const proSide = members.filter(
+        (m) => m.role === "chair" || m.role === "contributor"
+      );
+      const conSide = members.filter(
+        (m) => m.role === "reviewer" || m.role === "observer"
+      );
+      const statements: Array<Record<string, unknown>> = [];
+      let order = 1;
+
+      const maxLen = Math.max(proSide.length, conSide.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (proSide[i]) {
+          const llm = getLLMData(proSide[i].id);
+          statements.push({
+            memberId: proSide[i].id,
+            role: proSide[i].role,
+            specialty: proSide[i].specialty,
+            content: llm.content,
+            latencyMs: llm.latencyMs,
+            model: llm.model,
+            usage: llm.usage,
+            order: order++,
+            side: "pro",
+            type: roundNumber % 2 === 1 ? "argument" : "rebuttal",
+            timestamp,
+          });
+        }
+        if (conSide[i]) {
+          const llm = getLLMData(conSide[i].id);
+          statements.push({
+            memberId: conSide[i].id,
+            role: conSide[i].role,
+            specialty: conSide[i].specialty,
+            content: llm.content,
+            latencyMs: llm.latencyMs,
+            model: llm.model,
+            usage: llm.usage,
+            order: order++,
+            side: "con",
+            type: roundNumber % 2 === 1 ? "argument" : "rebuttal",
+            timestamp,
+          });
+        }
+      }
+      return statements;
+    }
+
+    case "sequential": {
+      return members.map((member, index) => {
+        const llm = getLLMData(member.id);
+        return {
+          memberId: member.id,
+          role: member.role,
+          specialty: member.specialty,
+          content: llm.content,
+          latencyMs: llm.latencyMs,
+          model: llm.model,
+          usage: llm.usage,
+          order: index + 1,
+          type: "statement",
+          timestamp,
+        };
+      });
+    }
+
+    case "parallel": {
+      return members.map((member) => {
+        const llm = getLLMData(member.id);
+        return {
+          memberId: member.id,
+          role: member.role,
+          specialty: member.specialty,
+          content: llm.content,
+          latencyMs: llm.latencyMs,
+          model: llm.model,
+          usage: llm.usage,
+          order: 1,
+          type: "parallel_statement",
+          timestamp,
+        };
+      });
+    }
+
+    default: {
+      return members.map((member, index) => {
+        const llm = getLLMData(member.id);
+        return {
+          memberId: member.id,
+          role: member.role,
+          specialty: member.specialty,
+          content: llm.content,
+          latencyMs: llm.latencyMs,
+          model: llm.model,
+          usage: llm.usage,
+          order: index + 1,
+          type: "statement",
+          timestamp,
+        };
+      });
+    }
+  }
+}
+
+// Fallback：根据模式生成模拟轮次内容（保留原有逻辑）
+function generateFallbackRoundContent(
   mode: string,
   members: Array<{
     id: string;
@@ -143,7 +378,6 @@ function generateRoundContent(
 
   switch (mode) {
     case "committee": {
-      // 主席 (chair) 首先发言，其他成员依次补充
       const sorted = [...members].sort((a, b) => {
         if (a.role === "chair") return -1;
         if (b.role === "chair") return 1;
@@ -162,13 +396,15 @@ function generateRoundContent(
     }
 
     case "debate": {
-      // 正方/反方交替发言（role=chair 为正方，role=reviewer 为反方，其余按奇偶分配）
-      const proSide = members.filter((m) => m.role === "chair" || m.role === "contributor");
-      const conSide = members.filter((m) => m.role === "reviewer" || m.role === "observer");
+      const proSide = members.filter(
+        (m) => m.role === "chair" || m.role === "contributor"
+      );
+      const conSide = members.filter(
+        (m) => m.role === "reviewer" || m.role === "observer"
+      );
       const statements: Array<Record<string, unknown>> = [];
       let order = 1;
 
-      // 交替发言，直到所有成员都发过言
       const maxLen = Math.max(proSide.length, conSide.length);
       for (let i = 0; i < maxLen; i++) {
         if (proSide[i]) {
@@ -202,7 +438,6 @@ function generateRoundContent(
     }
 
     case "sequential": {
-      // 所有成员按顺序发言（轮询）
       return members.map((member, index) => ({
         memberId: member.id,
         role: member.role,
@@ -216,13 +451,12 @@ function generateRoundContent(
     }
 
     case "parallel": {
-      // 所有成员同时发言（模拟并行，order 相同）
       return members.map((member) => ({
         memberId: member.id,
         role: member.role,
         specialty: member.specialty,
         model: member.model,
-        order: 1, // 并行：同时
+        order: 1,
         type: "parallel_statement",
         content: `Parallel contribution on "${topic}" from ${member.role} (${member.specialty || "general"}).`,
         timestamp,
@@ -230,7 +464,6 @@ function generateRoundContent(
     }
 
     default: {
-      // 默认回退到 committee 模式
       return members.map((member, index) => ({
         memberId: member.id,
         role: member.role,
@@ -277,11 +510,14 @@ function buildSummaryFromRounds(
     parts.push(`Round ${r.roundNumber} (${r.phase}): ${summary}`);
   }
 
-  // 最新一轮
-  parts.push(`Round ${existingRounds.length + 1} (latest): ${latestRoundContent.length} statements`);
+  parts.push(
+    `Round ${existingRounds.length + 1} (latest): ${latestRoundContent.length} statements`
+  );
   parts.push("");
   parts.push("=== Final Consensus ===");
-  parts.push(`All ${existingRounds.length + 1} rounds completed. Consensus formed through collaborative discussion.`);
+  parts.push(
+    `All ${existingRounds.length + 1} rounds completed. Consensus formed through collaborative discussion.`
+  );
 
   return parts.join("\n");
 }

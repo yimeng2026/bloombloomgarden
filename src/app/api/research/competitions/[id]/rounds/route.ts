@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { generateCollaborationResponses, PromptContext } from "@/lib/research-prompts";
 
 export const runtime = "nodejs";
 
@@ -53,7 +54,7 @@ export async function POST(
     const nextRoundNumber = competition.currentRound + 1;
     const roundTopic = topic?.trim() || customPrompt?.trim() || `Round ${nextRoundNumber}`;
 
-    // 2. 根据 format 生成轮次内容
+    // 2. 根据 format 生成轮次内容（模拟结构作为基础）
     const roundContent = generateRoundContent(
       competition.format,
       competition.competitors,
@@ -61,33 +62,68 @@ export async function POST(
       roundTopic
     );
 
-    // 3. 生成模拟评分（0-10 分）
-    const scores = competition.competitors.map((c) => ({
-      competitorId: c.id,
-      name: c.name,
-      score: parseFloat((5.0 + Math.random() * 5.0).toFixed(2)), // 5.0 - 10.0
-    }));
+    // 3. 尝试调用 LLM 生成真实竞赛内容和评分
+    let llmScores: Array<{ competitorId: string; name: string; score: number }> | null = null;
+    let llmContents: Array<{ competitorId: string; content: string }> | null = null;
 
-    // 4. 计算共识度（0.5 + 0.1 * roundNumber，上限 0.95）
+    try {
+      const llmResult = await generateCompetitionLLMScores(
+        competition.competitors,
+        nextRoundNumber,
+        roundTopic,
+        competition.format,
+        competition.domain
+      );
+      llmScores = llmResult.scores;
+      llmContents = llmResult.contents;
+    } catch (err) {
+      console.error("[Competition LLM] Generation failed:", err);
+      // 失败时保持 null，后续会 fallback 到模拟评分
+    }
+
+    // 4. 合并 LLM 结果到 roundContent（每个 competitor 的 LLM 内容）
+    const enrichedRoundContent = enrichRoundContentWithLLM(
+      roundContent,
+      llmContents,
+      llmScores
+    );
+
+    // 5. 最终评分（LLM 成功用 LLM 评分，否则 fallback 到随机）
+    const scores: Array<{ competitorId: string; name: string; score: number }> = [];
+    for (const c of competition.competitors) {
+      const llmScore = llmScores?.find((s) => s.competitorId === c.id);
+      if (llmScore && llmScore.score >= 0) {
+        scores.push(llmScore);
+      } else {
+        // Fallback: 随机评分
+        scores.push({
+          competitorId: c.id,
+          name: c.name,
+          score: parseFloat((5.0 + Math.random() * 5.0).toFixed(2)),
+        });
+      }
+    }
+
+    // 6. 计算共识度（0.5 + 0.1 * roundNumber，上限 0.95）
     const consensusLevel = Math.min(0.95, 0.5 + 0.1 * nextRoundNumber);
 
-    // 5. 确定 phase
+    // 7. 确定 phase
     const phase = determinePhase(nextRoundNumber, competition.maxRounds);
 
-    // 6. 创建 CompetitionRound 记录
+    // 8. 创建 CompetitionRound 记录
     const round = await prisma.competitionRound.create({
       data: {
         competitionId: id,
         roundNumber: nextRoundNumber,
         phase,
         topic: roundTopic,
-        content: JSON.stringify(roundContent),
+        content: JSON.stringify(enrichedRoundContent),
         scores: JSON.stringify(scores),
         consensusLevel,
       },
     });
 
-    // 7. 更新参赛者分数（累积平均分）
+    // 9. 更新参赛者分数（累积平均分）
     for (const s of scores) {
       const competitor = competition.competitors.find((c) => c.id === s.competitorId);
       if (competitor) {
@@ -103,12 +139,12 @@ export async function POST(
       }
     }
 
-    // 8. 处理淘汰逻辑（elimination / bracket 格式）
+    // 10. 处理淘汰逻辑（elimination / bracket 格式）
     if (competition.format === "elimination" || competition.format === "bracket") {
       await handleElimination(id, competition.format, scores, competition.competitors);
     }
 
-    // 9. 更新竞赛当前轮次和状态
+    // 11. 更新竞赛当前轮次和状态
     const isConcluded = nextRoundNumber >= competition.maxRounds;
 
     const updatedCompetition = await prisma.academicCompetition.update({
@@ -119,7 +155,7 @@ export async function POST(
       },
     });
 
-    // 10. 如果已结束，计算最终排名
+    // 12. 如果已结束，计算最终排名
     if (isConcluded) {
       await calculateFinalRankings(id);
     }
@@ -128,7 +164,7 @@ export async function POST(
       success: true,
       round: {
         ...round,
-        content: roundContent,
+        content: enrichedRoundContent,
         scores,
       },
       competition: {
@@ -137,6 +173,7 @@ export async function POST(
         status: updatedCompetition.status,
         consensusLevel,
       },
+      llmEnabled: llmScores !== null,
     });
   } catch (error) {
     console.error("[POST /api/research/competitions/[id]/rounds] error:", error);
@@ -177,7 +214,206 @@ export async function GET(
   }
 }
 
-// 根据 format 生成轮次内容（模拟数据，不直接调用 LLM）
+// ─── LLM 集成辅助函数 ───
+
+/** 从 LLM 响应中解析评分（0-10） */
+function parseScoreFromLLMResponse(content: string): number | null {
+  const patterns = [
+    /评分[:\s]*([\d.]+)/i,
+    /score[:\s]*([\d.]+)/i,
+    /总分[:\s]*([\d.]+)/i,
+    /([\d.]+)\s*\/\s*10/,
+    /(\d+(?:\.\d+)?)\s*分/,
+    /(\d+(?:\.\d+)?)\s*points?/i,
+    /(?:评分|score|总分)[^\d]*(\d+(?:\.\d+)?)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = content.match(pattern);
+    if (match) {
+      const score = parseFloat(match[1]);
+      if (!isNaN(score)) {
+        // 如果是 0-100 百分制，转换为 0-10
+        if (score > 10 && score <= 100) return Math.min(10, score / 10);
+        if (score >= 0 && score <= 10) return score;
+      }
+    }
+  }
+  return null;
+}
+
+/** 基于内容质量估算评分（LLM 未给出明确评分时的 fallback） */
+function estimateScoreFromContent(content: string): number {
+  const len = content.length;
+  let score = 5.0;
+
+  // 长度加分
+  if (len > 2000) score += 2.0;
+  else if (len > 1000) score += 1.5;
+  else if (len > 500) score += 1.0;
+  else if (len > 200) score += 0.5;
+
+  // 学术关键词加分
+  const keywords = [
+    "证明", "定理", "推导", "Lean", "结论", "分析", "insight",
+    "proof", "theorem", "derivation", "formalization", "lemma",
+    "corollary", "proposition", "strategy", "methodology",
+  ];
+  for (const kw of keywords) {
+    if (content.toLowerCase().includes(kw.toLowerCase())) {
+      score += 0.3;
+    }
+  }
+
+  // 随机波动
+  score += Math.random() * 1.0;
+
+  return Math.min(10, Math.max(5, score));
+}
+
+/** 批量调用 LLM 为每个参赛者生成竞赛内容并评分 */
+async function generateCompetitionLLMScores(
+  competitors: Array<{
+    id: string;
+    name: string;
+    specialty: string;
+    role: string;
+    systemPrompt: string;
+    model: string;
+  }>,
+  roundNumber: number,
+  topic: string,
+  format: string,
+  domain: string
+): Promise<{
+  contents: Array<{ competitorId: string; content: string }>;
+  scores: Array<{ competitorId: string; name: string; score: number }>;
+}> {
+  const otherCompetitors = competitors.map((c) => ({
+    name: c.name,
+    specialty: c.specialty,
+  }));
+
+  const contexts: PromptContext[] = competitors.map((c) => ({
+    topic,
+    domain: domain || "general",
+    mode: format,
+    role: c.role,
+    specialty: c.specialty,
+    roundNumber,
+    competitors: otherCompetitors.filter((x) => x.name !== c.name),
+  }));
+
+  const responses = await generateCollaborationResponses("competition", contexts, {
+    concurrency: 3,
+  });
+
+  const contents: Array<{ competitorId: string; content: string }> = [];
+  const scores: Array<{ competitorId: string; name: string; score: number }> = [];
+
+  for (let i = 0; i < competitors.length; i++) {
+    const c = competitors[i];
+    const resp = responses[i];
+    const content = resp?.content?.trim() || "";
+
+    // 检测 LLM 调用失败
+    if (!content || content.includes("【LLM 调用失败】")) {
+      contents.push({ competitorId: c.id, content: "" });
+      scores.push({ competitorId: c.id, name: c.name, score: -1 }); // -1 表示失败
+      continue;
+    }
+
+    // 解析评分
+    let score = parseScoreFromLLMResponse(content);
+    if (score === null) {
+      // 基于内容质量估算
+      score = estimateScoreFromContent(content);
+    }
+
+    contents.push({ competitorId: c.id, content });
+    scores.push({ competitorId: c.id, name: c.name, score: parseFloat(score.toFixed(2)) });
+  }
+
+  return { contents, scores };
+}
+
+/** 将 LLM 内容合并到 roundContent 中 */
+function enrichRoundContentWithLLM(
+  roundContent: Array<Record<string, unknown>>,
+  llmContents: Array<{ competitorId: string; content: string }> | null,
+  llmScores: Array<{ competitorId: string; name: string; score: number }> | null
+): Array<Record<string, unknown>> {
+  if (!llmContents || llmContents.length === 0) {
+    return roundContent;
+  }
+
+  const enriched = roundContent.map((item) => {
+    const newItem = { ...item };
+
+    // 处理 competitorId 类型的条目（elimination, default, round_robin 的 reviewer）
+    const cid = (item as any).competitorId || (item as any).reviewerId;
+    if (cid) {
+      const llm = llmContents.find((lc) => lc.competitorId === cid);
+      if (llm?.content) {
+        (newItem as any).llmContent = llm.content;
+        const scoreEntry = llmScores?.find((s) => s.competitorId === cid);
+        if (scoreEntry && scoreEntry.score >= 0) {
+          (newItem as any).llmScore = scoreEntry.score;
+        }
+      }
+    }
+
+    // 处理 tournament / bracket 的 competitorA / competitorB
+    const compA = (item as any).competitorA;
+    const compB = (item as any).competitorB;
+    if (compA?.id) {
+      const llmA = llmContents.find((lc) => lc.competitorId === compA.id);
+      if (llmA?.content) {
+        (newItem as any).llmContentA = llmA.content;
+        const scoreA = llmScores?.find((s) => s.competitorId === compA.id);
+        if (scoreA && scoreA.score >= 0) {
+          (newItem as any).llmScoreA = scoreA.score;
+        }
+      }
+    }
+    if (compB?.id) {
+      const llmB = llmContents.find((lc) => lc.competitorId === compB.id);
+      if (llmB?.content) {
+        (newItem as any).llmContentB = llmB.content;
+        const scoreB = llmScores?.find((s) => s.competitorId === compB.id);
+        if (scoreB && scoreB.score >= 0) {
+          (newItem as any).llmScoreB = scoreB.score;
+        }
+      }
+    }
+
+    return newItem;
+  });
+
+  // 追加一个 competitorResponses 汇总条目
+  const competitorResponses = llmContents
+    .filter((lc) => lc.content)
+    .map((lc) => {
+      const scoreEntry = llmScores?.find((s) => s.competitorId === lc.competitorId);
+      return {
+        competitorId: lc.competitorId,
+        content: lc.content,
+        score: scoreEntry && scoreEntry.score >= 0 ? scoreEntry.score : null,
+      };
+    });
+
+  if (competitorResponses.length > 0) {
+    enriched.push({
+      type: "llm_competitor_responses",
+      competitorResponses,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  return enriched;
+}
+
+// 根据 format 生成轮次内容（模拟结构，作为 fallback 基础）
 function generateRoundContent(
   format: string,
   competitors: Array<{
