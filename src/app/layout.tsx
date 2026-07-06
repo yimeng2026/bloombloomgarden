@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BloomBloomGarden - AI Agent 平台",
-  description: "创建和管理你的 AI Agent，开启智能对话",
+  title: "BloomBloomGarden - AI Agent & 学术研究平台",
+  description: "创建和管理你的 AI Agent，开启智能对话与学术研究",
 };
 
 export default function RootLayout({
@@ -27,6 +27,9 @@ export default function RootLayout({
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="stylesheet" href="/tailwind.css" />
+      </head>
       <body className="min-h-full flex flex-col bg-gray-50">{children}</body>
     </html>
   );

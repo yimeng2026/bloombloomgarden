@@ -25,10 +25,69 @@ check_*.js
 .idea/
 .DS_Store
 
-# 前端构建缓存（不需要重复推送）
+# 前端构建缓存
 frontend/.vite/
 frontend/dev.log
 frontend/frontend.log
 frontend/preview.log
 frontend/vite.log
 frontend/dist/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-debug.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
+
+# skills - 不需要部署到生产环境
+/skills/
+
+# 临时文件
+/tool-results/
+/upload/
+/download/
+
+# 数据库
+/db/*.db
+dev.db
+
+# 日志文件
+*.log
+dev-*.log
+start*.log
+
+# 计划文件（构建后清理）
+plan.md
+plan-ontology.md
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
+

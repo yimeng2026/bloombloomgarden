@@ -199,3 +199,17 @@ export function getLLMProviderById(id: string): LLMProvider | undefined {
 export function getAgentRoleById(id: string): AgentRole | undefined {
   return AGENT_ROLES.find((r) => r.id === id);
 }
+
+/** 获取平台信息（用于 UI 展示，不需要实例化适配器） */
+export function getPlatformInfo(platformId: string): { id: string; name: string; logo: string; statusLine: string } {
+  const platform = AGENT_PLATFORMS.find(p => p.id === platformId);
+  if (platform) {
+    return { id: platform.id, name: platform.name, logo: platform.logo, statusLine: `${platform.logo} ${platform.name} 运行中` };
+  }
+  return { id: platformId, name: platformId, logo: "⚡", statusLine: "⚡ 直接调用 LLM API" };
+}
+
+/** 获取所有平台信息 */
+export function getAllPlatformInfos(): { id: string; name: string; logo: string; statusLine: string }[] {
+  return AGENT_PLATFORMS.map(p => ({ id: p.id, name: p.name, logo: p.logo, statusLine: `${p.logo} ${p.name} 运行中` }));
+}
