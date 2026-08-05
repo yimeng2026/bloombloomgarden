@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getKimiGateway } from "@/lib/kimi-gateway";
 
 // ===================== 本地存储 Agent 策略 =====================
 // Vercel 上 Prisma 是只读的，所以我们用 "虚拟 Agent" 模式：
@@ -25,7 +26,12 @@ const LLM_ENDPOINTS: Record<string, string> = {
 };
 
 async function validateApiKey(provider: string, apiKey: string, model: string): Promise<{ ok: boolean; error?: string }> {
-  const endpoint = LLM_ENDPOINTS[provider];
+  // 救援通道：Kimi 网关环境变量可用时，用网关做真实校验（GLM Key 已失效）
+  const kimi = getKimiGateway();
+  const endpoint = kimi ? kimi.chatUrl : LLM_ENDPOINTS[provider];
+  const effectiveKey = kimi ? kimi.apiKey : apiKey;
+  const effectiveModel = kimi ? kimi.model : model;
+  const effectiveTemperature = kimi ? 1 : 0.7; // Kimi 网关仅允许 temperature=1
   if (!endpoint) return { ok: false, error: `不支持的 LLM 供应商: ${provider}` };
 
   try {
@@ -33,18 +39,18 @@ async function validateApiKey(provider: string, apiKey: string, model: string): 
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        ...(provider === "anthropic"
-          ? { "x-api-key": apiKey, "anthropic-version": "2023-06-01" }
+        Authorization: `Bearer ${effectiveKey}`,
+        ...(!kimi && provider === "anthropic"
+          ? { "x-api-key": effectiveKey, "anthropic-version": "2023-06-01" }
           : {}),
-        ...(provider === "openrouter"
+        ...(!kimi && provider === "openrouter"
           ? { "HTTP-Referer": "https://bloombloomgarden.vercel.app", "X-Title": "BloomBloomGarden" }
           : {}),
       },
       body: JSON.stringify({
-        model,
+        model: effectiveModel,
         messages: [{ role: "user", content: "hi" }],
-        temperature: 0.7,
+        temperature: effectiveTemperature,
         stream: false,
         max_tokens: 5,
       }),

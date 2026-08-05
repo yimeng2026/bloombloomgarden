@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getKimiGateway } from "./kimi-gateway";
 
 // ===================== LLM 端点 =====================
 const LLM_ENDPOINTS: Record<string, string> = {
@@ -19,35 +20,16 @@ const LLM_ENDPOINTS: Record<string, string> = {
 };
 
 // ===================== LLM 调用 =====================
-export async function callLLM(
+/** 单次非流式调用，返回 content 文本 */
+async function postChat(
+  endpoint: string,
+  apiKey: string,
+  model: string,
   messages: { role: string; content: string }[],
-  options?: {
-    provider?: string;
-    apiKey?: string;
-    model?: string;
-    temperature?: number;
-    max_tokens?: number;
-  }
+  temperature: number,
+  max_tokens: number,
+  provider: string
 ): Promise<string> {
-  const provider =
-    options?.provider ||
-    process.env.GRAPHRAG_LLM_PROVIDER ||
-    "zhipu";
-  const apiKey =
-    options?.apiKey ||
-    process.env.GRAPHRAG_LLM_API_KEY ||
-    process.env.ZHIPU_API_KEY ||
-    "";
-  const model =
-    options?.model ||
-    process.env.GRAPHRAG_LLM_MODEL ||
-    "glm-5.1";
-  const temperature = options?.temperature ?? 0.3;
-  const max_tokens = options?.max_tokens ?? 4096;
-
-  const endpoint = LLM_ENDPOINTS[provider];
-  if (!endpoint) throw new Error(`不支持的 LLM 供应商: ${provider}`);
-
   const resp = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -78,7 +60,53 @@ export async function callLLM(
   }
 
   const data = await resp.json();
-  return data.choices?.[0]?.message?.content || "";
+  const msg = data.choices?.[0]?.message || {};
+  // Kimi 网关响应含 reasoning_content 字段
+  return msg.content || msg.reasoning_content || "";
+}
+
+export async function callLLM(
+  messages: { role: string; content: string }[],
+  options?: {
+    provider?: string;
+    apiKey?: string;
+    model?: string;
+    temperature?: number;
+    max_tokens?: number;
+  }
+): Promise<string> {
+  const max_tokens = options?.max_tokens ?? 4096;
+
+  // 救援通道：Kimi 网关环境变量可用时优先（GLM Key 已失效）
+  const kimi = getKimiGateway();
+  if (kimi) {
+    try {
+      // 网关仅允许 temperature=1，model 固定 kimi-for-coding
+      return await postChat(kimi.chatUrl, kimi.apiKey, kimi.model, messages, 1, max_tokens, "kimi");
+    } catch (e) {
+      console.warn(`[GraphRAG] Kimi 网关调用失败，回退到 legacy provider: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
+  const provider =
+    options?.provider ||
+    process.env.GRAPHRAG_LLM_PROVIDER ||
+    "zhipu";
+  const apiKey =
+    options?.apiKey ||
+    process.env.GRAPHRAG_LLM_API_KEY ||
+    process.env.ZHIPU_API_KEY ||
+    "";
+  const model =
+    options?.model ||
+    process.env.GRAPHRAG_LLM_MODEL ||
+    "glm-5.1";
+  const temperature = options?.temperature ?? 0.3;
+
+  const endpoint = LLM_ENDPOINTS[provider];
+  if (!endpoint) throw new Error(`不支持的 LLM 供应商: ${provider}`);
+
+  return postChat(endpoint, apiKey, model, messages, temperature, max_tokens, provider);
 }
 
 // ===================== 类型 =====================

@@ -5,6 +5,7 @@
 
 import { AGENT_PLATFORMS, type AgentPlatform } from "./platforms";
 import { DifyApiClient, CozeApiClient } from "./platform-api";
+import { getKimiGateway } from "./kimi-gateway";
 
 // ===================== 类型定义 =====================
 
@@ -93,25 +94,32 @@ async function* callLLMStream(
   messages: ChatMessage[],
   temperature: number,
 ): AsyncGenerator<string> {
-  const endpoint = LLM_ENDPOINTS[provider];
+  // 救援通道：Kimi 网关环境变量可用时优先使用（数据库中存储的 GLM Key 已失效）
+  const kimi = getKimiGateway();
+  const useKimi = kimi !== null;
+  const endpoint = useKimi ? kimi.chatUrl : LLM_ENDPOINTS[provider];
+  const effectiveKey = useKimi ? kimi.apiKey : apiKey;
+  const effectiveModel = useKimi ? kimi.model : model;
+  // Kimi 网关仅允许 temperature=1，传其他值会 400
+  const effectiveTemperature = useKimi ? 1 : temperature;
   if (!endpoint) throw new Error(`不支持的 LLM 供应商: ${provider}`);
 
   const resp = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-      ...(provider === "anthropic"
-        ? { "x-api-key": apiKey, "anthropic-version": "2023-06-01" }
+      Authorization: `Bearer ${effectiveKey}`,
+      ...(!useKimi && provider === "anthropic"
+        ? { "x-api-key": effectiveKey, "anthropic-version": "2023-06-01" }
         : {}),
-      ...(provider === "openrouter"
+      ...(!useKimi && provider === "openrouter"
         ? { "HTTP-Referer": "https://bloombloomgarden.vercel.app", "X-Title": "BloomBloomGarden" }
         : {}),
     },
     body: JSON.stringify({
-      model,
+      model: effectiveModel,
       messages,
-      temperature,
+      temperature: effectiveTemperature,
       max_tokens: 4096,
       stream: true,
     }),
@@ -134,12 +142,15 @@ async function* callLLMStream(
     buffer += decoder.decode(value, { stream: true });
 
     for (const line of buffer.split("\n")) {
-      if (line.startsWith("data: ")) {
-        const dataStr = line.slice(6).trim();
+      // Kimi 网关 SSE 格式为 "data:{...}"（无空格），标准 OpenAI 为 "data: {...}"，两者都兼容
+      const trimmed = line.trim();
+      if (trimmed.startsWith("data:")) {
+        const dataStr = trimmed.slice(5).trim();
         if (dataStr === "[DONE]") return;
+        if (!dataStr) continue;
         try {
           const data = JSON.parse(dataStr);
-          // OpenAI 兼容格式
+          // OpenAI 兼容格式（Kimi 网关的 thinking 走 delta.reasoning_content，不作为正文输出）
           const delta = data.choices?.[0]?.delta?.content;
           if (delta) yield delta;
           // Anthropic 格式
