@@ -5,7 +5,7 @@
  * 所有 prompt 针对学术研究场景优化，使用中文（适合 GLM-5.1）。
  */
 
-import { researchChat, ResearchLLMResponse } from "./research-llm";
+import { researchChat, ResearchLLMResponse, DEFAULT_MAX_TOKENS } from "./research-llm";
 
 // ─── 类型定义 ───
 
@@ -481,7 +481,7 @@ export async function generateCollaborationResponse(
     userPrompt,
     model: options?.model || "glm-5.1",
     temperature: options?.temperature ?? 0.3,
-    maxTokens: options?.maxTokens || 4096,
+    maxTokens: options?.maxTokens || DEFAULT_MAX_TOKENS,
     provider: options?.provider || "zhipu",
   });
 }
@@ -502,7 +502,7 @@ export async function generateCollaborationResponses(
       userPrompt: template.buildUserPrompt(ctx),
       model: options?.model || "glm-5.1",
       temperature: options?.temperature ?? 0.3,
-      maxTokens: options?.maxTokens || 4096,
+      maxTokens: options?.maxTokens || DEFAULT_MAX_TOKENS,
       provider: options?.provider || "zhipu",
     };
   });

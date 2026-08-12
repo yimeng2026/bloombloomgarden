@@ -15,7 +15,7 @@ export interface ResearchLLMRequest {
   userPrompt: string;
   model?: string;           // default: "glm-5.1"
   temperature?: number;     // default: 0.3（学术任务需要低温度）
-  maxTokens?: number;       // default: 4096
+  maxTokens?: number;       // default: 12288（Kimi 网关实测 max_tokens=32768 仍 200；reasoning_tokens 与正文共享该预算，4096 会导致评议正文被推理挤占截断）
   provider?: "zhipu" | "kimi"; // default: "zhipu"
 }
 
@@ -91,6 +91,16 @@ function resolveCandidates(req: ResearchLLMRequest): LLMCandidate[] {
   return list;
 }
 
+/**
+ * 默认 max_tokens 上限。
+ * 实测（2025，agent-gw.kimi.com/coding/v1/chat/completions）：
+ *   - max_tokens=12288 / 16384 / 32768 均 HTTP 200，网关不限制该字段；
+ *   - 返回 usage.completion_tokens_details.reasoning_tokens，证明推理与正文共享 max_tokens 预算。
+ * 4096 时复杂评议提示的 reasoning 可吃掉过半预算，正文被截断（曾观测仅剩 2583 字符）。
+ * 取 12288 作为安全默认：为 reasoning 预留充足空间，同时远低于网关实测上限。
+ */
+export const DEFAULT_MAX_TOKENS = 12288;
+
 /** 带重试的 LLM 调用（Kimi 网关优先，GLM fallback） */
 export async function researchChat(
   req: ResearchLLMRequest,
@@ -98,7 +108,7 @@ export async function researchChat(
 ): Promise<ResearchLLMResponse> {
   const maxRetries = options?.maxRetries ?? 2;
   const baseDelayMs = options?.baseDelayMs ?? 1000;
-  const maxTokens = req.maxTokens ?? 4096;
+  const maxTokens = req.maxTokens ?? DEFAULT_MAX_TOKENS;
 
   const messages: Array<{ role: string; content: string }> = [];
   if (req.systemPrompt) {
@@ -157,8 +167,12 @@ export async function researchChat(
 
         const choice = data.choices?.[0];
         const message = choice?.message || {};
-        // Kimi 网关响应含 reasoning_content 字段
-        const content = message.content || message.reasoning_content || message.reasoning || "";
+        // Kimi 网关（推理型）响应中正文与思考过程分字段返回：
+        //   message.content           —— 正式回答（展示/存档只能用这个字段）
+        //   message.reasoning_content —— 思考过程（独立保存于 reasoning，绝不拼进 content）
+        // 注意：content 不得回退到 reasoning_content —— 截断时 content 可能为空，
+        // 若回退会把思考过程当作正文展示/存档，造成"输出看起来像被截断/错乱"的假象。
+        const content = message.content ?? "";
         const reasoning = message.reasoning_content || message.reasoning || "";
 
         if (cand.provider !== candidates[0]?.provider || candidates.length > 1) {
