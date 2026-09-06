@@ -9,6 +9,7 @@
  */
 
 import { getKimiGateway } from "./kimi-gateway";
+import { poolChat, getPool } from "./provider-pool";
 
 export interface ResearchLLMRequest {
   systemPrompt?: string;
@@ -17,6 +18,9 @@ export interface ResearchLLMRequest {
   temperature?: number;     // default: 0.3（学术任务需要低温度）
   maxTokens?: number;       // default: 12288（Kimi 网关实测 max_tokens=32768 仍 200；reasoning_tokens 与正文共享该预算，4096 会导致评议正文被推理挤占截断）
   provider?: "zhipu" | "kimi"; // default: "zhipu"
+  /** 思考强度开关：kimi 网关实测 reasoning_effort=none 可将 2k 字符学术段延迟大降（reasoning_tokens 54→18）。
+   *  深筛流水线建议显式传 "none"；需要深思的评议任务传 "low"/"medium"。 */
+  reasoningEffort?: "none" | "low" | "medium" | "high";
 }
 
 export interface ResearchLLMResponse {
@@ -101,14 +105,42 @@ function resolveCandidates(req: ResearchLLMRequest): LLMCandidate[] {
  */
 export const DEFAULT_MAX_TOKENS = 12288;
 
-/** 带重试的 LLM 调用（Kimi 网关优先，GLM fallback） */
+/** 带重试的 LLM 调用（ProviderPool 集群优先：kimi 网关 → GLM → Moonshot；池空时走旧候选逻辑） */
 export async function researchChat(
   req: ResearchLLMRequest,
   options?: { maxRetries?: number; baseDelayMs?: number }
 ): Promise<ResearchLLMResponse> {
+  const maxTokens = req.maxTokens ?? DEFAULT_MAX_TOKENS;
+
+  // ===== 优先走 ProviderPool（多 key 集群 + 熔断 + 并发闸 + reasoningEffort） =====
+  if (getPool().length > 0) {
+    const providerId = req.provider === "kimi" ? "kimi-gateway" : undefined;
+    const r = await poolChat(
+      {
+        systemPrompt: req.systemPrompt,
+        userPrompt: req.userPrompt,
+        model: req.model,
+        temperature: req.temperature,
+        maxTokens,
+        reasoningEffort: req.reasoningEffort,
+        providerId,
+      },
+      { maxProviders: req.provider === "kimi" ? 1 : undefined },
+    );
+    return {
+      content: r.content,
+      reasoning: r.reasoning,
+      usage: r.usage,
+      model: r.model,
+      provider: r.provider,
+      latencyMs: r.latencyMs,
+      finishReason: r.finishReason,
+    };
+  }
+
+  // ===== 旧候选逻辑兜底（池为空时，理论不可达） =====
   const maxRetries = options?.maxRetries ?? 2;
   const baseDelayMs = options?.baseDelayMs ?? 1000;
-  const maxTokens = req.maxTokens ?? DEFAULT_MAX_TOKENS;
 
   const messages: Array<{ role: string; content: string }> = [];
   if (req.systemPrompt) {

@@ -120,8 +120,12 @@ async function* callLLMStream(
       model: effectiveModel,
       messages,
       temperature: effectiveTemperature,
-      max_tokens: 4096,
+      max_tokens: 12288,
       stream: true,
+      // 深筛提速：Kimi 网关实测 reasoning_effort=none 可关思考（env 缺省时不传该字段，行为不变）
+      ...(useKimi && process.env.KIMI_REASONING_EFFORT
+        ? { reasoning_effort: process.env.KIMI_REASONING_EFFORT }
+        : {}),
     }),
   });
 

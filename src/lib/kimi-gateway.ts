@@ -38,10 +38,13 @@ export function getKimiGateway(): KimiGatewayConfig | null {
   const rawBase = process.env.KIMI_BASE_URL?.trim();
   if (!apiKey || !rawBase) return null;
   const baseUrl = rawBase.replace(/\/+$/, "");
+  // 防双重 /v1：base 可能已带 /v1（如 https://agent-gw.kimi.com/coding/v1），
+  // 实测 `${base}/v1/chat/completions` 在已带 /v1 时返回 404。
+  const v1Base = /\/v1$/i.test(baseUrl) ? baseUrl : `${baseUrl}/v1`;
   return {
     apiKey,
     baseUrl,
-    chatUrl: `${baseUrl}/v1/chat/completions`,
+    chatUrl: `${v1Base}/chat/completions`,
     model: KIMI_GATEWAY_MODEL,
     temperature: 1,
   };
