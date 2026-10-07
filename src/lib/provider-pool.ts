@@ -20,6 +20,14 @@ import { getKimiGateway } from "./kimi-gateway";
 
 // ===================== 类型 =====================
 
+/** U/D/A/H 场域健康监控：滑动窗口事件（异常分类用于 A 指标） */
+export interface UDAHEvent {
+  t: number;
+  ok: boolean;
+  /** 异常种类：429 限流 / auth 鉴权 / timeout 超时 / net 网络 / 5xx 服务端 / empty 空回复 / other */
+  anomaly?: "429" | "auth" | "timeout" | "net" | "5xx" | "empty" | "other";
+}
+
 export interface PoolKeySlot {
   /** 唯一标识：providerId:envName[#idx] */
   id: string;
@@ -38,6 +46,10 @@ export interface PoolKeySlot {
   lastLatencyMs: number;
   lastError?: string;
   lastOkAt?: number;
+  /** 熔断跳闸累计次数（healthy 被翻转为 false 的次数，A 指标成分） */
+  cbTrips: number;
+  /** 滑动窗口事件流（U/D/A/H 计算原料，按 UDAH_WINDOW_MS 剪枝） */
+  events: UDAHEvent[];
 }
 
 export interface PoolProvider {
@@ -98,6 +110,8 @@ function makeKey(providerId: string, envName: string, apiKey: string): PoolKeySl
     totalCalls: 0,
     totalLatencyMs: 0,
     lastLatencyMs: 0,
+    cbTrips: 0,
+    events: [],
   };
 }
 
@@ -237,6 +251,147 @@ export function reloadPool(): PoolProvider[] {
   return g[GLOBAL_KEY]!.providers;
 }
 
+// ===================== U/D/A/H 场域健康监控 =====================
+//
+// 借鉴李广好"场域健康 H = λᵤU + λᴅD − λₐA + 温度动力学"的架构思想，
+// 但全部指标用工程化重定义（不照搬其神秘化部分）：
+//   U (Uptime/健康度)：各 provider/key 的成功率滑动窗口；
+//   D (Demand/负载)：inflight 总数相对有效并发容量的归一化占用；
+//   A (Anomalies/异常)：滑动窗口内异常事件率——429/auth/timeout/net/5xx
+//     分类计数 + 空回复率（深筛遇到的空 SSE 故障归此指标）+ 熔断跳闸累计；
+//   H = λᵤ·U + λᴅ·D_norm − λₐ·A_norm（系数环境变量可配置）。
+// 温度动力学 dτ/dt：H 低于收紧阈值时 per-key 并发闸收紧一档（带迟滞恢复）。
+
+const UDAH = {
+  lambdaU: Number(process.env.UDAH_LAMBDA_U ?? 0.6),
+  lambdaD: Number(process.env.UDAH_LAMBDA_D ?? 0.2),
+  lambdaA: Number(process.env.UDAH_LAMBDA_A ?? 0.4),
+  windowMs: Number(process.env.UDAH_WINDOW_MS ?? 10 * 60 * 1000),
+  /** H 低于此值 → 并发闸收紧一档 */
+  tightenBelow: Number(process.env.UDAH_H_TIGHTEN ?? 0.45),
+  /** H 回升至此值以上 → 解除收紧（迟滞带防抖动） */
+  restoreAbove: Number(process.env.UDAH_H_RESTORE ?? 0.55),
+};
+
+interface UdahState {
+  H: number;
+  throttled: boolean;
+  updatedAt: number;
+}
+
+const UDAH_GLOBAL_KEY = "__BBG_UDAH_STATE__";
+
+function getUdahState(): UdahState {
+  const g = globalThis as unknown as Record<string, UdahState | undefined>;
+  if (!g[UDAH_GLOBAL_KEY]) {
+    g[UDAH_GLOBAL_KEY] = { H: 1, throttled: false, updatedAt: 0 };
+  }
+  return g[UDAH_GLOBAL_KEY]!;
+}
+
+export interface FieldHealth {
+  /** U：滑动窗口成功率（无窗口事件时回退为健康 key 占比） */
+  U: number;
+  /** D_norm：负载归一化 = inflight 总数 / 有效并发容量 */
+  D_norm: number;
+  /** A_norm：滑动窗口异常事件率（含空回复） */
+  A_norm: number;
+  /** H = λᵤ·U + λᴅ·D_norm − λₐ·A_norm */
+  H: number;
+  lambda: { u: number; d: number; a: number };
+  windowMs: number;
+  /** 温度动力学：当前是否处于收紧档 */
+  throttled: boolean;
+  tightenBelow: number;
+  restoreAbove: number;
+  totals: {
+    windowCalls: number;
+    windowFailures: number;
+    windowAnomalies: number;
+    emptyReplies: number;
+    cbTrips: number;
+    inflight: number;
+    capacity: number;
+  };
+  updatedAt: number;
+}
+
+/** 计算场域健康并推进温度动力学状态机（迟滞：低于 tightenBelow 收紧，高于 restoreAbove 解除） */
+export function computeFieldHealth(): FieldHealth {
+  const pool = getPool();
+  const state = getUdahState();
+  const cutoff = now() - UDAH.windowMs;
+
+  let windowCalls = 0, windowOk = 0, windowAnomalies = 0, emptyReplies = 0, cbTrips = 0;
+  let inflight = 0, capacity = 0, healthyKeys = 0, totalKeys = 0;
+
+  for (const p of pool) {
+    const eff = getEffectiveMaxConcurrency(p);
+    for (const k of p.keys) {
+      totalKeys += 1;
+      if (k.healthy && k.cooldownUntil <= now()) healthyKeys += 1;
+      inflight += k.inflight;
+      capacity += eff;
+      cbTrips += k.cbTrips;
+      if (k.events.length > 0 && k.events[0].t < cutoff) {
+        k.events = k.events.filter((e) => e.t >= cutoff);
+      }
+      for (const e of k.events) {
+        windowCalls += 1;
+        if (e.ok) windowOk += 1;
+        if (e.anomaly) {
+          windowAnomalies += 1;
+          if (e.anomaly === "empty") emptyReplies += 1;
+        }
+      }
+    }
+  }
+
+  const U = windowCalls > 0 ? windowOk / windowCalls : totalKeys > 0 ? healthyKeys / totalKeys : 1;
+  const D_norm = capacity > 0 ? inflight / capacity : 0;
+  const A_norm = windowCalls > 0 ? windowAnomalies / windowCalls : 0;
+  const H = UDAH.lambdaU * U + UDAH.lambdaD * D_norm - UDAH.lambdaA * A_norm;
+
+  // 温度动力学 dτ/dt：H 下降低于阈值 → 收紧；回升过迟滞带 → 解除
+  if (!state.throttled && H < UDAH.tightenBelow) state.throttled = true;
+  else if (state.throttled && H >= UDAH.restoreAbove) state.throttled = false;
+  state.H = H;
+  state.updatedAt = now();
+
+  return {
+    U: Math.round(U * 1000) / 1000,
+    D_norm: Math.round(D_norm * 1000) / 1000,
+    A_norm: Math.round(A_norm * 1000) / 1000,
+    H: Math.round(H * 1000) / 1000,
+    lambda: { u: UDAH.lambdaU, d: UDAH.lambdaD, a: UDAH.lambdaA },
+    windowMs: UDAH.windowMs,
+    throttled: state.throttled,
+    tightenBelow: UDAH.tightenBelow,
+    restoreAbove: UDAH.restoreAbove,
+    totals: {
+      windowCalls,
+      windowFailures: windowCalls - windowOk,
+      windowAnomalies,
+      emptyReplies,
+      cbTrips,
+      inflight,
+      capacity,
+    },
+    updatedAt: state.updatedAt,
+  };
+}
+
+/** 状态端点用：读取场域健康（即算即得） */
+export function getFieldHealth(): FieldHealth {
+  return computeFieldHealth();
+}
+
+/** 温度动力学输出：当前生效的 per-key 并发上限（收紧档 = 基准 − 1，下限 1） */
+export function getEffectiveMaxConcurrency(p: PoolProvider): number {
+  const s = getUdahState();
+  return Math.max(1, p.maxConcurrencyPerKey - (s.throttled ? 1 : 0));
+}
+
 // ===================== 调度与熔断 =====================
 
 const now = () => Date.now();
@@ -247,15 +402,25 @@ function keyAvailable(k: PoolKeySlot, maxConc: number): boolean {
   return k.inflight < maxConc;
 }
 
-/** 健康 key 中挑 inflight 最少、失败最少的（加权轮询的确定性变体） */
+/** 健康 key 中挑 inflight 最少、失败最少的（加权轮询的确定性变体）；并发闸用温度动力学有效上限 */
 function pickKey(p: PoolProvider): PoolKeySlot | null {
-  const avail = p.keys.filter((k) => keyAvailable(k, p.maxConcurrencyPerKey));
+  computeFieldHealth(); // 推进 dτ/dt 状态机（O(keys×窗口)，开销可忽略）
+  const eff = getEffectiveMaxConcurrency(p);
+  const avail = p.keys.filter((k) => keyAvailable(k, eff));
   if (avail.length === 0) return null;
   avail.sort((a, b) => a.inflight - b.inflight || a.failCount - b.failCount || a.totalCalls - b.totalCalls);
   return avail[0];
 }
 
-function markSuccess(k: PoolKeySlot, latencyMs: number): void {
+function recordEvent(k: PoolKeySlot, ok: boolean, anomaly?: UDAHEvent["anomaly"]): void {
+  k.events.push({ t: now(), ok, anomaly });
+  const cutoff = now() - UDAH.windowMs;
+  if (k.events.length > 500 || (k.events.length > 0 && k.events[0].t < cutoff)) {
+    k.events = k.events.filter((e) => e.t >= cutoff);
+  }
+}
+
+function markSuccess(k: PoolKeySlot, latencyMs: number, anomaly?: UDAHEvent["anomaly"]): void {
   k.inflight = Math.max(0, k.inflight - 1);
   k.healthy = true;
   k.failCount = 0;
@@ -265,6 +430,7 @@ function markSuccess(k: PoolKeySlot, latencyMs: number): void {
   k.lastLatencyMs = latencyMs;
   k.lastOkAt = now();
   k.lastError = undefined;
+  recordEvent(k, true, anomaly);
 }
 
 function markFailure(k: PoolKeySlot, status: number | null, errMsg: string): void {
@@ -272,6 +438,14 @@ function markFailure(k: PoolKeySlot, status: number | null, errMsg: string): voi
   k.failCount += 1;
   k.totalCalls += 1;
   k.lastError = `${status ?? "net"}: ${errMsg.slice(0, 120)}`;
+  // U/D/A/H 异常分类：空回复在 markSuccess 路径记录，此处覆盖失败类异常
+  const anomaly: UDAHEvent["anomaly"] =
+    status === 429 ? "429"
+    : status === 401 || status === 403 ? "auth"
+    : status !== null && status >= 500 ? "5xx"
+    : /abort|timeout|timed?\s*out/i.test(errMsg) ? "timeout"
+    : status !== null ? "other" : "net";
+  recordEvent(k, false, anomaly);
   // 熔断冷却：401 长冷却（10min，鉴权失败短期不会自愈）；
   // 429 中冷却；网络/5xx 指数退避 1s→60s 封顶
   let coolMs: number;
@@ -283,7 +457,10 @@ function markFailure(k: PoolKeySlot, status: number | null, errMsg: string): voi
     coolMs = Math.min(60_000, 1000 * Math.pow(2, k.failCount));
   }
   k.cooldownUntil = now() + coolMs;
-  if (k.failCount >= 5) k.healthy = false; // 连续失败 5 次标记不健康，等待主动探测恢复
+  if (k.failCount >= 5) {
+    if (k.healthy) k.cbTrips += 1; // 熔断跳闸计数（healthy → unhealthy 翻转时刻）
+    k.healthy = false; // 连续失败 5 次标记不健康，等待主动探测恢复
+  }
 }
 
 // ===================== 调用 =====================
@@ -337,12 +514,16 @@ async function callOnce(
       choices?: Array<{ message?: { content?: string; reasoning_content?: string; reasoning?: string }; finish_reason?: string }>;
       usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
     };
-    markSuccess(k, latencyMs);
     const choice = data.choices?.[0];
     const message = choice?.message ?? {};
+    const content = message.content ?? "";
+    const reasoning = message.reasoning_content || message.reasoning || "";
+    // 空回复异常（深筛空 SSE 故障的指标化）：HTTP 200 但正文为空 → 计入 A 指标，调用仍按成功处理
+    const emptyAnomaly = content.trim() === "" && reasoning.trim() === "" ? ("empty" as const) : undefined;
+    markSuccess(k, latencyMs, emptyAnomaly);
     return {
-      content: message.content ?? "",
-      reasoning: message.reasoning_content || message.reasoning || "",
+      content,
+      reasoning,
       usage: data.usage
         ? {
             prompt_tokens: data.usage.prompt_tokens ?? 0,
@@ -430,6 +611,12 @@ export interface PoolKeyStatus {
   lastLatencyMs: number;
   lastError?: string;
   lastOkAt?: number;
+  /** 滑动窗口成功率（U 指标 per-key 成分；窗口内无事件时为 null） */
+  windowSuccessRate: number | null;
+  /** 滑动窗口异常事件数（A 指标 per-key 成分） */
+  windowAnomalies: number;
+  /** 熔断跳闸累计次数 */
+  cbTrips: number;
 }
 
 export interface PoolProviderStatus {
@@ -438,6 +625,8 @@ export interface PoolProviderStatus {
   model: string;
   priority: number;
   maxConcurrencyPerKey: number;
+  /** 温度动力学当前生效的 per-key 并发上限（收紧档 = 基准 − 1） */
+  effectiveMaxConcurrencyPerKey: number;
   supportsReasoningEffort: boolean;
   keys: PoolKeyStatus[];
 }
@@ -447,6 +636,7 @@ export function getPoolStatus(): { loadedAt: number; providers: PoolProviderStat
   const providers = getPool(); // 确保已装载（getPool 内部惰性初始化）
   const g = globalThis as Record<string, PoolState | undefined>;
   const state = g[GLOBAL_KEY];
+  const cutoff = now() - UDAH.windowMs;
   return {
     loadedAt: state?.loadedAt ?? 0,
     providers: providers.map((p) => ({
@@ -455,20 +645,28 @@ export function getPoolStatus(): { loadedAt: number; providers: PoolProviderStat
       model: p.model,
       priority: p.priority,
       maxConcurrencyPerKey: p.maxConcurrencyPerKey,
+      effectiveMaxConcurrencyPerKey: getEffectiveMaxConcurrency(p),
       supportsReasoningEffort: p.supportsReasoningEffort,
-      keys: p.keys.map((k) => ({
-        id: k.id,
-        masked: k.masked,
-        healthy: k.healthy,
-        failCount: k.failCount,
-        cooldownRemainingMs: Math.max(0, k.cooldownUntil - now()),
-        inflight: k.inflight,
-        totalCalls: k.totalCalls,
-        avgLatencyMs: k.totalCalls > 0 ? Math.round(k.totalLatencyMs / k.totalCalls) : 0,
-        lastLatencyMs: k.lastLatencyMs,
-        lastError: k.lastError,
-        lastOkAt: k.lastOkAt,
-      })),
+      keys: p.keys.map((k) => {
+        const win = k.events.filter((e) => e.t >= cutoff);
+        const winOk = win.filter((e) => e.ok).length;
+        return {
+          id: k.id,
+          masked: k.masked,
+          healthy: k.healthy,
+          failCount: k.failCount,
+          cooldownRemainingMs: Math.max(0, k.cooldownUntil - now()),
+          inflight: k.inflight,
+          totalCalls: k.totalCalls,
+          avgLatencyMs: k.totalCalls > 0 ? Math.round(k.totalLatencyMs / k.totalCalls) : 0,
+          lastLatencyMs: k.lastLatencyMs,
+          lastError: k.lastError,
+          lastOkAt: k.lastOkAt,
+          windowSuccessRate: win.length > 0 ? Math.round((winOk / win.length) * 1000) / 1000 : null,
+          windowAnomalies: win.filter((e) => e.anomaly).length,
+          cbTrips: k.cbTrips,
+        };
+      }),
     })),
   };
 }
