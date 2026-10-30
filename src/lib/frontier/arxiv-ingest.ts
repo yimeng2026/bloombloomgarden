@@ -345,7 +345,11 @@ export function writeKbCard(e: ArxivEntry): string {
 }
 
 // ==================== 每日增量摘要（LLM 通道 + 降级） ====================
-export async function generateDigest(date: string, newEntries: ArxivEntry[]): Promise<DigestResult> {
+export async function generateDigest(
+  date: string,
+  newEntries: ArxivEntry[],
+  chat: typeof researchChat = researchChat,
+): Promise<DigestResult> {
   if (newEntries.length === 0) {
     return { date, newCount: 0, digest: "今日无新增前沿条目。", digestSource: "empty" };
   }
@@ -356,7 +360,7 @@ export async function generateDigest(date: string, newEntries: ArxivEntry[]): Pr
     .join("\n");
 
   try {
-    const r = await researchChat({
+    const r = await chat({
       systemPrompt:
         "你是 TOE-SYLVA 前沿吞并引擎的快报编辑。基于给出的 arXiv 新条目（标题+摘要），输出中文《今日前沿快报》：" +
         "按主题分组，每条一句话核心价值 + 与 TOE-SYLVA（量子引力/涌现时空/信息几何/形式化数学）的潜在关系。" +

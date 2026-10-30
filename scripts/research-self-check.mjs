@@ -8,10 +8,13 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const withModel = process.argv.includes("--with-model");
+const withArxiv = process.argv.includes("--with-arxiv");
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
-  console.log("Usage: npm run self-check:research [-- --with-model]");
-  console.log("Default: isolated database, catalog, stats and task read/write; no model request.");
-  console.log("--with-model: also tests the Kimi tool loop and GraphRAG ingest/query; may incur API usage.");
+  console.log("Usage: npm run self-check:research [-- --with-model] [-- --with-arxiv]");
+  console.log("Default: isolated database, catalog, stats and task read/write; no external request.");
+  console.log("--with-model: tests the Kimi tool loop and GraphRAG ingest/query; may incur API usage.");
+  console.log("--with-arxiv: fetches one real arXiv entry into an isolated KB; no model is required.");
+  console.log("Combine both flags to also generate a digest and record llm/fallback-raw explicitly.");
   process.exit(0);
 }
 if (withModel && !process.env.KIMI_API_KEY?.trim()) {
@@ -23,6 +26,7 @@ fs.mkdirSync(evidenceDir, { recursive: true });
 const workDir = fs.mkdtempSync(path.join(evidenceDir, "self-check-"));
 const databasePath = path.join(workDir, "research.db");
 const databaseUrl = `file:./${path.relative(root, databasePath).replaceAll("\\", "/")}`;
+const frontierDir = path.join(workDir, "frontier");
 const reportPath = path.join(evidenceDir, "research-self-check-latest.json");
 const serviceLogPath = path.join(evidenceDir, "research-self-check-service.log");
 const token = randomBytes(32).toString("hex");
@@ -32,6 +36,7 @@ const report = {
   startedAt: new Date().toISOString(),
   scope: "isolated research API self-check; no external publication and no scientific-truth claim",
   withModel,
+  withArxiv,
   checks: {},
   errors: [],
   serversStopped: false,
@@ -138,6 +143,8 @@ async function main() {
       env: {
         ...process.env,
         DATABASE_URL: databaseUrl,
+        FRONTIER_DATA_DIR: frontierDir,
+        FRONTIER_KB_DIR: path.join(frontierDir, "kb"),
         GARDEN_AGENT_TOKEN: agentToken,
         GARDEN_USE_CLUSTER: "0",
         HOST: "127.0.0.1",
@@ -199,6 +206,62 @@ async function main() {
       throw new Error("Created task was not returned by readback");
     }
     report.checks.task = { created: true, readback: true };
+
+    if (withArxiv) {
+      const ingestionResult = await invoke(origin, {
+        service: "research",
+        method: "POST",
+        path: "/api/frontier/arxiv",
+        body: { topics: ["quant-ph"], maxResults: 1, digest: withModel },
+        confirm: true,
+      }, 240_000);
+      const ingestion = ingestionResult.data;
+      if (!ingestion.ok || ingestion.fetched !== 1 || ingestion.newCount !== 1 || ingestion.kbCardsWritten !== 1) {
+        throw new Error(`Unexpected arXiv ingestion report: ${JSON.stringify(ingestion).slice(0, 900)}`);
+      }
+      const digestSource = withModel ? ingestion.digest?.digestSource : "not-requested";
+      if (withModel && !["llm", "fallback-raw"].includes(digestSource)) {
+        throw new Error("arXiv digest did not identify its model or fallback source");
+      }
+      const listed = await invoke(origin, {
+        service: "research",
+        method: "GET",
+        path: "/api/frontier/arxiv",
+        query: { topic: "quant-ph", limit: 1 },
+      });
+      const entry = listed.data?.entries?.[0];
+      if (!entry?.id || !/v\d+$/.test(entry.id)) throw new Error("Real arXiv entry has no versioned ID");
+      if (entry.baseId !== entry.id.replace(/v\d+$/, "")) throw new Error("arXiv baseId does not match its versioned ID");
+      if (entry.link !== `https://arxiv.org/abs/${entry.id}`) throw new Error("arXiv link lost its version");
+      if (!entry.title || !entry.abstract || !entry.authors?.length) throw new Error("arXiv metadata is incomplete");
+      for (const field of ["published", "updated", "ingestedAt"]) {
+        if (!Number.isFinite(Date.parse(entry[field]))) throw new Error(`Invalid arXiv ${field} timestamp`);
+      }
+      const kb = await invoke(origin, {
+        service: "research",
+        method: "GET",
+        path: "/api/frontier/kb",
+        query: { topic: "quant-ph", limit: 10 },
+      });
+      const card = kb.data?.cards?.find((item) => item.id === entry.id);
+      if (!card || card.link !== entry.link || !card.file.endsWith(`${entry.id.replaceAll("/", "_")}.md`)) {
+        throw new Error("Versioned KB card was not returned by readback");
+      }
+      report.checks.arxiv = {
+        id: entry.id,
+        baseId: entry.baseId,
+        link: entry.link,
+        published: entry.published,
+        updated: entry.updated,
+        ingestedAt: entry.ingestedAt,
+        kbCard: card.file,
+        digestSource,
+        llmError: ingestion.digest?.llmError,
+        lineageScope: "one real latest entry; multi-version fixtures are tested separately",
+      };
+    } else {
+      report.checks.arxiv = { status: "skipped", reason: "requires --with-arxiv" };
+    }
 
     if (withModel) {
       const agent = await request(origin, "/api/kimi-agent", {
@@ -285,6 +348,7 @@ async function main() {
   console.log(JSON.stringify({
     success: report.errors.length === 0 && report.serversStopped && report.temporaryDatabaseRemoved,
     withModel,
+    withArxiv,
     checks: report.checks,
     errors: report.errors,
     serversStopped: report.serversStopped,

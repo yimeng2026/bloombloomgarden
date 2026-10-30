@@ -93,6 +93,6 @@ export const MAX_RESULTS_PER_TOPIC = 25;
 /** arXiv 请求间隔与重试下限：不得低于 3 秒。 */
 export const TOPIC_DELAY_MS = 3000;
 
-/** 数据落盘根目录（相对项目根） */
-export const FRONTIER_DATA_DIR = "data/frontier";
-export const FRONTIER_KB_DIR = "data/frontier/kb";
+/** 数据落盘根目录；自检可重定向到隔离目录，避免污染正式知识库。 */
+export const FRONTIER_DATA_DIR = process.env.FRONTIER_DATA_DIR?.trim() || "data/frontier";
+export const FRONTIER_KB_DIR = process.env.FRONTIER_KB_DIR?.trim() || `${FRONTIER_DATA_DIR.replace(/[\\/]+$/, "")}/kb`;

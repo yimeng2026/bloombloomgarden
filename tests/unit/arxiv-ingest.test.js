@@ -43,3 +43,20 @@ test("a corrupt day file is rejected instead of overwritten as empty", () => {
     fs.rmSync(temporary, { recursive: true, force: true });
   }
 });
+
+test("an unavailable digest model produces an explicit raw fallback with the original link", async () => {
+  const { generateDigest } = await import("../../src/lib/frontier/arxiv-ingest.ts");
+  const parsed = parseAtom(`<feed>${entry("v2", "Original paper")}</feed>`, "quant-ph")[0];
+  const result = await generateDigest("2026-10-30", [{
+    ...parsed,
+    topic: "quant-ph",
+    tags: [],
+    ingestedAt: "2026-10-30T00:00:00.000Z",
+  }], async () => {
+    throw new Error("simulated outage");
+  });
+  expect(result.digestSource).toBe("fallback-raw");
+  expect(result.digest).toContain("【降级模式】");
+  expect(result.digest).toContain("https://arxiv.org/abs/2501.12345v2");
+  expect(result.llmError).toContain("simulated outage");
+});

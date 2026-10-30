@@ -91,14 +91,20 @@ npm --prefix backend run build
 ### 2.3 一键隔离自检
 
 ```powershell
-# 不调用模型：目录、统计、任务写入与回读
+# 无外部请求：目录、统计、任务写入与回读
 npm run self-check:research
 
-# 可能产生 API 用量：额外验收 Kimi 工具循环和 GraphRAG 入库、检索
+# 可能产生模型 API 用量：额外验收 Kimi 工具循环和 GraphRAG 入库、检索
 npm run self-check:research -- --with-model
+
+# 真实 arXiv 网络请求：摄取 1 条到隔离 KB，不调用模型
+npm run self-check:research -- --with-arxiv
+
+# 完整验收：同时生成 arXiv 快报，记录 llm 或 fallback-raw
+npm run self-check:research -- --with-model --with-arxiv
 ```
 
-自检只启动研究 API，使用独立的临时 SQLite 数据库，结束后删除数据库并关闭服务，不写入正式研究记录。`--with-model` 使用 Kimi 服务端直连，不启动 Express 集群；共享集群链路需要单独验收。证据保存在 `data/kimi-control/research-self-check-latest.json`，不包含 Agent 凭据。GraphRAG 的 `indexed`、`partial`、`extraction_failed` 必须分开报告；检索返回来源不等于科学结论已经成立。
+自检只启动研究 API，使用独立的临时 SQLite 数据库和 arXiv/KB 目录，结束后删除临时数据并关闭服务，不写入正式研究记录。`--with-model` 使用 Kimi 服务端直连，不启动 Express 集群；共享集群链路需要单独验收。`--with-arxiv` 检查真实元数据、版本化链接、时间字段和 KB 卡回读，一次最新条目不冒充多版本历史验收。证据保存在 `data/kimi-control/research-self-check-latest.json`，不包含 Agent 凭据。GraphRAG 的 `indexed`、`partial`、`extraction_failed` 必须分开报告；检索返回来源不等于科学结论已经成立。
 
 ## 三、Kimi 控制入口
 
@@ -316,13 +322,13 @@ NIST 的生成式 AI 风险管理材料强调来源追踪、持续监测、独�
 
 本次实际检查得到：
 
-- 根平台 **18 项单元测试通过、0 失败**，覆盖操作目录、鉴权、写入拒绝、敏感字段脱敏、审计、工具循环、数据库路径、集群瞬时断连重试、GraphRAG 抽取状态、Lean 文本状态、LLM 正文边界和 arXiv 修订；
+- 根平台 **19 项单元测试通过、0 失败**，覆盖操作目录、鉴权、写入拒绝、敏感字段脱敏、审计、工具循环、数据库路径、集群瞬时断连重试、GraphRAG 抽取状态、arXiv 版本与摘要降级、Lean 文本状态、LLM 正文边界和 arXiv 修订；
 - 后端集群 **12 项单元测试通过、0 失败**，覆盖负载、能力、参数、模式、熔断、配置脱敏、429/400、流式正文、RPC、健康探测、嵌套工具消息和空消息拒绝；
 - 根平台 TypeScript 检查和 Next standalone 生产构建通过，Express 后端 TypeScript 构建通过；
 - 核心 lint 通过；`lint:all` 仍有存量错误与警告，不能写成全库 lint 通过；
 - 目录当前为 **436 个操作**，不是 436 个已端到端验证的研究结论。
 
-这些单元检查使用临时目录、模拟节点和模拟响应，不消耗真实 API 配额。2026-10-30 另完成本机真实冒烟：模型发现并调用统计工具，研究任务创建后按同一 ID 回读成功；隔离自检中的 GraphRAG 文档达到 `indexed`，实体与关系数大于零，问答返回来源片段。临时数据库与服务均已清理；这些结果只证明所测技术链路，不构成科学语义或全部接口的验收。真实账户的配额、模型权限、生产数据库迁移、Render/Railway 部署和外部专家评审仍需独立验收。高风险操作、真实数据写入、模型训练和论文发表不能由这些检查代替。
+这些单元检查使用临时目录、模拟节点和模拟响应，不消耗真实 API 配额。2026-10-30 另完成本机真实冒烟：模型发现并调用统计工具，研究任务创建后按同一 ID 回读成功；隔离自检中的 GraphRAG 文档达到 `indexed`，实体与关系数大于零，问答返回来源片段；真实 arXiv 条目的版本化 ID、链接、时间字段和 KB 卡回读一致，快报明确返回 `digestSource=llm`。模拟模型故障另行验证 `fallback-raw` 保留原始链接。临时数据库、KB 与服务均已清理；这些结果只证明所测技术链路，不构成科学语义、多版本实时历史或全部接口的验收。真实账户的配额、模型权限、生产数据库迁移、Render/Railway 部署和外部专家评审仍需独立验收。高风险操作、真实数据写入、模型训练和论文发表不能由这些检查代替。
 
 研究化学、材料或实验数据时，还应核验样品、仪器、批次、预处理、原始谱图和独立复现；不能仅凭数据库中的数值或 LLM 判断数据真实性，更不能把“某领域普遍造假”当成不经举证的结论。
 
