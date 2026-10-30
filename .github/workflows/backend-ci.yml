@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: ./backend/package-lock.json
 
@@ -42,8 +42,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run E2E tests
-        run: npx tsx src/tests/integration/collab-e2e.test.ts
+      - name: Run Kimi cluster unit tests
+        run: npm run test:unit
         env:
           NODE_ENV: test
           DATABASE_URL: file:./test.db

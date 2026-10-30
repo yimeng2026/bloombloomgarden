@@ -28,6 +28,8 @@ jobs:
         run: npm ci
       - name: Run Kimi cluster unit tests
         run: npm run test:unit
+      - name: Run backend lint
+        run: npm run lint
       - name: Build without suppressing TypeScript failures
         run: npm run build
 
@@ -92,4 +94,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Trigger Render Deploy
-        run: curl --fail-with-body -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" -H "Content-Type: application/json"
+        run: >-
+          curl --fail-with-body -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          -H "Content-Type: application/json"
