@@ -18,6 +18,7 @@ conjecture speculative : False
 
 -- sorry in a comment
 def text_literal : String := "sorry"
+noncomputable def chshForm : String := "a real bilinear expression"
 
 example : False := sorry
 -- TODO(research): retain this task
@@ -33,8 +34,9 @@ describe("SYLVA text parser evidence boundaries", () => {
 
     expect(leanModule.analysisMode).toBe("text_only_not_compiled");
     expect(leanModule.sorryCount).toBe(2);
-    expect(leanModule.definitions).toHaveLength(1);
+    expect(leanModule.definitions).toHaveLength(2);
     expect(leanModule.definitions[0].hasSorry).toBe(false);
+    expect(leanModule.definitions[1].name).toBe("chshForm");
     expect(generateTheoremSyncData(parsed, "module-1").status).toBe("parsed");
     expect(generateTheoremSyncData(axiom, "module-1").status).toBe("axiom");
     expect(generateTheoremSyncData(open, "module-1").status).toBe("research");

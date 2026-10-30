@@ -144,7 +144,7 @@ export function parseLeanFile(filePath: string, content: string): LeanModule {
     if (namespaceMatch) leanModule.namespace = namespaceMatch[1];
   }
 
-  const theoremPattern = /^(theorem|lemma|def|axiom|conjecture|structure|inductive|instance)\s+([^\s:({\[]+)/;
+  const theoremPattern = /^(?:(?:noncomputable|private|protected|partial|unsafe)\s+)*(theorem|lemma|def|axiom|conjecture|structure|inductive|instance)\s+([^\s:({\[]+)/;
   const docPattern = /^\/---?\s*(.*)/;
   let pendingDocLines: string[] = [];
   let currentBlock: {

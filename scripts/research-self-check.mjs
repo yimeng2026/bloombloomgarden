@@ -5,16 +5,21 @@ import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { prepareLeanTextRoot, runLeanStage } from "./lean-self-check.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const withModel = process.argv.includes("--with-model");
 const withArxiv = process.argv.includes("--with-arxiv");
+const withLeanBuild = process.argv.includes("--with-lean-build");
+const withLean = process.argv.includes("--with-lean") || withLeanBuild;
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
-  console.log("Usage: npm run self-check:research [-- --with-model] [-- --with-arxiv]");
+  console.log("Usage: npm run self-check:research [-- --with-model] [-- --with-arxiv] [-- --with-lean-build]");
   console.log("Default: isolated database, catalog, stats and task read/write; no external request.");
   console.log("--with-model: tests the Kimi tool loop and GraphRAG ingest/query; may incur API usage.");
   console.log("--with-arxiv: fetches one real arXiv entry into an isolated KB; no model is required.");
-  console.log("Combine both flags to also generate a digest and record llm/fallback-raw explicitly.");
+  console.log("--with-lean: synchronizes Lean text only; requires TOE_SYLVA_PATH.");
+  console.log("--with-lean-build: also builds selected targets; implies --with-lean.");
+  console.log("Set TOE_SYLVA_LEAN_PROJECT and LAKE_EXECUTABLE for builds; optionally set TOE_SYLVA_AXIOM_DECLARATION.");
   process.exit(0);
 }
 if (withModel && !process.env.KIMI_API_KEY?.trim()) {
@@ -37,6 +42,8 @@ const report = {
   scope: "isolated research API self-check; no external publication and no scientific-truth claim",
   withModel,
   withArxiv,
+  withLean,
+  withLeanBuild,
   checks: {},
   errors: [],
   serversStopped: false,
@@ -133,6 +140,7 @@ async function stopService() {
 
 async function main() {
   try {
+    const leanTextRoot = prepareLeanTextRoot(workDir);
     runDatabaseSetup();
     const port = await freePort();
     const origin = `http://127.0.0.1:${port}`;
@@ -143,6 +151,7 @@ async function main() {
       env: {
         ...process.env,
         DATABASE_URL: databaseUrl,
+        TOE_SYLVA_PATH: leanTextRoot,
         FRONTIER_DATA_DIR: frontierDir,
         FRONTIER_KB_DIR: path.join(frontierDir, "kb"),
         GARDEN_AGENT_TOKEN: agentToken,
@@ -263,6 +272,12 @@ async function main() {
       report.checks.arxiv = { status: "skipped", reason: "requires --with-arxiv" };
     }
 
+    if (withLean) {
+      await runLeanStage({ origin, invoke, withBuild: withLeanBuild, checks: report.checks });
+    } else {
+      report.checks.lean = { status: "skipped", reason: "requires --with-lean or --with-lean-build" };
+    }
+
     if (withModel) {
       const agent = await request(origin, "/api/kimi-agent", {
         message: "请只执行只读操作：先用 garden_catalog 找到 research 服务的 GET /api/research/stats，再用 garden_invoke 调用一次。最后简短列出返回的顶层字段。不要调用其他接口，不要写操作。",
@@ -349,6 +364,8 @@ async function main() {
     success: report.errors.length === 0 && report.serversStopped && report.temporaryDatabaseRemoved,
     withModel,
     withArxiv,
+    withLean,
+    withLeanBuild,
     checks: report.checks,
     errors: report.errors,
     serversStopped: report.serversStopped,
