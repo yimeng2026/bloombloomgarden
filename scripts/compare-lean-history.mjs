@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compareLeanEvidenceSnapshots } from "./lean-evidence-history.mjs";
 import { createLeanReview } from "./lean-review.mjs";
+import { exportLeanReviewMarkdown } from "./lean-review-markdown.mjs";
 
 const DEFAULT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -66,7 +67,9 @@ export function compareLeanHistory({
   after,
   listOnly = false,
   review = false,
+  markdown,
 }) {
+  if (markdown && !review) throw new Error("--markdown requires --review");
   const snapshots = readLeanSnapshots(directory);
   if (listOnly) {
     return {
@@ -91,26 +94,30 @@ export function compareLeanHistory({
     : snapshots[snapshots.length - 1];
   if (!previous || !current) throw new Error("Both before and after snapshots must be specified");
   const comparison = compareLeanEvidenceSnapshots(previous.snapshot, current.snapshot);
-  return {
+  const result = {
     status: "ok",
     mode: review ? "review" : "compare",
-    readOnly: true,
+    readOnly: !markdown,
+    sourceReadOnly: true,
     before: metadata(previous),
     after: metadata(current),
     comparison,
     ...(review ? { review: createLeanReview(comparison) } : {}),
   };
+  if (markdown) result.markdownFile = exportLeanReviewMarkdown({ result, directory, filename: markdown });
+  return result;
 }
 
 export function parseHistoryArguments(args) {
-  const result = { listOnly: false, before: undefined, after: undefined, review: false };
+  const result = { listOnly: false, before: undefined, after: undefined, review: false, markdown: undefined };
   for (let index = 0; index < args.length; index++) {
     const argument = args[index];
     if (argument === "--list") result.listOnly = true;
     else if (argument === "--review") result.review = true;
-    else if (argument === "--before" || argument === "--after") {
-      if (!args[index + 1]) throw new Error(`${argument} requires a snapshot ID or filename`);
-      result[argument === "--before" ? "before" : "after"] = args[++index];
+    else if (["--before", "--after", "--markdown"].includes(argument)) {
+      if (!args[index + 1]) throw new Error(`${argument} requires a value`);
+      const key = argument === "--before" ? "before" : argument === "--after" ? "after" : "markdown";
+      result[key] = args[++index];
     } else {
       throw new Error(`Unknown argument: ${argument}`);
     }

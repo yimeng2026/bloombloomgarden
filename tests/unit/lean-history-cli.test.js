@@ -70,6 +70,7 @@ test("history commands reject path escapes and insufficient records", () => {
       before: "a",
       after: "b",
       review: false,
+      markdown: undefined,
     });
     expect(() => parseHistoryArguments(["--before"])).toThrow("requires");
   } finally {
