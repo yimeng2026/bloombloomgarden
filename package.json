@@ -6,6 +6,7 @@
     "dev": "node scripts/dev-all.mjs",
     "dev:research": "node node_modules/next/dist/bin/next dev",
     "dev:backend": "npm --prefix backend run dev",
+    "self-check:research": "node scripts/research-self-check.mjs",
     "prebuild": "node scripts/generate-kimi-operations.mjs",
     "build": "node node_modules/next/dist/bin/next build",
     "start": "node .next/standalone/server.js",

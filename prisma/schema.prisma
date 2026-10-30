@@ -137,7 +137,7 @@ model GraphRagDocument {
   title        String
   content      String
   source       String   @default("manual") // manual | upload | web
-  status       String   @default("pending") // pending | indexing | indexed | error
+  status       String   @default("pending") // pending | indexing | indexed | partial | extraction_failed | error
   chunkSize    Int      @default(1200)
   chunkOverlap Int      @default(100)
   createdAt    DateTime @default(now())

@@ -33,6 +33,13 @@ export interface GraphStats {
   chunkCount: number;
 }
 
+export type GraphIngestStatus = "indexed" | "partial" | "extraction_failed";
+
+export function graphIngestStatus(totalChunks: number, failedChunks: number): GraphIngestStatus {
+  if (totalChunks === 0 || failedChunks >= totalChunks) return "extraction_failed";
+  return failedChunks > 0 ? "partial" : "indexed";
+}
+
 // ===================== GraphRAG 类 =====================
 export class GraphRAG {
   private chunkSize = 1200;
@@ -43,7 +50,14 @@ export class GraphRAG {
     text: string,
     title: string,
     docId?: string
-  ): Promise<{ id: string; entityCount: number; relationCount: number }> {
+  ): Promise<{
+    id: string;
+    status: GraphIngestStatus;
+    entityCount: number;
+    relationCount: number;
+    chunkCount: number;
+    failedChunkCount: number;
+  }> {
     const document = await prisma.graphRagDocument.create({
       data: {
         id: docId,
@@ -82,6 +96,7 @@ export class GraphRAG {
       description: string;
       chunkId: string;
     }[] = [];
+    let failedChunkCount = 0;
 
     for (const chunk of chunkRecords) {
       try {
@@ -93,6 +108,7 @@ export class GraphRAG {
           allRelations.push({ ...r, chunkId: chunk.id });
         }
       } catch (err) {
+        failedChunkCount += 1;
         console.error(`Chunk ${chunk.id} 抽取失败:`, err);
       }
     }
@@ -210,10 +226,11 @@ export class GraphRAG {
       }
     }
 
-    // 更新文档状态
+    // 更新文档状态：保存文档不等于所有抽取都成功。
+    const status = graphIngestStatus(chunkRecords.length, failedChunkCount);
     await prisma.graphRagDocument.update({
       where: { id: document.id },
-      data: { status: "indexed" },
+      data: { status },
     });
 
     // 社区检测（简化版）
@@ -221,8 +238,11 @@ export class GraphRAG {
 
     return {
       id: document.id,
+      status,
       entityCount: entityMap.size,
       relationCount: relationCount,
+      chunkCount: chunkRecords.length,
+      failedChunkCount,
     };
   }
 
@@ -302,11 +322,7 @@ ${chunk}
       // 最后尝试
     }
 
-    console.error(
-      "无法解析 LLM 返回的 JSON:",
-      cleaned.slice(0, 200)
-    );
-    return { entities: [], relations: [] };
+    throw new Error("LLM entity extraction returned invalid JSON");
   }
 
   private splitText(text: string, chunkSize: number, overlap: number): string[] {

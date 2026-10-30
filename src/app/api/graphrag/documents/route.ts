@@ -16,9 +16,11 @@ export async function POST(req: NextRequest) {
     const result = await graphrag.ingest(content, title);
     return NextResponse.json({
       id: result.id,
-      status: "indexed",
+      status: result.status,
       entityCount: result.entityCount,
       relationCount: result.relationCount,
+      chunkCount: result.chunkCount,
+      failedChunkCount: result.failedChunkCount,
     });
   } catch (err) {
     console.error("GraphRAG 文档摄入失败:", err);
