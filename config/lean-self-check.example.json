@@ -1,0 +1,80 @@
+{
+  "textFiles": [
+    "SYLVA_CHSHCore.lean",
+    "SYLVA_CrossModuleTheorems.lean",
+    "PhysicalChemistry/ReactionNetwork.lean",
+    "SYLVA_Causality.lean"
+  ],
+  "targets": [
+    "SYLVA_CHSHCore",
+    "SYLVA_CrossModuleTheorems",
+    "PhysicalChemistry.ReactionNetwork",
+    "SYLVA_Causality"
+  ],
+  "axiomCases": [
+    {
+      "target": "SYLVA_CHSHCore",
+      "declaration": "Sylva.SYLVACHSHCore.chsh_abs_le_two_sqrt_two",
+      "mode": "standard_only"
+    },
+    {
+      "target": "SYLVA_CrossModuleTheorems",
+      "declaration": "Sylva.SYLVACrossModule.chsh_bound_in_real_inner_product_model",
+      "mode": "standard_only"
+    },
+    {
+      "target": "PhysicalChemistry.ReactionNetwork",
+      "declaration": "Sylva.ReactionNetwork.MM_deficiency_zero_computed",
+      "mode": "standard_only"
+    },
+    {
+      "target": "PhysicalChemistry.ReactionNetwork",
+      "declaration": "Sylva.ReactionNetwork.deficiency_zero_theorem",
+      "mode": "declared",
+      "expectedAxioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "Sylva.ReactionNetwork.deficiency_zero_theorem"
+      ]
+    },
+    {
+      "target": "PhysicalChemistry.ReactionNetwork",
+      "declaration": "Sylva.ReactionNetwork.thermodynamic_emergence",
+      "mode": "declared",
+      "expectedAxioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "Sylva.ReactionNetwork.thermodynamic_emergence"
+      ]
+    },
+    {
+      "target": "SYLVA_Causality",
+      "declaration": "Sylva.SYLVASCausality.bell_inequality_classical_holds",
+      "mode": "standard_only"
+    },
+    {
+      "target": "SYLVA_Causality",
+      "declaration": "Sylva.SYLVASCausality.causal_precedence_transitive_axiom",
+      "mode": "declared",
+      "expectedAxioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "Sylva.SYLVASCausality.causal_precedence_transitive_axiom"
+      ]
+    },
+    {
+      "target": "SYLVA_Causality",
+      "declaration": "Sylva.SYLVASCausality.arrow_of_time_from_past_hypothesis_axiom",
+      "mode": "declared",
+      "expectedAxioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound",
+        "Sylva.SYLVASCausality.arrow_of_time_from_past_hypothesis_axiom"
+      ]
+    }
+  ]
+}

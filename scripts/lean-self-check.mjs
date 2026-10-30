@@ -48,6 +48,31 @@ export function prepareLeanTextRoot(workDir, env = process.env) {
   return targetRoot;
 }
 
+export function withLeanManifest(env = process.env) {
+  const manifestPath = env.TOE_SYLVA_LEAN_MANIFEST?.trim();
+  if (!manifestPath) return env;
+  const manifest = JSON.parse(fs.readFileSync(path.resolve(manifestPath), "utf8"));
+  if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) {
+    throw new Error("Lean self-check manifest must be a JSON object");
+  }
+  for (const key of ["textFiles", "targets", "axiomCases"]) {
+    if (manifest[key] !== undefined && !Array.isArray(manifest[key])) {
+      throw new Error(`Lean manifest ${key} must be an array`);
+    }
+  }
+  const merged = { ...env };
+  if (manifest.textFiles && !merged.TOE_SYLVA_TEXT_FILES) {
+    merged.TOE_SYLVA_TEXT_FILES = manifest.textFiles.join(",");
+  }
+  if (manifest.targets && !merged.TOE_SYLVA_LEAN_TARGETS) {
+    merged.TOE_SYLVA_LEAN_TARGETS = manifest.targets.join(",");
+  }
+  if (manifest.axiomCases && !merged.TOE_SYLVA_AXIOM_CASES) {
+    merged.TOE_SYLVA_AXIOM_CASES = JSON.stringify(manifest.axiomCases);
+  }
+  return merged;
+}
+
 export function parseLeanAxioms(output) {
   if (/does not depend on any axioms/i.test(output)) return [];
   const match = output.match(/depends on axioms:\s*\[([^\]]*)\]/i);
@@ -61,6 +86,73 @@ export function assertLeanAxioms(output, allowed = STANDARD_AXIOMS) {
   const unexpected = axioms.filter((item) => !allowed.includes(item));
   if (unexpected.length) throw new Error(`Unexpected Lean axioms: ${unexpected.join(", ")}`);
   return axioms;
+}
+
+export function leanAxiomCases(env = process.env) {
+  const targets = leanTargets(env);
+  if (env.TOE_SYLVA_AXIOM_CASES?.trim()) {
+    const cases = JSON.parse(env.TOE_SYLVA_AXIOM_CASES);
+    if (!Array.isArray(cases) || !cases.length || cases.length > 8) {
+      throw new Error("TOE_SYLVA_AXIOM_CASES must contain 1-8 cases");
+    }
+    return cases.map((item) => {
+      if (!targets.includes(item.target)) throw new Error(`Axiom case target was not built: ${item.target}`);
+      if (!/^[A-Za-z_][A-Za-z0-9_'.]*$/.test(item.declaration || "")) {
+        throw new Error("Invalid Lean declaration in axiom cases");
+      }
+      if (!["standard_only", "declared"].includes(item.mode)) {
+        throw new Error(`Invalid axiom case mode: ${item.mode}`);
+      }
+      if (item.mode === "declared") {
+        if (!Array.isArray(item.expectedAxioms) || !item.expectedAxioms.length) {
+          throw new Error("Declared axiom cases require expectedAxioms");
+        }
+        if (new Set(item.expectedAxioms).size !== item.expectedAxioms.length) {
+          throw new Error("Duplicate expectedAxioms in axiom case");
+        }
+      }
+      return item;
+    });
+  }
+  const declaration = env.TOE_SYLVA_AXIOM_DECLARATION?.trim();
+  if (!declaration) return [];
+  if (!/^[A-Za-z_][A-Za-z0-9_'.]*$/.test(declaration)) {
+    throw new Error("Invalid Lean declaration for axiom audit");
+  }
+  const expected = (env.TOE_SYLVA_ALLOWED_AXIOMS || STANDARD_AXIOMS.join(","))
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const declared = expected.some((item) => !STANDARD_AXIOMS.includes(item));
+  return [{
+    target: targets[0],
+    declaration,
+    mode: declared ? "declared" : "standard_only",
+    ...(declared ? { expectedAxioms: expected } : {}),
+  }];
+}
+
+export function evaluateLeanAxiomCase(output, item) {
+  const scoped = output
+    .split(/(?='[^'\n]+'\s+(?:depends on axioms|does not depend on any axioms))/)
+    .find((record) => record.includes(`'${item.declaration}'`)) || "";
+  if (!scoped) throw new Error(`No #print axioms output for ${item.declaration}`);
+  if (/\bsorryAx\b/.test(scoped)) throw new Error(`${item.declaration} depends on sorryAx`);
+  if (item.mode === "standard_only") {
+    return {
+      classification: "standard_only",
+      axioms: assertLeanAxioms(scoped),
+      customAxioms: [],
+    };
+  }
+  const axioms = parseLeanAxioms(scoped);
+  const expected = [...item.expectedAxioms].sort();
+  if (JSON.stringify([...axioms].sort()) !== JSON.stringify(expected)) {
+    throw new Error(`Declared axiom set mismatch for ${item.declaration}: expected ${expected.join(", ")}, got ${axioms.join(", ")}`);
+  }
+  const customAxioms = axioms.filter((axiom) => !STANDARD_AXIOMS.includes(axiom));
+  if (!customAxioms.length) throw new Error(`Declared axiom case has no custom axiom: ${item.declaration}`);
+  return { classification: "declared_axiom_debt", axioms, customAxioms };
 }
 
 function outputTail(value) {
@@ -141,20 +233,20 @@ export async function runLeanStage({ origin, invoke, withBuild, checks, env = pr
     throw new Error(`Lean build failed: ${result.error?.message || outputTail(result.stderr || result.stdout)}`);
   }
 
-  const declaration = env.TOE_SYLVA_AXIOM_DECLARATION?.trim();
-  if (!declaration) {
-    state.axiomAudit = { status: "skipped", reason: "TOE_SYLVA_AXIOM_DECLARATION is not configured" };
+  const cases = leanAxiomCases(env);
+  if (!cases.length) {
+    state.axiomAudit = { status: "skipped", reason: "TOE_SYLVA_AXIOM_DECLARATION or TOE_SYLVA_AXIOM_CASES is not configured" };
     return;
   }
-  if (!/^[A-Za-z_][A-Za-z0-9_'.]*$/.test(declaration)) throw new Error("Invalid Lean declaration for axiom audit");
-  const allowed = (env.TOE_SYLVA_ALLOWED_AXIOMS || STANDARD_AXIOMS.join(","))
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
   const auditPath = path.join(projectRoot, `.garden-axiom-audit-${process.pid}-${Date.now()}.lean`);
-  state.axiomAudit = { status: "pending", declaration, temporaryFileRemoved: false };
+  state.axiomAudit = { status: "pending", cases, temporaryFileRemoved: false };
   try {
-    fs.writeFileSync(auditPath, `import ${targets[0]}\n#print axioms ${declaration}\n`, "utf8");
+    const source = [
+      ...targets.map((target) => `import ${target}`),
+      ...cases.map((item) => `#print axioms ${item.declaration}`),
+      "",
+    ].join("\n");
+    fs.writeFileSync(auditPath, source, "utf8");
     const auditStarted = Date.now();
     const audit = spawnSync(lake, ["env", "lean", auditPath], {
       cwd: projectRoot,
@@ -162,13 +254,13 @@ export async function runLeanStage({ origin, invoke, withBuild, checks, env = pr
       encoding: "utf8",
       shell: false,
       windowsHide: true,
-      timeout: 120_000,
+      timeout: 180_000,
       maxBuffer: 4 * 1024 * 1024,
     });
     const output = `${audit.stdout || ""}\n${audit.stderr || ""}`.trim();
     state.axiomAudit = {
       status: audit.status === 0 && !audit.error ? "success" : "failed",
-      declaration,
+      cases: cases.map((item) => ({ ...item, outputScope: "selected declaration, not module-wide axiom-free claim" })),
       exitCode: audit.status,
       durationMs: Date.now() - auditStarted,
       outputTail: outputTail(output),
@@ -176,7 +268,13 @@ export async function runLeanStage({ origin, invoke, withBuild, checks, env = pr
     };
     if (audit.error || audit.status !== 0) throw new Error(`Lean axiom audit failed: ${outputTail(output || audit.error?.message)}`);
     try {
-      state.axiomAudit.axioms = assertLeanAxioms(output, allowed);
+      state.axiomAudit.cases = cases.map((item, index) => ({
+        ...state.axiomAudit.cases[index],
+        ...evaluateLeanAxiomCase(output, item),
+      }));
+      state.axiomAudit.standardCaseCount = state.axiomAudit.cases.filter((item) => item.classification === "standard_only").length;
+      state.axiomAudit.declaredAxiomCaseCount = state.axiomAudit.cases.filter((item) => item.classification === "declared_axiom_debt").length;
+      if (cases.length === 1) state.axiomAudit.axioms = state.axiomAudit.cases[0].axioms;
     } catch (error) {
       state.axiomAudit.status = "failed";
       throw error;

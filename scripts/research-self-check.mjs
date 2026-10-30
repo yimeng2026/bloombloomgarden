@@ -5,7 +5,7 @@ import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { prepareLeanTextRoot, runLeanStage } from "./lean-self-check.mjs";
+import { prepareLeanTextRoot, runLeanStage, withLeanManifest } from "./lean-self-check.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const withModel = process.argv.includes("--with-model");
@@ -140,7 +140,8 @@ async function stopService() {
 
 async function main() {
   try {
-    const leanTextRoot = prepareLeanTextRoot(workDir);
+    const leanEnv = withLeanManifest(process.env);
+    const leanTextRoot = prepareLeanTextRoot(workDir, leanEnv);
     runDatabaseSetup();
     const port = await freePort();
     const origin = `http://127.0.0.1:${port}`;
@@ -149,7 +150,7 @@ async function main() {
     child = spawn(process.execPath, [nextCli, "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
       cwd: root,
       env: {
-        ...process.env,
+        ...leanEnv,
         DATABASE_URL: databaseUrl,
         TOE_SYLVA_PATH: leanTextRoot,
         FRONTIER_DATA_DIR: frontierDir,
@@ -273,7 +274,7 @@ async function main() {
     }
 
     if (withLean) {
-      await runLeanStage({ origin, invoke, withBuild: withLeanBuild, checks: report.checks });
+      await runLeanStage({ origin, invoke, withBuild: withLeanBuild, checks: report.checks, env: leanEnv });
     } else {
       report.checks.lean = { status: "skipped", reason: "requires --with-lean or --with-lean-build" };
     }
