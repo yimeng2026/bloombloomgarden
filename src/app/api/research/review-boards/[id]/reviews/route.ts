@@ -337,9 +337,7 @@ async function generateReviewContentWithLLM(
   };
 
   // 4. 调用 LLM
-  const response = await generateCollaborationResponse("review_board", context, {
-    temperature: 0.3,
-  });
+  const response = await generateCollaborationResponse("review_board", context);
 
   const content = response.content?.trim() || "";
 

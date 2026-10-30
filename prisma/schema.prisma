@@ -12,6 +12,7 @@ model Agent {
   description   String   @default("")
   avatar        String   @default("")
   systemPrompt  String   @default("")
+  // Legacy fields are overwritten by Kimi-only API code; never return apiKey.
   model         String   @default("glm-5.1")
   temperature   Float    @default(0.7)
   apiKey        String   @default("")

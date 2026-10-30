@@ -3,11 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "db:push": "npx prisma db push --accept-data-loss",
+    "dev": "node scripts/dev-all.mjs",
+    "dev:research": "node node_modules/next/dist/bin/next dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "prebuild": "node scripts/generate-kimi-operations.mjs",
+    "build": "node node_modules/next/dist/bin/next build",
+    "start": "node .next/standalone/server.js",
+    "lint": "node node_modules/eslint/bin/eslint.js src/lib/agent-auth.ts src/lib/llm-content.ts src/lib/kimi-control.ts src/lib/kimi-gateway.ts src/lib/research-llm.ts src/lib/sylva-parser.ts src/lib/frontier/arxiv-ingest.ts src/lib/graphrag.ts src/lib/platform-adapter.ts src/app/api/kimi-control src/app/api/kimi-agent src/app/api/agents src/app/api/chat src/app/api/llm-pool tests/unit",
+    "lint:all": "node node_modules/eslint/bin/eslint.js src tests/unit",
+    "test": "node scripts/generate-kimi-operations.mjs --check && npx --yes bun test tests/unit",
+    "db:push": "npx prisma db push",
+    "db:push:unsafe": "npx prisma db push --accept-data-loss",
     "postinstall": "npx prisma generate"
   },
   "dependencies": {

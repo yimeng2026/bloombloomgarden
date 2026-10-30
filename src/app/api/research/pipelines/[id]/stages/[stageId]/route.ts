@@ -121,17 +121,12 @@ export async function PUT(
             previousContent: previousContent || "",
             targetModule: targetModule || "",
           },
-          { model: "glm-5.1", temperature: 0.3, provider: "zhipu" }
         );
         finalContent = llmRes.content;
         finalScore = extractScore(llmRes.content);
         console.log(`[Pipeline LLM] stage=${stage.name}, score=${finalScore}, latency=${llmRes.latencyMs}ms`);
-      } catch (llmErr: any) {
-        console.error("[Pipeline LLM] error:", llmErr.message);
-        // fallback: 使用请求体中的 content 或模拟内容
-        const mock = generateMockStageContent(stage.name || "draft", topic || stage.name || "未指定主题");
-        finalContent = body.content || mock.content;
-        finalScore = body.score !== undefined ? body.score : mock.score;
+      } catch (error) {
+        throw new Error(`Kimi 流水线内容生成失败: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 

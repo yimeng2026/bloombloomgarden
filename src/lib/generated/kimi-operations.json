@@ -1,0 +1,3497 @@
+{
+  "schemaVersion": 1,
+  "services": {
+    "research": "same-origin Next.js route handlers",
+    "backend": "GARDEN_BACKEND_URL (default http://127.0.0.1:3001)"
+  },
+  "operations": [
+    {
+      "id": "backend:DELETE:/api/agents/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/agents/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/apikeys/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/apikeys/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/apikeys.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/backups/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/backups/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/backups.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/blueprints/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/blueprints/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/canvas/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/canvas/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/canvas.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/chat-accounts/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/chat-accounts/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/coordinator-hierarchy/chariot/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/coordinator-hierarchy/chariot/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/dialog/:agentId/context",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/dialog/:agentId/context",
+      "risk": "dangerous",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/engines/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/engines/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/engines/:id/keys/:keyId",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/engines/:id/keys/:keyId",
+      "risk": "dangerous",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/events/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/events/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/events.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/external/platforms/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/external/platforms/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/external.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/groups/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/groups/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/groups/:id/agents/:agentId",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/groups/:id/agents/:agentId",
+      "risk": "dangerous",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/integrations/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/integrations/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/integrations.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/intervention/rules/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/intervention/rules/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/kimi-cluster/endpoints/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/kimi-cluster/endpoints/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/kimi-cluster.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/knowledge-bases/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/knowledge-bases/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/knowledge-bases/:id/documents/:docId",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/knowledge-bases/:id/documents/:docId",
+      "risk": "dangerous",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/roles/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/roles/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/roles.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/security/blocked-ips/:ip",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/security/blocked-ips/:ip",
+      "risk": "dangerous",
+      "source": "backend/src/routes/security.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/skills/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/skills/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/skills.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/tasks/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/tasks/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/teams/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/teams/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/workflows/:id",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/workflows/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/workflows.ts"
+    },
+    {
+      "id": "backend:DELETE:/api/workspace/tasks/:id/files/*",
+      "service": "backend",
+      "method": "DELETE",
+      "path": "/api/workspace/tasks/:id/files/*",
+      "risk": "dangerous",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "backend:GET:/api/agent-context/:id/context",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agent-context/:id/context",
+      "risk": "read",
+      "source": "backend/src/routes/agent-context.ts"
+    },
+    {
+      "id": "backend:GET:/api/agent-context/:id/context/stream",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agent-context/:id/context/stream",
+      "risk": "read",
+      "source": "backend/src/routes/agent-context.ts"
+    },
+    {
+      "id": "backend:GET:/api/agent-templates",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agent-templates",
+      "risk": "read",
+      "source": "backend/src/routes/agent-templates.ts"
+    },
+    {
+      "id": "backend:GET:/api/agent-templates/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agent-templates/:id",
+      "risk": "read",
+      "source": "backend/src/routes/agent-templates.ts"
+    },
+    {
+      "id": "backend:GET:/api/agents",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agents",
+      "risk": "read",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:GET:/api/agents/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agents/:id",
+      "risk": "read",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:GET:/api/agents/:id/context",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agents/:id/context",
+      "risk": "read",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:GET:/api/agents/:id/context/stream",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agents/:id/context/stream",
+      "risk": "read",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:GET:/api/agents/by-protocol/:level",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agents/by-protocol/:level",
+      "risk": "read",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:GET:/api/agents/stats",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agents/stats",
+      "risk": "read",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:GET:/api/agents/templates",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/agents/templates",
+      "risk": "read",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:GET:/api/apikeys",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/apikeys",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/apikeys.ts"
+    },
+    {
+      "id": "backend:GET:/api/apikeys/providers",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/apikeys/providers",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/apikeys.ts"
+    },
+    {
+      "id": "backend:GET:/api/auth/me",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/auth/me",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/auth.ts"
+    },
+    {
+      "id": "backend:GET:/api/backups",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/backups",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/backups.ts"
+    },
+    {
+      "id": "backend:GET:/api/backups/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/backups/:id",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/backups.ts"
+    },
+    {
+      "id": "backend:GET:/api/blueprints",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/blueprints",
+      "risk": "read",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:GET:/api/blueprints/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/blueprints/:id",
+      "risk": "read",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:GET:/api/blueprints/:id/executions",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/blueprints/:id/executions",
+      "risk": "read",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:GET:/api/blueprints/presets",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/blueprints/presets",
+      "risk": "read",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:GET:/api/canvas",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/canvas",
+      "risk": "read",
+      "source": "backend/src/routes/canvas.ts"
+    },
+    {
+      "id": "backend:GET:/api/canvas/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/canvas/:id",
+      "risk": "read",
+      "source": "backend/src/routes/canvas.ts"
+    },
+    {
+      "id": "backend:GET:/api/canvas/:id/revisions",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/canvas/:id/revisions",
+      "risk": "read",
+      "source": "backend/src/routes/canvas.ts"
+    },
+    {
+      "id": "backend:GET:/api/chat-accounts",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/chat-accounts",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:GET:/api/chat-accounts/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/chat-accounts/:id",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:GET:/api/chat-accounts/:id/qr-status",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/chat-accounts/:id/qr-status",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:GET:/api/chat-accounts/platforms/:platformId",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/chat-accounts/platforms/:platformId",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:GET:/api/coordinator-hierarchy/chariot/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/coordinator-hierarchy/chariot/:id",
+      "risk": "read",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:GET:/api/coordinator-hierarchy/chariot/:id/agents",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/coordinator-hierarchy/chariot/:id/agents",
+      "risk": "read",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:GET:/api/coordinator-hierarchy/chariot/:id/children",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/coordinator-hierarchy/chariot/:id/children",
+      "risk": "read",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:GET:/api/coordinator-hierarchy/chariot/:id/match",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/coordinator-hierarchy/chariot/:id/match",
+      "risk": "read",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:GET:/api/coordinator-hierarchy/chariots",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/coordinator-hierarchy/chariots",
+      "risk": "read",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:GET:/api/coordinator-hierarchy/tree",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/coordinator-hierarchy/tree",
+      "risk": "read",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:GET:/api/dashboard/state",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/dashboard/state",
+      "risk": "read",
+      "source": "backend/src/app.ts"
+    },
+    {
+      "id": "backend:GET:/api/dialog",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/dialog",
+      "risk": "read",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:GET:/api/dialog/:agentId/context",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/dialog/:agentId/context",
+      "risk": "read",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:GET:/api/dialog/:agentId/stream",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/dialog/:agentId/stream",
+      "risk": "read",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:GET:/api/dialog/agents",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/dialog/agents",
+      "risk": "read",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:GET:/api/engines",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/engines",
+      "risk": "read",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:GET:/api/engines/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/engines/:id",
+      "risk": "read",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:GET:/api/engines/:id/health",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/engines/:id/health",
+      "risk": "read",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:GET:/api/engines/available",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/engines/available",
+      "risk": "read",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:GET:/api/events",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/events",
+      "risk": "read",
+      "source": "backend/src/routes/events.ts"
+    },
+    {
+      "id": "backend:GET:/api/events/stream",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/events/stream",
+      "risk": "read",
+      "source": "backend/src/routes/events.ts"
+    },
+    {
+      "id": "backend:GET:/api/external/platforms",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/external/platforms",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/external.ts"
+    },
+    {
+      "id": "backend:GET:/api/external/platforms/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/external/platforms/:id",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/external.ts"
+    },
+    {
+      "id": "backend:GET:/api/frameworks",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/frameworks",
+      "risk": "read",
+      "source": "backend/src/routes/frameworks.ts"
+    },
+    {
+      "id": "backend:GET:/api/frameworks/:brand",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/frameworks/:brand",
+      "risk": "read",
+      "source": "backend/src/routes/frameworks.ts"
+    },
+    {
+      "id": "backend:GET:/api/frameworks/:brand/config",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/frameworks/:brand/config",
+      "risk": "read",
+      "source": "backend/src/routes/frameworks.ts"
+    },
+    {
+      "id": "backend:GET:/api/frameworks/:brand/engines",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/frameworks/:brand/engines",
+      "risk": "read",
+      "source": "backend/src/routes/frameworks.ts"
+    },
+    {
+      "id": "backend:GET:/api/frameworks/:brand/templates",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/frameworks/:brand/templates",
+      "risk": "read",
+      "source": "backend/src/routes/frameworks.ts"
+    },
+    {
+      "id": "backend:GET:/api/groups",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/groups",
+      "risk": "read",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:GET:/api/groups/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/groups/:id",
+      "risk": "read",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:GET:/api/groups/:id/agents",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/groups/:id/agents",
+      "risk": "read",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:GET:/api/groups/:id/swarm-status",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/groups/:id/swarm-status",
+      "risk": "read",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:GET:/api/groups/:id/tree",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/groups/:id/tree",
+      "risk": "read",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:GET:/api/groups/stats",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/groups/stats",
+      "risk": "read",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:GET:/api/handoff/:id/status",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/handoff/:id/status",
+      "risk": "read",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:GET:/api/handoff/chariot/:id/stats",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/handoff/chariot/:id/stats",
+      "risk": "read",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:GET:/api/handoff/list",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/handoff/list",
+      "risk": "read",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:GET:/api/health",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/health",
+      "risk": "read",
+      "source": "backend/src/app.ts"
+    },
+    {
+      "id": "backend:GET:/api/integrations",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/integrations",
+      "risk": "read",
+      "source": "backend/src/routes/integrations.ts"
+    },
+    {
+      "id": "backend:GET:/api/integrations/types",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/integrations/types",
+      "risk": "read",
+      "source": "backend/src/routes/integrations.ts"
+    },
+    {
+      "id": "backend:GET:/api/intervention/agent/:id/history",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/intervention/agent/:id/history",
+      "risk": "read",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:GET:/api/intervention/list",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/intervention/list",
+      "risk": "read",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:GET:/api/intervention/rules",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/intervention/rules",
+      "risk": "read",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:GET:/api/intervention/status",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/intervention/status",
+      "risk": "read",
+      "source": "backend/src/app.ts"
+    },
+    {
+      "id": "backend:GET:/api/kimi-cluster/patterns",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/kimi-cluster/patterns",
+      "risk": "read",
+      "source": "backend/src/routes/kimi-cluster.ts"
+    },
+    {
+      "id": "backend:GET:/api/kimi-cluster/status",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/kimi-cluster/status",
+      "risk": "read",
+      "source": "backend/src/routes/kimi-cluster.ts"
+    },
+    {
+      "id": "backend:GET:/api/knowledge-bases",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/knowledge-bases",
+      "risk": "read",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:GET:/api/knowledge-bases/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/knowledge-bases/:id",
+      "risk": "read",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:GET:/api/monitor",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/monitor",
+      "risk": "read",
+      "source": "backend/src/routes/monitor.ts"
+    },
+    {
+      "id": "backend:GET:/api/monitor/agents",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/monitor/agents",
+      "risk": "read",
+      "source": "backend/src/routes/monitor.ts"
+    },
+    {
+      "id": "backend:GET:/api/monitor/groups",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/monitor/groups",
+      "risk": "read",
+      "source": "backend/src/routes/monitor.ts"
+    },
+    {
+      "id": "backend:GET:/api/monitor/health",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/monitor/health",
+      "risk": "read",
+      "source": "backend/src/routes/monitor.ts"
+    },
+    {
+      "id": "backend:GET:/api/monitor/logs",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/monitor/logs",
+      "risk": "read",
+      "source": "backend/src/routes/monitor.ts"
+    },
+    {
+      "id": "backend:GET:/api/monitor/performance",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/monitor/performance",
+      "risk": "read",
+      "source": "backend/src/routes/monitor.ts"
+    },
+    {
+      "id": "backend:GET:/api/monitor/spend",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/monitor/spend",
+      "risk": "read",
+      "source": "backend/src/routes/monitor.ts"
+    },
+    {
+      "id": "backend:GET:/api/monitor/stats",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/monitor/stats",
+      "risk": "read",
+      "source": "backend/src/routes/monitor.ts"
+    },
+    {
+      "id": "backend:GET:/api/platform-details/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/platform-details/:id",
+      "risk": "read",
+      "source": "backend/src/routes/platform-details.ts"
+    },
+    {
+      "id": "backend:GET:/api/platforms",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/platforms",
+      "risk": "read",
+      "source": "backend/src/routes/platforms.ts"
+    },
+    {
+      "id": "backend:GET:/api/platforms/:id/health",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/platforms/:id/health",
+      "risk": "read",
+      "source": "backend/src/routes/platforms.ts"
+    },
+    {
+      "id": "backend:GET:/api/platforms/protocol-levels",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/platforms/protocol-levels",
+      "risk": "read",
+      "source": "backend/src/routes/platforms.ts"
+    },
+    {
+      "id": "backend:GET:/api/processes",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/processes",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/processes.ts"
+    },
+    {
+      "id": "backend:GET:/api/processes/:pid",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/processes/:pid",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/processes.ts"
+    },
+    {
+      "id": "backend:GET:/api/processes/stats/overview",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/processes/stats/overview",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/processes.ts"
+    },
+    {
+      "id": "backend:GET:/api/registry",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/registry",
+      "risk": "read",
+      "source": "backend/src/routes/registry.ts"
+    },
+    {
+      "id": "backend:GET:/api/registry/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/registry/:id",
+      "risk": "read",
+      "source": "backend/src/routes/registry.ts"
+    },
+    {
+      "id": "backend:GET:/api/registry/axis/:x/:y/:z",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/registry/axis/:x/:y/:z",
+      "risk": "read",
+      "source": "backend/src/routes/registry.ts"
+    },
+    {
+      "id": "backend:GET:/api/registry/search",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/registry/search",
+      "risk": "read",
+      "source": "backend/src/routes/registry.ts"
+    },
+    {
+      "id": "backend:GET:/api/registry/stats/overview",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/registry/stats/overview",
+      "risk": "read",
+      "source": "backend/src/routes/registry.ts"
+    },
+    {
+      "id": "backend:GET:/api/roles/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/roles/:id",
+      "risk": "read",
+      "source": "backend/src/routes/roles.ts"
+    },
+    {
+      "id": "backend:GET:/api/security/audit-log",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/security/audit-log",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/security.ts"
+    },
+    {
+      "id": "backend:GET:/api/security/blocked-ips",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/security/blocked-ips",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/security.ts"
+    },
+    {
+      "id": "backend:GET:/api/security/events",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/security/events",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/security.ts"
+    },
+    {
+      "id": "backend:GET:/api/security/overview",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/security/overview",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/security.ts"
+    },
+    {
+      "id": "backend:GET:/api/settings",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/settings",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/settings.ts"
+    },
+    {
+      "id": "backend:GET:/api/settings/languages",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/settings/languages",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/settings.ts"
+    },
+    {
+      "id": "backend:GET:/api/settings/themes",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/settings/themes",
+      "risk": "sensitive-read",
+      "source": "backend/src/routes/settings.ts"
+    },
+    {
+      "id": "backend:GET:/api/skills",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/skills",
+      "risk": "read",
+      "source": "backend/src/routes/skills.ts"
+    },
+    {
+      "id": "backend:GET:/api/skills/:id/status",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/skills/:id/status",
+      "risk": "read",
+      "source": "backend/src/routes/skills.ts"
+    },
+    {
+      "id": "backend:GET:/api/spend/budget",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/spend/budget",
+      "risk": "read",
+      "source": "backend/src/routes/spend.ts"
+    },
+    {
+      "id": "backend:GET:/api/spend/by-model",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/spend/by-model",
+      "risk": "read",
+      "source": "backend/src/routes/spend.ts"
+    },
+    {
+      "id": "backend:GET:/api/spend/by-provider",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/spend/by-provider",
+      "risk": "read",
+      "source": "backend/src/routes/spend.ts"
+    },
+    {
+      "id": "backend:GET:/api/spend/history",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/spend/history",
+      "risk": "read",
+      "source": "backend/src/routes/spend.ts"
+    },
+    {
+      "id": "backend:GET:/api/spend/overview",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/spend/overview",
+      "risk": "read",
+      "source": "backend/src/routes/spend.ts"
+    },
+    {
+      "id": "backend:GET:/api/spend/recent",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/spend/recent",
+      "risk": "read",
+      "source": "backend/src/routes/spend.ts"
+    },
+    {
+      "id": "backend:GET:/api/subtools",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/subtools",
+      "risk": "read",
+      "source": "backend/src/routes/subtools.ts"
+    },
+    {
+      "id": "backend:GET:/api/subtools/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/subtools/:id",
+      "risk": "read",
+      "source": "backend/src/routes/subtools.ts"
+    },
+    {
+      "id": "backend:GET:/api/tasks",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/tasks",
+      "risk": "read",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:GET:/api/tasks/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/tasks/:id",
+      "risk": "read",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:GET:/api/tasks/stats/overview",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/tasks/stats/overview",
+      "risk": "read",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:GET:/api/teams",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/teams",
+      "risk": "read",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:GET:/api/teams/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/teams/:id",
+      "risk": "read",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:GET:/api/teams/:id/collaboration",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/teams/:id/collaboration",
+      "risk": "read",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:GET:/api/teams/:id/status",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/teams/:id/status",
+      "risk": "read",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:GET:/api/unified-api/:id/validate",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/unified-api/:id/validate",
+      "risk": "read",
+      "source": "backend/src/routes/unified-api.ts"
+    },
+    {
+      "id": "backend:GET:/api/unified-api/platforms",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/unified-api/platforms",
+      "risk": "read",
+      "source": "backend/src/routes/unified-api.ts"
+    },
+    {
+      "id": "backend:GET:/api/workflows",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/workflows",
+      "risk": "read",
+      "source": "backend/src/routes/workflows.ts"
+    },
+    {
+      "id": "backend:GET:/api/workflows/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/workflows/:id",
+      "risk": "read",
+      "source": "backend/src/routes/workflows.ts"
+    },
+    {
+      "id": "backend:GET:/api/workflows/:id/executions",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/workflows/:id/executions",
+      "risk": "read",
+      "source": "backend/src/routes/workflows.ts"
+    },
+    {
+      "id": "backend:GET:/api/workflows/executions/:executionId",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/workflows/executions/:executionId",
+      "risk": "read",
+      "source": "backend/src/routes/workflows.ts"
+    },
+    {
+      "id": "backend:GET:/api/workspace/tasks",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/workspace/tasks",
+      "risk": "read",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "backend:GET:/api/workspace/tasks/:id",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/workspace/tasks/:id",
+      "risk": "read",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "backend:GET:/api/workspace/tasks/:id/download",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/workspace/tasks/:id/download",
+      "risk": "read",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "backend:GET:/api/workspace/tasks/:id/files/*",
+      "service": "backend",
+      "method": "GET",
+      "path": "/api/workspace/tasks/:id/files/*",
+      "risk": "read",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "backend:GET:/health",
+      "service": "backend",
+      "method": "GET",
+      "path": "/health",
+      "risk": "read",
+      "source": "backend/src/app.ts"
+    },
+    {
+      "id": "backend:PATCH:/api/apikeys/:id/toggle",
+      "service": "backend",
+      "method": "PATCH",
+      "path": "/api/apikeys/:id/toggle",
+      "risk": "dangerous",
+      "source": "backend/src/routes/apikeys.ts"
+    },
+    {
+      "id": "backend:PATCH:/api/events/:id/acknowledge",
+      "service": "backend",
+      "method": "PATCH",
+      "path": "/api/events/:id/acknowledge",
+      "risk": "write",
+      "source": "backend/src/routes/events.ts"
+    },
+    {
+      "id": "backend:PATCH:/api/events/acknowledge-all",
+      "service": "backend",
+      "method": "PATCH",
+      "path": "/api/events/acknowledge-all",
+      "risk": "write",
+      "source": "backend/src/routes/events.ts"
+    },
+    {
+      "id": "backend:PATCH:/api/security/events/:id/resolve",
+      "service": "backend",
+      "method": "PATCH",
+      "path": "/api/security/events/:id/resolve",
+      "risk": "dangerous",
+      "source": "backend/src/routes/security.ts"
+    },
+    {
+      "id": "backend:POST:/api/agent-templates",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/agent-templates",
+      "risk": "write",
+      "source": "backend/src/routes/agent-templates.ts"
+    },
+    {
+      "id": "backend:POST:/api/agents",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/agents",
+      "risk": "write",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:POST:/api/agents/:id/chat",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/agents/:id/chat",
+      "risk": "write",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:POST:/api/agents/:id/inject",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/agents/:id/inject",
+      "risk": "write",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:POST:/api/agents/:id/isolate",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/agents/:id/isolate",
+      "risk": "write",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:POST:/api/agents/:id/pause",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/agents/:id/pause",
+      "risk": "write",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:POST:/api/agents/:id/resume",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/agents/:id/resume",
+      "risk": "write",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:POST:/api/apikeys",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/apikeys",
+      "risk": "dangerous",
+      "source": "backend/src/routes/apikeys.ts"
+    },
+    {
+      "id": "backend:POST:/api/apikeys/:id/test",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/apikeys/:id/test",
+      "risk": "dangerous",
+      "source": "backend/src/routes/apikeys.ts"
+    },
+    {
+      "id": "backend:POST:/api/apikeys/test-all",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/apikeys/test-all",
+      "risk": "dangerous",
+      "source": "backend/src/routes/apikeys.ts"
+    },
+    {
+      "id": "backend:POST:/api/auth/login",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "risk": "dangerous",
+      "source": "backend/src/routes/auth.ts"
+    },
+    {
+      "id": "backend:POST:/api/auth/register",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/auth/register",
+      "risk": "dangerous",
+      "source": "backend/src/routes/auth.ts"
+    },
+    {
+      "id": "backend:POST:/api/backups",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/backups",
+      "risk": "dangerous",
+      "source": "backend/src/routes/backups.ts"
+    },
+    {
+      "id": "backend:POST:/api/backups/:id/restore",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/backups/:id/restore",
+      "risk": "dangerous",
+      "source": "backend/src/routes/backups.ts"
+    },
+    {
+      "id": "backend:POST:/api/blueprints",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/blueprints",
+      "risk": "write",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:POST:/api/blueprints/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/blueprints/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:POST:/api/blueprints/:id/pause",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/blueprints/:id/pause",
+      "risk": "write",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:POST:/api/blueprints/:id/resume",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/blueprints/:id/resume",
+      "risk": "write",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:POST:/api/canvas",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/canvas",
+      "risk": "write",
+      "source": "backend/src/routes/canvas.ts"
+    },
+    {
+      "id": "backend:POST:/api/canvas/:id/restore",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/canvas/:id/restore",
+      "risk": "write",
+      "source": "backend/src/routes/canvas.ts"
+    },
+    {
+      "id": "backend:POST:/api/canvas/:id/revisions",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/canvas/:id/revisions",
+      "risk": "write",
+      "source": "backend/src/routes/canvas.ts"
+    },
+    {
+      "id": "backend:POST:/api/chat-accounts",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/chat-accounts",
+      "risk": "dangerous",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:POST:/api/chat-accounts/:id/connect",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/chat-accounts/:id/connect",
+      "risk": "dangerous",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:POST:/api/chat-accounts/:id/disconnect",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/chat-accounts/:id/disconnect",
+      "risk": "dangerous",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:POST:/api/chat-accounts/:id/qr-code",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/chat-accounts/:id/qr-code",
+      "risk": "dangerous",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:POST:/api/chat-accounts/:id/test",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/chat-accounts/:id/test",
+      "risk": "dangerous",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:POST:/api/coordinator-hierarchy/broadcast",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/coordinator-hierarchy/broadcast",
+      "risk": "write",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:POST:/api/coordinator-hierarchy/chariot",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/coordinator-hierarchy/chariot",
+      "risk": "write",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:POST:/api/coordinator-hierarchy/chariot/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/coordinator-hierarchy/chariot/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:POST:/api/coordinator-hierarchy/chariot/:id/execute/stream",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/coordinator-hierarchy/chariot/:id/execute/stream",
+      "risk": "dangerous",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:POST:/api/coordinator-hierarchy/delegate",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/coordinator-hierarchy/delegate",
+      "risk": "write",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:POST:/api/coordinator-hierarchy/merge",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/coordinator-hierarchy/merge",
+      "risk": "write",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:POST:/api/coordinator-hierarchy/split",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/coordinator-hierarchy/split",
+      "risk": "write",
+      "source": "backend/src/routes/coordinator.ts"
+    },
+    {
+      "id": "backend:POST:/api/dialog",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/dialog",
+      "risk": "write",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:POST:/api/dialog/:agentId/chat",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/dialog/:agentId/chat",
+      "risk": "write",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:POST:/api/dialog/:agentId/files",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/dialog/:agentId/files",
+      "risk": "write",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:POST:/api/dialog/:agentId/stream",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/dialog/:agentId/stream",
+      "risk": "write",
+      "source": "backend/src/routes/dialog.ts"
+    },
+    {
+      "id": "backend:POST:/api/engines",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/engines",
+      "risk": "write",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:POST:/api/engines/:id/allocate",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/engines/:id/allocate",
+      "risk": "write",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:POST:/api/engines/:id/chat",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/engines/:id/chat",
+      "risk": "write",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:POST:/api/engines/:id/keys",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/engines/:id/keys",
+      "risk": "write",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:POST:/api/engines/:id/release",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/engines/:id/release",
+      "risk": "write",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:POST:/api/events",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/events",
+      "risk": "write",
+      "source": "backend/src/routes/events.ts"
+    },
+    {
+      "id": "backend:POST:/api/external/platforms",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/external/platforms",
+      "risk": "dangerous",
+      "source": "backend/src/routes/external.ts"
+    },
+    {
+      "id": "backend:POST:/api/external/platforms/:id/config",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/external/platforms/:id/config",
+      "risk": "dangerous",
+      "source": "backend/src/routes/external.ts"
+    },
+    {
+      "id": "backend:POST:/api/external/platforms/:id/test",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/external/platforms/:id/test",
+      "risk": "dangerous",
+      "source": "backend/src/routes/external.ts"
+    },
+    {
+      "id": "backend:POST:/api/external/platforms/:id/toggle",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/external/platforms/:id/toggle",
+      "risk": "dangerous",
+      "source": "backend/src/routes/external.ts"
+    },
+    {
+      "id": "backend:POST:/api/frameworks/:brand/config",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/frameworks/:brand/config",
+      "risk": "write",
+      "source": "backend/src/routes/frameworks.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/agents",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/agents",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/coordinator",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/coordinator",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/entities",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/entities",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/nest",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/nest",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/pause",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/pause",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/resume",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/resume",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/swarm-execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/swarm-execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/groups/:id/swarm-mode",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/groups/:id/swarm-mode",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:POST:/api/handoff/:id/accept",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/handoff/:id/accept",
+      "risk": "write",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:POST:/api/handoff/:id/cancel",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/handoff/:id/cancel",
+      "risk": "write",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:POST:/api/handoff/:id/complete",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/handoff/:id/complete",
+      "risk": "write",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:POST:/api/handoff/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/handoff/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:POST:/api/handoff/:id/reject",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/handoff/:id/reject",
+      "risk": "write",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:POST:/api/handoff/:id/start",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/handoff/:id/start",
+      "risk": "write",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:POST:/api/handoff/initiate",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/handoff/initiate",
+      "risk": "write",
+      "source": "backend/src/routes/handoff.ts"
+    },
+    {
+      "id": "backend:POST:/api/integrations",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/integrations",
+      "risk": "write",
+      "source": "backend/src/routes/integrations.ts"
+    },
+    {
+      "id": "backend:POST:/api/integrations/:id/test",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/integrations/:id/test",
+      "risk": "write",
+      "source": "backend/src/routes/integrations.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/:id/approve",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/:id/approve",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/:id/reject",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/:id/reject",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/agent-isolate",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/agent-isolate",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/agent/:id/emergency-stop",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/agent/:id/emergency-stop",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/agent/:id/pause",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/agent/:id/pause",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/agent/:id/resume",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/agent/:id/resume",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/agent/:id/terminate",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/agent/:id/terminate",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/global-pause",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/global-pause",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/global-resume",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/global-resume",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/group-reorg",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/group-reorg",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/inject-message",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/inject-message",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/request",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/request",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/rules",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/rules",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/intervention/tool-review",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/intervention/tool-review",
+      "risk": "write",
+      "source": "backend/src/routes/intervention.ts"
+    },
+    {
+      "id": "backend:POST:/api/kimi-cluster/endpoints",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/kimi-cluster/endpoints",
+      "risk": "write",
+      "source": "backend/src/routes/kimi-cluster.ts"
+    },
+    {
+      "id": "backend:POST:/api/kimi-cluster/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/kimi-cluster/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/kimi-cluster.ts"
+    },
+    {
+      "id": "backend:POST:/api/kimi-cluster/load-balance",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/kimi-cluster/load-balance",
+      "risk": "write",
+      "source": "backend/src/routes/kimi-cluster.ts"
+    },
+    {
+      "id": "backend:POST:/api/kimi-cluster/stream",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/kimi-cluster/stream",
+      "risk": "write",
+      "source": "backend/src/routes/kimi-cluster.ts"
+    },
+    {
+      "id": "backend:POST:/api/knowledge-bases",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/knowledge-bases",
+      "risk": "write",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:POST:/api/knowledge-bases/:id/documents",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/knowledge-bases/:id/documents",
+      "risk": "write",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:POST:/api/knowledge-bases/:id/search",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/knowledge-bases/:id/search",
+      "risk": "write",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:POST:/api/knowledge-bases/:id/upload",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/knowledge-bases/:id/upload",
+      "risk": "write",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:POST:/api/platform-details/:id/test",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/platform-details/:id/test",
+      "risk": "write",
+      "source": "backend/src/routes/platform-details.ts"
+    },
+    {
+      "id": "backend:POST:/api/processes/:pid/restart",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/processes/:pid/restart",
+      "risk": "dangerous",
+      "source": "backend/src/routes/processes.ts"
+    },
+    {
+      "id": "backend:POST:/api/processes/:pid/stop",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/processes/:pid/stop",
+      "risk": "dangerous",
+      "source": "backend/src/routes/processes.ts"
+    },
+    {
+      "id": "backend:POST:/api/registry/:id/heartbeat",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/registry/:id/heartbeat",
+      "risk": "write",
+      "source": "backend/src/routes/registry.ts"
+    },
+    {
+      "id": "backend:POST:/api/roles/:id/chat",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/roles/:id/chat",
+      "risk": "write",
+      "source": "backend/src/routes/roles.ts"
+    },
+    {
+      "id": "backend:POST:/api/roles/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/roles/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/roles.ts"
+    },
+    {
+      "id": "backend:POST:/api/roles/:id/roles",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/roles/:id/roles",
+      "risk": "write",
+      "source": "backend/src/routes/roles.ts"
+    },
+    {
+      "id": "backend:POST:/api/security/blocked-ips",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/security/blocked-ips",
+      "risk": "dangerous",
+      "source": "backend/src/routes/security.ts"
+    },
+    {
+      "id": "backend:POST:/api/skills",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/skills",
+      "risk": "write",
+      "source": "backend/src/routes/skills.ts"
+    },
+    {
+      "id": "backend:POST:/api/spend/budget",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/spend/budget",
+      "risk": "write",
+      "source": "backend/src/routes/spend.ts"
+    },
+    {
+      "id": "backend:POST:/api/subtools/:id/install",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/subtools/:id/install",
+      "risk": "write",
+      "source": "backend/src/routes/subtools.ts"
+    },
+    {
+      "id": "backend:POST:/api/subtools/:id/start",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/subtools/:id/start",
+      "risk": "write",
+      "source": "backend/src/routes/subtools.ts"
+    },
+    {
+      "id": "backend:POST:/api/subtools/:id/stop",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/subtools/:id/stop",
+      "risk": "write",
+      "source": "backend/src/routes/subtools.ts"
+    },
+    {
+      "id": "backend:POST:/api/swarm/aggregate",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/swarm/aggregate",
+      "risk": "write",
+      "source": "backend/src/routes/swarm.ts"
+    },
+    {
+      "id": "backend:POST:/api/swarm/batch-chat",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/swarm/batch-chat",
+      "risk": "write",
+      "source": "backend/src/routes/swarm.ts"
+    },
+    {
+      "id": "backend:POST:/api/swarm/coordinate",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/swarm/coordinate",
+      "risk": "write",
+      "source": "backend/src/routes/swarm.ts"
+    },
+    {
+      "id": "backend:POST:/api/tasks",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/tasks",
+      "risk": "write",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:POST:/api/tasks/:id/cancel",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/tasks/:id/cancel",
+      "risk": "write",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:POST:/api/tasks/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/tasks/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:POST:/api/tasks/:id/retry",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/tasks/:id/retry",
+      "risk": "write",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:POST:/api/teams",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/teams",
+      "risk": "write",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:POST:/api/teams/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/teams/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:POST:/api/teams/:id/intervene",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/teams/:id/intervene",
+      "risk": "write",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:POST:/api/teams/:id/pause",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/teams/:id/pause",
+      "risk": "write",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:POST:/api/teams/:id/resume",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/teams/:id/resume",
+      "risk": "write",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:POST:/api/teams/:id/roles",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/teams/:id/roles",
+      "risk": "write",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:POST:/api/unified-api/:id/chat",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/unified-api/:id/chat",
+      "risk": "write",
+      "source": "backend/src/routes/unified-api.ts"
+    },
+    {
+      "id": "backend:POST:/api/unified-api/:id/stream",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/unified-api/:id/stream",
+      "risk": "write",
+      "source": "backend/src/routes/unified-api.ts"
+    },
+    {
+      "id": "backend:POST:/api/unified-api/config",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/unified-api/config",
+      "risk": "dangerous",
+      "source": "backend/src/routes/unified-api.ts"
+    },
+    {
+      "id": "backend:POST:/api/unified-api/detect",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/unified-api/detect",
+      "risk": "write",
+      "source": "backend/src/routes/unified-api.ts"
+    },
+    {
+      "id": "backend:POST:/api/workflows",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/workflows",
+      "risk": "write",
+      "source": "backend/src/routes/workflows.ts"
+    },
+    {
+      "id": "backend:POST:/api/workflows/:id/execute",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/workflows/:id/execute",
+      "risk": "dangerous",
+      "source": "backend/src/routes/workflows.ts"
+    },
+    {
+      "id": "backend:POST:/api/workspace/merge",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/workspace/merge",
+      "risk": "write",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "backend:POST:/api/workspace/tasks",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/workspace/tasks",
+      "risk": "write",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "backend:POST:/api/workspace/tasks/:id/import",
+      "service": "backend",
+      "method": "POST",
+      "path": "/api/workspace/tasks/:id/import",
+      "risk": "write",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "backend:PUT:/api/agents/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/agents/:id",
+      "risk": "write",
+      "source": "backend/src/routes/agents.ts"
+    },
+    {
+      "id": "backend:PUT:/api/blueprints/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/blueprints/:id",
+      "risk": "write",
+      "source": "backend/src/routes/blueprints.ts"
+    },
+    {
+      "id": "backend:PUT:/api/canvas/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/canvas/:id",
+      "risk": "write",
+      "source": "backend/src/routes/canvas.ts"
+    },
+    {
+      "id": "backend:PUT:/api/chat-accounts/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/chat-accounts/:id",
+      "risk": "dangerous",
+      "source": "backend/src/routes/chat-accounts.ts"
+    },
+    {
+      "id": "backend:PUT:/api/engines/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/engines/:id",
+      "risk": "write",
+      "source": "backend/src/routes/engines.ts"
+    },
+    {
+      "id": "backend:PUT:/api/groups/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/groups/:id",
+      "risk": "write",
+      "source": "backend/src/routes/groups.ts"
+    },
+    {
+      "id": "backend:PUT:/api/integrations/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/integrations/:id",
+      "risk": "write",
+      "source": "backend/src/routes/integrations.ts"
+    },
+    {
+      "id": "backend:PUT:/api/knowledge-bases/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/knowledge-bases/:id",
+      "risk": "write",
+      "source": "backend/src/routes/knowledge.ts"
+    },
+    {
+      "id": "backend:PUT:/api/roles/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/roles/:id",
+      "risk": "write",
+      "source": "backend/src/routes/roles.ts"
+    },
+    {
+      "id": "backend:PUT:/api/settings/:key",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/settings/:key",
+      "risk": "dangerous",
+      "source": "backend/src/routes/settings.ts"
+    },
+    {
+      "id": "backend:PUT:/api/settings/language",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/settings/language",
+      "risk": "dangerous",
+      "source": "backend/src/routes/settings.ts"
+    },
+    {
+      "id": "backend:PUT:/api/settings/theme",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/settings/theme",
+      "risk": "dangerous",
+      "source": "backend/src/routes/settings.ts"
+    },
+    {
+      "id": "backend:PUT:/api/skills/:id/config",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/skills/:id/config",
+      "risk": "write",
+      "source": "backend/src/routes/skills.ts"
+    },
+    {
+      "id": "backend:PUT:/api/tasks/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/tasks/:id",
+      "risk": "write",
+      "source": "backend/src/routes/tasks.ts"
+    },
+    {
+      "id": "backend:PUT:/api/teams/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/teams/:id",
+      "risk": "write",
+      "source": "backend/src/routes/teams.ts"
+    },
+    {
+      "id": "backend:PUT:/api/workflows/:id",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/workflows/:id",
+      "risk": "write",
+      "source": "backend/src/routes/workflows.ts"
+    },
+    {
+      "id": "backend:PUT:/api/workspace/tasks/:id/files/*",
+      "service": "backend",
+      "method": "PUT",
+      "path": "/api/workspace/tasks/:id/files/*",
+      "risk": "write",
+      "source": "backend/src/routes/workspace.ts"
+    },
+    {
+      "id": "research:DELETE:/api/agents/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/agents/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/agents/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/conversations/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/conversations/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/conversations/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/groups/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/groups/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/groups/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/ontology/schemas/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/ontology/schemas/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/ontology/schemas/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/code-reviews/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/code-reviews/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/code-reviews/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/competitions/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/competitions/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/competitions/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/mentorships/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/mentorships/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/mentorships/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/notes",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/notes",
+      "risk": "dangerous",
+      "source": "src/app/api/research/notes/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/panels/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/panels/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/panels/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/pipelines/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/pipelines/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/pipelines/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/review-boards/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/review-boards/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/review-boards/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/tasks/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/tasks/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/tasks/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/validations/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/validations/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/validations/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/research/workshops/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/research/workshops/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/research/workshops/[id]/route.ts"
+    },
+    {
+      "id": "research:DELETE:/api/workflows/[id]",
+      "service": "research",
+      "method": "DELETE",
+      "path": "/api/workflows/[id]",
+      "risk": "dangerous",
+      "source": "src/app/api/workflows/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/agents",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/agents",
+      "risk": "read",
+      "source": "src/app/api/agents/route.ts"
+    },
+    {
+      "id": "research:GET:/api/agents/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/agents/[id]",
+      "risk": "read",
+      "source": "src/app/api/agents/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/conversations",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/conversations",
+      "risk": "read",
+      "source": "src/app/api/conversations/route.ts"
+    },
+    {
+      "id": "research:GET:/api/conversations/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/conversations/[id]",
+      "risk": "read",
+      "source": "src/app/api/conversations/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/frontier/arxiv",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/frontier/arxiv",
+      "risk": "read",
+      "source": "src/app/api/frontier/arxiv/route.ts"
+    },
+    {
+      "id": "research:GET:/api/frontier/kb",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/frontier/kb",
+      "risk": "read",
+      "source": "src/app/api/frontier/kb/route.ts"
+    },
+    {
+      "id": "research:GET:/api/graphrag/documents",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/graphrag/documents",
+      "risk": "read",
+      "source": "src/app/api/graphrag/documents/route.ts"
+    },
+    {
+      "id": "research:GET:/api/graphrag/entities",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/graphrag/entities",
+      "risk": "read",
+      "source": "src/app/api/graphrag/entities/route.ts"
+    },
+    {
+      "id": "research:GET:/api/graphrag/relations",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/graphrag/relations",
+      "risk": "read",
+      "source": "src/app/api/graphrag/relations/route.ts"
+    },
+    {
+      "id": "research:GET:/api/graphrag/stats",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/graphrag/stats",
+      "risk": "read",
+      "source": "src/app/api/graphrag/stats/route.ts"
+    },
+    {
+      "id": "research:GET:/api/groups",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/groups",
+      "risk": "read",
+      "source": "src/app/api/groups/route.ts"
+    },
+    {
+      "id": "research:GET:/api/groups/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/groups/[id]",
+      "risk": "read",
+      "source": "src/app/api/groups/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/llm-pool/status",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/llm-pool/status",
+      "risk": "read",
+      "source": "src/app/api/llm-pool/status/route.ts"
+    },
+    {
+      "id": "research:GET:/api/ontology/instances",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/ontology/instances",
+      "risk": "read",
+      "source": "src/app/api/ontology/instances/route.ts"
+    },
+    {
+      "id": "research:GET:/api/ontology/relations",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/ontology/relations",
+      "risk": "read",
+      "source": "src/app/api/ontology/relations/route.ts"
+    },
+    {
+      "id": "research:GET:/api/ontology/schemas",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/ontology/schemas",
+      "risk": "read",
+      "source": "src/app/api/ontology/schemas/route.ts"
+    },
+    {
+      "id": "research:GET:/api/ontology/schemas/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/ontology/schemas/[id]",
+      "risk": "read",
+      "source": "src/app/api/ontology/schemas/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/ontology/stats",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/ontology/stats",
+      "risk": "read",
+      "source": "src/app/api/ontology/stats/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/code-reviews",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/code-reviews",
+      "risk": "read",
+      "source": "src/app/api/research/code-reviews/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/code-reviews/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/code-reviews/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/code-reviews/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/code-reviews/[id]/reviewers",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/code-reviews/[id]/reviewers",
+      "risk": "read",
+      "source": "src/app/api/research/code-reviews/[id]/reviewers/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/code-reviews/[id]/reviews",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/code-reviews/[id]/reviews",
+      "risk": "read",
+      "source": "src/app/api/research/code-reviews/[id]/reviews/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/collaborations/templates",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/collaborations/templates",
+      "risk": "read",
+      "source": "src/app/api/research/collaborations/templates/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/competitions",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/competitions",
+      "risk": "read",
+      "source": "src/app/api/research/competitions/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/competitions/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/competitions/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/competitions/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/competitions/[id]/competitors",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/competitions/[id]/competitors",
+      "risk": "read",
+      "source": "src/app/api/research/competitions/[id]/competitors/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/competitions/[id]/rounds",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/competitions/[id]/rounds",
+      "risk": "read",
+      "source": "src/app/api/research/competitions/[id]/rounds/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/competitions/[id]/rounds/stats",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/competitions/[id]/rounds/stats",
+      "risk": "read",
+      "source": "src/app/api/research/competitions/[id]/rounds/stats/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/mentorships",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/mentorships",
+      "risk": "read",
+      "source": "src/app/api/research/mentorships/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/mentorships/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/mentorships/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/mentorships/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/mentorships/[id]/sessions",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/mentorships/[id]/sessions",
+      "risk": "read",
+      "source": "src/app/api/research/mentorships/[id]/sessions/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/millennium/init",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/millennium/init",
+      "risk": "sensitive-read",
+      "source": "src/app/api/research/millennium/init/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/modes",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/modes",
+      "risk": "read",
+      "source": "src/app/api/research/modes/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/modules",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/modules",
+      "risk": "read",
+      "source": "src/app/api/research/modules/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/notes",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/notes",
+      "risk": "read",
+      "source": "src/app/api/research/notes/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/panels",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/panels",
+      "risk": "read",
+      "source": "src/app/api/research/panels/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/panels/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/panels/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/panels/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/panels/[id]/members",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/panels/[id]/members",
+      "risk": "read",
+      "source": "src/app/api/research/panels/[id]/members/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/papers",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/papers",
+      "risk": "read",
+      "source": "src/app/api/research/papers/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/pipelines",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/pipelines",
+      "risk": "read",
+      "source": "src/app/api/research/pipelines/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/pipelines/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/pipelines/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/pipelines/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/pipelines/[id]/stages/[stageId]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/pipelines/[id]/stages/[stageId]",
+      "risk": "read",
+      "source": "src/app/api/research/pipelines/[id]/stages/[stageId]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/pipelines/[id]/tasks",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/pipelines/[id]/tasks",
+      "risk": "read",
+      "source": "src/app/api/research/pipelines/[id]/tasks/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/registry",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/registry",
+      "risk": "read",
+      "source": "src/app/api/research/registry/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/registry/compatible",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/registry/compatible",
+      "risk": "read",
+      "source": "src/app/api/research/registry/compatible/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/review-boards",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/review-boards",
+      "risk": "read",
+      "source": "src/app/api/research/review-boards/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/review-boards/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/review-boards/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/review-boards/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/review-boards/[id]/reviewers",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/review-boards/[id]/reviewers",
+      "risk": "read",
+      "source": "src/app/api/research/review-boards/[id]/reviewers/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/review-boards/[id]/reviews",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/review-boards/[id]/reviews",
+      "risk": "read",
+      "source": "src/app/api/research/review-boards/[id]/reviews/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/review-boards/[id]/reviews/stats",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/review-boards/[id]/reviews/stats",
+      "risk": "read",
+      "source": "src/app/api/research/review-boards/[id]/reviews/stats/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/stats",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/stats",
+      "risk": "read",
+      "source": "src/app/api/research/stats/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/sylva-sync",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/sylva-sync",
+      "risk": "sensitive-read",
+      "source": "src/app/api/research/sylva-sync/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/tasks",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/tasks",
+      "risk": "read",
+      "source": "src/app/api/research/tasks/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/tasks/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/tasks/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/tasks/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/tasks/stats",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/tasks/stats",
+      "risk": "read",
+      "source": "src/app/api/research/tasks/stats/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/validations",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/validations",
+      "risk": "read",
+      "source": "src/app/api/research/validations/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/validations/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/validations/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/validations/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/validations/[id]/results",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/validations/[id]/results",
+      "risk": "read",
+      "source": "src/app/api/research/validations/[id]/results/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/validations/[id]/results/stats",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/validations/[id]/results/stats",
+      "risk": "read",
+      "source": "src/app/api/research/validations/[id]/results/stats/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/validations/[id]/validators",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/validations/[id]/validators",
+      "risk": "read",
+      "source": "src/app/api/research/validations/[id]/validators/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/verification",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/verification",
+      "risk": "read",
+      "source": "src/app/api/research/verification/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/workshops",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/workshops",
+      "risk": "read",
+      "source": "src/app/api/research/workshops/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/workshops/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/workshops/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/workshops/[id]/route.ts"
+    },
+    {
+      "id": "research:GET:/api/workflows",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/workflows",
+      "risk": "read",
+      "source": "src/app/api/workflows/route.ts"
+    },
+    {
+      "id": "research:GET:/api/workflows/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/workflows/[id]",
+      "risk": "read",
+      "source": "src/app/api/workflows/[id]/route.ts"
+    },
+    {
+      "id": "research:POST:/api/agents",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/agents",
+      "risk": "write",
+      "source": "src/app/api/agents/route.ts"
+    },
+    {
+      "id": "research:POST:/api/chat",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/chat",
+      "risk": "write",
+      "source": "src/app/api/chat/route.ts"
+    },
+    {
+      "id": "research:POST:/api/chat/group",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/chat/group",
+      "risk": "write",
+      "source": "src/app/api/chat/group/route.ts"
+    },
+    {
+      "id": "research:POST:/api/conversations",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/conversations",
+      "risk": "write",
+      "source": "src/app/api/conversations/route.ts"
+    },
+    {
+      "id": "research:POST:/api/frontier/arxiv",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/frontier/arxiv",
+      "risk": "write",
+      "source": "src/app/api/frontier/arxiv/route.ts"
+    },
+    {
+      "id": "research:POST:/api/graphrag/documents",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/graphrag/documents",
+      "risk": "write",
+      "source": "src/app/api/graphrag/documents/route.ts"
+    },
+    {
+      "id": "research:POST:/api/graphrag/query",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/graphrag/query",
+      "risk": "write",
+      "source": "src/app/api/graphrag/query/route.ts"
+    },
+    {
+      "id": "research:POST:/api/groups",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/groups",
+      "risk": "write",
+      "source": "src/app/api/groups/route.ts"
+    },
+    {
+      "id": "research:POST:/api/ontology/extract",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/ontology/extract",
+      "risk": "write",
+      "source": "src/app/api/ontology/extract/route.ts"
+    },
+    {
+      "id": "research:POST:/api/ontology/query",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/ontology/query",
+      "risk": "write",
+      "source": "src/app/api/ontology/query/route.ts"
+    },
+    {
+      "id": "research:POST:/api/ontology/schemas",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/ontology/schemas",
+      "risk": "write",
+      "source": "src/app/api/ontology/schemas/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/code-reviews",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/code-reviews",
+      "risk": "write",
+      "source": "src/app/api/research/code-reviews/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/code-reviews/[id]/reviewers",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/code-reviews/[id]/reviewers",
+      "risk": "write",
+      "source": "src/app/api/research/code-reviews/[id]/reviewers/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/code-reviews/[id]/reviews",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/code-reviews/[id]/reviews",
+      "risk": "write",
+      "source": "src/app/api/research/code-reviews/[id]/reviews/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/collaborations/init",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/collaborations/init",
+      "risk": "dangerous",
+      "source": "src/app/api/research/collaborations/init/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/competitions",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/competitions",
+      "risk": "write",
+      "source": "src/app/api/research/competitions/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/competitions/[id]/competitors",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/competitions/[id]/competitors",
+      "risk": "write",
+      "source": "src/app/api/research/competitions/[id]/competitors/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/competitions/[id]/rounds",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/competitions/[id]/rounds",
+      "risk": "write",
+      "source": "src/app/api/research/competitions/[id]/rounds/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/init",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/init",
+      "risk": "dangerous",
+      "source": "src/app/api/research/init/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/mentorships",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/mentorships",
+      "risk": "write",
+      "source": "src/app/api/research/mentorships/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/mentorships/[id]/sessions",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/mentorships/[id]/sessions",
+      "risk": "write",
+      "source": "src/app/api/research/mentorships/[id]/sessions/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/millennium/init",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/millennium/init",
+      "risk": "dangerous",
+      "source": "src/app/api/research/millennium/init/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/notes",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/notes",
+      "risk": "write",
+      "source": "src/app/api/research/notes/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/panels",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/panels",
+      "risk": "write",
+      "source": "src/app/api/research/panels/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/panels/[id]/execute",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/panels/[id]/execute",
+      "risk": "dangerous",
+      "source": "src/app/api/research/panels/[id]/execute/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/panels/[id]/members",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/panels/[id]/members",
+      "risk": "write",
+      "source": "src/app/api/research/panels/[id]/members/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/pipelines",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/pipelines",
+      "risk": "write",
+      "source": "src/app/api/research/pipelines/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/pipelines/[id]/advance",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/pipelines/[id]/advance",
+      "risk": "write",
+      "source": "src/app/api/research/pipelines/[id]/advance/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/pipelines/[id]/tasks",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/pipelines/[id]/tasks",
+      "risk": "write",
+      "source": "src/app/api/research/pipelines/[id]/tasks/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/review-boards",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/review-boards",
+      "risk": "write",
+      "source": "src/app/api/research/review-boards/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/review-boards/[id]/reviewers",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/review-boards/[id]/reviewers",
+      "risk": "write",
+      "source": "src/app/api/research/review-boards/[id]/reviewers/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/review-boards/[id]/reviews",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/review-boards/[id]/reviews",
+      "risk": "write",
+      "source": "src/app/api/research/review-boards/[id]/reviews/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/sylva-sync",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/sylva-sync",
+      "risk": "dangerous",
+      "source": "src/app/api/research/sylva-sync/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/sync",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/sync",
+      "risk": "dangerous",
+      "source": "src/app/api/research/sync/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/tasks",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/tasks",
+      "risk": "write",
+      "source": "src/app/api/research/tasks/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/validations",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/validations",
+      "risk": "write",
+      "source": "src/app/api/research/validations/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/validations/[id]/results",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/validations/[id]/results",
+      "risk": "write",
+      "source": "src/app/api/research/validations/[id]/results/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/validations/[id]/validators",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/validations/[id]/validators",
+      "risk": "write",
+      "source": "src/app/api/research/validations/[id]/validators/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/workshops",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/workshops",
+      "risk": "write",
+      "source": "src/app/api/research/workshops/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/workshops/[id]/conclude",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/workshops/[id]/conclude",
+      "risk": "write",
+      "source": "src/app/api/research/workshops/[id]/conclude/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/workshops/[id]/rounds",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/workshops/[id]/rounds",
+      "risk": "write",
+      "source": "src/app/api/research/workshops/[id]/rounds/route.ts"
+    },
+    {
+      "id": "research:POST:/api/workflows",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/workflows",
+      "risk": "write",
+      "source": "src/app/api/workflows/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/agents/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/agents/[id]",
+      "risk": "write",
+      "source": "src/app/api/agents/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/groups/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/groups/[id]",
+      "risk": "write",
+      "source": "src/app/api/groups/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/ontology/schemas/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/ontology/schemas/[id]",
+      "risk": "write",
+      "source": "src/app/api/ontology/schemas/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/code-reviews/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/code-reviews/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/code-reviews/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/competitions/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/competitions/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/competitions/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/mentorships/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/mentorships/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/mentorships/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/notes",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/notes",
+      "risk": "write",
+      "source": "src/app/api/research/notes/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/panels/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/panels/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/panels/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/pipelines/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/pipelines/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/pipelines/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/pipelines/[id]/stages/[stageId]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/pipelines/[id]/stages/[stageId]",
+      "risk": "write",
+      "source": "src/app/api/research/pipelines/[id]/stages/[stageId]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/review-boards/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/review-boards/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/review-boards/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/tasks/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/tasks/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/tasks/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/validations/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/validations/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/validations/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/research/workshops/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/research/workshops/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/workshops/[id]/route.ts"
+    },
+    {
+      "id": "research:PUT:/api/workflows/[id]",
+      "service": "research",
+      "method": "PUT",
+      "path": "/api/workflows/[id]",
+      "risk": "write",
+      "source": "src/app/api/workflows/[id]/route.ts"
+    }
+  ]
+}

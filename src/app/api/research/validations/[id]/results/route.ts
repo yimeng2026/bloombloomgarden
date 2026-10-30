@@ -171,19 +171,13 @@ export async function POST(
             targetTheorem: targetTheorem || "",
             content: content || input || "",
           },
-          { model: "glm-5.1", temperature: 0.3, provider: "zhipu" }
         );
         finalOutput = llmRes.content;
         finalConclusion = extractConclusion(llmRes.content);
         finalConfidence = extractConfidence(llmRes.content);
         console.log(`[Validation LLM] conclusion=${finalConclusion}, confidence=${finalConfidence}, latency=${llmRes.latencyMs}ms`);
-      } catch (llmErr: any) {
-        console.error("[Validation LLM] error:", llmErr.message);
-        // fallback: 使用请求体中的内容或模拟内容
-        const mock = generateMockValidation(validationType, content || input);
-        finalOutput = body.output || mock.output;
-        finalConclusion = body.conclusion || mock.conclusion;
-        finalConfidence = body.confidence !== undefined ? body.confidence : mock.confidence;
+      } catch (error) {
+        throw new Error(`Kimi 验证内容生成失败: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 

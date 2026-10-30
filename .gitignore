@@ -59,6 +59,7 @@ next-env.d.ts
 /tool-results/
 /upload/
 /download/
+/data/kimi-control/
 
 # 数据库
 /db/*.db

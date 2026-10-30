@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
@@ -6,52 +8,53 @@ import {
   generateTheoremSyncData,
   generateTaskForSorry,
   generateSorryAnalysisPrompt,
+  type LeanTheorem,
 } from "@/lib/sylva-parser";
 import { researchChat } from "@/lib/research-llm";
 
 export const runtime = "nodejs";
 
-const TOE_SYLVA_PATH = "C:\\Users\\一梦\\Documents\\TOE-SYLVA-pull";
-
-/**
- * 从本地文件系统读取 TOE-SYLVA 的 Lean 文件
- */
+/** Read a bounded, explicitly configured source tree; never follow directory symlinks. */
 async function readSYLVAFiles(): Promise<Array<{ path: string; content: string }>> {
-  try {
-    const { readFileSync, readdirSync, statSync } = require("fs");
-    const { join } = require("path");
+  const configured = process.env.TOE_SYLVA_PATH?.trim();
+  if (!configured) throw new Error("TOE_SYLVA_PATH is not configured");
+  const root = path.resolve(configured);
+  const maxFiles = Number(process.env.TOE_SYLVA_MAX_FILES || 5000);
+  const maxBytes = Number(process.env.TOE_SYLVA_MAX_BYTES || 50 * 1024 * 1024);
+  const files: Array<{ path: string; content: string }> = [];
+  let totalBytes = 0;
 
-    const files: Array<{ path: string; content: string }> = [];
-
-    function walkDir(dir: string, basePath: string) {
-      const entries = readdirSync(dir);
-      for (const entry of entries) {
-        const fullPath = join(dir, entry);
-        const stat = statSync(fullPath);
-        if (stat.isDirectory()) {
-          if (entry.startsWith(".") || entry === "lake-packages" || entry === ".lake") continue;
-          walkDir(fullPath, basePath);
-        } else if (entry.endsWith(".lean")) {
-          const relativePath = fullPath.replace(basePath, "").replace(/^\\/, "").replace(/^\//, "");
-          const content = readFileSync(fullPath, "utf-8");
-          files.push({ path: relativePath, content });
-        }
+  function walk(directory: string): void {
+    for (const entry of fs.readdirSync(directory)) {
+      const fullPath = path.join(directory, entry);
+      const stat = fs.lstatSync(fullPath);
+      if (stat.isSymbolicLink()) continue;
+      if (stat.isDirectory()) {
+        const lower = entry.toLowerCase();
+        if (entry.startsWith(".") || ["node_modules", "dist", "build", "archive", "backup", "backups", "sylva_papers"].includes(lower)) continue;
+        walk(fullPath);
+        continue;
       }
+      if (!stat.isFile() || !entry.endsWith(".lean") || /^SYLVA_Proven.*R\d+M\d+\.lean$/i.test(entry)) continue;
+      if (files.length >= maxFiles) throw new Error(`TOE-SYLVA file limit exceeded (${maxFiles})`);
+      totalBytes += stat.size;
+      if (totalBytes > maxBytes) throw new Error(`TOE-SYLVA source byte limit exceeded (${maxBytes})`);
+      files.push({
+        path: path.relative(root, fullPath).split(path.sep).join("/"),
+        content: fs.readFileSync(fullPath, "utf-8"),
+      });
     }
-
-    walkDir(TOE_SYLVA_PATH, TOE_SYLVA_PATH);
-    return files;
-  } catch (error) {
-    console.error("[sylva-sync] Failed to read SYLVA files:", error);
-    throw new Error("Failed to read TOE-SYLVA files from filesystem");
   }
+
+  walk(root);
+  return files.sort((a, b) => a.path.localeCompare(b.path));
 }
 
 /**
  * 使用 LLM 分析 sorry 的证明策略
  */
 async function analyzeSorryWithLLM(
-  theorem: any,
+  theorem: LeanTheorem,
   moduleDescription: string
 ): Promise<{ strategy: string; difficulty: number; suggestedTactics: string[] }> {
   try {
@@ -59,9 +62,7 @@ async function analyzeSorryWithLLM(
     const response = await researchChat({
       systemPrompt: "You are a formal mathematics expert specializing in Lean 4 proof assistant. Analyze incomplete proofs and provide detailed strategies for completing them. Respond in Chinese.",
       userPrompt: prompt,
-      temperature: 0.3,
-      model: "glm-5.1",
-      provider: "zhipu",
+      reasoningEffort: "low",
     });
 
     const content = response.content || "";
@@ -94,7 +95,7 @@ async function analyzeSorryWithLLM(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { analyzeWithLLM = true, createTasks = true } = body;
+    const { analyzeWithLLM = false, createTasks = true } = body;
 
     // 1. 读取 TOE-SYLVA 文件
     const files = await readSYLVAFiles();
@@ -195,19 +196,29 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // 同步 Definitions
+        // Definitions are parsed syntax, not proved theorems or axioms.
         for (const def of module.definitions) {
+          const definitionData = {
+            statement: def.statement,
+            status: def.hasSorry ? "research" : "parsed",
+            leanCode: `${def.name} (${def.type}): ${def.statement}`,
+            updatedAt: new Date(),
+          };
           const existingDef = await tx.researchTheorem.findFirst({
             where: { name: def.name, moduleId: researchModule.id },
           });
-          if (!existingDef) {
+          if (existingDef) {
+            await tx.researchTheorem.update({
+              where: { id: existingDef.id },
+              data: definitionData,
+            });
+            syncResult.theoremsUpdated++;
+          } else {
             await tx.researchTheorem.create({
               data: {
                 name: def.name,
-                statement: def.statement,
                 moduleId: researchModule.id,
-                status: "proven", // definitions are axiomatic
-                leanCode: `${def.name} (${def.type}): ${def.statement}`,
+                ...definitionData,
               },
             });
             syncResult.theoremsCreated++;
@@ -290,7 +301,7 @@ export async function POST(request: NextRequest) {
           repoName: "TOE-SYLVA",
           commitHash: "local",
           branch: "main",
-          filesChanged: files.length,
+          filesChanged: parsed.modules.length,
           insertions: 0,
           deletions: 0,
         },
@@ -303,10 +314,13 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         data: {
-          message: "TOE-SYLVA 同步完成",
-          filesParsed: files.length,
+          message: "TOE-SYLVA 文本同步完成（未调用 Lean 编译器）",
+          analysisMode: "text_only_not_compiled",
+          filesParsed: parsed.modules.length,
+          skippedGeneratedFiles: parsed.skippedGeneratedFiles.length,
           modulesTotal: parsed.modules.length,
           theoremsTotal: parsed.totalTheorems,
+          conjecturesTotal: parsed.totalConjectures,
           definitionsTotal: parsed.totalDefinitions,
           sorryTotal: parsed.totalSorry,
           axiomTotal: parsed.totalAxiom,

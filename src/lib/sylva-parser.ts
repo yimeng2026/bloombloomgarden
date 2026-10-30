@@ -23,20 +23,23 @@ export interface LeanModule {
   filePath: string;
   totalLines: number;
   theorems: LeanTheorem[];
-  definitions: LeanTheorem[];  // 共享类型，但逻辑上是定义
+  definitions: LeanTheorem[];
   sorryCount: number;
   todoCount: number;
   imports: string[];
   namespace: string;
-  moduleDescription: string;  // 从文件顶部注释提取
+  moduleDescription: string;
+  analysisMode: "text_only_not_compiled";
 }
 
 export interface ParsedSYLVA {
   modules: LeanModule[];
   totalTheorems: number;
+  totalConjectures: number;
   totalDefinitions: number;
   totalSorry: number;
   totalAxiom: number;
+  skippedGeneratedFiles: string[];
   millenniumProblems: Array<{
     name: string;
     filePath: string;
@@ -50,17 +53,70 @@ export interface ParsedSYLVA {
   }>;
 }
 
-/**
- * 解析单个 Lean 文件
- */
-export function parseLeanFile(filePath: string, content: string): LeanModule {
-  const lines = content.split("\n");
-  const fileName = filePath.split("/").pop() || filePath.split("\\").pop() || filePath;
+/** Remove line/nested block comments while preserving strings and line numbers. */
+export function stripLeanComments(content: string): string {
+  const cleaned: string[] = [];
+  let blockDepth = 0;
+  let inString = false;
+  for (const line of content.split("\n")) {
+    let output = "";
+    let i = 0;
+    while (i < line.length) {
+      const pair = line.slice(i, i + 2);
+      const char = line[i];
+      if (blockDepth > 0) {
+        if (pair === "/-") {
+          blockDepth += 1;
+          i += 2;
+        } else if (pair === "-/") {
+          blockDepth -= 1;
+          i += 2;
+        } else {
+          i += 1;
+        }
+        continue;
+      }
+      if (inString) {
+        output += char;
+        if (char === "\\" && i + 1 < line.length) {
+          output += line[i + 1];
+          i += 2;
+          continue;
+        }
+        if (char === '"') inString = false;
+        i += 1;
+        continue;
+      }
+      if (pair === "--") break;
+      if (pair === "/-") {
+        blockDepth = 1;
+        i += 2;
+        continue;
+      }
+      output += char;
+      if (char === '"') inString = true;
+      i += 1;
+    }
+    cleaned.push(output);
+  }
+  return cleaned.join("\n");
+}
 
-  const module: LeanModule = {
+function countSorryTokens(line: string): number {
+  const withoutStrings = line.replace(/"(?:\\.|[^"\\])*"/g, '""');
+  return (withoutStrings.match(/\bsorry\b/g) || []).length;
+}
+
+/** Parse text only; no Lean compiler or proof checker is invoked. */
+export function parseLeanFile(filePath: string, content: string): LeanModule {
+  const rawLines = content.split("\n");
+  const lines = stripLeanComments(content).split("\n");
+  const fileName = filePath.split(/[\\/]/).pop() || filePath;
+
+  const leanModule: LeanModule = {
     fileName,
     filePath,
-    totalLines: lines.length,
+    totalLines: rawLines.length,
     theorems: [],
     definitions: [],
     sorryCount: 0,
@@ -68,35 +124,29 @@ export function parseLeanFile(filePath: string, content: string): LeanModule {
     imports: [],
     namespace: "",
     moduleDescription: "",
+    analysisMode: "text_only_not_compiled",
   };
 
-  // 提取文件描述（顶部注释）
   const descriptionLines: string[] = [];
   let i = 0;
-  while (i < lines.length && (lines[i].trim().startsWith("/-") || lines[i].trim().startsWith("-") || lines[i].trim() === "-/" || lines[i].trim() === "")) {
-    if (lines[i].trim().startsWith("-")) {
-      descriptionLines.push(lines[i].trim().replace(/^-\s*/, ""));
+  while (i < rawLines.length && (rawLines[i].trim().startsWith("/-") || rawLines[i].trim().startsWith("-") || rawLines[i].trim() === "-/" || rawLines[i].trim() === "")) {
+    if (rawLines[i].trim().startsWith("-")) {
+      descriptionLines.push(rawLines[i].trim().replace(/^-\s*/, ""));
     }
     i++;
   }
-  module.moduleDescription = descriptionLines.join(" ").trim();
+  leanModule.moduleDescription = descriptionLines.join(" ").trim();
 
-  // 提取 imports
   for (const line of lines) {
     const importMatch = line.match(/^import\s+(.+)$/);
-    if (importMatch) {
-      module.imports.push(importMatch[1].trim());
-    }
+    if (importMatch) leanModule.imports.push(importMatch[1].trim());
     const namespaceMatch = line.match(/^namespace\s+(\S+)/);
-    if (namespaceMatch) {
-      module.namespace = namespaceMatch[1];
-    }
+    if (namespaceMatch) leanModule.namespace = namespaceMatch[1];
   }
 
-  // 解析 theorem / lemma / def / axiom / conjecture / structure / inductive / instance
-  const theoremPattern = /^(theorem|lemma|def|axiom|conjecture|structure|inductive|instance)\s+(\S+)/;
+  const theoremPattern = /^(theorem|lemma|def|axiom|conjecture|structure|inductive|instance)\s+([^\s:({\[]+)/;
   const docPattern = /^\/---?\s*(.*)/;
-
+  let pendingDocLines: string[] = [];
   let currentBlock: {
     name: string;
     type: LeanTheorem["type"];
@@ -108,42 +158,37 @@ export function parseLeanFile(filePath: string, content: string): LeanModule {
   for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
     const line = lines[lineIdx];
     const trimmed = line.trim();
-
-    // 文档注释
-    if (docPattern.test(trimmed)) {
-      const docMatch = trimmed.match(docPattern);
-      if (docMatch) {
-        if (currentBlock) {
-          currentBlock.docLines.push(docMatch[1]);
-        }
-      }
+    const rawTrimmed = rawLines[lineIdx].trim();
+    const docMatch = rawTrimmed.match(docPattern);
+    if (docMatch) {
+      pendingDocLines.push(docMatch[1]);
       continue;
     }
 
-    // 定理/定义声明开始
+    if (/^example\b/.test(trimmed)) {
+      if (currentBlock) finalizeBlock(currentBlock, leanModule);
+      currentBlock = null;
+      continue;
+    }
+
     const match = trimmed.match(theoremPattern);
     if (match) {
-      // 保存前一个 block
-      if (currentBlock) {
-        finalizeBlock(currentBlock, module);
-      }
+      if (currentBlock) finalizeBlock(currentBlock, leanModule);
       currentBlock = {
         name: match[2],
         type: match[1] as LeanTheorem["type"],
         lineStart: lineIdx + 1,
         lines: [line],
-        docLines: [],
+        docLines: pendingDocLines,
       };
+      pendingDocLines = [];
       continue;
     }
 
-    // 收集 block 内容
     if (currentBlock) {
       currentBlock.lines.push(line);
-      // 检测 block 结束：下一行是新的 theorem/def 或者空行后跟 theorem/def
-      // 或者当前行是 "end Namespace"
       if (trimmed.startsWith("end ")) {
-        finalizeBlock(currentBlock, module);
+        finalizeBlock(currentBlock, leanModule);
         currentBlock = null;
       }
     }
@@ -151,107 +196,70 @@ export function parseLeanFile(filePath: string, content: string): LeanModule {
 
   // 处理最后一个 block
   if (currentBlock) {
-    finalizeBlock(currentBlock, module);
+    finalizeBlock(currentBlock, leanModule);
   }
 
-  // 后处理：更精确地划分 block 边界
-  // 使用缩进来检测 block 结束
   const finalizedTheorems: LeanTheorem[] = [];
-  for (const t of module.theorems) {
-    const blockLines = lines.slice(t.lineStart - 1, t.lineEnd);
-    const baseIndent = getBaseIndent(blockLines[0]);
-    let endLine = t.lineEnd;
-    for (let j = t.lineStart; j < lines.length; j++) {
-      const l = lines[j];
-      if (l.trim() === "") continue;
-      if (!l.startsWith(" ") && !l.startsWith("\t")) {
-        // 顶行，可能是新的声明
-        if (theoremPattern.test(l.trim()) || l.trim().startsWith("end ")) {
-          endLine = j;
-          break;
-        }
-      }
-    }
-    // 重新计算 sorry
-    const actualBlock = lines.slice(t.lineStart - 1, endLine);
+  for (const theorem of leanModule.theorems) {
+    const actualBlock = lines.slice(theorem.lineStart - 1, theorem.lineEnd);
     const sorryLines: number[] = [];
-    let proofStrategy = "";
+    let sorryCount = 0;
     for (let k = 0; k < actualBlock.length; k++) {
-      const actualLine = actualBlock[k];
-      // 提取 sorry 前的注释作为 proofStrategy
-      if (/\bsorry\b/.test(actualLine)) {
-        sorryLines.push(t.lineStart + k);
-        // 向前查找注释
-        for (let m = k - 1; m >= Math.max(0, k - 5); m--) {
-          const prevLine = actualBlock[m].trim();
-          if (prevLine.startsWith("--")) {
-            proofStrategy = prevLine.replace(/^--\s*/, "") + " " + proofStrategy;
-          } else if (prevLine === "" || prevLine.startsWith("·")) {
-            continue;
-          } else {
-            break;
-          }
-        }
+      const count = countSorryTokens(actualBlock[k]);
+      if (count > 0) {
+        sorryLines.push(theorem.lineStart + k);
+        sorryCount += count;
       }
     }
     finalizedTheorems.push({
-      ...t,
-      lineEnd: endLine,
+      ...theorem,
       statement: extractStatement(actualBlock),
-      hasSorry: sorryLines.length > 0,
-      sorryCount: sorryLines.length,
+      hasSorry: sorryCount > 0,
+      sorryCount,
       sorryLines,
-      proofStrategy: proofStrategy.trim(),
+      proofStrategy: theorem.proofStrategy.trim(),
     });
   }
-  module.theorems = finalizedTheorems;
+  leanModule.theorems = finalizedTheorems;
 
-  // 计算统计
-  module.sorryCount = module.theorems.reduce((sum, t) => sum + t.sorryCount, 0);
+  // Global code-token count also covers definitions and anonymous examples.
+  leanModule.sorryCount = lines.reduce((sum, line) => sum + countSorryTokens(line), 0);
 
-  // 分离 definitions（type 为 def / structure / inductive / instance）
-  module.definitions = module.theorems.filter(
+  leanModule.definitions = leanModule.theorems.filter(
     (t) => t.type === "def" || t.type === "structure" || t.type === "inductive" || t.type === "instance"
   );
-  module.theorems = module.theorems.filter(
+  leanModule.theorems = leanModule.theorems.filter(
     (t) => t.type === "theorem" || t.type === "lemma" || t.type === "axiom" || t.type === "conjecture"
   );
 
-  return module;
+  return leanModule;
 }
 
 function finalizeBlock(
   block: { name: string; type: LeanTheorem["type"]; lineStart: number; lines: string[]; docLines: string[] },
-  module: LeanModule
+  leanModule: LeanModule
 ) {
   const lineEnd = block.lineStart + block.lines.length - 1;
   const content = block.lines.join("\n");
+  const sorryCount = block.lines.reduce((sum, line) => sum + countSorryTokens(line), 0);
+  const millenniumEvidence = [content, block.docLines.join(" "), leanModule.filePath].join("\n");
   const isMillennium =
-    /Millennium\s*(Prize)?\s*(Problem|Problems)/i.test(content) ||
-    /Clay\s*Mathematics/i.test(content) ||
-    /千年\s*难题/i.test(content);
+    /Millennium\s*(Prize)?\s*(Problem|Problems)/i.test(millenniumEvidence) ||
+    /Clay\s*Mathematics/i.test(millenniumEvidence) ||
+    /千年\s*难题/i.test(millenniumEvidence);
 
-  module.theorems.push({
+  leanModule.theorems.push({
     name: block.name,
     type: block.type,
     lineStart: block.lineStart,
     lineEnd,
     statement: content.substring(0, Math.min(200, content.length)),
     proofStrategy: block.docLines.join(" "),
-    hasSorry: /\bsorry\b/.test(content),
-    sorryCount: (content.match(/\bsorry\b/g) || []).length,
+    hasSorry: sorryCount > 0,
+    sorryCount,
     sorryLines: [],
     isMillennium,
   });
-}
-
-function getBaseIndent(line: string): number {
-  let count = 0;
-  for (const ch of line) {
-    if (ch === " " || ch === "\t") count++;
-    else break;
-  }
-  return count;
 }
 
 function extractStatement(blockLines: string[]): string {
@@ -300,27 +308,37 @@ export function parseSYLVAProject(files: Array<{ path: string; content: string }
   const result: ParsedSYLVA = {
     modules: [],
     totalTheorems: 0,
+    totalConjectures: 0,
     totalDefinitions: 0,
     totalSorry: 0,
     totalAxiom: 0,
+    skippedGeneratedFiles: [],
     millenniumProblems: [],
     todoItems: [],
   };
 
   for (const file of files) {
     if (!file.path.endsWith(".lean")) continue;
-    const module = parseLeanFile(file.path, file.content);
-    result.modules.push(module);
-    result.totalTheorems += module.theorems.length;
-    result.totalDefinitions += module.definitions.length;
-    result.totalSorry += module.sorryCount;
-    result.totalAxiom += module.theorems.filter((t) => t.type === "axiom").length;
+    const fileName = file.path.split(/[\\/]/).pop() || file.path;
+    if (/^SYLVA_Proven.*R\d+M\d+\.lean$/i.test(fileName)) {
+      result.skippedGeneratedFiles.push(file.path);
+      continue;
+    }
+    const leanModule = parseLeanFile(file.path, file.content);
+    result.modules.push(leanModule);
+    result.totalTheorems += leanModule.theorems.filter(
+      (t) => t.type === "theorem" || t.type === "lemma"
+    ).length;
+    result.totalConjectures += leanModule.theorems.filter((t) => t.type === "conjecture").length;
+    result.totalDefinitions += leanModule.definitions.length;
+    result.totalSorry += leanModule.sorryCount;
+    result.totalAxiom += leanModule.theorems.filter((t) => t.type === "axiom").length;
 
-    for (const t of module.theorems) {
-      if (t.isMillennium || t.type === "axiom") {
+    for (const t of leanModule.theorems) {
+      if (t.isMillennium) {
         result.millenniumProblems.push({
           name: t.name,
-          filePath: module.filePath,
+          filePath: leanModule.filePath,
           line: t.lineStart,
           type: t.type === "axiom" ? "axiom" : t.type === "conjecture" ? "conjecture" : "theorem",
         });
@@ -336,7 +354,7 @@ export function parseSYLVAProject(files: Array<{ path: string; content: string }
 /**
  * 生成 ResearchModule 同步数据
  */
-export function generateModuleSyncData(module: LeanModule): {
+export function generateModuleSyncData(leanModule: LeanModule): {
   name: string;
   displayName: string;
   category: string;
@@ -350,31 +368,29 @@ export function generateModuleSyncData(module: LeanModule): {
   dependencies: string;
 } {
   return {
-    name: module.fileName.replace(/\.lean$/, ""),
-    displayName: module.fileName,
-    category: "Millennium_Problem",
-    subcategory: module.namespace || "sylva",
-    discipline: module.filePath.includes("Hodge") 
-      ? "algebraic_geometry" 
-      : module.filePath.includes("NavierStokes")
+    name: leanModule.fileName.replace(/\.lean$/, ""),
+    displayName: leanModule.fileName,
+    category: leanModule.theorems.some((t) => t.isMillennium) ? "Millennium_Problem" : "SYLVA_Module",
+    subcategory: leanModule.namespace || "sylva",
+    discipline: leanModule.filePath.includes("Hodge")
+      ? "algebraic_geometry"
+      : leanModule.filePath.includes("NavierStokes")
       ? "pde"
-      : module.filePath.includes("Complexity")
+      : leanModule.filePath.includes("Complexity")
       ? "computational_complexity"
-      : module.filePath.includes("Riemann")
+      : leanModule.filePath.includes("Riemann")
       ? "number_theory"
       : "mathematics",
-    lineCount: module.totalLines,
-    sorryCount: module.sorryCount,
-    theoremCount: module.theorems.length,
-    definitionCount: module.definitions.length,
-    filePath: module.filePath,
-    dependencies: JSON.stringify(module.imports),
+    lineCount: leanModule.totalLines,
+    sorryCount: leanModule.sorryCount,
+    theoremCount: leanModule.theorems.filter((t) => t.type === "theorem" || t.type === "lemma").length,
+    definitionCount: leanModule.definitions.length,
+    filePath: leanModule.filePath,
+    dependencies: JSON.stringify(leanModule.imports),
   };
 }
 
-/**
- * 生成 ResearchTheorem 同步数据
- */
+/** Generate sync data with explicit text-scan status, never a proof claim. */
 export function generateTheoremSyncData(
   theorem: LeanTheorem,
   moduleId: string
@@ -390,11 +406,13 @@ export function generateTheoremSyncData(
     name: theorem.name,
     statement: theorem.statement,
     moduleId,
-    status: theorem.type === "axiom" 
-      ? "axiom" 
-      : theorem.hasSorry 
-      ? "research" 
-      : "proven",
+    status: theorem.type === "axiom"
+      ? "axiom"
+      : theorem.type === "conjecture"
+      ? "conjecture"
+      : theorem.hasSorry
+      ? "research"
+      : "parsed",
     proofStrategy: theorem.proofStrategy,
     leanCode: `${theorem.name} (${theorem.type}): ${theorem.statement}`,
   };

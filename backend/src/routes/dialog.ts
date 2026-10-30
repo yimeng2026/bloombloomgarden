@@ -1,126 +1,30 @@
 import { Router } from 'express';
-import { getDialogService, getAgentService, getRoleService } from '../services';
+import { getDialogService, getAgentService } from '../services';
 import { getBackendRouter } from '../services/BackendRouter';
-import { apiKeyService } from '../services/APIKeyService';
-import { OpenAICompatibleAdapter } from '../adapters/OpenAICompatibleAdapter';
 import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
 
-// 辅助函数：动态注册后端（从 APIKeyService 获取 Key）
 async function ensureBackendRegistered(platformId: string): Promise<boolean> {
-  const backendRouter = getBackendRouter();
-  if (backendRouter.getBackend(platformId)) {
-    return true; // 已注册
-  }
-
-  // 从 APIKeyService 查找 Key
-  const keyData = apiKeyService.getDecryptedByProvider(platformId);
-  if (!keyData) {
-    return false; // 没有配置 Key
-  }
-
-  // 从 providers.json 获取平台配置
-  const providersConfig = require('../config/providers.json');
-  const provider = (providersConfig.providers || []).find((p: any) => p.id === platformId);
-  if (!provider) {
-    return false;
-  }
-
-  // 创建 OpenAI 兼容适配器
-  const config = {
-    provider: platformId,
-    baseUrl: keyData.baseUrl || provider.baseUrl || 'https://api.openai.com',
-    apiKey: keyData.apiKey,
-    defaultModel: provider.defaultModel || 'gpt-4o',
-    maxRetries: 3,
-    timeout: 60000,
-    apiKeyPrefix: provider.apiKeyPrefix || 'Bearer',
-    chatPath: '/chat/completions',
-    modelsPath: '/models',
-    extraHeaders: provider.extraHeaders || {},
-  };
-
-  backendRouter.register(platformId, new OpenAICompatibleAdapter(config), true);
-  console.log(`[dialog] Dynamically registered backend ${platformId} with APIKeyService key`);
-  return true;
+  return platformId === 'kimi-code' && Boolean(getBackendRouter().getBackend('kimi-code'));
 }
 
 // 辅助函数：获取 Agent 绑定的平台和模型
-async function resolveAgentPlatform(agentId: string): Promise<{ platformId: string; model: string; apiKeyId?: string; systemPrompt?: string }> {
-  const agentService = getAgentService();
-  const roleService = getRoleService();
-
-  // 特殊处理 'general' 通用助手 — 使用智谱AI GLM-5.1
+async function resolveAgentPlatform(agentId: string): Promise<{
+  platformId: 'kimi-code';
+  model: 'kimi-for-coding';
+  systemPrompt?: string;
+}> {
   if (agentId === 'general') {
-    return { platformId: 'zhipu', model: 'glm-5.1' };
+    return { platformId: 'kimi-code', model: 'kimi-for-coding' };
   }
-
-  // 1. 获取 Agent
-  const agent = await agentService.getById(agentId);
-  if (!agent) {
-    throw new Error(`Agent ${agentId} not found`);
-  }
-
-  // 2. 优先使用 Agent 绑定的平台
-  let platformId = agent.platformId;
-  let apiKeyId = agent.apiKeyId;
-  let model = agent.config?.model as string | undefined;
-
-  // 2b. 兼容旧数据：从 config.llmConfig.provider 获取平台
-  if (!platformId && (agent.config?.llmConfig as any)?.provider) {
-    platformId = (agent.config?.llmConfig as any).provider as string;
-  }
-  if (!model && (agent.config?.llmConfig as any)?.model) {
-    model = (agent.config?.llmConfig as any).model as string;
-  }
-
-  // 3. 如果 Agent 没有绑定平台，尝试从 Role 获取
-  if (!platformId && agent.role) {
-    // agent.role 可能是 roleId 或 roleName，先尝试作为 ID 查询
-    const role = await roleService.getById(agent.role);
-    if (role) {
-      platformId = role.platformId;
-      apiKeyId = role.apiKeyId;
-      model = role.primaryEngine;
-    }
-  }
-
-  // 4. 回退默认值
-  if (!platformId) {
-    platformId = 'openrouter';
-  }
-  if (!model) {
-    model = 'deepseek/deepseek-chat-v3-0324';
-  }
-
-  // 5. 检查 L2 编排器：需要从 config 中读取 L1 引擎
-  if (platformId) {
-    const providersConfig = require('../config/providers.json');
-    const provider = (providersConfig.providers || []).find((p: any) => p.id === platformId);
-    if (provider && (provider.protocolLevel === 2 || provider.category === 'orchestrator')) {
-      // 是 L2 编排器，需要解析 L1 引擎
-      const l1EngineId = (agent.config?.engineId as string) || (agent.config?.orchestratedEngines as string[])?.[0];
-      if (l1EngineId) {
-        const { getEngineScheduler } = require('../services');
-        const scheduler = getEngineScheduler();
-        const engine = await scheduler.getById(l1EngineId);
-        if (engine) {
-          platformId = engine.brand;
-          model = engine.model;
-        } else {
-          throw new Error(`L2 编排器配置的 L1 引擎 ${l1EngineId} 未找到，请检查引擎配置`);
-        }
-      } else {
-        throw new Error(`L2 编排器 ${platformId} 需要配置 L1 引擎，请在创建 Agent 时选择引擎或在 config 中设置 engineId / orchestratedEngines`);
-      }
-    }
-  }
-
-  // 6. 收集 systemPrompt（如果 Agent 有个性化配置）
-  const systemPrompt = agent.systemPrompt || undefined;
-
-  return { platformId, model, apiKeyId, systemPrompt };
+  const agent = await getAgentService().getById(agentId);
+  if (!agent) throw new Error(`Agent ${agentId} not found`);
+  return {
+    platformId: 'kimi-code',
+    model: 'kimi-for-coding',
+    systemPrompt: agent.systemPrompt || undefined,
+  };
 }
 
 // 辅助函数：将 systemPrompt 注入为第一条 system 消息
@@ -184,16 +88,15 @@ router.post('/:agentId/chat', asyncHandler(async (req, res) => {
 
     // 调用 LLM API（通过 Agent/Role 绑定的平台）
     const backendRouter = getBackendRouter();
-    
-    // 确保后端已注册（支持从 APIKeyService 动态获取 Key）
+
     const hasBackend = await ensureBackendRegistered(platformId);
     if (!hasBackend) {
-      return res.status(400).json({ 
-        success: false, 
-        error: `未找到 ${platformId} 的后端配置，请先在 API Keys 页面配置密钥` 
+      return res.status(400).json({
+        success: false,
+        error: `未配置 Kimi 后端，请设置服务端 KIMI_API_KEY`,
       });
     }
-    
+
     const response = await backendRouter.chat(platformId, {
       messages,
       model,
@@ -266,7 +169,7 @@ async function handleStream(req: any, res: any, message: string) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
-      res.write(`event: error\ndata: ${JSON.stringify({ error: `未找到 ${platformId} 的后端配置，请先在 API Keys 页面配置密钥` })}\n\n`);
+      res.write(`event: error\ndata: ${JSON.stringify({ error: `未配置 Kimi 后端，请设置服务端 KIMI_API_KEY` })}\n\n`);
       res.end();
       return;
     }

@@ -133,17 +133,12 @@ export async function POST(
             targetModule: targetModule || "",
             mode: reviewMode,
           },
-          { model: "glm-5.1", temperature: 0.3, provider: "zhipu" }
         );
         finalComment = llmRes.content;
         finalSeverity = extractSeverity(llmRes.content);
         console.log(`[CodeReview LLM] severity=${finalSeverity}, latency=${llmRes.latencyMs}ms`);
-      } catch (llmErr: any) {
-        console.error("[CodeReview LLM] error:", llmErr.message);
-        // fallback: 使用模拟内容或请求体中的内容
-        const mock = generateMockReview(targetCode, reviewMode);
-        finalComment = body.comment || mock.comment;
-        finalSeverity = body.severity || mock.severity;
+      } catch (error) {
+        throw new Error(`Kimi 代码审查失败: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 

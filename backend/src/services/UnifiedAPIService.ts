@@ -1,65 +1,57 @@
 import { EventEmitter } from 'events';
+import { getBackendRouter } from './BackendRouter';
 
 export interface BackendConfig {
-  id: string;
-  provider: string;
-  name: string;
+  id: 'kimi-code';
+  provider: 'kimi';
+  name: 'Kimi';
   baseUrl: string;
-  apiKey?: string;
-  model?: string;
+  model: 'kimi-for-coding';
   enabled: boolean;
 }
 
+/** Kimi-only registry. Client-supplied provider credentials are never stored. */
 export class UnifiedAPIService extends EventEmitter {
-  private backends = new Map<string, BackendConfig>();
+  private backend: BackendConfig;
 
   constructor() {
     super();
-    this.initDefaults();
-  }
-
-  private initDefaults(): void {
-    const defaults: BackendConfig[] = [
-      { id: 'openai-default', provider: 'openai', name: 'OpenAI', baseUrl: 'https://api.openai.com', model: 'gpt-4o', enabled: true },
-      { id: 'kimi-default', provider: 'kimi', name: 'Kimi', baseUrl: 'https://api.moonshot.cn', model: 'moonshot-v1-8k', enabled: true },
-      { id: 'claude-default', provider: 'claude', name: 'Claude', baseUrl: 'https://api.anthropic.com', model: 'claude-3-opus', enabled: true },
-      { id: 'deepseek-default', provider: 'deepseek', name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', enabled: true },
-      { id: 'ollama-default', provider: 'ollama', name: 'Ollama', baseUrl: 'http://localhost:11434', model: 'llama3', enabled: false },
-    ];
-    for (const b of defaults) this.backends.set(b.id, b);
+    const baseUrl = process.env.KIMI_BASE_URL || process.env.KIMI_CODE_BASE_URL || 'https://api.kimi.com/coding/v1';
+    this.backend = {
+      id: 'kimi-code',
+      provider: 'kimi',
+      name: 'Kimi',
+      baseUrl,
+      model: 'kimi-for-coding',
+      enabled: Boolean(process.env.KIMI_API_KEY || process.env.KIMI_CODE_API_KEY),
+    };
   }
 
   async detectProvider(url: string): Promise<{ provider: string; confidence: number }> {
-    const patterns: Record<string, RegExp> = {
-      openai: /openai\.com/,
-      kimi: /moonshot/,
-      claude: /anthropic/,
-      deepseek: /deepseek/,
-      ollama: /11434|ollama/,
-      azure: /azure/,
-      gemini: /googleapis/,
-    };
-    for (const [provider, regex] of Object.entries(patterns)) {
-      if (regex.test(url)) return { provider, confidence: 0.9 };
-    }
-    return { provider: 'unknown', confidence: 0 };
+    return /(?:kimi\.com|moonshot\.(?:cn|ai))/i.test(url)
+      ? { provider: 'kimi', confidence: 1 }
+      : { provider: 'unknown', confidence: 0 };
   }
 
-  async addBackend(config: Omit<BackendConfig, 'id'>): Promise<BackendConfig> {
-    const full: BackendConfig = { ...config, id: crypto.randomUUID() };
-    this.backends.set(full.id, full);
-    this.emit('backend:added', full);
-    return full;
+  async addBackend(config: { provider: string }): Promise<BackendConfig> {
+    if (!['kimi', 'kimi-code'].includes(config.provider)) {
+      throw new Error('Kimi-only mode: other providers cannot be registered');
+    }
+    return this.backend;
   }
 
   async listBackends(): Promise<BackendConfig[]> {
-    return Array.from(this.backends.values());
+    return [this.backend];
   }
 
-  async validateBackend(id: string): Promise<{ valid: boolean; error?: string }> {
-    const backend = this.backends.get(id);
-    if (!backend) return { valid: false, error: 'Backend not found' };
-    // 简化验证，实际应发起健康检查请求
-    return { valid: backend.enabled };
+  async validateBackend(id: string): Promise<{ valid: boolean; error?: string; latency?: number }> {
+    if (id !== 'kimi-code') return { valid: false, error: 'Only kimi-code is supported' };
+    const details = await getBackendRouter().listBackendsDetailed();
+    if (details.length === 0) return { valid: false, error: 'KIMI_API_KEY is not configured' };
+    return {
+      valid: details[0].healthy,
+      latency: details[0].latency,
+      ...(details[0].healthy ? {} : { error: 'Kimi health probe failed' }),
+    };
   }
 }

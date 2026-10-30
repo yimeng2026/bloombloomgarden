@@ -1,112 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { getKimiGateway } from "./kimi-gateway";
+import { kimiChat } from "./kimi-gateway";
 
-// ===================== LLM 端点 =====================
-const LLM_ENDPOINTS: Record<string, string> = {
-  zhipu: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-  openai: "https://api.openai.com/v1/chat/completions",
-  anthropic: "https://api.anthropic.com/v1/messages",
-  deepseek: "https://api.deepseek.com/v1/chat/completions",
-  google: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-  alibaba: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-  baidu: "https://qianfan.baidubce.com/v2/chat/completions",
-  moonshot: "https://api.moonshot.cn/v1/chat/completions",
-  mistral: "https://api.mistral.ai/v1/chat/completions",
-  xai: "https://api.x.ai/v1/chat/completions",
-  cohere: "https://api.cohere.com/v2/chat",
-  together: "https://api.together.xyz/v1/chat/completions",
-  groq: "https://api.groq.com/openai/v1/chat/completions",
-  openrouter: "https://openrouter.ai/api/v1/chat/completions",
-};
-
-// ===================== LLM 调用 =====================
-/** 单次非流式调用，返回 content 文本 */
-async function postChat(
-  endpoint: string,
-  apiKey: string,
-  model: string,
-  messages: { role: string; content: string }[],
-  temperature: number,
-  max_tokens: number,
-  provider: string
-): Promise<string> {
-  const resp = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-      ...(provider === "anthropic"
-        ? { "x-api-key": apiKey, "anthropic-version": "2023-06-01" }
-        : {}),
-      ...(provider === "openrouter"
-        ? {
-            HTTP_Referer: "https://bloombloomgarden.vercel.app",
-            X_Title: "BloomBloomGarden",
-          }
-        : {}),
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature,
-      max_tokens,
-      stream: false,
-    }),
-  });
-
-  if (!resp.ok) {
-    const errText = await resp.text().catch(() => "");
-    throw new Error(`LLM API 错误 (${resp.status}): ${errText.slice(0, 200)}`);
-  }
-
-  const data = await resp.json();
-  const msg = data.choices?.[0]?.message || {};
-  // Kimi 网关响应含 reasoning_content 字段
-  return msg.content || msg.reasoning_content || "";
-}
-
+/** GraphRAG uses only the server-configured Kimi gateway. */
 export async function callLLM(
   messages: { role: string; content: string }[],
-  options?: {
-    provider?: string;
-    apiKey?: string;
-    model?: string;
-    temperature?: number;
-    max_tokens?: number;
-  }
+  // Legacy temperature/provider options are ignored: Kimi is fixed by the server.
+  options?: { max_tokens?: number; temperature?: number },
 ): Promise<string> {
-  const max_tokens = options?.max_tokens ?? 4096;
-
-  // 救援通道：Kimi 网关环境变量可用时优先（GLM Key 已失效）
-  const kimi = getKimiGateway();
-  if (kimi) {
-    try {
-      // 网关仅允许 temperature=1，model 固定 kimi-for-coding
-      return await postChat(kimi.chatUrl, kimi.apiKey, kimi.model, messages, 1, max_tokens, "kimi");
-    } catch (e) {
-      console.warn(`[GraphRAG] Kimi 网关调用失败，回退到 legacy provider: ${e instanceof Error ? e.message : e}`);
-    }
-  }
-
-  const provider =
-    options?.provider ||
-    process.env.GRAPHRAG_LLM_PROVIDER ||
-    "zhipu";
-  const apiKey =
-    options?.apiKey ||
-    process.env.GRAPHRAG_LLM_API_KEY ||
-    process.env.ZHIPU_API_KEY ||
-    "";
-  const model =
-    options?.model ||
-    process.env.GRAPHRAG_LLM_MODEL ||
-    "glm-5.1";
-  const temperature = options?.temperature ?? 0.3;
-
-  const endpoint = LLM_ENDPOINTS[provider];
-  if (!endpoint) throw new Error(`不支持的 LLM 供应商: ${provider}`);
-
-  return postChat(endpoint, apiKey, model, messages, temperature, max_tokens, provider);
+  const response = await kimiChat({
+    messages,
+    maxTokens: options?.max_tokens ?? 4096,
+  });
+  return response.content;
 }
 
 // ===================== 类型 =====================
@@ -358,7 +263,7 @@ ${chunk}
 
   private parseExtractResult(raw: string): ExtractResult {
     // 去掉 markdown 代码块标记
-    let cleaned = raw
+    const cleaned = raw
       .replace(/```json\s*/g, "")
       .replace(/```\s*/g, "")
       .trim();
@@ -384,7 +289,7 @@ ${chunk}
     }
 
     // 尝试修复常见格式问题
-    let fixed = cleaned
+    const fixed = cleaned
       .replace(/,\s*]/g, "]")
       .replace(/,\s*}/g, "}")
       .replace(/}\s*{/g, "},{")

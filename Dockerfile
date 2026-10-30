@@ -13,6 +13,7 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN bun run build
+RUN mkdir -p .next/static public
 
 # Production
 FROM base AS runner
@@ -22,7 +23,7 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+RUN mkdir -p /app/public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
@@ -33,4 +34,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["bun", "run", "start"]
+# Next standalone emits server.js; `next start` is not the standalone entrypoint.
+CMD ["bun", "server.js"]

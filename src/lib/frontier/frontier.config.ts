@@ -90,8 +90,8 @@ export const ARXIV_API = "http://export.arxiv.org/api/query";
 export const ARXIV_HTTPS_API = "https://export.arxiv.org/api/query";
 /** 单主题单次最大返回数 */
 export const MAX_RESULTS_PER_TOPIC = 25;
-/** 主题间礼貌间隔（arXiv 建议 ≥3s；摄取批量取较短 1200ms，失败重试另计） */
-export const TOPIC_DELAY_MS = 1200;
+/** arXiv 请求间隔与重试下限：不得低于 3 秒。 */
+export const TOPIC_DELAY_MS = 3000;
 
 /** 数据落盘根目录（相对项目根） */
 export const FRONTIER_DATA_DIR = "data/frontier";

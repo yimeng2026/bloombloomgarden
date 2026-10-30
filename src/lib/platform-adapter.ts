@@ -3,9 +3,7 @@
 // 统一接口，每个平台一个适配器，让用户看到"谁在工作"
 // ================================================================
 
-import { AGENT_PLATFORMS, type AgentPlatform } from "./platforms";
 import { DifyApiClient, CozeApiClient } from "./platform-api";
-import { getKimiGateway } from "./kimi-gateway";
 
 // ===================== 类型定义 =====================
 
@@ -49,25 +47,6 @@ export interface AgentConfig {
   platformConfig?: Record<string, string>;
 }
 
-// ===================== LLM 供应商端点 =====================
-
-const LLM_ENDPOINTS: Record<string, string> = {
-  zhipu: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
-  openai: "https://api.openai.com/v1/chat/completions",
-  anthropic: "https://api.anthropic.com/v1/messages",
-  deepseek: "https://api.deepseek.com/v1/chat/completions",
-  google: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-  alibaba: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-  baidu: "https://qianfan.baidubce.com/v2/chat/completions",
-  moonshot: "https://api.moonshot.cn/v1/chat/completions",
-  mistral: "https://api.mistral.ai/v1/chat/completions",
-  xai: "https://api.x.ai/v1/chat/completions",
-  cohere: "https://api.cohere.com/v2/chat",
-  together: "https://api.together.xyz/v1/chat/completions",
-  groq: "https://api.groq.com/openai/v1/chat/completions",
-  openrouter: "https://openrouter.ai/api/v1/chat/completions",
-};
-
 // ===================== 平台适配器接口 =====================
 
 export interface PlatformAdapter {
@@ -88,87 +67,74 @@ export interface PlatformAdapter {
 // ===================== 基础 LLM 调用 =====================
 
 async function* callLLMStream(
-  provider: string,
-  apiKey: string,
-  model: string,
+  _provider: string,
+  _apiKey: string,
+  _model: string,
   messages: ChatMessage[],
-  temperature: number,
+  _temperature: number,
 ): AsyncGenerator<string> {
-  // 救援通道：Kimi 网关环境变量可用时优先使用（数据库中存储的 GLM Key 已失效）
-  const kimi = getKimiGateway();
-  const useKimi = kimi !== null;
-  const endpoint = useKimi ? kimi.chatUrl : LLM_ENDPOINTS[provider];
-  const effectiveKey = useKimi ? kimi.apiKey : apiKey;
-  const effectiveModel = useKimi ? kimi.model : model;
-  // Kimi 网关仅允许 temperature=1，传其他值会 400
-  const effectiveTemperature = useKimi ? 1 : temperature;
-  if (!endpoint) throw new Error(`不支持的 LLM 供应商: ${provider}`);
-
-  const resp = await fetch(endpoint, {
+  void _provider;
+  void _apiKey;
+  void _model;
+  void _temperature;
+  const agentKey = process.env.GARDEN_AGENT_TOKEN?.trim();
+  if (!agentKey) throw new Error("未配置 GARDEN_AGENT_TOKEN，无法访问共享 Kimi 集群");
+  const base = (process.env.GARDEN_BACKEND_URL || "http://127.0.0.1:3001").replace(/\/+$/, "");
+  const resp = await fetch(`${base}/api/kimi-cluster/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${effectiveKey}`,
-      ...(!useKimi && provider === "anthropic"
-        ? { "x-api-key": effectiveKey, "anthropic-version": "2023-06-01" }
-        : {}),
-      ...(!useKimi && provider === "openrouter"
-        ? { "HTTP-Referer": "https://bloombloomgarden.vercel.app", "X-Title": "BloomBloomGarden" }
-        : {}),
+      "X-Garden-Agent-Key": agentKey,
     },
     body: JSON.stringify({
-      model: effectiveModel,
-      messages,
-      temperature: effectiveTemperature,
-      max_tokens: 12288,
-      stream: true,
-      // 深筛提速：Kimi 网关实测 reasoning_effort=none 可关思考（env 缺省时不传该字段，行为不变）
-      ...(useKimi && process.env.KIMI_REASONING_EFFORT
-        ? { reasoning_effort: process.env.KIMI_REASONING_EFFORT }
-        : {}),
+      agentId: "garden-stream",
+      taskType: "chat",
+      payload: { messages, maxTokens: 12288, reasoningEffort: process.env.KIMI_REASONING_EFFORT },
     }),
+    signal: AbortSignal.timeout(120_000),
   });
-
   if (!resp.ok) {
     const errText = await resp.text().catch(() => "");
-    throw new Error(`LLM API 错误 (${resp.status}): ${errText.slice(0, 200)}`);
+    throw new Error(`Kimi 集群错误 (${resp.status}): ${errText.slice(0, 200)}`);
   }
-
   const reader = resp.body?.getReader();
-  if (!reader) throw new Error("无法获取响应流");
+  if (!reader) throw new Error("无法获取 Kimi 集群响应流");
 
   const decoder = new TextDecoder();
   let buffer = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-
-    for (const line of buffer.split("\n")) {
-      // Kimi 网关 SSE 格式为 "data:{...}"（无空格），标准 OpenAI 为 "data: {...}"，两者都兼容
-      const trimmed = line.trim();
-      if (trimmed.startsWith("data:")) {
+  let sawContent = false;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() || "";
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith("data:")) continue;
         const dataStr = trimmed.slice(5).trim();
-        if (dataStr === "[DONE]") return;
         if (!dataStr) continue;
+        if (dataStr === "[DONE]") {
+          if (!sawContent) throw new Error("Kimi 流式响应正文为空");
+          return;
+        }
+        let data;
         try {
-          const data = JSON.parse(dataStr);
-          // OpenAI 兼容格式（Kimi 网关的 thinking 走 delta.reasoning_content，不作为正文输出）
-          const delta = data.choices?.[0]?.delta?.content;
-          if (delta) yield delta;
-          // Anthropic 格式
-          if (data.type === "content_block_delta" && data.delta?.text) {
-            yield data.delta.text;
-          }
+          data = JSON.parse(dataStr);
         } catch {
-          // 忽略解析错误
+          throw new Error("Kimi 流式响应包含无效 JSON");
+        }
+        const delta = data.choices?.[0]?.delta?.content ?? data.content;
+        if (typeof delta === "string" && delta) {
+          sawContent = true;
+          yield delta;
         }
       }
     }
-    // 保留未完成的行
-    const lastNewline = buffer.lastIndexOf("\n");
-    if (lastNewline >= 0) buffer = buffer.slice(lastNewline + 1);
+    if (!sawContent) throw new Error("Kimi 流式响应正文为空");
+  } finally {
+    reader.releaseLock();
   }
 }
 
@@ -300,6 +266,7 @@ export class OpenClawAdapter implements PlatformAdapter {
   }
 
   private _pickTool(skills: string[], _messages: ChatMessage[]): string {
+    void _messages;
     const toolMap: Record<string, string> = {
       "web-search": "WebSearch",
       "web-scraper": "WebScraper",
@@ -606,17 +573,14 @@ export class CrewAIAdapter implements PlatformAdapter {
 
 const ADAPTER_MAP: Record<string, () => PlatformAdapter> = {
   openclaw: () => new OpenClawAdapter(),
-  hermes: () => new HermesAdapter(),
-  dify: () => new DifyAdapter(),
-  coze: () => new CozeAdapter(),
-  crewai: () => new CrewAIAdapter(),
+  direct: () => new DirectLLMAdapter(),
+  kimi: () => new DirectLLMAdapter(),
 };
 
 export function getAdapter(platformId: string): PlatformAdapter {
   const factory = ADAPTER_MAP[platformId];
-  if (factory) return factory();
-  // 兜底：直接调 LLM
-  return new DirectLLMAdapter();
+  if (!factory) throw new Error("Kimi-only mode: unsupported agent platform");
+  return factory();
 }
 
 /** 获取平台信息（用于 UI 展示，不需要实例化适配器） */

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 
 // ─── JWT 模拟（生产环境应使用 jsonwebtoken 库） ──────
 
@@ -113,6 +113,28 @@ export function apiKeyAuth(req: Request, res: Response, next: NextFunction): voi
     res.status(401).json({ success: false, error: 'Invalid API key' });
     return;
   }
+  next();
+}
+
+/** Dedicated headless-agent boundary; KIMI_API_KEY is never accepted here. */
+export function agentKeyAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  if (req.path === '/health') {
+    next();
+    return;
+  }
+  const expected = (process.env.GARDEN_AGENT_TOKEN || '').trim();
+  if (expected.length < 32) {
+    res.status(503).json({ success: false, error: 'GARDEN_AGENT_TOKEN is not configured' });
+    return;
+  }
+  const presented = String(req.headers['x-garden-agent-key'] || '');
+  const left = Buffer.from(presented);
+  const right = Buffer.from(expected);
+  if (!presented || left.length !== right.length || !timingSafeEqual(left, right)) {
+    res.status(401).json({ success: false, error: 'Valid X-Garden-Agent-Key required' });
+    return;
+  }
+  req.user = { userId: 'kimi-agent', role: 'admin' };
   next();
 }
 

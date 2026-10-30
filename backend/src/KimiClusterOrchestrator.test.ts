@@ -1,395 +1,241 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { KimiClusterOrchestrator, kimiCluster, KimiClusterModuleHandler } from './KimiClusterOrchestrator';
-import type { AxisMessage, AxisMessageReply } from '../coordinator/AxisMessage';
+import assert from 'node:assert/strict';
+import { beforeEach, describe, it } from 'node:test';
+import {
+  KimiClusterOrchestrator,
+  loadKimiEndpoints,
+  type ClawActivity,
+  type KimiEndpoint,
+} from './KimiClusterOrchestrator';
+import type { AxisMessage } from './coordinator/AxisMessage';
 
-describe('KimiClusterOrchestrator - KIMI集群逆向工程测试', () => {
+function endpoint(id: string, overrides: Partial<KimiEndpoint> = {}): KimiEndpoint {
+  return {
+    id,
+    baseUrl: `https://${id}.test/v1`,
+    apiKey: `secret-${id}`,
+    model: 'kimi-for-coding',
+    weight: 1,
+    currentLoad: 0,
+    avgLatency: 1000,
+    errorRate: 0,
+    lastUsed: 0,
+    capabilities: ['chat', 'code', 'analysis', 'planning', 'review'],
+    maxConcurrency: 10,
+    ...overrides,
+  };
+}
+
+function activity(agentId: string, timestamp: number, overrides: Partial<ClawActivity> = {}): ClawActivity {
+  return {
+    timestamp,
+    agentId,
+    messageType: 'chat',
+    tokenCount: 100,
+    duration: 1000,
+    success: true,
+    modelUsed: 'kimi-for-coding',
+    endpointId: 'kimi-1',
+    ...overrides,
+  };
+}
+
+function rpc(cluster: KimiClusterOrchestrator, action: string, data: Record<string, unknown> = {}) {
+  const id = `test-${Date.now()}`;
+  const source = {
+    x: { type: 'test', action, id },
+    y: { service: 'garden', version: '2.0' },
+    z: { priority: 1 },
+  };
+  const target = {
+    x: { type: 'service', action, id: 'kimi-cluster' },
+    y: { service: 'kimi-cluster', version: '2.0' },
+    z: { priority: 1 },
+  };
+  const message: AxisMessage = {
+    id,
+    header: { source, target, traceChain: [] },
+    x: source.x,
+    y: source.y,
+    z: source.z,
+    payload: { action, entity: 'kimi_cluster', data, metadata: {} },
+    semantic_payload: { action, data },
+    protocol_adapter: 'TEST',
+    timestamp: new Date().toISOString(),
+    traceId: id,
+  };
+  return cluster.handleRpc(message);
+}
+
+describe('KimiClusterOrchestrator', () => {
   let cluster: KimiClusterOrchestrator;
+  let originalFetch: typeof fetch;
+  let previousRetry: string | undefined;
 
   beforeEach(() => {
     cluster = new KimiClusterOrchestrator([
-      {
-        id: 'kimi-1',
-        baseUrl: 'https://api.kimi.com/coding/v1',
-        apiKey: 'test-key-1',
-        model: 'moonshot-v1-128k',
-        weight: 1,
-        currentLoad: 0,
-        avgLatency: 1000,
-        errorRate: 0,
-        lastUsed: 0,
-        capabilities: ['chat', 'code', 'analysis', 'long_context'],
-      },
-      {
-        id: 'kimi-2',
-        baseUrl: 'https://api.kimi.com/coding/v1',
-        apiKey: 'test-key-2',
-        model: 'moonshot-v1-32k',
-        weight: 0.8,
-        currentLoad: 0.5,
-        avgLatency: 2000,
-        errorRate: 0.02,
-        lastUsed: Date.now() - 60000,
-        capabilities: ['chat', 'code'],
-      },
-      {
-        id: 'kimi-3',
-        baseUrl: 'https://api.kimi.com/coding/v1',
-        apiKey: 'test-key-3',
-        model: 'moonshot-v1-8k',
-        weight: 0.5,
-        currentLoad: 0.8,
-        avgLatency: 3000,
-        errorRate: 0.05,
-        lastUsed: Date.now(),
-        capabilities: ['chat'],
-      },
+      endpoint('kimi-1'),
+      endpoint('kimi-2', { currentLoad: 0.5, avgLatency: 2000, weight: 0.8 }),
+      endpoint('kimi-3', { currentLoad: 0.8, avgLatency: 3000, weight: 0.5 }),
     ]);
+    originalFetch = globalThis.fetch;
+    previousRetry = process.env.KIMI_RETRY_BASE_MS;
+    process.env.KIMI_RETRY_BASE_MS = '0';
   });
 
-  // ========== 测试1: 负载均衡 ==========
-  describe('负载均衡', () => {
-    it('应选择负载最低的端点', () => {
-      const endpoint = (cluster as any).balancer.selectEndpoint({});
-      expect(endpoint).toBeDefined();
-      expect(endpoint.id).toBe('kimi-1'); // kimi-1 负载最低 (0)
+  function restore() {
+    globalThis.fetch = originalFetch;
+    if (previousRetry === undefined) delete process.env.KIMI_RETRY_BASE_MS;
+    else process.env.KIMI_RETRY_BASE_MS = previousRetry;
+  }
+
+  it('uses load, latency, capabilities and fixed Kimi parameters', async () => {
+    assert.equal(cluster.makeDecision('new', 'chat').endpointId, 'kimi-1');
+    const internal = cluster['balancer'].getEndpoints();
+    internal[0].currentLoad = 0.9;
+    internal[1].currentLoad = 0.1;
+    assert.equal(cluster.makeDecision('new', 'chat').endpointId, 'kimi-2');
+    const capabilityCluster = new KimiClusterOrchestrator([
+      endpoint('reader', { capabilities: ['chat'] }),
+      endpoint('coder', { capabilities: ['chat', 'code'] }),
+    ]);
+    assert.equal(capabilityCluster.makeDecision('new', 'code').endpointId, 'coder');
+    const decision = capabilityCluster.makeDecision('new', 'code');
+    assert.equal(decision.model, 'kimi-for-coding');
+    assert.equal(decision.temperature, 1);
+    restore();
+  });
+
+  it('detects burst, sequential and interactive patterns without a timer', async () => {
+    for (let i = 0; i < 11; i++) cluster.recordClawActivity(activity('burst', i * 1000));
+    for (let i = 0; i < 5; i++) cluster.recordClawActivity(activity('sequence', i * 360000, { messageType: 'code' }));
+    for (let i = 0; i < 3; i++) cluster.recordClawActivity(activity('interactive', i * 30000));
+    const reply = await rpc(cluster, 'getPatterns');
+    const patterns = (reply.payload.data as { patterns: Array<{ agentId: string; patternType: string }> }).patterns;
+    assert.equal(patterns.find(p => p.agentId === 'burst')?.patternType, 'burst');
+    assert.equal(patterns.find(p => p.agentId === 'sequence')?.patternType, 'sequential');
+    assert.equal(patterns.find(p => p.agentId === 'interactive')?.patternType, 'interactive');
+    restore();
+  });
+
+  it('keeps model identity fixed and budgets bounded by observed usage', async () => {
+    for (let i = 0; i < 4; i++) {
+      cluster.recordClawActivity(activity('heavy', i * 30000, { tokenCount: 50000, messageType: 'code' }));
+    }
+    const decision = cluster.makeDecision('heavy', 'code');
+    assert.equal(decision.model, 'kimi-for-coding');
+    assert.equal(decision.temperature, 1);
+    assert.equal(decision.maxTokens, 16384);
+    assert.ok(!decision.model.includes('moonshot-v1'));
+    restore();
+  });
+
+  it('does not force a request when every endpoint is circuit-broken', async () => {
+    const single = new KimiClusterOrchestrator([endpoint('only')]);
+    globalThis.fetch = async () => new Response('unavailable', { status: 500 });
+    for (let i = 0; i < 5; i++) {
+      await assert.rejects(single.execute('agent', 'chat', { message: 'test' }));
+    }
+    assert.throws(() => single.makeDecision('agent', 'chat'), /No available Kimi endpoint/);
+    restore();
+  });
+
+  it('loads node references from env without serializing their keys', async () => {
+    const endpoints = loadKimiEndpoints({
+      KIMI_CLUSTER_NODES: JSON.stringify([
+        { id: 'a', baseUrl: 'https://a.test/v1', apiKeyEnv: 'KEY_A', maxConcurrency: 2 },
+        { id: 'b', baseUrl: 'https://b.test/v1', apiKeyEnv: 'KEY_B', model: 'kimi-for-coding-highspeed' },
+      ]),
+      KEY_A: 'secret-a',
+      KEY_B: 'secret-b',
     });
+    assert.equal(endpoints.length, 2);
+    assert.equal(endpoints[1].model, 'kimi-for-coding-highspeed');
+    const configured = new KimiClusterOrchestrator(endpoints);
+    const reply = await rpc(configured, 'getStatus');
+    assert.ok(!JSON.stringify(reply.payload.data).includes('secret-a'));
+    assert.ok(!JSON.stringify(reply.payload.data).includes('secret-b'));
+    restore();
+  });
 
-    it('应考虑延迟权重', () => {
-      // 模拟 kimi-1 高负载
-      const endpoints = (cluster as any).balancer.getEndpoints();
-      endpoints[0].currentLoad = 0.9; // kimi-1 高负载
-      endpoints[1].currentLoad = 0.1; // kimi-2 低负载
-
-      const endpoint = (cluster as any).balancer.selectEndpoint({});
-      expect(endpoint.id).toBe('kimi-2'); // kimi-2 延迟更低
-    });
-
-    it('应根据能力筛选端点', () => {
-      const endpoint = (cluster as any).balancer.selectEndpoint({
-        capabilities: ['long_context'],
+  it('keeps reasoning separate and sends fixed model parameters', async () => {
+    let requestBody: any;
+    globalThis.fetch = async (_input, init) => {
+      requestBody = JSON.parse(String(init?.body));
+      return Response.json({
+        id: 'answer-1', model: 'kimi-for-coding',
+        choices: [{ message: { content: '正文', reasoning_content: '推理' }, finish_reason: 'stop' }],
+        usage: { total_tokens: 12 },
       });
-      expect(endpoint).toBeDefined();
-      expect(endpoint.capabilities).toContain('long_context');
-    });
-
-    it('所有端点熔断时应返回错误率最低的', () => {
-      const endpoints = (cluster as any).balancer.getEndpoints();
-      // 模拟所有端点高错误率
-      for (const ep of endpoints) {
-        for (let i = 0; i < 10; i++) {
-          (cluster as any).balancer.reportResult(ep.id, false, 5000);
-        }
-      }
-
-      const endpoint = (cluster as any).balancer.selectEndpoint({});
-      expect(endpoint).toBeDefined();
-      // 应该返回错误率相对最低的
-    });
+    };
+    const result = await cluster.execute('research', 'chat', { message: '你好', maxTokens: 2048 });
+    assert.equal(result.choices[0].message.content, '正文');
+    assert.equal(result.choices[0].message.reasoning_content, '推理');
+    assert.equal(requestBody.model, 'kimi-for-coding');
+    assert.equal(requestBody.temperature, 1);
+    assert.equal(requestBody.max_tokens, 2048);
+    assert.ok(!JSON.stringify(cluster.getStats()).includes('secret-kimi-1'));
+    restore();
   });
 
-  // ========== 测试2: 熔断机制 ==========
-  describe('熔断机制', () => {
-    it('连续失败应触发熔断', () => {
-      const endpoints = (cluster as any).balancer.getEndpoints();
-      const epId = endpoints[0].id;
+  it('fails over on 429 but rejects 400 without retrying', async () => {
+    let calls = 0;
+    globalThis.fetch = async () => {
+      calls += 1;
+      if (calls === 1) return new Response('limited', { status: 429, headers: { 'Retry-After': '0' } });
+      return Response.json({ choices: [{ message: { content: 'second node' } }] });
+    };
+    const result = await cluster.execute('research', 'chat', { message: 'test' });
+    assert.equal(result.choices[0].message.content, 'second node');
+    assert.equal(calls, 2);
 
-      // 连续5次失败
-      for (let i = 0; i < 5; i++) {
-        (cluster as any).balancer.reportResult(epId, false, 5000);
-      }
-
-      // 检查熔断状态
-      const breaker = (cluster as any).balancer.circuitBreakers.get(epId);
-      expect(breaker.failures).toBeGreaterThanOrEqual(5);
-    });
-
-    it('熔断后成功请求应恢复', () => {
-      const endpoints = (cluster as any).balancer.getEndpoints();
-      const epId = endpoints[0].id;
-
-      // 触发熔断
-      for (let i = 0; i < 5; i++) {
-        (cluster as any).balancer.reportResult(epId, false, 5000);
-      }
-
-      // 成功请求应减少失败计数
-      (cluster as any).balancer.reportResult(epId, true, 1000);
-      const breaker = (cluster as any).balancer.circuitBreakers.get(epId);
-      expect(breaker.failures).toBeLessThan(5);
-    });
+    calls = 0;
+    globalThis.fetch = async () => {
+      calls += 1;
+      return new Response('bad request', { status: 400 });
+    };
+    await assert.rejects(cluster.execute('research', 'chat', { message: 'bad' }), /400/);
+    assert.equal(calls, 1);
+    restore();
   });
 
-  // ========== 测试3: 活动模式检测 ==========
-  describe('活动模式检测', () => {
-    it('应检测突发模式', () => {
-      const activities = [
-        { timestamp: Date.now(), agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 1000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 2000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 3000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 4000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 5000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 6000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 7000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 8000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 9000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 10000, agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 500, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-      ];
+  it('streams answer text only and rejects reasoning-only streams', async () => {
+    globalThis.fetch = async () => new Response(
+      'data: {"choices":[{"delta":{"reasoning_content":"hidden"}}]}\n\n' +
+      'data: {"choices":[{"delta":{"content":"正文"}}]}\n\ndata: [DONE]\n\n',
+      { status: 200 },
+    );
+    const chunks: string[] = [];
+    await cluster.executeStream('research', 'chat', { message: 'test' }, chunk => chunks.push(chunk.content));
+    assert.deepEqual(chunks, ['正文']);
 
-      for (const activity of activities) {
-        cluster.recordClawActivity(activity);
-      }
-
-      // 手动触发分析
-      const detector = (cluster as any).detector;
-      detector.analyzePatterns();
-
-      const pattern = detector.getPattern('agent-1');
-      expect(pattern).toBeDefined();
-      expect(pattern.patternType).toBe('burst');
-    });
-
-    it('应检测顺序模式', () => {
-      const activities = [
-        { timestamp: Date.now(), agentId: 'agent-2', messageType: 'code', tokenCount: 500, duration: 5000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 360000, agentId: 'agent-2', messageType: 'code', tokenCount: 500, duration: 5000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 720000, agentId: 'agent-2', messageType: 'code', tokenCount: 500, duration: 5000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 1080000, agentId: 'agent-2', messageType: 'code', tokenCount: 500, duration: 5000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 1440000, agentId: 'agent-2', messageType: 'code', tokenCount: 500, duration: 5000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-      ];
-
-      for (const activity of activities) {
-        cluster.recordClawActivity(activity);
-      }
-
-      const detector = (cluster as any).detector;
-      detector.analyzePatterns();
-
-      const pattern = detector.getPattern('agent-2');
-      expect(pattern).toBeDefined();
-      expect(pattern.patternType).toBe('sequential');
-    });
-
-    it('应检测交互模式', () => {
-      const activities = [
-        { timestamp: Date.now(), agentId: 'agent-3', messageType: 'chat', tokenCount: 50, duration: 1000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 30000, agentId: 'agent-3', messageType: 'chat', tokenCount: 50, duration: 1000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-        { timestamp: Date.now() + 60000, agentId: 'agent-3', messageType: 'chat', tokenCount: 50, duration: 1000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-      ];
-
-      for (const activity of activities) {
-        cluster.recordClawActivity(activity);
-      }
-
-      const detector = (cluster as any).detector;
-      detector.analyzePatterns();
-
-      const pattern = detector.getPattern('agent-3');
-      expect(pattern).toBeDefined();
-      expect(pattern.patternType).toBe('interactive');
-    });
+    globalThis.fetch = async () => new Response(
+      'data: {"choices":[{"delta":{"reasoning_content":"hidden"}}]}\n\ndata: [DONE]\n\n',
+      { status: 200 },
+    );
+    await assert.rejects(
+      cluster.executeStream('research', 'chat', { message: 'test' }, () => {}),
+      /empty content/,
+    );
+    restore();
   });
 
-  // ========== 测试4: 参数优化 ==========
-  describe('模型参数优化', () => {
-    it('代码任务应使用低温', () => {
-      const pattern = {
-        agentId: 'agent-1',
-        patternType: 'interactive' as const,
-        avgMessageLength: 100,
-        avgResponseTime: 1000,
-        peakHours: [9, 10, 11],
-        preferredModel: 'moonshot-v1-8k',
-        tokenUsagePattern: 'medium' as const,
-        codeBlockFrequency: 0.6,
-        contextWindowUsage: 0.3,
-      };
-
-      const optimizer = (cluster as any).optimizer;
-      const params = optimizer.optimizeParameters(pattern, 'code');
-
-      expect(params.temperature).toBe(0.2); // 代码任务温度低
-      expect(params.model).toBe('moonshot-v1-8k');
-    });
-
-    it('高上下文使用应升级模型', () => {
-      const pattern = {
-        agentId: 'agent-1',
-        patternType: 'long_running' as const,
-        avgMessageLength: 50000,
-        avgResponseTime: 30000,
-        peakHours: [14, 15, 16],
-        preferredModel: 'moonshot-v1-8k',
-        tokenUsagePattern: 'high' as const,
-        codeBlockFrequency: 0.1,
-        contextWindowUsage: 0.8,
-      };
-
-      const optimizer = (cluster as any).optimizer;
-      const params = optimizer.optimizeParameters(pattern, 'analysis');
-
-      expect(params.model).toBe('moonshot-v1-32k'); // 上下文使用率高，升级到32k
-    });
-
-    it('创意任务应使用高温', () => {
-      const pattern = {
-        agentId: 'agent-1',
-        patternType: 'interactive' as const,
-        avgMessageLength: 200,
-        avgResponseTime: 2000,
-        peakHours: [20, 21, 22],
-        preferredModel: 'moonshot-v1-8k',
-        tokenUsagePattern: 'medium' as const,
-        codeBlockFrequency: 0.1,
-        contextWindowUsage: 0.2,
-      };
-
-      const optimizer = (cluster as any).optimizer;
-      const params = optimizer.optimizeParameters(pattern, 'creative');
-
-      expect(params.temperature).toBe(0.9); // 创意任务温度高
-    });
+  it('supports standard RPC status and activity emission', async () => {
+    const status = await rpc(cluster, 'getStatus');
+    assert.equal((status.payload.data as { endpoints: number }).endpoints, 3);
+    const emitMessage = rpc(cluster, 'getPatterns');
+    assert.ok((await emitMessage).payload.data);
+    cluster['detector'].recordActivity(activity('emit-agent', Date.now()));
+    assert.ok(cluster.getStats().activities >= 1);
+    restore();
   });
 
-  // ========== 测试5: 集群决策 ==========
-  describe('集群决策', () => {
-    it('应生成包含所有必要字段的决策', () => {
-      const activities = [
-        { timestamp: Date.now(), agentId: 'agent-1', messageType: 'chat', tokenCount: 100, duration: 1000, success: true, modelUsed: 'moonshot-v1-8k', endpointId: 'kimi-1' },
-      ];
-
-      for (const activity of activities) {
-        cluster.recordClawActivity(activity);
-      }
-
-      const decision = cluster.makeDecision('agent-1', 'chat');
-      expect(decision).toHaveProperty('endpointId');
-      expect(decision).toHaveProperty('model');
-      expect(decision).toHaveProperty('temperature');
-      expect(decision).toHaveProperty('maxTokens');
-      expect(decision).toHaveProperty('timeout');
-      expect(decision).toHaveProperty('retryStrategy');
-      expect(decision).toHaveProperty('priority');
-      expect(decision).toHaveProperty('reason');
+  it('performs real health probes and reports partial availability honestly', async () => {
+    globalThis.fetch = async input => new Response(null, {
+      status: String(input).includes('kimi-1') ? 200 : 500,
     });
-
-    it('无活动数据时应使用默认配置', () => {
-      const decision = cluster.makeDecision('new-agent', 'chat');
-      expect(decision.model).toBe('moonshot-v1-8k');
-      expect(decision.temperature).toBe(0.7);
-      expect(decision.maxTokens).toBe(8192);
-    });
-  });
-
-  // ========== 测试6: 3DACP 接口 ==========
-  describe('3DACP 集成', () => {
-    it('应实现 handleRpc 接口', async () => {
-      const msg: AxisMessage = {
-        version: '3dacp/v1',
-        header: {
-          msgId: 'test-msg',
-          source: { x: 'web', y: 'kimi_cluster', z: 'rest' },
-          target: { x: 'backend-api', y: 'kimi_cluster', z: 'rest' },
-          timestamp: Date.now(),
-          priority: 1,
-          ttl: 30000,
-          expectsReply: true,
-          retryCount: 0,
-          traceChain: [],
-        },
-        payload: {
-          action: 'getPatterns',
-          entity: 'kimi_cluster',
-          data: {},
-          metadata: {},
-        },
-        transport: {
-          protocol: 'rest',
-          encoding: 'json',
-          compressed: false,
-        },
-      };
-
-      const handler = new KimiClusterModuleHandler(cluster);
-      const reply: AxisMessageReply = await handler.handleRpc(msg);
-
-      expect(reply).toHaveProperty('header');
-      expect(reply).toHaveProperty('payload');
-      expect(reply.payload.data).toHaveProperty('patterns');
-    });
-
-    it('应实现 handleEmit 接口', async () => {
-      const msg: AxisMessage = {
-        version: '3dacp/v1',
-        header: {
-          msgId: 'test-msg',
-          source: { x: 'web', y: 'kimi_cluster', z: 'rest' },
-          target: { x: 'backend-api', y: 'kimi_cluster', z: 'rest' },
-          timestamp: Date.now(),
-          priority: 1,
-          ttl: 30000,
-          expectsReply: false,
-          retryCount: 0,
-          traceChain: [],
-        },
-        payload: {
-          action: 'record',
-          entity: 'kimi_cluster',
-          data: {
-            timestamp: Date.now(),
-            agentId: 'test-agent',
-            messageType: 'chat',
-            tokenCount: 100,
-            duration: 1000,
-            success: true,
-            modelUsed: 'moonshot-v1-8k',
-            endpointId: 'kimi-1',
-          },
-          metadata: {},
-        },
-        transport: {
-          protocol: 'rest',
-          encoding: 'json',
-          compressed: false,
-        },
-      };
-
-      const handler = new KimiClusterModuleHandler(cluster);
-      await expect(handler.handleEmit(msg)).resolves.not.toThrow();
-    });
-  });
-
-  // ========== 测试7: Token 估算 ==========
-  describe('Token 估算', () => {
-    it('应正确估算中文字符 token', () => {
-      const payload = { message: '这是一个中文消息' };
-      const tokens = (cluster as any).estimateTokens(payload);
-      // 中文字符 ≈ 1 token，8个中文字符 ≈ 8 tokens
-      expect(tokens).toBeGreaterThan(0);
-    });
-
-    it('应正确估算英文 token', () => {
-      const payload = { message: 'Hello world' };
-      const tokens = (cluster as any).estimateTokens(payload);
-      // 英文 ≈ 0.25 token per char，11 chars ≈ 3 tokens
-      expect(tokens).toBeGreaterThan(0);
-    });
-  });
-
-  // ========== 测试8: Failover ==========
-  describe('自动故障转移', () => {
-    it('熔断触发时应自动 failvoer', async () => {
-      const endpoints = (cluster as any).balancer.getEndpoints();
-      const primaryId = endpoints[0].id;
-
-      // 触发 primary 端点熔断
-      for (let i = 0; i < 5; i++) {
-        (cluster as any).balancer.reportResult(primaryId, false, 5000);
-      }
-
-      // 验证 failover 发生
-      const decision = cluster.makeDecision('agent-1', 'chat');
-      expect(decision.endpointId).not.toBe(primaryId);
-    });
+    const health = await cluster.healthCheck();
+    assert.equal(health.status, 'healthy');
+    assert.ok(health.latency >= 0);
+    restore();
   });
 });

@@ -45,11 +45,11 @@ export class KimiAdapter extends BaseBackendAdapter {
   }
 
   async chat(request: ChatRequest): Promise<ChatResponse> {
-    const model = request.model || this.kimiConfig?.defaultModel || 'kimi-for-coding';
+    const model = 'kimi-for-coding';
     const payload = {
       model,
       messages: request.messages,
-      temperature: request.temperature ?? 0.7,
+      temperature: 1,
       max_tokens: request.maxTokens ?? 2048,
     };
 
@@ -62,20 +62,25 @@ export class KimiAdapter extends BaseBackendAdapter {
           method: 'POST',
           headers: this.getHeaders(),
           body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(this.kimiConfig?.timeout ?? 60000),
         });
 
         if (!response.ok) {
           if (response.status === 429 || response.status === 401) {
             this.rotateKey();
-            continue;
+            throw new Error(`Kimi API error: ${response.status}`);
           }
           throw new Error(`Kimi API error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json() as any;
+        const content = data.choices?.[0]?.message?.content;
+        if (typeof content !== 'string' || !content.trim()) {
+          throw new Error('Kimi API returned empty content');
+        }
         return {
           id: data.id,
-          content: data.choices?.[0]?.message?.content || '',
+          content,
           usage: data.usage,
           finishReason: data.choices?.[0]?.finish_reason,
         };
@@ -92,11 +97,11 @@ export class KimiAdapter extends BaseBackendAdapter {
   }
 
   async *chatStream(request: ChatRequest): AsyncIterable<ChatChunk> {
-    const model = request.model || this.kimiConfig?.defaultModel || 'kimi-for-coding';
+    const model = 'kimi-for-coding';
     const payload = {
       model,
       messages: request.messages,
-      temperature: request.temperature ?? 0.7,
+      temperature: 1,
       max_tokens: request.maxTokens ?? 2048,
       stream: true,
     };
@@ -110,12 +115,13 @@ export class KimiAdapter extends BaseBackendAdapter {
           method: 'POST',
           headers: this.getHeaders(),
           body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(this.kimiConfig?.timeout ?? 60000),
         });
 
         if (!response.ok) {
           if (response.status === 429 || response.status === 401) {
             this.rotateKey();
-            continue;
+            throw new Error(`Kimi API error: ${response.status}`);
           }
           throw new Error(`Kimi API error: ${response.status} ${response.statusText}`);
         }

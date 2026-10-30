@@ -466,48 +466,36 @@ const COLLABORATION_PROMPTS: Record<string, PromptTemplate> = {
 export async function generateCollaborationResponse(
   collaborationType: string,
   context: PromptContext,
-  options?: { model?: string; temperature?: number; maxTokens?: number; provider?: "zhipu" | "kimi" }
+  options?: { maxTokens?: number; provider?: "kimi" }
 ): Promise<ResearchLLMResponse> {
   const template = COLLABORATION_PROMPTS[collaborationType];
   if (!template) {
     throw new Error(`Unknown collaboration type: ${collaborationType}`);
   }
-
-  const systemPrompt = template.systemPrompt;
-  const userPrompt = template.buildUserPrompt(context);
-
   return researchChat({
-    systemPrompt,
-    userPrompt,
-    model: options?.model || "glm-5.1",
-    temperature: options?.temperature ?? 0.3,
-    maxTokens: options?.maxTokens || DEFAULT_MAX_TOKENS,
-    provider: options?.provider || "zhipu",
+    systemPrompt: template.systemPrompt,
+    userPrompt: template.buildUserPrompt(context),
+    maxTokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
   });
 }
 
-/** 批量生成（用于专家组/竞赛等多成员并行场景） */
+/** Parallel Kimi collaboration; failures reject rather than becoming fake prose. */
 export async function generateCollaborationResponses(
   collaborationType: string,
   contexts: PromptContext[],
-  options?: { model?: string; temperature?: number; maxTokens?: number; provider?: "zhipu" | "kimi"; concurrency?: number }
+  options?: { maxTokens?: number; provider?: "kimi"; concurrency?: number }
 ): Promise<ResearchLLMResponse[]> {
   const { researchChatBatch } = await import("./research-llm");
-
   const requests = contexts.map((ctx) => {
     const template = COLLABORATION_PROMPTS[collaborationType];
     if (!template) throw new Error(`Unknown collaboration type: ${collaborationType}`);
     return {
       systemPrompt: template.systemPrompt,
       userPrompt: template.buildUserPrompt(ctx),
-      model: options?.model || "glm-5.1",
-      temperature: options?.temperature ?? 0.3,
-      maxTokens: options?.maxTokens || DEFAULT_MAX_TOKENS,
-      provider: options?.provider || "zhipu",
+      maxTokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
     };
   });
-
-  return researchChatBatch(requests, { concurrency: options?.concurrency || 3 });
+  return researchChatBatch(requests, { concurrency: options?.concurrency ?? 3 });
 }
 
 /** 获取所有支持的协作类型 */

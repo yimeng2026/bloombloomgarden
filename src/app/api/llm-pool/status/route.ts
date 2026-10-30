@@ -1,36 +1,56 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPoolStatus, probePool, reloadPool, getFieldHealth } from "@/lib/provider-pool";
+import { getKimiGateway } from "@/lib/kimi-gateway";
+import { researchLLMHealthCheck } from "@/lib/research-llm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// GET /api/llm-pool/status —— ProviderPool 集群健康状态快照（仅掩码，绝不含原始 key）
-//   ?probe=1  主动健康探测（每 provider 发一个微型请求，会刷新熔断状态）
-//   ?reload=1 重新从环境变量装载池
-// 响应含 field_health：U/D/A/H 场域健康（U 成功率滑动窗口 / D 负载归一化 /
-// A 异常率含空回复与熔断 / H = λᵤU + λᴅD_norm − λₐA_norm）与温度动力学收紧档状态
-export async function GET(request: NextRequest) {
+async function clusterConfiguration(): Promise<{ configured: boolean; endpoints: number; reachable: boolean; error?: string }> {
+  const token = process.env.GARDEN_AGENT_TOKEN?.trim();
+  if (!token) return { configured: false, endpoints: 0, reachable: false, error: "GARDEN_AGENT_TOKEN is not configured" };
+  const base = (process.env.GARDEN_BACKEND_URL || "http://127.0.0.1:3001").replace(/\/+$/, "");
   try {
-    const { searchParams } = new URL(request.url);
-    if (searchParams.get("reload") === "1") {
-      reloadPool();
+    const response = await fetch(`${base}/api/kimi-cluster/status`, {
+      headers: { "X-Garden-Agent-Key": token },
+      signal: AbortSignal.timeout(10_000),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(`cluster status HTTP ${response.status}`);
+    const endpoints = Number(payload?.data?.endpoints) || 0;
+    return { configured: endpoints > 0, endpoints, reachable: true };
+  } catch (error) {
+    return {
+      configured: false,
+      endpoints: 0,
+      reachable: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+/** No-probe mode is free and reports cluster configuration, not model health. */
+export async function GET(request: NextRequest) {
+  const probe = new URL(request.url).searchParams.get("probe") === "1";
+  if (!probe) {
+    if (process.env.GARDEN_USE_CLUSTER === "0") {
+      const direct = getKimiGateway();
+      return NextResponse.json({
+        probed: false,
+        mode: "direct",
+        provider: "kimi",
+        configured: direct !== null,
+        model: direct?.model || "kimi-for-coding",
+        healthy: null,
+      });
     }
-    if (searchParams.get("probe") === "1") {
-      const providers = await probePool({ timeoutMs: 30_000 });
-      return NextResponse.json({ probed: true, loadedAt: Date.now(), providers, field_health: getFieldHealth() });
-    }
-    const status = getPoolStatus();
     return NextResponse.json({
       probed: false,
-      ...status,
-      field_health: getFieldHealth(),
-      summary: {
-        totalProviders: status.providers.length,
-        totalKeys: status.providers.reduce((n, p) => n + p.keys.length, 0),
-        healthyKeys: status.providers.reduce((n, p) => n + p.keys.filter((k) => k.healthy && k.cooldownRemainingMs === 0).length, 0),
-      },
+      mode: "cluster",
+      provider: "kimi",
+      healthy: null,
+      ...(await clusterConfiguration()),
     });
-  } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 });
   }
+  const result = await researchLLMHealthCheck();
+  return NextResponse.json({ probed: true, mode: process.env.GARDEN_USE_CLUSTER === "0" ? "direct" : "cluster", ...result }, { status: result.ok ? 200 : 502 });
 }

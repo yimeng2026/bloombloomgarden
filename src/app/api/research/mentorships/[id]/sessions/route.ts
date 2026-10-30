@@ -163,29 +163,21 @@ export async function POST(
             title,
             studentResponse: studentResponse || "",
           },
-          { model: "glm-5.1", temperature: 0.4, provider: "zhipu" }
         );
 
         const extractedScore = extractScore(llmRes.content);
         if (studentResponse && studentResponse.trim().length > 0) {
-          // 有学生回答 → 生成 feedback
           finalFeedback = llmRes.content;
           finalContent = content || "";
           finalScore = finalScore !== undefined ? finalScore : extractedScore;
         } else {
-          // 无学生回答 → 生成 lecture/exercise/discussion 内容
           finalContent = llmRes.content;
           finalFeedback = feedback || "";
-          finalScore = 0; // 新生成的内容没有评分
+          finalScore = 0;
         }
         console.log(`[Mentorship LLM] mode=${mode}, score=${finalScore}, latency=${llmRes.latencyMs}ms`);
-      } catch (llmErr: any) {
-        console.error("[Mentorship LLM] error:", llmErr.message);
-        // fallback: 使用模拟内容
-        const mock = generateMockMentorship(mode, topic || title, studentResponse || "");
-        finalContent = body.content || mock.content;
-        finalFeedback = body.feedback || mock.feedback;
-        finalScore = finalScore !== undefined ? finalScore : mock.score;
+      } catch (error) {
+        throw new Error(`Kimi 导师内容生成失败: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 

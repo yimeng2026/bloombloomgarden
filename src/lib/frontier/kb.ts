@@ -46,7 +46,7 @@ function parseCard(filePath: string): KbCard | null {
       categories: get("categories") ? get("categories").split(",").map((s) => s.trim()).filter(Boolean) : [],
       ingestedAt: get("ingested_at"),
       oneLiner: oneLinerMatch ? oneLinerMatch[1].trim() : "",
-      file: path.relative(process.cwd(), filePath),
+      file: path.join(FRONTIER_KB_DIR, path.basename(path.dirname(filePath)), path.basename(filePath)),
     };
   } catch {
     return null;
@@ -54,7 +54,7 @@ function parseCard(filePath: string): KbCard | null {
 }
 
 export function searchKb(filter: { topic?: string; tag?: string; q?: string; limit?: number }): { count: number; cards: KbCard[] } {
-  const root = path.join(process.cwd(), FRONTIER_KB_DIR);
+  const root = path.resolve(FRONTIER_KB_DIR);
   const cards: KbCard[] = [];
   let topics: string[] = [];
   try {

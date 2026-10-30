@@ -7,3 +7,11 @@ tool-results
 upload
 download
 *.tsbuildinfo
+**/.env
+**/.env.*
+!**/.env.example
+**/*.db
+**/*.db-journal
+**/*.log
+.pytest_cache
+.mypy_cache

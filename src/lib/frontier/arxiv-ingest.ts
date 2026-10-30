@@ -15,7 +15,6 @@ import path from "path";
 import {
   FRONTIER_TOPICS,
   RELATION_TAG_RULES,
-  ARXIV_API,
   ARXIV_HTTPS_API,
   MAX_RESULTS_PER_TOPIC,
   TOPIC_DELAY_MS,
@@ -71,10 +70,10 @@ export interface IngestReport {
 
 // ==================== 路径工具 ====================
 function dataRoot(): string {
-  return path.join(process.cwd(), FRONTIER_DATA_DIR);
+  return path.resolve(FRONTIER_DATA_DIR);
 }
 function kbRoot(): string {
-  return path.join(process.cwd(), FRONTIER_KB_DIR);
+  return path.resolve(FRONTIER_KB_DIR);
 }
 function dayFilePath(date: string): string {
   return path.join(dataRoot(), `arxiv_${date}.json`);
@@ -93,17 +92,28 @@ function ensureDirs() {
 
 // ==================== 去重索引 ====================
 interface DedupIndex {
-  [baseId: string]: { firstSeen: string; topics: string[] };
+  [versionedId: string]: { firstSeen: string; topics: string[] };
 }
 function loadIndex(): DedupIndex {
+  if (!fs.existsSync(indexPath())) return {};
   try {
-    return JSON.parse(fs.readFileSync(indexPath(), "utf-8")) as DedupIndex;
-  } catch {
-    return {};
+    const parsed = JSON.parse(fs.readFileSync(indexPath(), "utf-8"));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("index root must be an object");
+    }
+    return parsed as DedupIndex;
+  } catch (error) {
+    throw new Error(`arXiv 索引损坏，拒绝按空索引覆盖: ${indexPath()}; ${(error as Error).message}`);
   }
 }
 function saveIndex(idx: DedupIndex) {
-  fs.writeFileSync(indexPath(), JSON.stringify(idx, null, 2), "utf-8");
+  const temporary = `${indexPath()}.tmp-${process.pid}`;
+  try {
+    fs.writeFileSync(temporary, JSON.stringify(idx, null, 2), "utf-8");
+    fs.renameSync(temporary, indexPath());
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+  }
 }
 
 // ==================== Atom 解析（零依赖，容错型） ====================
@@ -157,7 +167,7 @@ export function parseAtom(xml: string, topicSlug: string): Omit<ArxivEntry, "tag
       abstract,
       published,
       updated: updated || published,
-      link: `https://arxiv.org/abs/${baseId}`,
+      link: `https://arxiv.org/abs/${id}`,
       categories,
     });
   }
@@ -185,16 +195,31 @@ function buildQuery(topic: FrontierTopic, maxResults: number): string {
   return `search_query=${q}&start=0&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
 }
 
+export function retryDelayMs(retryAfter: string | null, now = Date.now()): number {
+  const minimum = Math.max(3000, TOPIC_DELAY_MS);
+  if (!retryAfter) return minimum;
+  const seconds = Number(retryAfter);
+  if (Number.isFinite(seconds)) return Math.max(minimum, Math.ceil(seconds * 1000));
+  const date = Date.parse(retryAfter);
+  return Number.isFinite(date) ? Math.max(minimum, date - now) : minimum;
+}
+
 async function fetchTopic(topic: FrontierTopic, maxResults: number, timeoutMs = 30_000): Promise<ReturnType<typeof parseAtom>> {
   const qs = buildQuery(topic, maxResults);
   let lastErr: Error | null = null;
-  for (const base of [ARXIV_HTTPS_API, ARXIV_API]) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let delay = Math.max(3000, TOPIC_DELAY_MS);
     try {
-      const res = await fetch(`${base}?${qs}`, {
+      const res = await fetch(`${ARXIV_HTTPS_API}?${qs}`, {
         headers: { "User-Agent": "BloomBloomGarden-FrontierEngine/1.0" },
         signal: AbortSignal.timeout(timeoutMs),
       });
-      if (!res.ok) throw new Error(`arXiv HTTP ${res.status}`);
+      if (!res.ok) {
+        if (res.status === 429 || res.status === 503) {
+          delay = retryDelayMs(res.headers.get("Retry-After"));
+        }
+        throw new Error(`arXiv HTTP ${res.status}`);
+      }
       const xml = await res.text();
       if (xml.includes("<entry>") || xml.includes("<feed")) {
         return parseAtom(xml, topic.slug);
@@ -203,6 +228,7 @@ async function fetchTopic(topic: FrontierTopic, maxResults: number, timeoutMs = 
     } catch (e) {
       lastErr = e as Error;
     }
+    if (attempt === 0) await sleep(delay);
   }
   throw lastErr || new Error("arXiv fetch failed");
 }
@@ -213,16 +239,31 @@ function sleep(ms: number) {
 
 // ==================== 日文件读写 ====================
 export function loadDayFile(date: string): DayFile {
-  try {
-    return JSON.parse(fs.readFileSync(dayFilePath(date), "utf-8")) as DayFile;
-  } catch {
+  const target = dayFilePath(date);
+  if (!fs.existsSync(target)) {
     return { date, updatedAt: new Date().toISOString(), count: 0, entries: [] };
+  }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(target, "utf-8"));
+    if (!parsed || !Array.isArray(parsed.entries)) {
+      throw new Error("day file entries must be an array");
+    }
+    return parsed as DayFile;
+  } catch (error) {
+    throw new Error(`arXiv 日文件损坏，拒绝按空文件覆盖: ${target}; ${(error as Error).message}`);
   }
 }
 function saveDayFile(df: DayFile) {
   df.updatedAt = new Date().toISOString();
   df.count = df.entries.length;
-  fs.writeFileSync(dayFilePath(df.date), JSON.stringify(df, null, 2), "utf-8");
+  const target = dayFilePath(df.date);
+  const temporary = `${target}.tmp-${process.pid}`;
+  try {
+    fs.writeFileSync(temporary, JSON.stringify(df, null, 2), "utf-8");
+    fs.renameSync(temporary, target);
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+  }
 }
 
 export function listDayDates(): string[] {
@@ -255,7 +296,11 @@ export function listEntries(filter: { topic?: string; date?: string; tag?: strin
 
 // ==================== KB 摘要卡 ====================
 function yamlEscape(s: string): string {
-  return s.replace(/"/g, '\\"');
+  return s
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\r/g, "\\r")
+    .replace(/\n/g, "\\n");
 }
 
 function firstSentence(abstract: string): string {
@@ -263,8 +308,8 @@ function firstSentence(abstract: string): string {
   return (m ? m[1] : abstract.slice(0, 280)).trim();
 }
 
-export function kbCardPath(topic: string, baseId: string): string {
-  return path.join(kbRoot(), topic, `${baseId.replace(/\//g, "_")}.md`);
+export function kbCardPath(topic: string, versionedId: string): string {
+  return path.join(kbRoot(), topic, `${versionedId.replace(/\//g, "_")}.md`);
 }
 
 export function writeKbCard(e: ArxivEntry): string {
@@ -278,6 +323,7 @@ export function writeKbCard(e: ArxivEntry): string {
     `authors: "${yamlEscape(e.authors.join(", "))}"`,
     `link: "${e.link}"`,
     `published: "${e.published}"`,
+    `updated: "${e.updated}"`,
     `topic: "${e.topic}"`,
     `tags: "${yamlEscape(e.tags.join(", "))}"`,
     `categories: "${yamlEscape(e.categories.join(", "))}"`,
@@ -293,7 +339,7 @@ export function writeKbCard(e: ArxivEntry): string {
     `**摘要**：${e.abstract}`,
     "",
   ].join("\n");
-  const p = kbCardPath(e.topic, e.baseId);
+  const p = kbCardPath(e.topic, e.id);
   fs.writeFileSync(p, md, "utf-8");
   return p;
 }
@@ -367,7 +413,7 @@ export async function ingest(opts?: {
 
   const idx = loadIndex();
   const day = loadDayFile(date);
-  const dayIds = new Set(day.entries.map((e) => e.baseId));
+  const dayIds = new Set(day.entries.map((e) => e.id));
 
   const report: IngestReport = {
     ok: true,
@@ -389,7 +435,16 @@ export async function ingest(opts?: {
       tRep.fetched = raw.length;
       report.fetched += raw.length;
       for (const r of raw) {
-        if (idx[r.baseId] || dayIds.has(r.baseId)) continue; // 全局去重（按 arXiv id 去版本号）
+        // Only identical versioned IDs are duplicates; v1 and v2 are distinct records.
+        const existing = idx[r.id];
+        if (existing) {
+          if (!existing.topics.includes(t.slug)) existing.topics.push(t.slug);
+          continue;
+        }
+        if (dayIds.has(r.id)) {
+          idx[r.id] = { firstSeen: date, topics: [t.slug] };
+          continue;
+        }
         const entry: ArxivEntry = {
           ...r,
           topic: t.slug,
@@ -397,8 +452,8 @@ export async function ingest(opts?: {
           ingestedAt: now,
         };
         day.entries.push(entry);
-        dayIds.add(entry.baseId);
-        idx[entry.baseId] = { firstSeen: date, topics: [t.slug] };
+        dayIds.add(entry.id);
+        idx[entry.id] = { firstSeen: date, topics: [t.slug] };
         newEntries.push(entry);
         tRep.new += 1;
         report.newCount += 1;
@@ -406,7 +461,7 @@ export async function ingest(opts?: {
           writeKbCard(entry);
           report.kbCardsWritten += 1;
         } catch (e) {
-          report.errors.push(`KB 落卡失败 ${entry.baseId}: ${(e as Error).message}`);
+          report.errors.push(`KB 落卡失败 ${entry.id}: ${(e as Error).message}`);
         }
       }
     } catch (e) {
@@ -425,6 +480,6 @@ export async function ingest(opts?: {
     report.digest = await generateDigest(date, newEntries);
     saveDigest(report.digest);
   }
-  report.ok = report.errors.length === 0 || report.newCount > 0 || report.fetched > 0;
+  report.ok = report.errors.length === 0;
   return report;
 }

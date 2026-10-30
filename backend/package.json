@@ -5,12 +5,14 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc --noEmitOnError false || true",
+    "build": "tsc",
+    "test:unit": "node --import tsx --test src/KimiClusterOrchestrator.test.ts",
     "start": "sh start.sh || bash start.sh || node dist/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "lint": "eslint src --ext .ts"
+    "lint": "eslint src --ext .ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "express": "^4.19.2",

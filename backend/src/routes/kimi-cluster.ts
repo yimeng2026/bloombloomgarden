@@ -1,135 +1,125 @@
-/**
- * kimi-cluster.ts — KIMI 集群编排路由
- * 暴露 KimiClusterOrchestrator 核心功能
- */
-
 import { Router } from 'express';
 import { kimiCluster } from '../KimiClusterOrchestrator';
+import type { AxisMessage } from '../coordinator/AxisMessage';
 
 const router = Router();
 
-// GET /api/kimi-cluster/status — 集群状态
-router.get('/status', async (req, res) => {
-  try {
-    const reply = await kimiCluster.handleRpc({
-      id: `req-${Date.now()}`,
-      x: { type: 'kimi-cluster', action: 'getStatus' },
-      y: { service: 'kimi-cluster', version: '1.0' },
-      z: { priority: 1 },
-      semantic_payload: { action: 'getStatus' },
-      protocol_adapter: 'REST',
-    } as any);
+function rpc(action: string, data: Record<string, unknown> = {}) {
+  const id = `kimi-${Date.now()}`;
+  const source = {
+    x: { type: 'rest', action, id },
+    y: { service: 'garden', version: '2.0' },
+    z: { priority: 1 },
+  };
+  const target = {
+    x: { type: 'service', action, id: 'kimi-cluster' },
+    y: { service: 'kimi-cluster', version: '2.0' },
+    z: { priority: 1 },
+  };
+  const message: AxisMessage = {
+    id,
+    header: { source, target, traceChain: [] },
+    x: source.x,
+    y: source.y,
+    z: source.z,
+    payload: { action, entity: 'kimi_cluster', data, metadata: {} },
+    semantic_payload: { action, data },
+    protocol_adapter: 'REST',
+    timestamp: new Date().toISOString(),
+    traceId: id,
+  };
+  return kimiCluster.handleRpc(message);
+}
 
-    res.json({
-      success: true,
-      data: reply.semantic_payload,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+router.get('/status', async (_req, res, next) => {
+  try {
+    const reply = await rpc('getStatus');
+    res.json({ success: true, data: reply.payload.data });
+  } catch (error) {
+    next(error);
   }
 });
 
-// GET /api/kimi-cluster/patterns — 活动模式分析
-router.get('/patterns', async (req, res) => {
+router.get('/patterns', async (req, res, next) => {
   try {
-    const agentId = req.query.agentId as string | undefined;
-    const reply = await kimiCluster.handleRpc({
-      id: `req-${Date.now()}`,
-      x: { type: 'kimi-cluster', action: 'getPatterns' },
-      y: { service: 'kimi-cluster', version: '1.0' },
-      z: { priority: 1 },
-      semantic_payload: { action: 'getPatterns', agentId },
-      protocol_adapter: 'REST',
-    } as any);
-
-    res.json({
-      success: true,
-      data: reply.semantic_payload,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const reply = await rpc('getPatterns', { agentId: req.query.agentId });
+    res.json({ success: true, data: reply.payload.data });
+  } catch (error) {
+    next(error);
   }
 });
 
-// POST /api/kimi-cluster/load-balance — 负载均衡决策
-router.post('/load-balance', async (req, res) => {
+router.post('/load-balance', async (req, res, next) => {
   try {
-    const { agentId, taskType, payload } = req.body;
-
-    const reply = await kimiCluster.handleRpc({
-      id: `req-${Date.now()}`,
-      x: { type: 'kimi-cluster', action: 'getDecision' },
-      y: { service: 'kimi-cluster', version: '1.0' },
-      z: { priority: 1 },
-      semantic_payload: {
-        action: 'getDecision',
-        agentId: agentId || 'default',
-        taskType: taskType || 'chat',
-        payload: payload || {},
-      },
-      protocol_adapter: 'REST',
-    } as any);
-
-    res.json({
-      success: true,
-      data: reply.semantic_payload,
-      timestamp: new Date().toISOString(),
+    const reply = await rpc('getDecision', {
+      agentId: req.body.agentId || 'default',
+      taskType: req.body.taskType || 'chat',
     });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.json({ success: true, data: reply.payload.data });
+  } catch (error) {
+    next(error);
   }
 });
 
-// POST /api/kimi-cluster/endpoints — 添加端点
-router.post('/endpoints', async (req, res) => {
+router.post('/execute', async (req, res, next) => {
   try {
-    const { id, baseUrl, apiKey, model, weight, capabilities } = req.body;
-
-    const reply = await kimiCluster.handleRpc({
-      id: `req-${Date.now()}`,
-      x: { type: 'kimi-cluster', action: 'addEndpoint' },
-      y: { service: 'kimi-cluster', version: '1.0' },
-      z: { priority: 1 },
-      semantic_payload: {
-        action: 'addEndpoint',
-        endpoint: { id, baseUrl, apiKey, model, weight: weight || 1, capabilities: capabilities || [] },
-      },
-      protocol_adapter: 'REST',
-    } as any);
-
-    res.json({
-      success: true,
-      data: reply.semantic_payload,
-      timestamp: new Date().toISOString(),
+    const reply = await rpc('execute', {
+      agentId: req.body.agentId || 'default',
+      taskType: req.body.taskType || 'chat',
+      payload: { messages: req.body.messages, message: req.body.message },
     });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.json({ success: true, data: reply.payload.data });
+  } catch (error) {
+    next(error);
   }
 });
 
-// DELETE /api/kimi-cluster/endpoints/:id — 移除端点
-router.delete('/endpoints/:id', async (req, res) => {
+router.post('/stream', async (req, res, next) => {
   try {
-    const { id } = req.params;
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.flushHeaders();
+    await kimiCluster.executeStream(
+      String(req.body.agentId || 'default'),
+      String(req.body.taskType || 'chat'),
+      { messages: req.body.messages, message: req.body.message },
+      chunk => res.write(`data: ${JSON.stringify(chunk)}\n\n`),
+    );
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (error) {
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ error: (error as Error).message })}\n\n`);
+      res.end();
+      return;
+    }
+    next(error);
+  }
+});
 
-    const reply = await kimiCluster.handleRpc({
-      id: `req-${Date.now()}`,
-      x: { type: 'kimi-cluster', action: 'removeEndpoint' },
-      y: { service: 'kimi-cluster', version: '1.0' },
-      z: { priority: 1 },
-      semantic_payload: { action: 'removeEndpoint', endpointId: id },
-      protocol_adapter: 'REST',
-    } as any);
+/** Nodes are loaded from server environment; raw keys in HTTP bodies are rejected. */
+router.post('/endpoints', async (req, res, next) => {
+  try {
+    if (req.body?.reload !== true) {
+      res.status(400).json({
+        success: false,
+        error: 'Configure KIMI_CLUSTER_NODES and referenced environment keys, then send {reload:true}',
+      });
+      return;
+    }
+    const reply = await rpc('reload');
+    res.json({ success: true, data: reply.payload.data });
+  } catch (error) {
+    next(error);
+  }
+});
 
-    res.json({
-      success: true,
-      data: reply.semantic_payload,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+router.delete('/endpoints/:id', async (req, res, next) => {
+  try {
+    const reply = await rpc('removeEndpoint', { endpointId: req.params.id });
+    res.json({ success: true, data: reply.payload.data });
+  } catch (error) {
+    next(error);
   }
 });
 

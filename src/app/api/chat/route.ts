@@ -1,163 +1,128 @@
 import { getAdapter, type AgentConfig, type ChatMessage } from "@/lib/platform-adapter";
 
-// POST /api/chat - 发送消息并获取流式响应（通过平台适配器）
-// 支持两种模式：
-// 模式1: {conversationId, content} — 从数据库获取 agent（本地开发用）
-// 模式2: {content, agent, messages} — 直接传递 agent 配置（Vercel / 生产用）
-// ================================================================
+export const runtime = "nodejs";
 
+type AgentInput = {
+  id?: string;
+  name?: string;
+  systemPrompt?: string;
+  skills?: unknown;
+  channels?: unknown;
+};
+
+function stringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
+  if (typeof value === "string") {
+    const parsed = JSON.parse(value) as unknown;
+    if (Array.isArray(parsed)) return parsed.filter((item): item is string => typeof item === "string");
+  }
+  return [];
+}
+
+function profile(agent: AgentInput): AgentConfig {
+  return {
+    id: agent.id || "direct",
+    name: agent.name || "Kimi Agent",
+    systemPrompt: agent.systemPrompt || "",
+    model: "kimi-for-coding",
+    temperature: 1,
+    apiKey: "",
+    llmProvider: "kimi",
+    agentPlatform: "openclaw",
+    skills: stringArray(agent.skills),
+    channels: stringArray(agent.channels),
+  };
+}
+
+function history(messages: unknown): ChatMessage[] {
+  if (!Array.isArray(messages)) return [];
+  return messages.map((message) => {
+    if (!message || typeof message !== "object") throw new Error("Invalid message");
+    const item = message as { role?: unknown; content?: unknown };
+    if (!["system", "user", "assistant"].includes(String(item.role)) || typeof item.content !== "string") {
+      throw new Error("Invalid message role or content");
+    }
+    return { role: item.role as ChatMessage["role"], content: item.content };
+  });
+}
+
+function kimiStream(agent: AgentConfig, messages: ChatMessage[]): Response {
+  const adapter = getAdapter("openclaw");
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+          type: "start",
+          messageId: `msg-${Date.now()}`,
+          platformId: "kimi",
+          platformName: "Kimi",
+        })}\n\n`));
+        let fullContent = "";
+        for await (const event of adapter.chatStream(agent, messages)) {
+          if (event.type === "token" && event.content) fullContent += event.content;
+          if (event.type === "done") {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done", fullContent })}\n\n`));
+          } else {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          }
+        }
+      } catch (error) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+          type: "error",
+          error: error instanceof Error ? error.message : "Kimi 响应失败",
+        })}\n\n`));
+      } finally {
+        controller.close();
+      }
+    },
+  });
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+
+/** Kimi-only streaming chat. Client-supplied API keys are neither read nor stored. */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const content = typeof body.content === "string" ? body.content.trim() : "";
+    if (!content) return Response.json({ error: "消息内容不能为空" }, { status: 400 });
 
-    // ===================== 模式2：直接传递 Agent 配置 =====================
-    if (body.agent && body.content) {
-      const { content, agent, messages = [] } = body;
-      if (!content?.trim()) {
-        return new Response(JSON.stringify({ error: "消息内容不能为空" }), { status: 400, headers: { "Content-Type": "application/json" } });
-      }
-      if (!agent.apiKey) {
-        return new Response(JSON.stringify({ error: "未配置 API Key" }), { status: 400, headers: { "Content-Type": "application/json" } });
-      }
-
-      const agentConfig: AgentConfig = {
-        id: agent.id || "direct",
-        name: agent.name || "Agent",
-        systemPrompt: agent.systemPrompt || "",
-        model: agent.model || "glm-5.1",
-        temperature: agent.temperature ?? 0.7,
-        apiKey: agent.apiKey,
-        llmProvider: agent.llmProvider || "zhipu",
-        agentPlatform: agent.agentPlatform || "openclaw",
-        skills: Array.isArray(agent.skills) ? agent.skills : (typeof agent.skills === "string" ? JSON.parse(agent.skills || "[]") : []),
-        channels: Array.isArray(agent.channels) ? agent.channels : (typeof agent.channels === "string" ? JSON.parse(agent.channels || "[]") : []),
-      };
-
-      const chatMessages: ChatMessage[] = [
-        ...(agentConfig.systemPrompt ? [{ role: "system" as const, content: agentConfig.systemPrompt }] : []),
-        ...messages.map((m: { role: string; content: string }) => ({ role: m.role as "user" | "assistant" | "system", content: m.content })),
-        { role: "user" as const, content: content.trim() },
+    if (body.agent && typeof body.agent === "object") {
+      const agent = profile(body.agent as AgentInput);
+      const messages: ChatMessage[] = [
+        ...(agent.systemPrompt ? [{ role: "system" as const, content: agent.systemPrompt }] : []),
+        ...history(body.messages),
+        { role: "user", content },
       ];
-
-      const adapter = getAdapter(agentConfig.agentPlatform);
-      const encoder = new TextEncoder();
-
-      const stream = new ReadableStream({
-        async start(controller) {
-          try {
-            const startData = JSON.stringify({
-              type: "start",
-              messageId: `msg-${Date.now()}`,
-              platformId: adapter.platformId,
-              platformName: adapter.platformName,
-              platformLogo: adapter.platformLogo,
-            });
-            controller.enqueue(encoder.encode(`data: ${startData}\n\n`));
-
-            let fullAssistantContent = "";
-            for await (const event of adapter.chatStream(agentConfig, chatMessages)) {
-              const sseData = JSON.stringify(event);
-              controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
-              if (event.type === "token" && event.content) {
-                fullAssistantContent += event.content;
-              }
-              if (event.type === "done") {
-                // 模式2不写入数据库，由前端保存到 localStorage
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done", fullContent: fullAssistantContent })}\n\n`));
-              }
-            }
-          } catch (error: unknown) {
-            console.error("Stream error:", error);
-            const errMsg = error instanceof Error ? error.message : "AI 响应失败";
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", error: errMsg })}\n\n`));
-          } finally {
-            controller.close();
-          }
-        },
-      });
-
-      return new Response(stream, {
-        headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
-      });
+      return kimiStream(agent, messages);
     }
 
-    // ===================== 模式1：通过 conversationId 获取 =====================
-    const { conversationId, content } = body;
-    if (!conversationId || !content?.trim()) {
-      return new Response(JSON.stringify({ error: "参数不完整" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    if (typeof body.conversationId !== "string" || !body.conversationId) {
+      return Response.json({ error: "需要 conversationId 或显式 agent 配置" }, { status: 400 });
     }
-
-    // 尝试从数据库获取（本地开发环境可用，Vercel 上只读会失败）
-    let agent: any = null;
-    let conversation: any = null;
-    try {
-      const { prisma } = await import("@/lib/prisma");
-      conversation = await prisma.conversation.findUnique({
-        where: { id: conversationId },
-        include: { agent: true, messages: { orderBy: { createdAt: "asc" } } },
-      });
-      if (conversation) agent = conversation.agent;
-    } catch {
-      // Vercel 上 Prisma 只读，忽略错误
-    }
-
-    if (!agent) {
-      return new Response(JSON.stringify({ error: "Agent 不存在或数据库不可用，请使用模式2（直接传递 agent 配置）" }), {
-        status: 404, headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (!agent.apiKey) {
-      return new Response(JSON.stringify({ error: "未配置 API Key" }), { status: 400, headers: { "Content-Type": "application/json" } });
-    }
-
+    const { prisma } = await import("@/lib/prisma");
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: body.conversationId },
+      include: { agent: true, messages: { orderBy: { createdAt: "asc" } } },
+    });
+    if (!conversation?.agent) return Response.json({ error: "Agent 或对话不存在" }, { status: 404 });
+    const agent = profile(conversation.agent);
     const messages: ChatMessage[] = [
       ...(agent.systemPrompt ? [{ role: "system" as const, content: agent.systemPrompt }] : []),
-      ...(conversation?.messages?.map((m: any) => ({ role: m.role as "user" | "assistant" | "system", content: m.content })) || []),
-      { role: "user" as const, content: content.trim() },
+      ...history(conversation.messages),
+      { role: "user", content },
     ];
-
-    const adapter = getAdapter(agent.agentPlatform || "openclaw");
-    const agentConfig: AgentConfig = {
-      id: agent.id, name: agent.name, systemPrompt: agent.systemPrompt,
-      model: agent.model || "glm-5.1", temperature: agent.temperature ?? 0.7,
-      apiKey: agent.apiKey, llmProvider: agent.llmProvider || "zhipu",
-      agentPlatform: agent.agentPlatform || "openclaw",
-      skills: JSON.parse(agent.skills || "[]"), channels: JSON.parse(agent.channels || "[]"),
-    };
-
-    const encoder = new TextEncoder();
-    let fullAssistantContent = "";
-
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          const startData = JSON.stringify({
-            type: "start", messageId: `msg-${Date.now()}`,
-            platformId: adapter.platformId, platformName: adapter.platformName, platformLogo: adapter.platformLogo,
-          });
-          controller.enqueue(encoder.encode(`data: ${startData}\n\n`));
-
-          for await (const event of adapter.chatStream(agentConfig, messages)) {
-            const sseData = JSON.stringify(event);
-            controller.enqueue(encoder.encode(`data: ${sseData}\n\n`));
-            if (event.type === "token" && event.content) fullAssistantContent += event.content;
-          }
-        } catch (error: unknown) {
-          console.error("Stream error:", error);
-          const errMsg = error instanceof Error ? error.message : "AI 响应失败";
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", error: errMsg })}\n\n`));
-        } finally {
-          controller.close();
-        }
-      },
-    });
-
-    return new Response(stream, {
-      headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" },
-    });
+    return kimiStream(agent, messages);
   } catch (error) {
-    console.error("Chat API error:", error);
-    return new Response(JSON.stringify({ error: "聊天请求失败" }), { status: 500, headers: { "Content-Type": "application/json" } });
+    return Response.json(
+      { error: error instanceof Error ? error.message : "聊天请求失败" },
+      { status: 500 },
+    );
   }
 }

@@ -1,102 +1,84 @@
-# 🐝 BloomBloomGarden — AI Agent 群智协同平台
+# 千界花园 · Kimi 专用无界面研究工程
 
-> 多 Agent 蜂群协作系统，支持 7 种蜂群模式 + 4 级人工干预 + 10 大 LLM 供应商
+千界花园是一套由 Kimi 驱动的研究与工程控制系统：Next 研究 API + Express 编排后端 + 同一 Kimi 集群执行层。页面、Vite 前端和 Electron 已移除，研究对象、群组、任务、工作流、知识库、验证与审计能力保留。
 
-## ✨ 核心功能
+**完整手册：[Kimi 专用无界面研究使用手册](docs/KIMI_HEADLESS_RESEARCH_GUIDE.md)**
 
-### 🤖 Agent 管理
-- 创建/编辑/删除 AI Agent
-- 支持 10 大 LLM 供应商（智谱、OpenAI、Anthropic、DeepSeek 等）
-- 角色模板一键创建（项目经理、调研助手、量化交易员等）
-- API Key 自动检测供应商
+![Kimi 专用无界面研究架构](docs/images/kimi-headless-architecture.png)
 
-### 👥 群组蜂群协作
-- **7 种蜂群模式**：基础蜂群、信号传递、层级委派、流水线、共识机制、红蓝对抗、导师学徒
-- **4 级人工干预**：观察模式、审批模式、副驾驶模式、否决模式
-- 群组嵌套（子群组）
-- 实时流式聊天
+## 核心边界
 
-### 💬 对话系统
-- 单 Agent 对话
-- 群组蜂群聊天
-- 对话历史持久化
-- 流式输出（SSE）
+- 花园负责研究任务、角色、数据、工作流、证据和审计；
+- Kimi 集群只负责同 Provider 下的节点、并发、负载、熔断、退避和流式执行；
+- `KIMI_API_KEY` 只用于模型调用，`GARDEN_AGENT_TOKEN` 只用于授权调用花园；
+- 文本解析不是 Lean 编译，零 sorry 不是完整证明，LLM 评议不是独立证明；
+- 操作数量、论文数量和生成速度不作为科研真实性指标。
 
-### 🎨 画布视图
-- Agent/群组关系可视化
-- 拖拽布局
-- 连线展示
+## 安装与启动
 
-### 📊 仪表盘
-- Agent/群组统计
-- 平台分布
-- 角色分布
-- 蜂群模式/人工干预级别选择
-
-## 🛠️ 技术栈
-
-| 技术 | 用途 |
-|------|------|
-| Next.js 16 | 全栈框架（App Router） |
-| TypeScript | 类型安全 |
-| Prisma | ORM（SQLite） |
-| Tailwind CSS | 样式 |
-| Bun | 运行时 & 包管理 |
-
-## 🚀 部署
-
-### Railway（推荐）
-```bash
-# railway.toml 和 railpack.json 已配置好
-# 直接连接 GitHub 仓库即可部署
+```powershell
+npx --yes bun install --frozen-lockfile
+npm --prefix backend ci
 ```
 
-### Docker
-```bash
-docker build -t bloombloomgarden .
-docker run -p 3000:3000 bloombloomgarden
+复制 `.env.example` 为 `.env`，填写 `KIMI_API_KEY` 和独立生成的 `GARDEN_AGENT_TOKEN`。需要同步 Lean 文件时另设 `TOE_SYLVA_PATH`。
+
+同时启动两个无界面服务：
+
+```powershell
+npm run dev -- --port 7100
 ```
 
-### 本地开发
-```bash
-bun install
-bun run postinstall    # 生成 Prisma Client
-bun run dev            # 启动开发服务器
+- Next 研究 API：`http://localhost:7100`
+- Express 编排后端：`http://127.0.0.1:3001`
+
+生产启动分别使用 `npm start`（Next standalone）和 `npm --prefix backend run start`。生产环境必须另行配置 `GARDEN_BACKEND_URL`、数据库和 Agent 凭据。
+
+## Kimi 控制入口
+
+`GET /api/kimi-control` 返回由真实源码生成的操作目录；`POST /api/kimi-control` 调用目录中的真实功能。所有非 GET 操作必须显式 `confirm: true`，敏感字段会被脱敏，审计不记录请求正文。
+
+```powershell
+$headers = @{ Authorization = "Bearer $env:GARDEN_AGENT_TOKEN" }
+Invoke-RestMethod -Uri "http://localhost:7100/api/kimi-control" -Headers $headers
 ```
 
-## 📁 项目结构
+`POST /api/kimi-agent` 允许 Kimi 通过 `garden_catalog` 和 `garden_invoke` 两个元工具发现并调用功能。默认 `allowWrites=false`，模型不能自行提升写权限。
 
-```
-├── src/
-│   ├── app/
-│   │   ├── page.tsx              # 主页面（仪表盘+Agent+画布+聊天）
-│   │   ├── api/
-│   │   │   ├── agents/           # Agent CRUD API
-│   │   │   ├── groups/           # 群组 CRUD API
-│   │   │   ├── workflows/        # 工作流 CRUD API
-│   │   │   ├── conversations/    # 对话 CRUD API
-│   │   │   └── chat/             # 聊天 API（SSE 流式）
-│   │   └── layout.tsx
-│   └── lib/
-│       ├── platforms.ts          # 平台注册表（LLM/角色/技能/频道）
-│       └── prisma.ts             # Prisma Client 单例
-├── prisma/
-│   └── schema.prisma             # 数据库 Schema
-├── railpack.json                 # Railpack 构建配置
-├── railway.toml                  # Railway 部署配置
-├── Dockerfile                    # Docker 构建配置
-└── .env.example                  # 环境变量模板
-```
+## Kimi 集群
 
-## 🔑 环境变量
+`KIMI_CLUSTER_NODES` 支持同 Provider 的多密钥、多端点和不同并发上限；每项使用 `apiKeyEnv` 引用环境变量，不在 JSON 中内嵌密钥。相同账户的多个密钥不意味着配额必然增加。
 
-复制 `.env.example` 为 `.env` 并填写：
+- 429 指数退避并允许节点故障切换；
+- 400 不重试，全部熔断时不强行请求；
+- 配置存在不等于健康，主动健康检查才调用真实模型；
+- 正文与 `reasoning_content` 分离；
+- 其他供应商不再作为隐式 fallback。
 
-```bash
-DATABASE_URL=file:./dev.db
-ZHIPU_API_KEY=your-key-here
+详见手册的集群配置与协作纪律。
+
+## 验证
+
+```powershell
+npm test
+npm run lint
+node node_modules/typescript/bin/tsc --noEmit
+npm run build
+npm --prefix backend run test:unit
+npm --prefix backend run build
 ```
 
-## 📄 License
+当前实测：根平台 13 项、后端集群 10 项单元测试通过；Next standalone 和 Express 构建通过；核心 lint 通过。`lint:all` 仍有存量问题，不能据此宣称全库 lint 通过。
 
-MIT
+操作目录由 `node scripts/generate-kimi-operations.mjs` 生成，当前为 436 个操作。该数字只表示已登记路由，不表示全部已端到端验证。
+
+## 安全与数据
+
+- `dev.db`、`.env*` 和审计输出不进入 Git 或 Docker 构建上下文；
+- `db:push` 不再默认接受数据丢失；只有明确选择 `db:push:unsafe` 才允许；
+- 生产数据库迁移必须单独审查，历史 Agent 的其他供应商密钥由专门迁移清理；
+- 高风险写入、发布、部署和模型训练需要独立验收，不由单元测试代替。
+
+## License
+
+MIT，见 [LICENSE](LICENSE)。
