@@ -101,13 +101,14 @@ jobs:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_KEY: ${{ secrets.SSH_KEY }}
-    if: ${{ github.ref == 'refs/heads/main' && env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != '' && env.SSH_HOST != '' && env.SSH_USER != '' && env.SSH_KEY != '' }}
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Deploy via SSH
+        if: ${{ env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != '' && env.SSH_HOST != '' && env.SSH_USER != '' && env.SSH_KEY != '' }}
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ env.SSH_HOST }}

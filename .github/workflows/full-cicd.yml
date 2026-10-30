@@ -107,9 +107,10 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-    if: ${{ github.ref == 'refs/heads/main' && env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != '' && env.RENDER_DEPLOY_HOOK_URL != '' }}
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Trigger Render Deploy
+        if: ${{ env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != '' && env.RENDER_DEPLOY_HOOK_URL != '' }}
         run: >-
           curl --fail-with-body -X POST "${{ env.RENDER_DEPLOY_HOOK_URL }}"
           -H "Content-Type: application/json"
