@@ -71,31 +71,51 @@ function waitAfterFailure(retryAfter: string | null, attempt: number): number {
   return 1000 * 2 ** attempt;
 }
 
+async function fetchCluster(
+  url: string,
+  body: string,
+  agentToken: string,
+  request: KimiChatRequest,
+): Promise<Response> {
+  const maxRetries = request.maxRetries ?? 2;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Garden-Agent-Key": agentToken,
+        },
+        body,
+        signal: AbortSignal.timeout(request.timeoutMs ?? 120_000),
+      });
+    } catch (error) {
+      const retryable = error instanceof TypeError
+        || (error instanceof Error && ["TimeoutError", "AbortError"].includes(error.name));
+      if (!retryable || attempt >= maxRetries) throw error;
+      await new Promise((resolve) => setTimeout(resolve, waitAfterFailure(null, attempt)));
+    }
+  }
+}
+
 async function kimiChatViaCluster(request: KimiChatRequest): Promise<KimiChatResponse> {
   const agentToken = process.env.GARDEN_AGENT_TOKEN?.trim();
   if (!agentToken) throw new Error("GARDEN_AGENT_TOKEN is required for the shared Kimi cluster");
   const base = (process.env.GARDEN_BACKEND_URL || "http://127.0.0.1:3001").replace(/\/+$/, "");
   const start = Date.now();
-  const response = await fetch(`${base}/api/kimi-cluster/execute`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Garden-Agent-Key": agentToken,
+  const body = JSON.stringify({
+    agentId: "garden-research",
+    taskType: "chat",
+    payload: {
+      messages: request.messages,
+      maxTokens: request.maxTokens,
+      reasoningEffort: request.reasoningEffort,
+      tools: request.tools,
+      toolChoice: request.toolChoice,
+      responseFormat: request.responseFormat,
     },
-    body: JSON.stringify({
-      agentId: "garden-research",
-      taskType: "chat",
-      payload: {
-        messages: request.messages,
-        maxTokens: request.maxTokens,
-        reasoningEffort: request.reasoningEffort,
-        tools: request.tools,
-        toolChoice: request.toolChoice,
-        responseFormat: request.responseFormat,
-      },
-    }),
-    signal: AbortSignal.timeout(request.timeoutMs ?? 120_000),
   });
+  const response = await fetchCluster(`${base}/api/kimi-cluster/execute`, body, agentToken, request);
   const envelope = await response.json().catch(() => ({}));
   if (!response.ok || envelope.success === false) {
     throw new Error(`Shared Kimi cluster HTTP ${response.status}: ${JSON.stringify(envelope).slice(0, 300)}`);

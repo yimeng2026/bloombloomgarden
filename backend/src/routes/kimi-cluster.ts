@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { kimiCluster } from '../KimiClusterOrchestrator';
+import { normalizeKimiExecutionPayload } from '../KimiClusterPayload';
 import type { AxisMessage } from '../coordinator/AxisMessage';
 
 const router = Router();
@@ -66,7 +67,7 @@ router.post('/execute', async (req, res, next) => {
     const reply = await rpc('execute', {
       agentId: req.body.agentId || 'default',
       taskType: req.body.taskType || 'chat',
-      payload: { messages: req.body.messages, message: req.body.message },
+      payload: normalizeKimiExecutionPayload(req.body),
     });
     res.json({ success: true, data: reply.payload.data });
   } catch (error) {
@@ -82,7 +83,7 @@ router.post('/stream', async (req, res, next) => {
     await kimiCluster.executeStream(
       String(req.body.agentId || 'default'),
       String(req.body.taskType || 'chat'),
-      { messages: req.body.messages, message: req.body.message },
+      normalizeKimiExecutionPayload(req.body),
       chunk => res.write(`data: ${JSON.stringify(chunk)}\n\n`),
     );
     res.write('data: [DONE]\n\n');

@@ -238,4 +238,45 @@ describe('KimiClusterOrchestrator', () => {
     assert.ok(health.latency >= 0);
     restore();
   });
+
+  it('preserves nested gateway messages and tool definitions', async () => {
+    const { normalizeKimiExecutionPayload } = await import('./KimiClusterPayload');
+    const payload = normalizeKimiExecutionPayload({
+      payload: {
+        messages: [{ role: 'system', content: 'rules' }, { role: 'user', content: 'read stats' }],
+        tools: [{ type: 'function', function: { name: 'garden_catalog' } }],
+        toolChoice: 'auto',
+        maxTokens: 512,
+      },
+    });
+    let requestBody: any;
+    globalThis.fetch = async (_input, init) => {
+      requestBody = JSON.parse(String(init?.body));
+      return Response.json({
+        choices: [{ message: { content: '', tool_calls: [{ id: 'call-1' }] } }],
+      });
+    };
+    await cluster.execute('research', 'chat', payload);
+    assert.equal(requestBody.messages[1].content, 'read stats');
+    assert.equal(requestBody.tools.length, 1);
+    assert.equal(requestBody.tool_choice, 'auto');
+    assert.equal(requestBody.max_tokens, 512);
+    assert.equal(normalizeKimiExecutionPayload({ message: 'legacy' }).message, 'legacy');
+    restore();
+  });
+
+  it('rejects empty gateway payloads before making a request', async () => {
+    const { normalizeKimiExecutionPayload } = await import('./KimiClusterPayload');
+    let calls = 0;
+    globalThis.fetch = async () => {
+      calls += 1;
+      return Response.json({ choices: [{ message: { content: 'unexpected' } }] });
+    };
+    await assert.rejects(
+      cluster.execute('research', 'chat', normalizeKimiExecutionPayload({ payload: {} })),
+      /requires non-empty messages or message/,
+    );
+    assert.equal(calls, 0);
+    restore();
+  });
 });

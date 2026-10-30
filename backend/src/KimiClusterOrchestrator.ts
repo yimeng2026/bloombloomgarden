@@ -362,8 +362,11 @@ export class KimiClusterOrchestrator extends EventEmitter {
 
   private messages(payload: KimiPayload): Array<{ role: string; content: unknown }> {
     if (Array.isArray(payload.messages) && payload.messages.length) return payload.messages;
-    const value = payload.message ?? payload;
-    return [{ role: 'user', content: typeof value === 'string' ? value : JSON.stringify(value) }];
+    if (payload.message !== undefined) {
+      const content = typeof payload.message === 'string' ? payload.message : JSON.stringify(payload.message);
+      if (typeof content === 'string' && content.trim()) return [{ role: 'user', content }];
+    }
+    throw new Error('Kimi request requires non-empty messages or message');
   }
 
   private estimateTokens(payload: unknown): number {
