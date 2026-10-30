@@ -6,6 +6,8 @@ import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { prepareLeanTextRoot, runLeanStage, withLeanManifest } from "./lean-self-check.mjs";
+import { collectLeanSourceLineage, recordLeanValidation } from "./lean-evidence.mjs";
+import { waitForHttpReady } from "./http-readiness.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const withModel = process.argv.includes("--with-model");
@@ -86,16 +88,23 @@ async function freePort() {
 }
 
 async function request(origin, route, body, timeoutMs = 45_000) {
-  const response = await fetch(origin + route, {
-    method: body === undefined ? "GET" : "POST",
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${agentToken}`,
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
+  let response;
+  try {
+    response = await fetch(origin + route, {
+      method: body === undefined ? "GET" : "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${agentToken}`,
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    const cause = error?.cause;
+    const detail = cause?.code || cause?.message || error?.message || String(error);
+    throw new Error(`Request failed for ${origin + route}: ${detail}`, { cause: error });
+  }
   const text = await response.text();
   let payload;
   try {
@@ -191,11 +200,13 @@ async function main() {
     report.checks.stats = { status: stats.status, fields: Object.keys(stats.data?.data || {}) };
 
     const taskBody = {
-      title: "一次性研究自检任务",
-      description: "隔离数据库中的技术自检记录；不是正式研究结论。",
+      title: withLean ? "Lean 核心构建与公理证据审计" : "一次性研究自检任务",
+      description: withLean
+        ? "关联源码提交、文件哈希、清单、构建和声明级公理审计；不是全库或物理语义证明。"
+        : "隔离数据库中的技术自检记录；不是正式研究结论。",
       type: "verify",
       priority: "normal",
-      targetModule: "system/research-self-check",
+      targetModule: withLean ? "lean/selected-cores" : "system/research-self-check",
     };
     const created = await invoke(origin, {
       service: "research",
@@ -210,12 +221,12 @@ async function main() {
       service: "research",
       method: "GET",
       path: "/api/research/tasks",
-      query: { targetModule: "system/research-self-check" },
+      query: { targetModule: taskBody.targetModule },
     });
     if (!tasks.data?.data?.some((item) => item.id === taskId)) {
       throw new Error("Created task was not returned by readback");
     }
-    report.checks.task = { created: true, readback: true };
+    report.checks.task = { created: true, readback: true, taskId };
 
     if (withArxiv) {
       const ingestionResult = await invoke(origin, {
@@ -275,6 +286,18 @@ async function main() {
 
     if (withLean) {
       await runLeanStage({ origin, invoke, withBuild: withLeanBuild, checks: report.checks, env: leanEnv });
+      if (withLeanBuild) {
+        // Long external builds can be followed by a transient ECONNRESET.
+        // Probe read-only first; never retry a write whose outcome is unknown.
+        await waitForHttpReady({ origin });
+        report.checks.lean.source = collectLeanSourceLineage(leanEnv);
+        report.checks.lean.validation = await recordLeanValidation({
+          origin,
+          invoke,
+          taskId,
+          lean: report.checks.lean,
+        });
+      }
     } else {
       report.checks.lean = { status: "skipped", reason: "requires --with-lean or --with-lean-build" };
     }

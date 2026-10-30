@@ -96,6 +96,26 @@ test("operation forwarding redacts secrets, preserves metrics and audits without
   }
 });
 
+test("forwarding failures retain safe connection details", async () => {
+  const auditDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "garden-control-error-"));
+  const previous = process.env.GARDEN_AUDIT_DIR;
+  process.env.GARDEN_AUDIT_DIR = auditDirectory;
+  try {
+    const failure = new TypeError("fetch failed", { cause: { code: "ECONNREFUSED" } });
+    await expect(executeOperation(
+      { service: "research", method: "GET", path: "/api/research/stats" },
+      { researchOrigin: "http://127.0.0.1:1", fetchImpl: async () => { throw failure; } },
+    )).rejects.toThrow("ECONNREFUSED");
+    const audit = fs.readFileSync(path.join(auditDirectory, "audit.jsonl"), "utf-8");
+    expect(audit).toContain("ECONNREFUSED");
+    expect(audit).not.toContain("Authorization");
+  } finally {
+    if (previous === undefined) delete process.env.GARDEN_AUDIT_DIR;
+    else process.env.GARDEN_AUDIT_DIR = previous;
+    fs.rmSync(auditDirectory, { recursive: true, force: true });
+  }
+});
+
 test("redaction is recursive without destroying numeric token usage", () => {
   expect(redactSensitive({ password: "x", usage: { total_tokens: 9 } })).toEqual({
     password: "[REDACTED]",

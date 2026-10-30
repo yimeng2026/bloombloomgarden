@@ -101,6 +101,17 @@ function audit(entry: Record<string, unknown>): void {
   );
 }
 
+function errorDetail(error: unknown): string {
+  const base = error instanceof Error ? error.message : String(error);
+  const cause = error instanceof Error ? error.cause as { code?: unknown; message?: unknown } | undefined : undefined;
+  if (!cause || typeof cause !== "object") return base;
+  const code = typeof cause.code === "string" ? cause.code : "";
+  const message = typeof cause.message === "string" ? cause.message : "";
+  return [base, code, message]
+    .filter((item, index, all) => item && all.indexOf(item) === index)
+    .join("; ");
+}
+
 function backendUrl(): string {
   const raw = process.env.GARDEN_BACKEND_URL || "http://127.0.0.1:3001";
   const parsed = new URL(raw);
@@ -180,14 +191,16 @@ export async function executeOperation(
     audit({ requestId, operationId, status: response.status, durationMs: result.durationMs });
     return result;
   } catch (error) {
+    const detail = errorDetail(error);
     audit({
       requestId,
       operationId,
       path: pathname,
       method: input.method,
       status: error instanceof ControlError ? error.status : 500,
-      error: error instanceof Error ? error.message : String(error),
+      error: detail,
     });
-    throw error;
+    if (error instanceof ControlError) throw error;
+    throw new Error(detail, { cause: error });
   }
 }
