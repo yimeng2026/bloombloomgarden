@@ -2,12 +2,17 @@ import { expect, test } from "bun:test";
 import path from "node:path";
 import { removeTemporaryDirectory } from "../../scripts/temporary-cleanup.mjs";
 
+const evidenceRoot = path.join(path.sep, "evidence");
+const selfCheck = path.join(evidenceRoot, "self-check-a");
+const outside = path.join(path.sep, "other", "self-check-a");
+const otherData = path.join(evidenceRoot, "other-data");
+
 test("temporary cleanup retries a transient Windows lock", async () => {
   let calls = 0;
   let removed = false;
   await removeTemporaryDirectory({
-    directory: "C:\\evidence\\self-check-a",
-    root: "C:\\evidence",
+    directory: selfCheck,
+    root: evidenceRoot,
     attempts: 4,
     delayMs: 0,
     rmImpl: () => {
@@ -27,8 +32,8 @@ test("temporary cleanup retries a transient Windows lock", async () => {
 test("temporary cleanup remains bounded for persistent failures", async () => {
   let calls = 0;
   await expect(removeTemporaryDirectory({
-    directory: "C:\\evidence\\self-check-a",
-    root: "C:\\evidence",
+    directory: selfCheck,
+    root: evidenceRoot,
     attempts: 2,
     delayMs: 0,
     rmImpl: () => {
@@ -42,13 +47,13 @@ test("temporary cleanup remains bounded for persistent failures", async () => {
 test("temporary cleanup refuses paths outside the self-check root", async () => {
   let calls = 0;
   await expect(removeTemporaryDirectory({
-    directory: "C:\\other\\self-check-a",
-    root: "C:\\evidence",
+    directory: outside,
+    root: evidenceRoot,
     rmImpl: () => { calls += 1; },
   })).rejects.toThrow("escapes");
   await expect(removeTemporaryDirectory({
-    directory: "C:\\evidence\\other-data",
-    root: "C:\\evidence",
+    directory: otherData,
+    root: evidenceRoot,
     rmImpl: () => { calls += 1; },
   })).rejects.toThrow("only accepts self-check");
   expect(calls).toBe(0);
