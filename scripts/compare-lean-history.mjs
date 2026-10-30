@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compareLeanEvidenceSnapshots } from "./lean-evidence-history.mjs";
+import { createLeanReview } from "./lean-review.mjs";
 
 const DEFAULT_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -64,6 +65,7 @@ export function compareLeanHistory({
   before,
   after,
   listOnly = false,
+  review = false,
 }) {
   const snapshots = readLeanSnapshots(directory);
   if (listOnly) {
@@ -88,21 +90,24 @@ export function compareLeanHistory({
     ? selectSnapshot(after, snapshots, directory)
     : snapshots[snapshots.length - 1];
   if (!previous || !current) throw new Error("Both before and after snapshots must be specified");
+  const comparison = compareLeanEvidenceSnapshots(previous.snapshot, current.snapshot);
   return {
     status: "ok",
-    mode: "compare",
+    mode: review ? "review" : "compare",
     readOnly: true,
     before: metadata(previous),
     after: metadata(current),
-    comparison: compareLeanEvidenceSnapshots(previous.snapshot, current.snapshot),
+    comparison,
+    ...(review ? { review: createLeanReview(comparison) } : {}),
   };
 }
 
 export function parseHistoryArguments(args) {
-  const result = { listOnly: false, before: undefined, after: undefined };
+  const result = { listOnly: false, before: undefined, after: undefined, review: false };
   for (let index = 0; index < args.length; index++) {
     const argument = args[index];
     if (argument === "--list") result.listOnly = true;
+    else if (argument === "--review") result.review = true;
     else if (argument === "--before" || argument === "--after") {
       if (!args[index + 1]) throw new Error(`${argument} requires a snapshot ID or filename`);
       result[argument === "--before" ? "before" : "after"] = args[++index];
