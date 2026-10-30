@@ -7,7 +7,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { prepareLeanTextRoot, runLeanStage, withLeanManifest } from "./lean-self-check.mjs";
 import { collectLeanSourceLineage, recordLeanValidation } from "./lean-evidence.mjs";
+import { recordLeanEvidenceHistory } from "./lean-evidence-history.mjs";
 import { waitForHttpReady } from "./http-readiness.mjs";
+import { removeTemporaryDirectory } from "./temporary-cleanup.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const withModel = process.argv.includes("--with-model");
@@ -148,7 +150,9 @@ async function stopService() {
 }
 
 async function main() {
+  let previousReport = null;
   try {
+    if (fs.existsSync(reportPath)) previousReport = JSON.parse(fs.readFileSync(reportPath, "utf8"));
     const leanEnv = withLeanManifest(process.env);
     const leanTextRoot = prepareLeanTextRoot(workDir, leanEnv);
     runDatabaseSetup();
@@ -375,12 +379,23 @@ async function main() {
       failure("stop-service", error);
     }
     try {
-      fs.rmSync(workDir, { recursive: true, force: true });
+      await removeTemporaryDirectory({ directory: workDir, root: evidenceDir });
       report.temporaryDatabaseRemoved = !fs.existsSync(workDir);
     } catch (error) {
       failure("remove-temporary-database", error);
     }
     report.finishedAt = new Date().toISOString();
+    if (!report.errors.length && report.serversStopped && report.temporaryDatabaseRemoved && report.checks.lean?.source?.commit) {
+      try {
+        report.evidenceHistory = recordLeanEvidenceHistory({
+          report,
+          previousReport: previousReport?.checks?.lean?.source?.commit ? previousReport : null,
+          directory: path.join(evidenceDir, "lean-history"),
+        });
+      } catch (error) {
+        failure("record-lean-history", error);
+      }
+    }
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + "\n", "utf8");
   }
 
@@ -391,6 +406,7 @@ async function main() {
     withLean,
     withLeanBuild,
     checks: report.checks,
+    evidenceHistory: report.evidenceHistory,
     errors: report.errors,
     serversStopped: report.serversStopped,
     temporaryDatabaseRemoved: report.temporaryDatabaseRemoved,
