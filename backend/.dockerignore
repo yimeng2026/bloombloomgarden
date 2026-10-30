@@ -2,10 +2,10 @@ node_modules
 dist
 .git
 .gitignore
-*.db
-*.db-journal
-.env*
-!.env.example
+**/*.db
+**/*.db-journal
+**/.env*
+!**/.env.example
 *.log
 coverage
 .vscode

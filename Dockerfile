@@ -20,16 +20,15 @@ FROM base AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-RUN mkdir -p /app/public
+RUN mkdir -p /app/public /app/data
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+RUN chown -R bun:bun /app/public /app/data /app/prisma
 
-USER nextjs
+# The official Bun image provides an unprivileged bun user.
+USER bun
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
