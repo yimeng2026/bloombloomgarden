@@ -88,7 +88,7 @@ export async function PUT(
   try {
     const { id, stageId } = await params;
     const body = await request.json();
-    const { content, feedback, score, autoGenerate, topic, targetModule, previousContent } = body;
+    const { content, feedback, score, autoGenerate, topic, targetModule, previousContent, maxTokens, timeoutMs, maxRetries } = body;
 
     const stage = await prisma.pipelineStage.findFirst({
       where: {
@@ -120,6 +120,11 @@ export async function PUT(
             stage: stage.name || "draft",
             previousContent: previousContent || "",
             targetModule: targetModule || "",
+          },
+          {
+            ...(Number.isInteger(maxTokens) && maxTokens >= 256 && maxTokens <= 12288 ? { maxTokens } : {}),
+            ...(Number.isInteger(timeoutMs) && timeoutMs >= 1000 && timeoutMs <= 3600000 ? { timeoutMs } : {}),
+            ...(Number.isInteger(maxRetries) && maxRetries >= 0 && maxRetries <= 10 ? { maxRetries } : {}),
           },
         );
         finalContent = llmRes.content;

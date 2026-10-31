@@ -1,0 +1,84 @@
+{
+  "id": "REPRODUCIBLE-ENGINEERING-20261031",
+  "version": 1,
+  "kind": "protocol",
+  "title": "轻量可复现科研引擎的上游协作协议",
+  "domain": "AI for Science · 科研基础设施",
+  "status": "DESIGN_READY",
+  "statement": "将已知答案、公开快照和限制写成可重放包，可为上游提供验证与接口，但不冒充新科学发现。",
+  "summary": "PySINDy、Z3、RDKit、PyMatGen 在 D 盘完成指定样例；跨库证据链保留原始快照。",
+  "metrics": [
+    {
+      "label": "本地引擎",
+      "value": 4,
+      "note": "PySINDy、Z3、RDKit、PyMatGen"
+    },
+    {
+      "label": "PySINDy 最大系数误差",
+      "value": 0.00003136190275787598,
+      "note": "已知线性系统的数值微分误差"
+    },
+    {
+      "label": "硅密度重算 / g·cm⁻³",
+      "value": 2.3128002565764314,
+      "note": "与 Materials Project 结构快照一致"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "验证层级",
+      "meaning": "已知答案、公开快照、跨库核对与实验验证分层",
+      "unit": "层级",
+      "sourceType": "BOUNDARY",
+      "status": "local_replay_only"
+    }
+  ],
+  "validations": [
+    {
+      "level": "local_replay",
+      "label": "四个指定引擎样例",
+      "status": "PASS",
+      "evidence": "D 盘隔离环境实际运行并保存 JSON"
+    },
+    {
+      "level": "external_experiment",
+      "label": "独立实验验证",
+      "status": "NOT_APPLICABLE",
+      "evidence": "本协议不声称湿实验或外部认证"
+    }
+  ],
+  "counterexamples": [
+    "已知答案恢复不能证明真实数据中的新规律",
+    "DFT 外部带隙不能因结构密度一致而宣称本地重算"
+  ],
+  "limitations": [
+    "结果仅限指定版本和样例",
+    "上游数据和算法口径必须随结果保存"
+  ],
+  "nextAction": "将同一协议扩展到公开真实数据的留出验证，并保留负结果。",
+  "sources": [
+    {
+      "label": "PySINDy",
+      "locator": "validation/pysindy.json"
+    },
+    {
+      "label": "Z3",
+      "locator": "validation/z3.json"
+    },
+    {
+      "label": "RDKit",
+      "locator": "validation/rdkit.json"
+    },
+    {
+      "label": "PyMatGen",
+      "locator": "validation/pymatgen.json"
+    }
+  ],
+  "evidenceHistory": [
+    {
+      "at": "2026-10-31",
+      "action": "verified_snapshot",
+      "detail": "四个本地引擎及统一证据协议已形成"
+    }
+  ]
+}

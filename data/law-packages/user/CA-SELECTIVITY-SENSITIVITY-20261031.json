@@ -1,0 +1,110 @@
+{
+  "id": "CA-SELECTIVITY-SENSITIVITY-20261031",
+  "version": 1,
+  "kind": "empirical",
+  "title": "CA I/II 表观活性比的文档与方法依赖性",
+  "domain": "生物活性数据 · 敏感性分析",
+  "status": "LIMITED_SUPPORT",
+  "statement": "六组文档的 CA I/II 表观 Ki 比值从 20.8333 到 75；方法信息不足时不支持固定选择性常数。",
+  "summary": "仅一组明确双方均为酯酶方法；其余五组方法细节不足，不执行跨文献合并估计。",
+  "metrics": [
+    {
+      "label": "文档配对数",
+      "value": 6,
+      "note": "不同文档不自动等于独立实验"
+    },
+    {
+      "label": "最小表观比值",
+      "value": 20.833333333333332,
+      "note": "CHEMBL1146805，明确同酯酶方法"
+    },
+    {
+      "label": "最大表观比值",
+      "value": 75,
+      "note": "其他方法信息不完整文档"
+    },
+    {
+      "label": "极差倍数",
+      "value": 3.6,
+      "note": "最大值 / 最小值"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "表观 Ki 比",
+      "meaning": "CA I Ki / CA II Ki",
+      "unit": "无量纲",
+      "sourceType": "DERIVED",
+      "status": "not_a_universal_constant"
+    },
+    {
+      "name": "assay 可比性",
+      "meaning": "是否明确相同实验方法",
+      "unit": "文档计数",
+      "sourceType": "BOUNDARY",
+      "status": "1/6 explicit matched"
+    }
+  ],
+  "validations": [
+    {
+      "level": "method_match",
+      "label": "明确同酯酶方法",
+      "status": "LIMITED",
+      "evidence": "六组中仅 CHEMBL1146805 明确匹配"
+    },
+    {
+      "level": "cross_document_stability",
+      "label": "固定比值稳定性",
+      "status": "FAIL",
+      "evidence": "表观比值覆盖 20.8333–75，相差 3.6 倍"
+    },
+    {
+      "level": "independent_replication",
+      "label": "独立实验复现",
+      "status": "NOT_APPLICABLE",
+      "evidence": "本次是 ChEMBL 数据复核，未执行湿实验"
+    }
+  ],
+  "counterexamples": [
+    "20.8333 与 75 的文档配对比值不支持单一固定常数"
+  ],
+  "limitations": [
+    "五组 assay 方法信息不足",
+    "重复标记和相同数值限制独立解释",
+    "没有置信区间或临床外推"
+  ],
+  "nextAction": "获取原始论文实验段落和真正的独立重复，再决定是否进行同方法分层统计。",
+  "sources": [
+    {
+      "label": "ChEMBL CHEMBL1146805",
+      "locator": "47559/47560; explicit_matched"
+    },
+    {
+      "label": "ChEMBL CHEMBL1133556",
+      "locator": "49652/49653; method_incomplete"
+    },
+    {
+      "label": "ChEMBL CHEMBL1146697",
+      "locator": "80687/80688; method_incomplete"
+    },
+    {
+      "label": "ChEMBL CHEMBL1136178",
+      "locator": "106505/106506; method_incomplete"
+    },
+    {
+      "label": "ChEMBL CHEMBL1146695",
+      "locator": "151872/151873; method_incomplete"
+    },
+    {
+      "label": "ChEMBL CHEMBL1134204",
+      "locator": "288595/288596; method_incomplete"
+    }
+  ],
+  "evidenceHistory": [
+    {
+      "at": "2026-10-31",
+      "action": "verified_snapshot",
+      "detail": "六组文档配对完成方法分层和比值敏感性分析"
+    }
+  ]
+}

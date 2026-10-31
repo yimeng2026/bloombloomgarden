@@ -1,0 +1,87 @@
+{
+  "id": "ACETAZOLAMIDE-CHAIN-20261031",
+  "version": 1,
+  "kind": "effective_mapping",
+  "title": "乙酰唑胺—CA II—实验结构的可审计证据链",
+  "domain": "化学信息学 · 结构生物学",
+  "status": "DEMONSTRATED",
+  "statement": "CHEMBL20/PubChem 1986 的化合物身份、CHEMBL205/P00918 的靶点、3HS4 entity 1 的 260 aa 序列与 AZM 配体可逐层复核。",
+  "summary": "跨库映射和本地计算通过；Ki=12 nM 仅属于 CHEMBL657848，potential_duplicate=1 保留。",
+  "metrics": [
+    {
+      "label": "CA II 序列一致长度",
+      "value": 260,
+      "note": "P00918 与 3HS4 entity 1 逐字符一致"
+    },
+    {
+      "label": "单 assay Ki / nM",
+      "value": 12,
+      "note": "pChEMBL 重算 7.920818753952375"
+    },
+    {
+      "label": "3HS4 分辨率 / Å",
+      "value": 1.1,
+      "note": "X 射线实验复合物，AZM entity 4"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "跨库映射",
+      "meaning": "身份、序列、实验结构的分层对应",
+      "unit": "布尔与计数",
+      "sourceType": "DERIVED",
+      "status": "verified"
+    }
+  ],
+  "validations": [
+    {
+      "level": "database_crosscheck",
+      "label": "化合物 InChIKey",
+      "status": "PASS",
+      "evidence": "CHEMBL20 与 PubChem CID 1986 完全一致"
+    },
+    {
+      "level": "sequence_check",
+      "label": "CA II 全长序列",
+      "status": "PASS",
+      "evidence": "P00918 与 3HS4 entity 1 的 260 aa 一致"
+    },
+    {
+      "level": "structure_check",
+      "label": "实验复合物",
+      "status": "PASS",
+      "evidence": "3HS4 的 AZM entity 4，分辨率 1.1 Å"
+    }
+  ],
+  "counterexamples": [],
+  "limitations": [
+    "单一 Ki 不外推为统一效力或临床结论",
+    "potential_duplicate=1 是审计警告而非自动造假证据"
+  ],
+  "nextAction": "将方法可比性纳入跨文档定量分析，不把结构存在当作活性复现。",
+  "sources": [
+    {
+      "label": "ChEMBL",
+      "locator": "CHEMBL20/CHEMBL205/CHEMBL657848"
+    },
+    {
+      "label": "PubChem",
+      "locator": "CID 1986"
+    },
+    {
+      "label": "RCSB PDB",
+      "locator": "3HS4 entity 1 and entity 4"
+    },
+    {
+      "label": "UniProt",
+      "locator": "P00918"
+    }
+  ],
+  "evidenceHistory": [
+    {
+      "at": "2026-10-31",
+      "action": "verified_snapshot",
+      "detail": "化合物、靶点、序列和实验结构快照已核对"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ export interface ResearchLLMRequest {
   /** Compatibility field only; the Kimi gateway currently requires temperature=1. */
   temperature?: number;
   maxTokens?: number;
+  timeoutMs?: number;
   provider?: "kimi";
   reasoningEffort?: "none" | "low" | "medium" | "high";
 }
@@ -28,6 +29,7 @@ export async function researchChat(
   return kimiChat({
     messages,
     maxTokens: req.maxTokens ?? DEFAULT_MAX_TOKENS,
+    timeoutMs: req.timeoutMs,
     reasoningEffort: req.reasoningEffort,
     maxRetries: options?.maxRetries ?? 2,
   });

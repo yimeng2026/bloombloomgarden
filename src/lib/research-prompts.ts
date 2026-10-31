@@ -466,7 +466,7 @@ const COLLABORATION_PROMPTS: Record<string, PromptTemplate> = {
 export async function generateCollaborationResponse(
   collaborationType: string,
   context: PromptContext,
-  options?: { maxTokens?: number; provider?: "kimi" }
+  options?: { maxTokens?: number; timeoutMs?: number; maxRetries?: number; provider?: "kimi" }
 ): Promise<ResearchLLMResponse> {
   const template = COLLABORATION_PROMPTS[collaborationType];
   if (!template) {
@@ -476,7 +476,8 @@ export async function generateCollaborationResponse(
     systemPrompt: template.systemPrompt,
     userPrompt: template.buildUserPrompt(context),
     maxTokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
-  });
+    timeoutMs: options?.timeoutMs,
+  }, { maxRetries: options?.maxRetries });
 }
 
 /** Parallel Kimi collaboration; failures reject rather than becoming fake prose. */
