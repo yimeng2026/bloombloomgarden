@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateCollaborationResponse } from "@/lib/research-prompts";
+import { generateManuscriptInSegments } from "@/lib/manuscript-generation";
 
 export const runtime = "nodejs";
 
@@ -88,7 +88,7 @@ export async function PUT(
   try {
     const { id, stageId } = await params;
     const body = await request.json();
-    const { content, feedback, score, autoGenerate, topic, targetModule, previousContent, maxTokens, timeoutMs, maxRetries } = body;
+    const { content, feedback, score, autoGenerate, topic, targetModule, previousContent, maxTokens, totalOutputBudget, targetOutputTokens, segmentMaxTokens, timeoutMs, maxRetries, resume } = body;
 
     const stage = await prisma.pipelineStage.findFirst({
       where: {
@@ -111,25 +111,24 @@ export async function PUT(
     // ── LLM 自动生成阶段产出 ──
     if (autoGenerate === true) {
       try {
-        const llmRes = await generateCollaborationResponse(
-          "pipeline",
-          {
-            topic: topic || stage.name || "未指定主题",
-            domain: "academic_pipeline",
-            mode: "stage_production",
-            stage: stage.name || "draft",
-            previousContent: previousContent || "",
-            targetModule: targetModule || "",
-          },
-          {
-            ...(Number.isInteger(maxTokens) && maxTokens >= 256 && maxTokens <= 12288 ? { maxTokens } : {}),
-            ...(Number.isInteger(timeoutMs) && timeoutMs >= 1000 && timeoutMs <= 3600000 ? { timeoutMs } : {}),
-            ...(Number.isInteger(maxRetries) && maxRetries >= 0 && maxRetries <= 10 ? { maxRetries } : {}),
-          },
-        );
+        const llmRes = await generateManuscriptInSegments({
+          pipelineId: id,
+          stageId,
+          stageName: stage.name || "draft",
+          topic: topic || stage.name || "未指定主题",
+          targetModule: targetModule || "",
+          previousContent: previousContent || "",
+          maxTokens,
+          totalOutputBudget,
+          targetOutputTokens,
+          segmentMaxTokens,
+          timeoutMs,
+          maxRetries,
+          resume,
+        });
         finalContent = llmRes.content;
         finalScore = extractScore(llmRes.content);
-        console.log(`[Pipeline LLM] stage=${stage.name}, score=${finalScore}, latency=${llmRes.latencyMs}ms`);
+        console.log(`[Pipeline LLM] stage=${stage.name}, score=${finalScore}, latency=${llmRes.latencyMs}ms, segments=${llmRes.segmentCount}, resumed=${llmRes.resumedSegmentCount}`);
       } catch (error) {
         throw new Error(`Kimi 流水线内容生成失败: ${error instanceof Error ? error.message : String(error)}`);
       }

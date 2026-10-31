@@ -1,0 +1,82 @@
+{
+  "id": "CA-STRUCTURAL-CONTROL-20261031",
+  "version": 1,
+  "kind": "effective_mapping",
+  "title": "2H4N 与 3HS4 的不同构建结构对照",
+  "domain": "结构生物学 · 数据质量审计",
+  "status": "DEMONSTRATED",
+  "statement": "2H4N 与 3HS4 均为 X 射线人 CA II—乙酰唑胺实验结构，但存在起始 M 缺失、H94N 替换和中段 P 插入，不能视为同一野生型复合物的独立重复。",
+  "summary": "序列字符串为 260 aa，元数据 rcsb_sample_sequence_length 为 259，长度不一致保留待核；不比较结合几何或 Ki。",
+  "metrics": [
+    {
+      "label": "结构对照",
+      "value": "2H4N vs 3HS4",
+      "note": "分辨率 1.9 Å vs 1.1 Å"
+    },
+    {
+      "label": "序列差异事件",
+      "value": 3,
+      "note": "起始缺失、H94N 替换、中段 P 插入"
+    },
+    {
+      "label": "长度元数据不一致",
+      "value": "260/259",
+      "note": "字符串长度与 rcsb_sample_sequence_length 不一致"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "比较类型",
+      "meaning": "不同构建的结构对照",
+      "unit": "类别",
+      "sourceType": "BOUNDARY",
+      "status": "not_wildtype_replication"
+    }
+  ],
+  "validations": [
+    {
+      "level": "experimental_structure",
+      "label": "配体与实验方法",
+      "status": "PASS",
+      "evidence": "两套条目均为 X-RAY DIFFRACTION 且含 AZM"
+    },
+    {
+      "level": "independent_wildtype_replication",
+      "label": "同一野生型重复",
+      "status": "FAIL",
+      "evidence": "构建和序列不同，另有长度元数据不一致"
+    }
+  ],
+  "counterexamples": [
+    "1CA2 不含 AZM",
+    "3UCJ 来自绿藻",
+    "2XTK 来自真菌几丁质酶"
+  ],
+  "limitations": [
+    "未比较坐标或结合几何",
+    "不把结构对照当作 Ki 或活性重复",
+    "长度元数据不一致需回查原始 mmCIF"
+  ],
+  "nextAction": "保留原始 mmCIF 与序列映射，寻找同构建的独立实验，不把候选条目自动计为重复。",
+  "sources": [
+    {
+      "label": "RCSB PDB 3HS4",
+      "locator": "wild-type CA II with AZM entity 4"
+    },
+    {
+      "label": "RCSB PDB 2H4N",
+      "locator": "H94N CA II with AZM entity 3"
+    },
+    {
+      "label": "UniProt",
+      "locator": "P00918"
+    }
+  ],
+  "evidenceHistory": [
+    {
+      "at": "2026-10-31",
+      "action": "verified_snapshot",
+      "detail": "完成不同构建、序列差异和长度元数据审计"
+    }
+  ]
+}
