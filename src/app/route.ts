@@ -8,6 +8,7 @@ export function GET() {
     provider: "kimi",
     control: "/api/kimi-control",
     agent: "/api/kimi-agent",
+    lawPackages: "/api/research/law-packages",
     guide: "/docs/KIMI_HEADLESS_RESEARCH_GUIDE.md",
     note: "Use Authorization: Bearer <GARDEN_AGENT_TOKEN> for the control and agent APIs.",
   });

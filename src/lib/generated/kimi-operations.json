@@ -2742,6 +2742,22 @@
       "source": "src/app/api/research/competitions/[id]/rounds/stats/route.ts"
     },
     {
+      "id": "research:GET:/api/research/law-packages",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/law-packages",
+      "risk": "read",
+      "source": "src/app/api/research/law-packages/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/law-packages/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/law-packages/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/law-packages/[id]/route.ts"
+    },
+    {
       "id": "research:GET:/api/research/mentorships",
       "service": "research",
       "method": "GET",
@@ -3188,6 +3204,14 @@
       "path": "/api/research/init",
       "risk": "dangerous",
       "source": "src/app/api/research/init/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/law-packages",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/law-packages",
+      "risk": "write",
+      "source": "src/app/api/research/law-packages/route.ts"
     },
     {
       "id": "research:POST:/api/research/mentorships",
