@@ -65,6 +65,7 @@ export interface IntuitionCard extends StructureCard {
   candidateId: string;
   statement: string;
   triggerRationale: string;
+  confidence?: number;
   checks: CheckResult[];
   unknowns: string[];
   counterexamples: string[];
