@@ -58,6 +58,26 @@ node --experimental-transform-types --import ./tests/register-ts.mjs tools/build
 
 生成的静态审计快照：`data/method-lineage/ca-six-2026.json`。独立组件仓库 `garden-widgets` 使用这一快照的导出副本，主应用不内嵌组件代码。
 
+## 精确求援与证据角色（第二阶段）
+
+新增 `GET /api/research/protocol-requests/:id/followups`，由确定性代码生成三类求援项，不由模型补写：
+
+- `source_document`：没有可用于方法指纹的 primary／verified 原始协议时，先请求原始全文或方法页；若存在转引，同时追溯早期文献原始出处。
+- `method_facet`：已有原始协议后，逐字段请求缺失的原文、数值、单位与定位。
+- `resolve_conflict`：同一字段有多个原始值时，并列保留，要求澄清实验条件，不擅自选定事实。
+
+`locators` 同时给出证据 ID、原始链接、level、lineageKind 与 coverage。`targetPrimaryEvidenceIds` 只表示目标文档的 primary 来源角色，**不表示已有原始协议**；primary 摘要和片段仍然不能建立方法指纹。`citation`、`context`、`curation` 分开登记，不把外部方法并入目标文档。
+
+`missingFacetCount` 统计的是 `method_facet` 类型的**求援项数量**，不是全部未知字段数。缺少原始协议时优先生成 `source_document`，不会把每个未知字段都重复泛化成一条求援。
+
+六文档实例生成 6 个 `source_document` 求援项，完整协议和独立湿实验仍为 0，`evidenceUpgrade=false`。三角色复核全部正常结束，来源边界、方法缺口与不得外推的限制已写入记录：
+
+- 确定性求援：`data/protocol-followups/ca-six-2026-v3.json`
+- 完整复核：`data/protocol-followups/ca-six-2026-review-2026-11-06-attempt-4.json`
+- 复现工具：`tools/run-protocol-followups-live.mjs`
+
+初版、截断输出和失败调用均保留为独立尝试，不覆盖历史。真实调用脚本支持并发三角色、失败分账和有限输出预算，临时服务在结束时关闭。
+
 ## 下一阶段
 
 1. 对求援得到的原始协议逐字段登记，保留定位与引文。

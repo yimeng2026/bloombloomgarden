@@ -21,7 +21,7 @@ const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev"
     GARDEN_USE_CLUSTER: "0",
     POOL_RELAY_BASE_URL: "http://relay.test/v1",
     POOL_RELAY_API_KEY: "e2e-not-a-secret",
-    ...Object.fromEntries(Array.from({ length: 8 }, (_, index) => [`POOL_RELAY_API_KEY_${index + 2}`, ""])),
+    ...Object.fromEntries(Array.from({ length: 11 }, (_, index) => [`POOL_RELAY_API_KEY_${index + 2}`, ""])),
     POOL_RELAY_MODEL: "gpt-5.5",
     POOL_RELAY_API_STYLE: "responses",
     POOL_RELAY_REASONING_EFFORT: "low",
@@ -121,6 +121,13 @@ try {
   assert.equal(lineage.data.summary.documentCount, 2);
   assert.equal(lineage.data.summary.comparisonCounts.insufficient, 1);
   assert.equal(lineage.data.summary.independentWetExperimentCount, 0);
+
+  const followups = ok(await call("GET", "/api/research/protocol-requests/e2e-protocol/followups"));
+  assert.equal(followups.data.evidenceUpgrade, false);
+  assert.equal(followups.data.summary.documentCount, 2);
+  assert.equal(followups.data.summary.sourceDocumentRequestCount, 2);
+  assert.equal(followups.data.summary.missingFacetCount, 0);
+  assert.ok(followups.data.followups.every((item) => item.locators.every((locator) => locator.lineageKind && locator.level)));
 
   const dryReview = ok(await call("POST", "/api/research/protocol-requests/e2e-protocol/review", { dryRun: true }));
   assert.equal(dryReview.data.roles.length, 3);

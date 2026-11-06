@@ -1,0 +1,48 @@
+{
+  "requestId": "ca-six-2026",
+  "generatedAt": "2026-11-06T09:28:00.611Z",
+  "deterministicRecord": "data/protocol-followups/ca-six-2026.json",
+  "status": "partial",
+  "evidenceUpgrade": false,
+  "reviews": [
+    {
+      "role": "method-gap-auditor",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 10043,
+        "completion_tokens": 1199,
+        "total_tokens": 11242
+      },
+      "latencyMs": 34012,
+      "content": "# 求援结果与原始证据一致性审查\n\n## 一、与材料不符 / 证据归属错误项\n\n### 1. CHEMBL1146805 求援项的证据归属错误（最严重）\n该求援项的 `evidenceIds` 混入了两条**不属于该文档**的证据：\n\n- **`3bae3a73-...`（Supuran_2016.pdf 讲座幻灯片，level: lead）**：materials 中明确标注为 \"a provenance lead, not an original protocol for the six documents\"，且 note 指出数值 250/12/25 对应**乙酰唑胺**、非目标化合物。将其挂在 CHEMBL1146805 求援项下，等于把出处线索当作该文档的证据。\n- **`2126afab-...`（PMC3313672，2012 DTC 研究，partial_text）**：materials 明确标注 \"external method context only, not an original protocol for the six documents\"。其 stopped-flow 方法、仪器、底物信息**不能**归入 CHEMBL1146805。\n- 求援文案\"当前没有可用于方法指纹的 primary／verified 原始协议\"与事实一致，但证据列表与之矛盾：三条并列会让后续引用把三者当作同一文档的证据累加（provenance-auditor 已指出此风险）。建议对 lead/context 改用非文档级标识。\n\n### 2. CHEMBL1146805 的活性转引归属\n该文档片段自述 \"inhibition data against isozymes I, II, and IX have been published earlier\"。因此：\n- CHEMBL1146805 涉及同工酶 **I/II/IX**，其余五篇涉及 **I/II/IV**（E7070 片段仅称 \"four CA isozymes\"，亚型构成未确认）。若数据库把数值挂在此 key 下，属**二次引用归属**，不是一手出处——求援项未体现这一点，须追溯被引\"早期文献\"的原身份。\n\n## 二、来源边界（材料已自陈、求援项基本遵守，但需防止越界）\n\n1. **EMATE 晶体学片段（CHEMBL1146697）**：只支持\"hCA II–1 共结晶并经 X 射线分析\"，coverage 明确排除\"乙酰唑胺 Ki 协议\"。求援项本身正确，但不得据此补任何动力学/抑制方法字段。\n2. **PubMed 摘要三条**（thiourea / carboxybenzolamide / dtpa）：仅定性表述（\"strong/low nanomolar affinity\"），无数值、单位、条件，不得推出 Ki 或排名。\n3. **E7070 片段**：仅确认 Table 1 存在，\"四种同工酶\"不能推出具体亚型矩阵或完整表。\n4. **兔模型结论（CHEMBL1136178）**：仅摘要所述正常眼压兔结果，不得外推临床有效性。\n5. **求援/已发送回执（ca-six-gmail...）**：仅存\"已发送\"事实，不得表述为作者已读或已同意。\n\n## 三、必须补证的事项\n\n- 六篇原文的 **全文 Methods/Experimental 章节与完整 Table 1**（按九项方法字段逐项登记：底物、酶源、仪器、pH、温度、浓度、孵育、Ki 换算、重复）。\n- CHEMBL1146805 片段所指\"published earlier\"的**早期文献完整书目与全文**。\n- 讲座幻灯片 \"ChemComm Table 1\" 的**原始出处**。\n- E7070 的完整 Table 1 及四种亚型构成。\n- 乙酰唑胺对照数值（250/12/25）的**原始论文、数值含义、亚型、单位与条件**——目前三条出处均不能独立确认。\n\n## 四、未发现问题的部分\n\n- 六个 methodFingerprint 均为 insufficient、字段全空、无补写，与证据状态一致。\n- `evidenceUpgrade: false`、summary 计数（6 求援/0 冲突）与材料相符。\n- 其余五个求援项的 evidenceIds 与各自文档一一对应，无跨文档嫁接。\n\n**结论**：唯一实质错误是 CHEMBL1146805 求援项的证据归属——lead 与外部方法上下文被当作该文档证据；其余求援项与材料一致，但所有结论仍限于摘要/片段层级，补全文前不得有任何字段回填或证据升级。"
+    },
+    {
+      "role": "provenance-reviewer",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "finishReason": "length",
+      "usage": {
+        "prompt_tokens": 17882,
+        "completion_tokens": 1600,
+        "total_tokens": 19482
+      },
+      "latencyMs": 38306,
+      "content": "## 审查结果\n\n### 一、与材料不符的求援项\n\n**无**。所有 6 条 `source_document` 求援项均与登记证据一致：\n\n- 均标注为 `insufficient` 状态\n- 所有方法字段（assayFamily、instrument、substrate 等 10 项）均列为 `unknownFields`\n- `primaryEvidenceIds` 均为空数组\n- 各求援项的 `evidenceIds` 与 `evidence` 数组中的实际 ID 一一对应\n\n---\n\n### 二、来源边界问题\n\n#### 1. **CHEMBL1146805 存在证据身份混淆**\n\n- 同一 `documentKey` 下并列 **3 条不同来源**（ScienceDirect 2004 片段、2016 讲座幻灯片、PMC 2012 他文），但共用一个文档标识\n- 后两条已自述为 `lead` / `context`，但仍挂在文档级 key 下，会造成证据累加误读\n- **建议**：将 `3bae3a73` 和 `2126afab` 改为非文档级标识（如 `lead:` 或 `context:` 前缀），避免计入文档证据计数\n\n#### 2. **转引边界未明确标注**\n\n- `ca13-publisher-snippet` 自述 \"inhibition data...published earlier, and will be not discussed in detail here\"，该文不是一手来源\n- 但 `lineage.kind` 标为 `citation`，`derivedFromEvidenceIds` 为空数组，**未指向被引原文**\n- **建议**：在 `locator` 中增加 \"二次引用/不是原始出处\" 标注，并在求援 `ask` 中明确要求追溯被引文献\n\n#### 3. **外部方法不应挂在目标文档下**\n\n- `2126afab` 是 2012 DTC 研究的完整方法，`coverage` 已声明 \"external method context only, not an original protocol for the six documents\"\n- 但其 `documentKey` 仍为 `CHEMBL1146805`，可能被误读为该文的原始协议\n- **建议**：改为独立的 `context` 级证据，或在 `locator` 前加 `[外部方法]` 前缀\n\n---\n\n### 三、必须补证的事项\n\n#### 1. **全部 6 份文档缺少完整原文或实验章节**\n\n当前仅有：\n- 3 份 PubMed 摘要（`abstract` level）\n- 3 份出版商片段（`partial_text` level，且均自述 \"不是完整全文或协议\"）\n\n**必须操作**：\n- 获取各 DOI 的完整 PDF，确认是否存在 Methods / Experimental / Supporting Information\n- 若存在，按 9 项方法字段逐项提取并登记为 `full_text` 或 `protocol` 级证据\n\n#### 2. **CHEMBL1146805 需追溯被引原文**\n\n- 原文称 CA I/II/IX 数据 \"published earlier\"，但未给出具体出处\n- 幻灯片中的 \"ChemComm Table 1\" 也未追溯到原始论文\n- **必须操作**：\n  - 检索该文作者早期发表的 CA 抑制数据（可能在 J Med Chem / Bioorg Med Chem 系列）\n  - 确认幻灯片引用的 ChemComm 原文（可能是 Chem Commun 或 J Chem Soc, Chem Commun）\n\n#### 3. **乙酰唑胺对照数据缺少原始出处**\n\n- `3bae3a73` 的幻灯片仅显示 \"10 (acetazolamide) 250 12 25\"，无单位、亚型、实验条件\n- `2126afab` 的 2012 文章虽提供完整方法，但**不属于这 6 份文档**\n- **必须操作**：\n  - 确认该数值对应的原始文献（可能是被 6 份文档共同引用的早期标准数据）\n  - 登记为独立的 `reference_standard` 证据，而非挂在某一文档下\n\n#### 4. **晶体学证据不能替代抑制动力学协议**\n\n- `emate-crystallography-snippet` 只涉及 X 射线结构，`coverage` 已排除 \"乙酰唑胺 Ki 协议\"\n- 但 `methodFingerprints` 仍将其列为 `CHEMBL1146697` 的待补证项，可能造成类型错配\n- **建议**：在求援 `ask` 中明确排除晶体学片段，只求 CA inhibition 的动力学测定协议\n\n---\n\n### 四、证据等级声明（已符合要求）\n\n- ✅ 所有证据均标注 `level`（abstract / partial_text / lead），未虚标为 `full_text` 或 `protocol`\n- ✅ `verification: verified` 仅表示链接与引文存在"
+    },
+    {
+      "role": "skeptical-reviewer",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "finishReason": "incomplete:max_output_tokens",
+      "usage": {
+        "prompt_tokens": 10993,
+        "completion_tokens": 1600,
+        "total_tokens": 12593
+      },
+      "latencyMs": 15446,
+      "content": "以下仅指出可验证的问题、来源边界与必须补证事项；不把补证建议写成事实，也不提升证据等级。\n\n## 一、与材料不符或存在边界风险的求援项\n\n### 1. `CHEMBL1146805` 的求援项混入了非目标文献证据，存在来源边界风险\n\n该求援项列入 3 个 evidenceIds：\n\n- `ca13-publisher-snippet`\n- `3bae3a73-0f02-441c-92c5-e13380cd25fb`\n- `2126afab-57ee-4435-b5e4-2990da3ccbf4`\n\n其中只有 `ca13-publisher-snippet` 是目标文献 `CHEMBL1146805` 的 ScienceDirect 片段。其余两条不是该文献的原始全文或实验协议：\n\n- `3bae3a73-0f02-441c-92c5-e13380cd25fb`：2016 讲座幻灯片，coverage 明确为 “Public lecture slide reproducing another study's table; a provenance lead, not an original protocol for the six documents.”\n- `2126afab-57ee-4435-b5e4-2990da3ccbf4`：2012 年 PMC DTC 研究，coverage 明确为 “external method context only, not an original protocol for the six documents.”\n\n因此，若 `CHEMBL1146805` 的求援项把这两条作为该文档的同级来源证据并列展示，容易造成“目标文献已有更多方法线索”的误读。它们只能作为外部线索/上下文，不能作为 `CHEMBL1146805` 的 primary／verified 原始协议证据。\n\n**必须补证：**\n\n- `CHEMBL1146805` 的原始全文、Experimental/Methods、完整 CA inhibition data/Table 或 supplement。\n- 该文中 “published earlier” 所指早期文献的完整书目信息、全文和实验方法。\n- 若继续保留 lecture slide 与 2012 PMC 文献，应明确标为 `lead/context`，不得进入 `CHEMBL1146805` 的原始协议证据集合。\n\n---\n\n### 2. `CHEMBL1146805` 的 `methodStatus` 与确定性结果的 `methodFingerprints.status` 存在表达张力\n\n`sourceRequest.documents` 中：\n\n- `CHEMBL1146805.methodStatus = \"explicit_matched\"`\n- `methodNote = \"ChEMBL／BindingDB 均描述 CA I／II 为 esterase；完整协议未取得。\"`\n\n但确定性结果中对应：\n\n- `methodFingerprints[CHEMBL1146805].status = \"insufficient\"`\n- `primaryEvidenceIds = []`\n- 所有方法字段均为 unknown。\n\n从现有证据看，`explicit_matched` 可能会被误读为实验方法已明确匹配；但材料实际只支持“数据库或片段层面的描述存在，完整原始协议未取得”。确定性结果里的 `insufficient` 与 `primaryEvidenceIds: []` 是更符合材料边界的表达。\n\n**必须补证：**\n\n- 若要维持 `explicit_matched`，需提供可核验的原始协议或明确说明该状态仅指数据库描述匹配，不代表原文方法匹配。\n- 需要补齐原始文献中关于 assay family、instrument、substrate、readout、enzyme source、pH、temperature、incubation、Ki calculation、replicates 的定位证据。\n\n---\n\n### 3. `CHEMBL1146805` 的 ask 文案总体正确，但 evidenceIds 容易造成证据等级混淆\n\nask 写道：\n\n> 当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。\n\n该边界与材料一致。但其下方同时列入外部 lecture slide 与 2012 PMC 方法文献，若展示层没有区分“目标文献证据”和“外部上下文”，会与 ask 中“不能用外部方法替代”的边界形成混淆。\n\n**必须补证/标注：**\n\n- 将 `ca13-publisher-snippet` 标为目标文献 partial text。\n- 将 lecture slide 标为 provenance lead。\n- 将 2012 PMC 标为 external method context。\n- 明确三者均不构成 `CHEMBL1146805` 的原始协议。\n\n---\n\n## 二、其余五个 source_document 求援项与材料基本一致，但均有来源边界需保留\n\n### 4. `CHEMBL1133556`\n\n现有证据：\n\n- `thiourea-pubmed-abstract`\n- level: `abstract`\n- coverage: `仅摘要`\n\n求援项要求提供原始全文或实验方法页，且声明当前没有可用于方法指纹的原始协议。该项与材料一致。\n\n**必须补证：**\n\n- 原始全文或 Experimental/Methods 页。\n- 完整活性表格。\n- CA I/II/IV 的具体测定方法、单位、数值、误差和重复。\n- 不能仅凭摘要中的 “strong affinities” 推出具体 Ki、选择性或实验条件。\n\n---\n\n### 5. `CHEMBL1146697`\n\n现有证据：\n\n- `emate-crystallography-snippet`\n- level: `partial_text`\n- coverage: “摘要、引言与晶体学片段；不是乙酰唑胺 Ki 协议。”\n\n求援项要求原始全文或实验方法页，与材料一致。\n\n**来源边界：**\n\n- 该片段只能支持该文存在 hCA II–EMATE 复合物的 X-ray crystallography 片段。\n- 不能用来补写 CA inhibition assay、乙酰唑胺 Ki、抑制动力学方法或活性表。\n\n**必须补证：**\n\n- 该文完整全文和晶体学方法页。\n- 若要讨论抑制活性或 Ki，需要该文或其引用原文中的完整活性测定协议和表格。\n- 晶体学证据与抑制动力学证据必须分开。\n\n---\n\n### 6. `CHEMBL1136178`\n\n现有证据：\n\n- `carboxybenzolamide-pubmed-abstract`\n- level: `abstract`\n- coverage: `仅摘要`\n\n求援项与材料一致。\n\n**来源边界：**\n\n- 摘要中 “low nanomolar affinity” 和 “effective as topical antiglaucoma agents in normotensive rabbits” 只能作为摘要报道。\n- 不能据此核实具体 Ki、剂量、给药方案、兔模型终点、统计结果或临床有效性。\n\n**必须补证：**\n\n- 原始全文。\n- 完整体外 CA 活性表。\n- 体内兔眼压实验的剂量、给药途径、对照、时间点、终点、统计方法。\n- 实验方法页或 supplement 定位。\n\n---\n\n### 7. `CHEMBL1146695"
+    }
+  ]
+}

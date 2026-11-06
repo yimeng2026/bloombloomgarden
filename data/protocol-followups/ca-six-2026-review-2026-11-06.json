@@ -1,0 +1,27 @@
+{
+  "requestId": "ca-six-2026",
+  "generatedAt": "2026-11-06T09:24:53.856Z",
+  "deterministicRecord": "data/protocol-followups/ca-six-2026.json",
+  "status": "partial",
+  "evidenceUpgrade": false,
+  "reviews": [
+    {
+      "role": "method-gap-auditor",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "error": "GARDEN_AGENT_TOKEN is required for the shared Kimi cluster"
+    },
+    {
+      "role": "provenance-reviewer",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "error": "ProviderPool 为空：请配置 POOL_* 或其他外部 Provider 环境变量"
+    },
+    {
+      "role": "skeptical-reviewer",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "error": "ProviderPool 为空：请配置 POOL_* 或其他外部 Provider 环境变量"
+    }
+  ]
+}

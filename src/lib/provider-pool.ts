@@ -218,7 +218,7 @@ export function loadPoolFromEnv(): PoolProvider[] {
       }
     };
     pushKey(`POOL_${id}_API_KEY`);
-    for (let i = 2; i <= 9; i++) pushKey(`POOL_${id}_API_KEY_${i}`);
+    for (let i = 2; i <= 12; i++) pushKey(`POOL_${id}_API_KEY_${i}`);
     if (keys.length === 0) continue;
     providers.push({
       id: id.toLowerCase(),

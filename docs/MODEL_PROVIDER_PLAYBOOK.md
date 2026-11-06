@@ -11,7 +11,7 @@
 | Kimi 网关 | 代码、形式化、实验方法检查 | `kimi-for-coding` | Chat Completions |
 | RelayRouter | 独立语义复核、反方审查、批量初筛 | 按角色选择下表模型 | 按模型选择 Responses 或 Chat Completions |
 
-RelayRouter 密钥属于同一供应商，不是独立供应商，也不自动带来能力或证据独立性。最初三枚中的两枚失效令牌已重置；后续新增六枚后，九枚不同候选中七枚通过 `GET /v1/models`，另两枚返回 401，已排除且未再次重置。活动七枚均返回 344 个模型条目。接入层最多支持九枚不同密钥并自动去重，但不默认增加研究并发。密钥只在本机被 Git 忽略的 `.env.local` 中，未写入源码或本文。
+RelayRouter 密钥属于同一供应商，不是独立供应商，也不自动带来能力或证据独立性。当前活动十枚：原七枚全部保留，另三枚按空槽接入，全部通过 `GET /v1/models`，当前各返回 328 个模型条目。三枚新密钥还分别通过 ProviderPool 的 Responses 真实调用，其中第一枚同时通过 Chat Completions 调用。接入层最多支持十二枚不同密钥并自动去重，但不默认增加研究并发或预算。密钥只在本机被 Git 忽略的 `.env.local` 中，未写入源码或本文。
 
 ## 2. 本次真实小样本评测
 
@@ -57,7 +57,7 @@ POOL_RELAY_OMIT_TEMPERATURE_MODELS=claude-opus-5-5,claude-sonnet-5-5,claude-haik
 通用变量规则：
 
 - `POOL_<ID>_BASE_URL`：端点，可带或不带 `/v1`。
-- `POOL_<ID>_API_KEY` 与 `_2` 至 `_9`：同一供应商最多九枚不同密钥；重复值自动去重，数量不等于推荐并发数。
+- `POOL_<ID>_API_KEY` 与 `_2` 至 `_12`：同一供应商最多十二枚不同密钥；重复值自动去重，数量不等于推荐并发数。
 - `POOL_<ID>_MODEL`：默认模型。
 - `POOL_<ID>_API_STYLE`：`chat_completions`（默认）或 `responses`。
 - `POOL_<ID>_RESPONSES_MODELS`：同一网关中需要 Responses 的模型列表；设置后按模型覆盖默认协议。

@@ -2910,6 +2910,14 @@
       "source": "src/app/api/research/protocol-requests/[id]/route.ts"
     },
     {
+      "id": "research:GET:/api/research/protocol-requests/[id]/followups",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/protocol-requests/[id]/followups",
+      "risk": "read",
+      "source": "src/app/api/research/protocol-requests/[id]/followups/route.ts"
+    },
+    {
       "id": "research:GET:/api/research/registry",
       "service": "research",
       "method": "GET",
