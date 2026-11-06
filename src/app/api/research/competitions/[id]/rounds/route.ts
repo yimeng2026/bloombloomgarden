@@ -87,7 +87,7 @@ export async function POST(
             competitionId: id,
             roundNumber: nextRoundNumber,
             phase: "certificate",
-            topic: topic?.trim() || "prime_quadruple",
+            topic: topic?.trim() || body.challenge?.type || "prime_quadruple",
             content: JSON.stringify(tournament),
             scores: JSON.stringify(scores),
             consensusLevel: tournament.consensusLevel,

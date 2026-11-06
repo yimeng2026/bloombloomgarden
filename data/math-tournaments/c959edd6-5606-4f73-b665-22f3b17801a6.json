@@ -1,0 +1,215 @@
+{
+  "id": "c959edd6-5606-4f73-b665-22f3b17801a6",
+  "competitionId": "e551e214-c1b7-4bc3-9716-5a5bfca4fbef",
+  "challenge": {
+    "type": "egyptian_fraction",
+    "targetNumerator": 1,
+    "targetDenominator": 3,
+    "terms": 4,
+    "minDenominator": 2,
+    "maxDenominator": 200
+  },
+  "contestants": [
+    {
+      "id": "2e0b5a94-6d99-4cee-8466-4b1fa311a7ba",
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    },
+    {
+      "id": "6f7a630e-5fa4-430a-87ac-e46a6c2fe9e8",
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    },
+    {
+      "id": "23c961a2-030d-48ac-8e99-ebfd53299131",
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    }
+  ],
+  "results": [
+    {
+      "competitorId": "2e0b5a94-6d99-4cee-8466-4b1fa311a7ba",
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "status": "evaluated",
+      "content": "{\"denominators\":[7,42,8,24],\"method\":\"将 1/3 写成两个 1/6 之和，再分别用 1/6=1/7+1/42 与 1/6=1/8+1/24 拆分。\",\"reason\":\"1/7+1/42=1/6，1/8+1/24=1/6，故总和为 1/3；四个分母互不相同且均在 [2,200] 内。\"}",
+      "certificate": {
+        "denominators": [
+          7,
+          42,
+          8,
+          24
+        ],
+        "method": "将 1/3 写成两个 1/6 之和，再分别用 1/6=1/7+1/42 与 1/6=1/8+1/24 拆分。",
+        "reason": "1/7+1/42=1/6，1/8+1/24=1/6，故总和为 1/3；四个分母互不相同且均在 [2,200] 内。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "Exact sum matches the target; denominators are pairwise distinct and in range"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 7
+          },
+          {
+            "value": 42
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 24
+          }
+        ]
+      },
+      "score": 10,
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 217,
+        "completion_tokens": 325,
+        "total_tokens": 542
+      },
+      "latencyMs": 11828
+    },
+    {
+      "competitorId": "6f7a630e-5fa4-430a-87ac-e46a6c2fe9e8",
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "status": "evaluated",
+      "content": "{\"denominators\":[4,14,156,182],\"method\":\"先取 1/3=1/4+1/12；再将 1/12 分解为 1/14+1/84，并用 1/84=1/156+1/182。\",\"reason\":\"四个分母互不相同且均在 [2,200] 内，精确求和为 1/3。\"}",
+      "certificate": {
+        "denominators": [
+          4,
+          14,
+          156,
+          182
+        ],
+        "method": "先取 1/3=1/4+1/12；再将 1/12 分解为 1/14+1/84，并用 1/84=1/156+1/182。",
+        "reason": "四个分母互不相同且均在 [2,200] 内，精确求和为 1/3。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "Exact sum matches the target; denominators are pairwise distinct and in range"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 4
+          },
+          {
+            "value": 14
+          },
+          {
+            "value": 156
+          },
+          {
+            "value": 182
+          }
+        ]
+      },
+      "score": 10,
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 161,
+        "completion_tokens": 678,
+        "total_tokens": 839
+      },
+      "latencyMs": 14955
+    },
+    {
+      "competitorId": "23c961a2-030d-48ac-8e99-ebfd53299131",
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "status": "evaluated",
+      "content": "{\"denominators\":[5,20,13,156],\"method\":\"从等式 1/3=1/4+1/12 出发，使用裂项恒等式 1/n = 1/(n+1) + 1/(n(n+1))。因为 1/4=1/5+1/20（取 n=4），且 1/12=1/13+1/156（取 n=12），所以代入后得到 1/3=1/5+1/20+1/13+1/156，四项分母全部落在 [2,200] 内，并且 5、13、20、156 两两不同。\",\"reason\":\"验证：1/5+1/20=5/20=1/4；1/13+1/156=12/156+1/156=13/156=1/12；因此两项之和为 1/4+1/12=3/12+1/12=4/12=1/3，恰好等于 1/3，项数为 4，分母互异且均在 [2,200] 内。\"}",
+      "certificate": {
+        "denominators": [
+          5,
+          20,
+          13,
+          156
+        ],
+        "method": "从等式 1/3=1/4+1/12 出发，使用裂项恒等式 1/n = 1/(n+1) + 1/(n(n+1))。因为 1/4=1/5+1/20（取 n=4），且 1/12=1/13+1/156（取 n=12），所以代入后得到 1/3=1/5+1/20+1/13+1/156，四项分母全部落在 [2,200] 内，并且 5、13、20、156 两两不同。",
+        "reason": "验证：1/5+1/20=5/20=1/4；1/13+1/156=12/156+1/156=13/156=1/12；因此两项之和为 1/4+1/12=3/12+1/12=4/12=1/3，恰好等于 1/3，项数为 4，分母互异且均在 [2,200] 内。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "Exact sum matches the target; denominators are pairwise distinct and in range"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 5
+          },
+          {
+            "value": 20
+          },
+          {
+            "value": 13
+          },
+          {
+            "value": 156
+          }
+        ]
+      },
+      "score": 10,
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 200,
+        "completion_tokens": 928,
+        "total_tokens": 1128
+      },
+      "latencyMs": 8204
+    }
+  ],
+  "reviews": [
+    {
+      "reviewerId": "kimi-adversary",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "content": "复核结论：三份证书均在挑战范围内有效，未发现范围错配或过度宣称。具体核对如下。\n\n**逐项核对**\n\n1. **[7, 42, 8, 24]**\n - 1/7 + 1/42 = 7/42 = 1/6 ✓\n - 1/8 + 1/24 = 4/24 = 1/6 ✓\n - 1/6 + 1/6 = 1/3 ✓\n - 分母 {7, 8, 24, 42} 互异，均在 [2,200] ✓\n - method 文字与证书一致，无跳步未说明。\n\n2. **[4, 14, 156, 182]**\n - 1/14 + 1/84 = 7/84 = 1/12 ✓\n - 1/156 + 1/182 = 338/28392 = 13/1092 = 1/84 ✓\n - 故 1/14 + 1/156 + 1/182 = 1/12；+ 1/4 = 1/3 ✓\n - 注意：method 中\"将 1/12 分解为 1/14+1/84，并用 1/84=1/156+1/182\"涉及中间项 84 被替换，但最终证书只含 4 项，与 terms=4 相符——中间量未出现在证书中，不构成\"五项\"违规，但这是一个易被误读的点，建议表述更明确（此处 method 本身已交代清楚，不算证书错误）。\n - 分母互异且在范围内 ✓。\n\n3. **[5, 20, 13, 156]**\n - 1/5 + 1/20 = 5/20 = 1/4 ✓\n - 1/13 + 1/156 = 13/156 = 1/12 ✓\n - 1/4 + 1/12 = 1/3 ✓\n - 分母互异且在范围内 ✓。\n\n**范围与验证范围核对**\n\n- 挑战要求：单位分数（分子为 1）、恰好 4 项、分母互异、范围 [2,200]、和为 1/3。验证算法 `exact_bigint_fraction_sum` 恰好覆盖这四项检查，与证书声明的覆盖范围一致，无遗漏检查项。\n- 挑战未要求的额外性质（如最小最大分母、无中间项、最简性）未被任何一方暗示为已证明，无过度宣称。\n\n**提示（非缺陷）**\n\n- 验证记录只包含 `valid:true` 和概括性理由，未附逐步分数化简过程；本次手工复核独立确认其结论正确，故不构成问题，但若审计链要求可重放性，建议保留逐步通分输出。\n\n总评：三份证书均通过；验证范围与挑战规格完全对齐；无遗漏假设、无过度宣称。",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 906,
+        "completion_tokens": 1146,
+        "total_tokens": 2052
+      }
+    },
+    {
+      "reviewerId": "openai-adversary",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "content": "复核结论：三份构造在给定挑战范围内均成立，未发现数学等式或范围上的实际错误；但独立验证报告的覆盖范围有几处需要谨慎表述。\n\n### 1. 三份证书本身\n\n均满足：\n\n- 项数恰为 4；\n- 分母均为整数，且在 \\([2,200]\\) 内；\n- 分母两两不同；\n- 分数和精确等于 \\(1/3\\)。\n\n逐项检查：\n\n- \\([7,42,8,24]\\)：\n  \\[\n  \\frac17+\\frac1{42}=\\frac16,\\qquad\n  \\frac18+\\frac1{24}=\\frac16,\n  \\]\n  总和为 \\(1/3\\)。\n\n- \\([4,14,156,182]\\)：\n  \\[\n  \\frac13=\\frac14+\\frac1{12},\\quad\n  \\frac1{14}+\\frac1{84}=\\frac1{12},\\quad\n  \\frac1{156}+\\frac1{182}=\\frac1{84}.\n  \\]\n  因而总和为 \\(1/3\\)。后一等式也正确，因为\n  \\[\n  \\frac1{156}+\\frac1{182}\n  =\\frac{338}{28392}\n  =\\frac1{84}.\n  \\]\n\n- \\([5,20,13,156]\\)：\n  \\[\n  \\frac15+\\frac1{20}=\\frac14,\\qquad\n  \\frac1{13}+\\frac1{156}=\\frac1{12},\n  \\]\n  总和为 \\(1/3\\)。\n\n### 2. 范围和验证声明的潜在问题\n\n1. **“pairwise distinct”是额外约束，而非挑战字段中明确列出的约束。**  \n   三份结果确实满足互异性，因此不会导致当前结果无效；但验证器若把“分母必须互异”作为通用必需条件，应明确这是额外规则，而不是仅由 `challenge` JSON 中的字段推出的要求。\n\n2. **验证摘要没有逐项展示所有检查。**  \n   `exact_bigint_fraction_sum` 足以支持“精确求和”这一点，但报告中的 `reasons` 还声称检查了：\n   - 项数为 4；\n   - 分母在 \\([2,200]\\)；\n   - 分母两两不同。  \n   当前材料只显示了输入 `values` 和汇总文字，没有给出这些检查的独立计算细节。因此这些属性是有证书数据直接可核验的，但不能仅凭算法名称确认验证器确实执行了全部检查。\n\n3. **目标值的绑定未在摘要中展开。**  \n   `Exact sum matches the target` 表明验证器使用了目标 \\(1/3\\)，但没有展示目标参数如何传入或比较。若要严格审计验证范围，应确认不是只检查“分数和为某个内部目标”或只检查分母列表形式。\n\n4. **没有过度宣称最优性。**  \n   材料只表明存在三个有效构造，没有声称最小分母、唯一性、最佳性或穷尽性；这部分没有范围过度扩张。\n\n总体而言：**构造证书均有效；主要未决点不是数学正确性，而是验证器报告对“项数、界限、互异性以及目标绑定”的实现覆盖没有被材料充分展示。**",
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 862,
+        "completion_tokens": 1123,
+        "total_tokens": 1985
+      }
+    }
+  ],
+  "status": "complete",
+  "modelCallsSucceeded": true,
+  "winners": [
+    "Kimi K3.1 Pro",
+    "OpenAI GPT-5.5",
+    "Claude Opus 5.5"
+  ],
+  "consensusLevel": 0.3333333333333333,
+  "claimScope": "known_answer_certificate_benchmark",
+  "scoringRule": "Verified certificate = 10; otherwise = 0. Errors and truncation remain explicitly incomplete; no random, length-based or voting scores.",
+  "createdAt": "2026-11-06T06:31:36.927Z"
+}

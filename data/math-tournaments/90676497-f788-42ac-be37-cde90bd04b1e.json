@@ -1,0 +1,279 @@
+{
+  "id": "90676497-f788-42ac-be37-cde90bd04b1e",
+  "competitionId": "b38d602c-2fe5-4e95-818e-009467cf22fa",
+  "challenge": {
+    "type": "egyptian_fraction",
+    "targetNumerator": 1,
+    "targetDenominator": 2,
+    "terms": 4,
+    "minDenominator": 2,
+    "maxDenominator": 200,
+    "requireDistinct": true
+  },
+  "contestants": [
+    {
+      "id": "5ab0d637-ba5c-4953-a263-a2184de95899",
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    },
+    {
+      "id": "3c41a061-4fd0-4944-b8b9-e6b061264b9d",
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    },
+    {
+      "id": "8e9af692-18fe-4f58-a57d-b9f79ea7cd90",
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    }
+  ],
+  "results": [
+    {
+      "competitorId": "5ab0d637-ba5c-4953-a263-a2184de95899",
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "status": "evaluated",
+      "content": "{\"denominators\":[4,7,12,42],\"method\":\"先取 1/2=1/4+1/6+1/12，再用 1/6=1/7+1/42 拆分。\",\"reason\":\"分母互不相同且均在 [2,200] 内，通分可得 1/4+1/7+1/12+1/42=1/2。\"}",
+      "certificate": {
+        "denominators": [
+          4,
+          7,
+          12,
+          42
+        ],
+        "method": "先取 1/2=1/4+1/6+1/12，再用 1/6=1/7+1/42 拆分。",
+        "reason": "分母互不相同且均在 [2,200] 内，通分可得 1/4+1/7+1/12+1/42=1/2。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "Exactly 4 unit fractions match 1/2; all declared denominator constraints are satisfied"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 4
+          },
+          {
+            "value": 7
+          },
+          {
+            "value": 12
+          },
+          {
+            "value": 42
+          }
+        ],
+        "checks": [
+          "exact_term_count",
+          "safe_integer_denominators",
+          "closed_denominator_bounds",
+          "pairwise_distinct",
+          "exact_bigint_unit_fraction_sum"
+        ],
+        "evidence": {
+          "target": "1/2",
+          "requiredTerms": 4,
+          "submittedTerms": 4,
+          "denominatorBounds": [
+            2,
+            200
+          ],
+          "requireDistinct": true,
+          "numerator": "7056",
+          "commonDenominator": "14112",
+          "crossMultipliedLeft": "14112",
+          "crossMultipliedRight": "14112"
+        }
+      },
+      "score": 10,
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 224,
+        "completion_tokens": 246,
+        "total_tokens": 470
+      },
+      "latencyMs": 12312
+    },
+    {
+      "competitorId": "3c41a061-4fd0-4944-b8b9-e6b061264b9d",
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "status": "evaluated",
+      "content": "{\"denominators\":[3,8,28,168],\"method\":\"先取 1/3+1/8=11/24，再将余数 1/24 分解为 1/28+1/168。\",\"reason\":\"1/3+1/8+1/28+1/168=11/24+7/168=11/24+1/24=1/2；四个分母互不相同且均在[2,200]内。\"}",
+      "certificate": {
+        "denominators": [
+          3,
+          8,
+          28,
+          168
+        ],
+        "method": "先取 1/3+1/8=11/24，再将余数 1/24 分解为 1/28+1/168。",
+        "reason": "1/3+1/8+1/28+1/168=11/24+7/168=11/24+1/24=1/2；四个分母互不相同且均在[2,200]内。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "Exactly 4 unit fractions match 1/2; all declared denominator constraints are satisfied"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 3
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 28
+          },
+          {
+            "value": 168
+          }
+        ],
+        "checks": [
+          "exact_term_count",
+          "safe_integer_denominators",
+          "closed_denominator_bounds",
+          "pairwise_distinct",
+          "exact_bigint_unit_fraction_sum"
+        ],
+        "evidence": {
+          "target": "1/2",
+          "requiredTerms": 4,
+          "submittedTerms": 4,
+          "denominatorBounds": [
+            2,
+            200
+          ],
+          "requireDistinct": true,
+          "numerator": "56448",
+          "commonDenominator": "112896",
+          "crossMultipliedLeft": "112896",
+          "crossMultipliedRight": "112896"
+        }
+      },
+      "score": 10,
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 168,
+        "completion_tokens": 452,
+        "total_tokens": 620
+      },
+      "latencyMs": 11445
+    },
+    {
+      "competitorId": "8e9af692-18fe-4f58-a57d-b9f79ea7cd90",
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "status": "evaluated",
+      "content": "{\"denominators\":[3,8,36,72],\"method\":\"用部分和逐步递降：1/2−1/3=1/6，1/6−1/8=2/48=1/24，所以 1/2=1/3+1/8+1/24；接着把 1/24 按 1/24=1/36+1/72 拆成两项（因为 2/72+1/72=3/72=1/24），从而得到四项表示。\",\"reason\":\"以 72 为公分母：1/3=24/72，1/8=9/72，1/36=2/72，1/72=1/72，合计 36/72=1/2。分母 3、8、36、72 互不相同，且都位于 [2,200] 内；精确求和与各项约束都可以由整数通分独立复核，此结果仅为候选证书。\"}",
+      "certificate": {
+        "denominators": [
+          3,
+          8,
+          36,
+          72
+        ],
+        "method": "用部分和逐步递降：1/2−1/3=1/6，1/6−1/8=2/48=1/24，所以 1/2=1/3+1/8+1/24；接着把 1/24 按 1/24=1/36+1/72 拆成两项（因为 2/72+1/72=3/72=1/24），从而得到四项表示。",
+        "reason": "以 72 为公分母：1/3=24/72，1/8=9/72，1/36=2/72，1/72=1/72，合计 36/72=1/2。分母 3、8、36、72 互不相同，且都位于 [2,200] 内；精确求和与各项约束都可以由整数通分独立复核，此结果仅为候选证书。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "Exactly 4 unit fractions match 1/2; all declared denominator constraints are satisfied"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 3
+          },
+          {
+            "value": 8
+          },
+          {
+            "value": 36
+          },
+          {
+            "value": 72
+          }
+        ],
+        "checks": [
+          "exact_term_count",
+          "safe_integer_denominators",
+          "closed_denominator_bounds",
+          "pairwise_distinct",
+          "exact_bigint_unit_fraction_sum"
+        ],
+        "evidence": {
+          "target": "1/2",
+          "requiredTerms": 4,
+          "submittedTerms": 4,
+          "denominatorBounds": [
+            2,
+            200
+          ],
+          "requireDistinct": true,
+          "numerator": "31104",
+          "commonDenominator": "62208",
+          "crossMultipliedLeft": "62208",
+          "crossMultipliedRight": "62208"
+        }
+      },
+      "score": 10,
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 209,
+        "completion_tokens": 1310,
+        "total_tokens": 1519
+      },
+      "latencyMs": 11725
+    }
+  ],
+  "reviews": [
+    {
+      "reviewerId": "kimi-adversary",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "content": "# 对抗复核结论\n\n## 范围一致性核查\n\n**验证范围与挑战赛要求的映射：**\n\n| 要求 | 声明的核查项 | 覆盖情况 |\n|---|---|---|\n| 恰好 4 项 | `exact_term_count`（evidence 中 submittedTerms=4） | 已覆盖 |\n| 目标 1/2 | `exact_bigint_unit_fraction_sum`（cross multiplication 双向 14112/112896/62208 相等） | 已覆盖 |\n| 分母 ∈ [2,200] | `closed_denominator_bounds` | 已覆盖 |\n| 互不相同 | `pairwise_distinct` | 已覆盖 |\n| 整数分母 | `safe_integer_denominators` | 已覆盖 |\n\n无范围错配：验证者声明的 checks 集合与 challenge 字段一一对应，没有遗漏 challenge 中任何约束，也没有验证 challenge 未要求的额外约束。\n\n## 独立重算（不信任 certificate 的推导文本）\n\n1. **[4,7,12,42]**：LCM=84 → 21+12+7+2 = 42/84 = 1/2 ✓。子断言\"1/2=1/4+1/6+1/12\"（3+2+1=6/12 ✓）及\"1/6=1/7+1/42\"（7/42=1/6 ✓）均正确。evidence 中 numerator 7056=14112/2 自洽。\n\n2. **[3,8,28,168]**：LCM=168 → 56+21+6+1 = 84/168 = 1/2 ✓。\"11/24\"（8+3）与\"7/168=1/24\"（6+1）均正确。\n\n3. **[3,8,36,72]**：LCM=72 → 24+9+2+1 = 36/72 = 1/2 ✓。\"1/24=1/36+1/72\"（3/72）正确。\n\n三个 certificate 的推导文本均可独立复核为真，无循环论证迹象。\n\n## 未覆盖的假设（残余风险声明）\n\n验证算法 `exact_bigint_fraction_sum` 的正确性本身**未被独立复核**——evidence 仅给出分子/公分母/交叉相乘的数值，我们依赖该算法正确实现了精确分数求和。这是结构性信任假设，不是本次记录中的缺陷，但对抗复核须声明：本审查只验证了\"证据数值与证书自洽\"，未验证\"算法实现无 bug\"。\n\n另注意：\n- 第三份 certificate 自称\"仅为候选证书\"，但状态为 `evaluated` 且 verification.valid=true——措辞上的自我贬低不构成过度宣称，但记录者应注意候选/已验证状态的语义一致性（轻微文档问题，非正确性问题）。\n- 无票数被当作证明使用。\n\n## 结论\n\n未发现范围错配、遗漏约束或过度宣称。三条记录均成立，前提是接受验证算法的实现正确性这一外部假设。不改变任何机器分数，不宣布新定理。",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 1147,
+        "completion_tokens": 1015,
+        "total_tokens": 2162
+      }
+    },
+    {
+      "reviewerId": "openai-adversary",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "content": "复核结论：在给定挑战范围内，三份证书与验证结果没有发现范围错配或数学算术错误；但验证结论的覆盖范围应限定为“所提交的三个候选证书分别满足约束”，不能扩展为唯一性、完备性或构造方法已被证明。\n\n具体检查：\n\n1. **第一份证书**\n   - \\(1/2=1/4+1/6+1/12\\) 正确。\n   - \\(1/6=1/7+1/42\\) 正确。\n   - 因而\n     \\[\n     \\frac14+\\frac17+\\frac1{12}+\\frac1{42}=\\frac12.\n     \\]\n   - 分母 \\(4,7,12,42\\) 两两不同，且均在闭区间 \\([2,200]\\) 内。\n   - 验证证据中 \\(7056/14112=1/2\\)，交叉乘法数值一致。\n\n2. **第二份证书**\n   - \\(1/3+1/8=11/24\\)，余数为 \\(1/24\\)。\n   - \\(1/28+1/168=6/168+1/168=7/168=1/24\\)。\n   - 四个分母 \\(3,8,28,168\\) 两两不同且均在范围内。\n   - \\(56448/112896=1/2\\)，证据一致。\n\n3. **第三份证书**\n   - \\(1/2-1/3=1/6\\)，再减去 \\(1/8\\) 得 \\(1/24\\)。\n   - \\(1/36+1/72=2/72+1/72=1/24\\)。\n   - 通分后 \\(24/72+9/72+2/72+1/72=36/72=1/2\\)。\n   - 分母 \\(3,8,36,72\\) 两两不同且均在范围内。\n   - \\(31104/62208=1/2\\)，证据一致。\n\n范围与未覆盖项：\n\n- 验证明确覆盖了：目标值 \\(1/2\\)、恰好四项、分母闭区间 \\([2,200]\\)、分母两两不同、精确有理数求和。\n- 由于分母均为整数且至少为 2，单位分数的形式和非零性也随之满足。\n- 没有证据表明需要验证分母排序；当前挑战并未要求排序。\n- 验证只证明了**已提交分母列表的有效性**，不证明：\n  - 这些表示是唯一的；\n  - 已穷尽所有可能表示；\n  - 构造方法本身经过独立证明或实际执行；\n  - 验证程序实现没有超出所展示的检查范围。\n- 因此，“候选证书有效”是适当结论；若宣称“所有解”“唯一解”或“已完成穷举”，则属于材料未覆盖的过度宣称。\n\n不涉及投票或机器分数调整。",
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 1110,
+        "completion_tokens": 959,
+        "total_tokens": 2069
+      }
+    }
+  ],
+  "status": "complete",
+  "modelCallsSucceeded": true,
+  "winners": [
+    "Kimi K3.1 Pro",
+    "OpenAI GPT-5.5",
+    "Claude Opus 5.5"
+  ],
+  "consensusLevel": 0.3333333333333333,
+  "claimScope": "known_answer_certificate_benchmark",
+  "scoringRule": "Verified certificate = 10; otherwise = 0. Errors and truncation remain explicitly incomplete; no random, length-based or voting scores.",
+  "createdAt": "2026-11-06T06:42:03.070Z"
+}

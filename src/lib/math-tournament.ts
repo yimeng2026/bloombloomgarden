@@ -9,6 +9,20 @@ export interface PrimeQuadrupleChallenge {
   end: number;
 }
 
+export interface EgyptianFractionChallenge {
+  type: "egyptian_fraction";
+  targetNumerator: number;
+  targetDenominator: number;
+  terms: number;
+  minDenominator: number;
+  maxDenominator: number;
+  // Records written before this field was added retain the original distinct-denominator rule.
+  requireDistinct?: boolean;
+}
+
+export type MathChallenge = PrimeQuadrupleChallenge | EgyptianFractionChallenge;
+export type MathCertificate = Record<string, unknown>;
+
 export interface MathContestant {
   id: string;
   name: string;
@@ -25,8 +39,20 @@ export interface PrimeCertificate {
 export interface CertificateVerification {
   valid: boolean;
   reasons: string[];
-  algorithm?: "trial_division_to_sqrt";
-  values: Array<{ value: number; prime: boolean; smallestFactor?: number; trialDivisionLimit?: number }>;
+  algorithm?: "trial_division_to_sqrt" | "exact_bigint_fraction_sum";
+  values: Array<{ value: number; prime?: boolean; smallestFactor?: number; trialDivisionLimit?: number }>;
+  checks?: string[];
+  evidence?: {
+    target: string;
+    requiredTerms: number;
+    submittedTerms: number;
+    denominatorBounds: [number, number];
+    requireDistinct: boolean;
+    numerator: string;
+    commonDenominator: string;
+    crossMultipliedLeft: string;
+    crossMultipliedRight: string;
+  };
 }
 
 export interface MathTournamentResult {
@@ -36,7 +62,7 @@ export interface MathTournamentResult {
   model: string;
   status: "evaluated" | "incomplete" | "error";
   content: string;
-  certificate?: PrimeCertificate;
+  certificate?: MathCertificate;
   verification: CertificateVerification;
   score: number;
   finishReason?: string;
@@ -48,7 +74,7 @@ export interface MathTournamentResult {
 export interface MathTournamentRecord {
   id: string;
   competitionId?: string;
-  challenge: PrimeQuadrupleChallenge;
+  challenge: MathChallenge;
   contestants: MathContestant[];
   results: MathTournamentResult[];
   reviews: Array<{
@@ -71,11 +97,27 @@ export interface MathTournamentRecord {
 
 export class MathTournamentInputError extends Error {}
 
-function assertChallenge(challenge: PrimeQuadrupleChallenge): void {
-  if (!challenge || challenge.type !== "prime_quadruple") throw new MathTournamentInputError("challenge.type must be prime_quadruple");
-  if (!Number.isSafeInteger(challenge.start) || !Number.isSafeInteger(challenge.end)) throw new MathTournamentInputError("range bounds must be integers");
-  if (challenge.start < 2 || challenge.end < challenge.start || challenge.end > 2_000_000_000) throw new MathTournamentInputError("range must be within 2..2000000000");
-  if (challenge.end - challenge.start + 1 > 2000) throw new MathTournamentInputError("range cannot exceed 2000 integers");
+function assertChallenge(challenge: MathChallenge): void {
+  if (!challenge || typeof challenge !== "object") throw new MathTournamentInputError("challenge must be an object");
+  if (challenge.type === "prime_quadruple") {
+    if (!Number.isSafeInteger(challenge.start) || !Number.isSafeInteger(challenge.end)) throw new MathTournamentInputError("range bounds must be integers");
+    if (challenge.start < 2 || challenge.end < challenge.start || challenge.end > 2_000_000_000) throw new MathTournamentInputError("range must be within 2..2000000000");
+    if (challenge.end - challenge.start + 1 > 2000) throw new MathTournamentInputError("range cannot exceed 2000 integers");
+    return;
+  }
+  if (challenge.type !== "egyptian_fraction") throw new MathTournamentInputError("challenge.type must be prime_quadruple or egyptian_fraction");
+  const integers = [challenge.targetNumerator, challenge.targetDenominator, challenge.terms, challenge.minDenominator, challenge.maxDenominator];
+  if (!integers.every(Number.isSafeInteger)) throw new MathTournamentInputError("target, terms and denominator bounds must be integers");
+  if (challenge.targetNumerator < 1 || challenge.targetNumerator > 1000 || challenge.targetDenominator < 2 || challenge.targetDenominator > 1000) {
+    throw new MathTournamentInputError("target must have numerator 1..1000 and denominator 2..1000");
+  }
+  if (challenge.terms < 2 || challenge.terms > 8) throw new MathTournamentInputError("terms must be within 2..8");
+  if (challenge.minDenominator < 2 || challenge.maxDenominator < challenge.minDenominator || challenge.maxDenominator > 1_000_000) {
+    throw new MathTournamentInputError("denominator bounds must be within 2..1000000");
+  }
+  if (challenge.requireDistinct !== undefined && typeof challenge.requireDistinct !== "boolean") {
+    throw new MathTournamentInputError("requireDistinct must be a boolean when provided");
+  }
 }
 
 function smallestFactor(n: number): number | null {
@@ -91,7 +133,7 @@ export function isPrime(n: number): boolean {
   return Number.isSafeInteger(n) && n >= 2 && smallestFactor(n) === null;
 }
 
-export function verifyPrimeQuadruple(challenge: PrimeQuadrupleChallenge, certificate: { p: unknown }): CertificateVerification {
+export function verifyPrimeQuadruple(challenge: PrimeQuadrupleChallenge, certificate: { p?: unknown }): CertificateVerification {
   assertChallenge(challenge);
   const p = typeof certificate.p === "string" && certificate.p.trim() ? Number(certificate.p) : certificate.p;
   if (typeof p !== "number" || !Number.isSafeInteger(p)) {
@@ -113,7 +155,96 @@ export function verifyPrimeQuadruple(challenge: PrimeQuadrupleChallenge, certifi
   };
 }
 
-function extractJson(text: string): PrimeCertificate {
+export function verifyEgyptianFraction(challenge: EgyptianFractionChallenge, certificate: { denominators: unknown }): CertificateVerification {
+  assertChallenge(challenge);
+  if (!Array.isArray(certificate.denominators) || certificate.denominators.length !== challenge.terms) {
+    return { valid: false, reasons: [`Exactly ${challenge.terms} denominators are required`], algorithm: "exact_bigint_fraction_sum", values: [] };
+  }
+  const denominators = certificate.denominators.map((value) => typeof value === "string" && value.trim() ? Number(value) : value);
+  if (!denominators.every((value) => typeof value === "number" && Number.isSafeInteger(value))) {
+    return { valid: false, reasons: ["Every denominator must be a safe integer"], algorithm: "exact_bigint_fraction_sum", values: [] };
+  }
+  const integers = denominators as number[];
+  const values = integers.map((value) => ({ value }));
+  const requireDistinct = challenge.requireDistinct !== false;
+  const reasons: string[] = [];
+  if (requireDistinct && new Set(integers).size !== integers.length) reasons.push("Denominators must be pairwise distinct");
+  for (const denominator of integers) {
+    if (denominator < challenge.minDenominator || denominator > challenge.maxDenominator) {
+      reasons.push(`${denominator} is outside the declared denominator bounds`);
+    }
+  }
+  let numerator = BigInt(0);
+  let commonDenominator = BigInt(1);
+  for (const denominator of integers) {
+    const value = BigInt(denominator);
+    numerator = numerator * value + commonDenominator;
+    commonDenominator *= value;
+  }
+  const crossMultipliedLeft = numerator * BigInt(challenge.targetDenominator);
+  const crossMultipliedRight = BigInt(challenge.targetNumerator) * commonDenominator;
+  if (crossMultipliedLeft !== crossMultipliedRight) {
+    reasons.push(`Unit-fraction sum does not exactly equal ${challenge.targetNumerator}/${challenge.targetDenominator}`);
+  }
+  return {
+    valid: reasons.length === 0,
+    reasons: reasons.length ? reasons : [`Exactly ${challenge.terms} unit fractions match ${challenge.targetNumerator}/${challenge.targetDenominator}; all declared denominator constraints are satisfied`],
+    algorithm: "exact_bigint_fraction_sum",
+    values,
+    checks: [
+      "exact_term_count",
+      "safe_integer_denominators",
+      "closed_denominator_bounds",
+      ...(requireDistinct ? ["pairwise_distinct"] : []),
+      "exact_bigint_unit_fraction_sum",
+    ],
+    evidence: {
+      target: `${challenge.targetNumerator}/${challenge.targetDenominator}`,
+      requiredTerms: challenge.terms,
+      submittedTerms: integers.length,
+      denominatorBounds: [challenge.minDenominator, challenge.maxDenominator],
+      requireDistinct,
+      numerator: numerator.toString(),
+      commonDenominator: commonDenominator.toString(),
+      crossMultipliedLeft: crossMultipliedLeft.toString(),
+      crossMultipliedRight: crossMultipliedRight.toString(),
+    },
+  };
+}
+
+export function verifyCertificate(challenge: MathChallenge, certificate: MathCertificate): CertificateVerification {
+  if (challenge.type === "prime_quadruple") return verifyPrimeQuadruple(challenge, certificate);
+  return verifyEgyptianFraction(challenge, certificate as { denominators: unknown });
+}
+
+export function createEgyptianFractionSeries(repeat: number): EgyptianFractionChallenge[] {
+  if (!Number.isInteger(repeat) || repeat < 1 || repeat > 4) throw new MathTournamentInputError("repeat must be an integer from 1 to 4");
+  return Array.from({ length: repeat }, (_, index) => ({
+    type: "egyptian_fraction",
+    targetNumerator: 1,
+    targetDenominator: 2 + (index % 2),
+    terms: 4,
+    minDenominator: 2,
+    maxDenominator: 200,
+    requireDistinct: true,
+  }));
+}
+
+function challengePrompt(challenge: MathChallenge): string {
+  if (challenge.type === "prime_quadruple") {
+    return `在闭区间 [${challenge.start}, ${challenge.end}] 内寻找一个整数 p，使 p、p+2、p+6、p+8 都是素数。独立构造一个候选，不要参考其他参赛者。只返回 JSON：{"p":整数,"method":"你的方法","reason":"简短理由"}。不得把自我声称为素数当作验证；花园将独立重算。`;
+  }
+  const distinctRule = challenge.requireDistinct === false ? "分母允许重复" : "各分母互不相同";
+  return `将 ${challenge.targetNumerator}/${challenge.targetDenominator} 表示为 ${challenge.terms} 个单位分数之和。各分母必须是区间 [${challenge.minDenominator}, ${challenge.maxDenominator}] 内的正整数，${distinctRule}。独立构造一个候选，不要参考其他参赛者。只返回 JSON：{"denominators":[整数,...],"method":"你的方法","reason":"简短理由"}。花园将用任意精度整数独立验算精确求和、项数、题目声明的互异性与边界，不把自我声称当作证明。`;
+}
+
+function certificateConsensusKey(challenge: MathChallenge, certificate: MathCertificate): string {
+  if (challenge.type === "prime_quadruple") return `p:${String(certificate.p)}`;
+  const denominators = Array.isArray(certificate.denominators) ? certificate.denominators.map(Number).sort((a, b) => a - b) : [];
+  return `denominators:${denominators.join(",")}`;
+}
+
+function extractJson(text: string, challenge: MathChallenge): MathCertificate {
   const start = text.indexOf("{");
   if (start < 0) throw new Error("No JSON object was returned");
   let depth = 0;
@@ -129,10 +260,15 @@ function extractJson(text: string): PrimeCertificate {
     if (character === "}") {
       depth -= 1;
       if (depth === 0) {
-        const parsed = JSON.parse(text.slice(start, index + 1)) as { p?: unknown };
-        const p = typeof parsed.p === "string" && parsed.p.trim() ? Number(parsed.p) : parsed.p;
-        if (typeof p !== "number" || !Number.isSafeInteger(p)) throw new Error("Certificate p must be an integer");
-        return { ...parsed, p } as PrimeCertificate;
+        const parsed = JSON.parse(text.slice(start, index + 1)) as unknown;
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Certificate must be a JSON object");
+        if (challenge.type === "prime_quadruple") {
+          const candidate = parsed as { p?: unknown };
+          const p = typeof candidate.p === "string" && candidate.p.trim() ? Number(candidate.p) : candidate.p;
+          if (typeof p !== "number" || !Number.isSafeInteger(p)) throw new Error("Certificate p must be an integer");
+          return { ...candidate, p };
+        }
+        return parsed as MathCertificate;
       }
     }
   }
@@ -189,7 +325,7 @@ function normalFinish(reason?: string): boolean {
 
 export async function runMathTournament(input: {
   competitionId?: string;
-  challenge: PrimeQuadrupleChallenge;
+  challenge: MathChallenge;
   contestants: MathContestant[];
   reviewers?: MathContestant[];
 }, options: {
@@ -207,7 +343,7 @@ export async function runMathTournament(input: {
   const concurrency = options.concurrency ?? 3;
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 6) throw new MathTournamentInputError("concurrency must be an integer from 1 to 6");
   const chat = options.chat || ((request: ResearchLLMRequest) => researchChat(request, { maxRetries: 0 }));
-  const prompt = `在闭区间 [${input.challenge.start}, ${input.challenge.end}] 内寻找一个整数 p，使 p、p+2、p+6、p+8 都是素数。独立构造一个候选，不要参考其他参赛者。只返回 JSON：{"p":整数,"method":"你的方法","reason":"简短理由"}。不得把自我声称为素数当作验证；花园将独立重算。`;
+  const prompt = challengePrompt(input.challenge);
   const results = await mapLimit(input.contestants, concurrency, async (contestant): Promise<MathTournamentResult> => {
     const base = { competitorId: contestant.id, name: contestant.name, provider: contestant.provider || "kimi", model: contestant.model || "kimi-for-coding" };
     try {
@@ -224,11 +360,11 @@ export async function runMathTournament(input: {
       if (!normalFinish(response.finishReason)) {
         return { ...base, provider: response.provider, model: response.model, status: "incomplete", content: response.content, verification: { valid: false, reasons: [`unfinished response: ${response.finishReason || "unknown"}`], values: [] }, score: 0, finishReason: response.finishReason, usage: response.usage, latencyMs: response.latencyMs };
       }
-      let certificate: PrimeCertificate | undefined;
+      let certificate: MathCertificate | undefined;
       let verification: CertificateVerification;
       try {
-        certificate = extractJson(response.content);
-        verification = verifyPrimeQuadruple(input.challenge, certificate);
+        certificate = extractJson(response.content, input.challenge);
+        verification = verifyCertificate(input.challenge, certificate);
       } catch (error) {
         verification = { valid: false, reasons: [safeError(error)], values: [] };
       }
@@ -265,9 +401,11 @@ export async function runMathTournament(input: {
   });
 
   const validResults = results.filter((result) => result.status === "evaluated" && result.verification.valid);
-  const pCounts = new Map<number, number>();
+  const certificateCounts = new Map<string, number>();
   for (const result of validResults) {
-    if (result.certificate) pCounts.set(result.certificate.p, (pCounts.get(result.certificate.p) || 0) + 1);
+    if (!result.certificate) continue;
+    const key = certificateConsensusKey(input.challenge, result.certificate);
+    certificateCounts.set(key, (certificateCounts.get(key) || 0) + 1);
   }
   const modelCallsSucceeded = results.every((result) => result.status === "evaluated") && reviews.every((review) => !review.error && normalFinish(review.finishReason));
   const record: MathTournamentRecord = {
@@ -280,7 +418,7 @@ export async function runMathTournament(input: {
     status: modelCallsSucceeded ? "complete" : "partial",
     modelCallsSucceeded,
     winners: validResults.map((result) => result.name),
-    consensusLevel: results.length ? Math.max(0, ...pCounts.values()) / results.length : 0,
+    consensusLevel: results.length ? Math.max(0, ...certificateCounts.values()) / results.length : 0,
     claimScope: "known_answer_certificate_benchmark",
     scoringRule: "Verified certificate = 10; otherwise = 0. Errors and truncation remain explicitly incomplete; no random, length-based or voting scores.",
     createdAt: new Date().toISOString(),

@@ -1,0 +1,278 @@
+{
+  "id": "539b4573-3315-40a6-b60c-f26410443597",
+  "competitionId": "b38d602c-2fe5-4e95-818e-009467cf22fa",
+  "challenge": {
+    "type": "egyptian_fraction",
+    "targetNumerator": 1,
+    "targetDenominator": 3,
+    "terms": 4,
+    "minDenominator": 2,
+    "maxDenominator": 200,
+    "requireDistinct": true
+  },
+  "contestants": [
+    {
+      "id": "5ab0d637-ba5c-4953-a263-a2184de95899",
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    },
+    {
+      "id": "3c41a061-4fd0-4944-b8b9-e6b061264b9d",
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    },
+    {
+      "id": "8e9af692-18fe-4f58-a57d-b9f79ea7cd90",
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    }
+  ],
+  "results": [
+    {
+      "competitorId": "5ab0d637-ba5c-4953-a263-a2184de95899",
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "status": "evaluated",
+      "content": "{\"denominators\":[5,12,30,60],\"method\":\"先取 1/3=1/4+1/12，再用 1/4=1/5+1/30+1/60 拆分。\",\"reason\":\"四项分母互不相同且均在 [2,200] 内；通分可直接验证总和为 1/3。\"}",
+      "certificate": {
+        "denominators": [
+          5,
+          12,
+          30,
+          60
+        ],
+        "method": "先取 1/3=1/4+1/12，再用 1/4=1/5+1/30+1/60 拆分。",
+        "reason": "四项分母互不相同且均在 [2,200] 内；通分可直接验证总和为 1/3。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "Exactly 4 unit fractions match 1/3; all declared denominator constraints are satisfied"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 5
+          },
+          {
+            "value": 12
+          },
+          {
+            "value": 30
+          },
+          {
+            "value": 60
+          }
+        ],
+        "checks": [
+          "exact_term_count",
+          "safe_integer_denominators",
+          "closed_denominator_bounds",
+          "pairwise_distinct",
+          "exact_bigint_unit_fraction_sum"
+        ],
+        "evidence": {
+          "target": "1/3",
+          "requiredTerms": 4,
+          "submittedTerms": 4,
+          "denominatorBounds": [
+            2,
+            200
+          ],
+          "requireDistinct": true,
+          "numerator": "36000",
+          "commonDenominator": "108000",
+          "crossMultipliedLeft": "108000",
+          "crossMultipliedRight": "108000"
+        }
+      },
+      "score": 10,
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 224,
+        "completion_tokens": 314,
+        "total_tokens": 538
+      },
+      "latencyMs": 24512
+    },
+    {
+      "competitorId": "3c41a061-4fd0-4944-b8b9-e6b061264b9d",
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "status": "evaluated",
+      "content": "{\"denominators\":[4,14,147,196],\"method\":\"先取 1/3=1/4+1/14+1/84，再用 1/84=1/147+1/196。\",\"reason\":\"四个分母互不相同且均在[2,200]内；精确地，1/4+1/14+1/147+1/196=1/3。\"}",
+      "certificate": {
+        "denominators": [
+          4,
+          14,
+          147,
+          196
+        ],
+        "method": "先取 1/3=1/4+1/14+1/84，再用 1/84=1/147+1/196。",
+        "reason": "四个分母互不相同且均在[2,200]内；精确地，1/4+1/14+1/147+1/196=1/3。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "Exactly 4 unit fractions match 1/3; all declared denominator constraints are satisfied"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 4
+          },
+          {
+            "value": 14
+          },
+          {
+            "value": 147
+          },
+          {
+            "value": 196
+          }
+        ],
+        "checks": [
+          "exact_term_count",
+          "safe_integer_denominators",
+          "closed_denominator_bounds",
+          "pairwise_distinct",
+          "exact_bigint_unit_fraction_sum"
+        ],
+        "evidence": {
+          "target": "1/3",
+          "requiredTerms": 4,
+          "submittedTerms": 4,
+          "denominatorBounds": [
+            2,
+            200
+          ],
+          "requireDistinct": true,
+          "numerator": "537824",
+          "commonDenominator": "1613472",
+          "crossMultipliedLeft": "1613472",
+          "crossMultipliedRight": "1613472"
+        }
+      },
+      "score": 10,
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 168,
+        "completion_tokens": 760,
+        "total_tokens": 928
+      },
+      "latencyMs": 18509
+    },
+    {
+      "competitorId": "8e9af692-18fe-4f58-a57d-b9f79ea7cd90",
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "status": "evaluated",
+      "content": "```json\n{\n  \"denominators\": [4, 18, 36, 72],\n  \"method\": \"倍数分解法\",\n  \"reason\": \"1/3 = 4/12。取12的因子构造：1/4 + 1/18 + 1/36 + 1/72。验证：通分到分母144，得36/144 + 8/144 + 4/144 + 2/144 = 50/144 = 25/72 ≠ 1/3。重新构造：1/3 = 1/4 + 1/12。继续拆分1/12 = 1/18 + 1/36 + 1/72不成立。改用：1/3 = 1/6 + 1/6，拆1/6 = 1/12 + 1/12，再拆得1/3 = 1/6 + 1/12 + 1/18 + 1/36。验证：通分到分母36，得6/36 + 3/36 + 2/36 + 1/36 = 12/36 = 1/3\"\n}\n```",
+      "certificate": {
+        "denominators": [
+          4,
+          18,
+          36,
+          72
+        ],
+        "method": "倍数分解法",
+        "reason": "1/3 = 4/12。取12的因子构造：1/4 + 1/18 + 1/36 + 1/72。验证：通分到分母144，得36/144 + 8/144 + 4/144 + 2/144 = 50/144 = 25/72 ≠ 1/3。重新构造：1/3 = 1/4 + 1/12。继续拆分1/12 = 1/18 + 1/36 + 1/72不成立。改用：1/3 = 1/6 + 1/6，拆1/6 = 1/12 + 1/12，再拆得1/3 = 1/6 + 1/12 + 1/18 + 1/36。验证：通分到分母36，得6/36 + 3/36 + 2/36 + 1/36 = 12/36 = 1/3"
+      },
+      "verification": {
+        "valid": false,
+        "reasons": [
+          "Unit-fraction sum does not exactly equal 1/3"
+        ],
+        "algorithm": "exact_bigint_fraction_sum",
+        "values": [
+          {
+            "value": 4
+          },
+          {
+            "value": 18
+          },
+          {
+            "value": 36
+          },
+          {
+            "value": 72
+          }
+        ],
+        "checks": [
+          "exact_term_count",
+          "safe_integer_denominators",
+          "closed_denominator_bounds",
+          "pairwise_distinct",
+          "exact_bigint_unit_fraction_sum"
+        ],
+        "evidence": {
+          "target": "1/3",
+          "requiredTerms": 4,
+          "submittedTerms": 4,
+          "denominatorBounds": [
+            2,
+            200
+          ],
+          "requireDistinct": true,
+          "numerator": "64800",
+          "commonDenominator": "186624",
+          "crossMultipliedLeft": "194400",
+          "crossMultipliedRight": "186624"
+        }
+      },
+      "score": 0,
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 248,
+        "completion_tokens": 238,
+        "total_tokens": 486
+      },
+      "latencyMs": 7950
+    }
+  ],
+  "reviews": [
+    {
+      "reviewerId": "kimi-adversary",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "content": "# 对抗复核意见\n\n## 结果一（5ab0d6…）：valid=true —— 结论正确，证据字段与真实运算不符\n\n- 数值本身正确：1/5+1/12+1/30+1/60 = (12+5+2+1)/60 = 20/60 = 1/3。四项互异、均在 [2,200]。valid=true 成立。\n- 但 evidence 内部矛盾：真实最小公分母是 60（和为 20/60），evidence 却声称 commonDenominator=108000、numerator=36000。108000/36000 并非该式子的自然通分结果。结论对、证据错——属于**证据一致性缺陷**，不影响判定但削弱了证书的可审计性。\n\n## 结果二（3c41a0…）：valid=true —— 判定错误，存在过度宣称 ⚠️\n\n逐项核验（第 6 位的独立手算，非采用机器值）：\n\n- 1/4 + 1/14 = 9/28 = 189/588\n- 1/147 + 1/196 = 4/588 + 3/588 = 7/588\n- 合计 196/588 = **1/3**……重新核对：1/147 = 4/588 ✓；1/196 = 3/588 ✓；189+4+3 = 196，196/588 = 1/3 ✓。\n\n再以 evidence 的分母 1613472 核验各分子：1/4→403368，1/14→115248，1/147→10976，1/196→8228，合计 537820，而 1613472/3 = 537824。**差 4**。但通分手算给出 196/588 = 537824/1613472 ✓（196×2744=537824 ✓）。即 189/588 应为 1/4+1/14 = 21/28？——1/4+1/14 = 7/28+2/28 = **9/28 = 189/588**；而 9/28 以 2744 倍扩分 = 9×2744 = 24696/… 此处发现证据分母下 1/4+1/14 = 403368+115248 = 518616，518616/1613472 应等于 9/28：1613472/28 = 57624，×9 = 518616 ✓。总计 518616+19204 = 537820 ≠ 537824。\n\n**矛盾根源**：通分手算 189+7=196 与 evidence 的 537820 不一致，二者必有一错。以另一公分母 4116 重算：1/4=1029，1/14=294，1/147=28，1/196=21，合计 1372/4116 = 1/3（4116/3=1372 ✓）。**结果二实际成立，valid=true 正确**；但 evidence 的 crossMultipliedLeft=1613472 与 numerator=537824 的组合不可能是该和的真实展开（正确值应为 537820 对应的分子，或换用公分母 4116/1372）。**判定正确、证据错误**——属实现层的算术或序列化缺陷，需修复以免在边界案例上产生相反的误判。\n\n## 结果三（8e9af6…）：valid=false —— 判定正确，证书文本自我矛盾\n\n- 机器判定正确：4/18/36/72 之和 = 25/72 ≠ 1/3（evidence 的 crossMultiplied 194400 vs 186624 即 25/72 vs 1/3，方向一致）。\n- 但证书 reason 字段自相矛盾：先给出错误等式并自行指出 ≠1/3，再给出另一组分母 [6,12,18,36] 的\"成立\"验证，**最终提交的 denominators 却是 [4,18,36,72]**。提交值与理由不匹配，属**证书范围错配**——验证器正确地只校验了 denominators 字段，未受 reason 中第二组解影响。\n- 附带：evidence 中 numerator=64800 与 commonDenominator=186624 是两套不同通分（25/72 的分子 vs 1/3 的分母）拼合，字段语义不清，但不影响布尔结论。\n\n## 总结\n\n| 条目 | 布尔判定 | 复核结论 |\n|---|---|---|\n| 一 | valid=true | 判定✓；evidence 通分值错误 |\n| 二 | valid=true | 判定✓（独立手算确认 1/3）；evidence 通分展开与手算矛盾，存在潜在判定风险 |\n| 三 | valid=false | 判定✓；证书 reason 与提交的 denominators 不一致（范围错配） |\n\n**系统性问题（不改动本次机器分数）**：exact_bigint_fraction_sum 的最终布尔值在本批三个案例中均正确，但其 evidence 字段（numerator/commonDenominator/crossMultiplied*）在三例中全部与可复现的手算通分不一致。这表明 evidence 生成路径有独立 bug——当前不影响分数，但在临界案例上无法排除其反向出错的可能，建议将 evidence 序列化纳入与判定逻辑分离的单元测试。投票未被用作任何证明依据。",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 1138,
+        "completion_tokens": 1979,
+        "total_tokens": 3117
+      }
+    },
+    {
+      "reviewerId": "openai-adversary",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "content": "复核结论：前两份证书在所声明的挑战范围内有效；第三份提交无效，但其说明文字中混入了一个未提交的有效构造，存在证书与解释不一致。\n\n### 1. 第一份证书\n\n提交分母为 `[5,12,30,60]`，满足：\n\n- 项数恰为 4；\n- 分母均在 `[2,200]`；\n- 分母两两不同；\n- 精确和为  \n  \\[\n  \\frac15+\\frac1{12}+\\frac1{30}+\\frac1{60}\n  =\\frac{12+5+2+1}{60}\n  =\\frac13.\n  \\]\n\n其拆分说明也一致：\n\n\\[\n\\frac13=\\frac14+\\frac1{12},\\qquad\n\\frac14=\\frac15+\\frac1{30}+\\frac1{60}.\n\\]\n\n未发现范围错配或过度宣称。验证器检查的项目覆盖了该挑战明示的约束。\n\n### 2. 第二份证书\n\n提交分母为 `[4,14,147,196]`，满足项数、范围和互异性要求，并且\n\n\\[\n\\frac1{147}+\\frac1{196}\n=\\frac4{588}+\\frac3{588}\n=\\frac1{84},\n\\]\n\n因此\n\n\\[\n\\frac14+\\frac1{14}+\\frac1{147}+\\frac1{196}\n=\\frac14+\\frac1{14}+\\frac1{84}\n=\\frac13.\n\\]\n\n说明中的拆分关系一致。未发现范围错配或过度宣称。\n\n### 3. 第三份证书\n\n验证器判定提交的 `[4,18,36,72]` 无效是正确的，因为\n\n\\[\n\\frac14+\\frac1{18}+\\frac1{36}+\\frac1{72}\n=\\frac{36+8+4+2}{144}\n=\\frac{50}{144}\n=\\frac{25}{72}\\ne\\frac13.\n\\]\n\n此外，说明文字本身存在两处需要区分：\n\n1. 声称  \n   \\[\n   \\frac1{12}=\\frac1{18}+\\frac1{36}+\\frac1{72}\n   \\]\n   是错误的；右边为 \\(7/72\\)，不是 \\(6/72=1/12\\)。\n\n2. 后面给出的  \n   \\[\n   \\frac13=\\frac16+\\frac1{12}+\\frac1{18}+\\frac1{36}\n   \\]\n   确实成立，且分母也满足挑战约束；但这些不是提交给验证器的分母列表。因此不能用这段未提交的替代构造为当前证书背书。\n\n### 验证范围方面的遗漏\n\n- 验证器检查的是提交的分母列表及其精确和，不检查 `method` 和 `reason` 文字是否与提交列表一致。\n- 因此，第三项暴露出一个范围边界：文字中可以包含另一个有效或无效的构造，但不会改变实际提交证书的判定。\n- `safe_integer_denominators` 是实现层面的附加检查；在本例中与 `[2,200]` 的挑战范围不冲突，但它不等同于对方法说明的验证。\n- 没有证据表明验证器检查了“证明过程”或拆分步骤；它只验证最终分母列表的算术性质。\n\n因此，不能把投票或状态字段当作证明；就给出的独立精确算术证据而言，前两份最终列表有效，第三份最终列表无效。",
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 1098,
+        "completion_tokens": 1328,
+        "total_tokens": 2426
+      }
+    }
+  ],
+  "status": "complete",
+  "modelCallsSucceeded": true,
+  "winners": [
+    "Kimi K3.1 Pro",
+    "OpenAI GPT-5.5"
+  ],
+  "consensusLevel": 0.3333333333333333,
+  "claimScope": "known_answer_certificate_benchmark",
+  "scoringRule": "Verified certificate = 10; otherwise = 0. Errors and truncation remain explicitly incomplete; no random, length-based or voting scores.",
+  "createdAt": "2026-11-06T06:43:24.807Z"
+}

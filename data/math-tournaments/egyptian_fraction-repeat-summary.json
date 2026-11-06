@@ -1,0 +1,461 @@
+{
+  "challengeType": "egyptian_fraction",
+  "repeatCount": 2,
+  "claimScope": "known_answer_certificate_benchmark",
+  "winnerInterpretation": "各轮 winners 仅表示该轮有效证书持有者，不设置全场总冠军。",
+  "rounds": [
+    {
+      "id": "90676497-f788-42ac-be37-cde90bd04b1e",
+      "competitionId": "b38d602c-2fe5-4e95-818e-009467cf22fa",
+      "roundIndex": 1,
+      "challenge": {
+        "type": "egyptian_fraction",
+        "targetNumerator": 1,
+        "targetDenominator": 2,
+        "terms": 4,
+        "minDenominator": 2,
+        "maxDenominator": 200,
+        "requireDistinct": true
+      },
+      "claimScope": "known_answer_certificate_benchmark",
+      "status": "complete",
+      "modelCallsSucceeded": true,
+      "llmEnabled": true,
+      "winners": [
+        "Kimi K3.1 Pro",
+        "OpenAI GPT-5.5",
+        "Claude Opus 5.5"
+      ],
+      "winnerInterpretation": "仅表示本轮有效证书持有者；不能将错误视为数学反证，也不能由单次结果推出稳定模型排名。",
+      "scoringRule": "Verified certificate = 10; otherwise = 0. Errors and truncation remain explicitly incomplete; no random, length-based or voting scores.",
+      "results": [
+        {
+          "name": "Kimi K3.1 Pro",
+          "provider": "relay",
+          "model": "kimi-k3.1-pro",
+          "status": "evaluated",
+          "certificate": {
+            "denominators": [
+              4,
+              7,
+              12,
+              42
+            ],
+            "method": "先取 1/2=1/4+1/6+1/12，再用 1/6=1/7+1/42 拆分。",
+            "reason": "分母互不相同且均在 [2,200] 内，通分可得 1/4+1/7+1/12+1/42=1/2。"
+          },
+          "verification": {
+            "valid": true,
+            "reasons": [
+              "Exactly 4 unit fractions match 1/2; all declared denominator constraints are satisfied"
+            ],
+            "algorithm": "exact_bigint_fraction_sum",
+            "values": [
+              {
+                "value": 4
+              },
+              {
+                "value": 7
+              },
+              {
+                "value": 12
+              },
+              {
+                "value": 42
+              }
+            ],
+            "checks": [
+              "exact_term_count",
+              "safe_integer_denominators",
+              "closed_denominator_bounds",
+              "pairwise_distinct",
+              "exact_bigint_unit_fraction_sum"
+            ],
+            "evidence": {
+              "target": "1/2",
+              "requiredTerms": 4,
+              "submittedTerms": 4,
+              "denominatorBounds": [
+                2,
+                200
+              ],
+              "requireDistinct": true,
+              "numerator": "7056",
+              "commonDenominator": "14112",
+              "crossMultipliedLeft": "14112",
+              "crossMultipliedRight": "14112"
+            }
+          },
+          "score": 10,
+          "finishReason": "completed",
+          "usage": {
+            "prompt_tokens": 224,
+            "completion_tokens": 246,
+            "total_tokens": 470
+          },
+          "latencyMs": 12312
+        },
+        {
+          "name": "OpenAI GPT-5.5",
+          "provider": "relay",
+          "model": "gpt-5.5",
+          "status": "evaluated",
+          "certificate": {
+            "denominators": [
+              3,
+              8,
+              28,
+              168
+            ],
+            "method": "先取 1/3+1/8=11/24，再将余数 1/24 分解为 1/28+1/168。",
+            "reason": "1/3+1/8+1/28+1/168=11/24+7/168=11/24+1/24=1/2；四个分母互不相同且均在[2,200]内。"
+          },
+          "verification": {
+            "valid": true,
+            "reasons": [
+              "Exactly 4 unit fractions match 1/2; all declared denominator constraints are satisfied"
+            ],
+            "algorithm": "exact_bigint_fraction_sum",
+            "values": [
+              {
+                "value": 3
+              },
+              {
+                "value": 8
+              },
+              {
+                "value": 28
+              },
+              {
+                "value": 168
+              }
+            ],
+            "checks": [
+              "exact_term_count",
+              "safe_integer_denominators",
+              "closed_denominator_bounds",
+              "pairwise_distinct",
+              "exact_bigint_unit_fraction_sum"
+            ],
+            "evidence": {
+              "target": "1/2",
+              "requiredTerms": 4,
+              "submittedTerms": 4,
+              "denominatorBounds": [
+                2,
+                200
+              ],
+              "requireDistinct": true,
+              "numerator": "56448",
+              "commonDenominator": "112896",
+              "crossMultipliedLeft": "112896",
+              "crossMultipliedRight": "112896"
+            }
+          },
+          "score": 10,
+          "finishReason": "completed",
+          "usage": {
+            "prompt_tokens": 168,
+            "completion_tokens": 452,
+            "total_tokens": 620
+          },
+          "latencyMs": 11445
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "provider": "relay",
+          "model": "claude-opus-5-5",
+          "status": "evaluated",
+          "certificate": {
+            "denominators": [
+              3,
+              8,
+              36,
+              72
+            ],
+            "method": "用部分和逐步递降：1/2−1/3=1/6，1/6−1/8=2/48=1/24，所以 1/2=1/3+1/8+1/24；接着把 1/24 按 1/24=1/36+1/72 拆成两项（因为 2/72+1/72=3/72=1/24），从而得到四项表示。",
+            "reason": "以 72 为公分母：1/3=24/72，1/8=9/72，1/36=2/72，1/72=1/72，合计 36/72=1/2。分母 3、8、36、72 互不相同，且都位于 [2,200] 内；精确求和与各项约束都可以由整数通分独立复核，此结果仅为候选证书。"
+          },
+          "verification": {
+            "valid": true,
+            "reasons": [
+              "Exactly 4 unit fractions match 1/2; all declared denominator constraints are satisfied"
+            ],
+            "algorithm": "exact_bigint_fraction_sum",
+            "values": [
+              {
+                "value": 3
+              },
+              {
+                "value": 8
+              },
+              {
+                "value": 36
+              },
+              {
+                "value": 72
+              }
+            ],
+            "checks": [
+              "exact_term_count",
+              "safe_integer_denominators",
+              "closed_denominator_bounds",
+              "pairwise_distinct",
+              "exact_bigint_unit_fraction_sum"
+            ],
+            "evidence": {
+              "target": "1/2",
+              "requiredTerms": 4,
+              "submittedTerms": 4,
+              "denominatorBounds": [
+                2,
+                200
+              ],
+              "requireDistinct": true,
+              "numerator": "31104",
+              "commonDenominator": "62208",
+              "crossMultipliedLeft": "62208",
+              "crossMultipliedRight": "62208"
+            }
+          },
+          "score": 10,
+          "finishReason": "stop",
+          "usage": {
+            "prompt_tokens": 209,
+            "completion_tokens": 1310,
+            "total_tokens": 1519
+          },
+          "latencyMs": 11725
+        }
+      ],
+      "reviewCount": 2,
+      "createdAt": "2026-11-06T06:42:03.070Z"
+    },
+    {
+      "id": "539b4573-3315-40a6-b60c-f26410443597",
+      "competitionId": "b38d602c-2fe5-4e95-818e-009467cf22fa",
+      "roundIndex": 2,
+      "challenge": {
+        "type": "egyptian_fraction",
+        "targetNumerator": 1,
+        "targetDenominator": 3,
+        "terms": 4,
+        "minDenominator": 2,
+        "maxDenominator": 200,
+        "requireDistinct": true
+      },
+      "claimScope": "known_answer_certificate_benchmark",
+      "status": "complete",
+      "modelCallsSucceeded": true,
+      "llmEnabled": true,
+      "winners": [
+        "Kimi K3.1 Pro",
+        "OpenAI GPT-5.5"
+      ],
+      "winnerInterpretation": "仅表示本轮有效证书持有者；不能将错误视为数学反证，也不能由单次结果推出稳定模型排名。",
+      "scoringRule": "Verified certificate = 10; otherwise = 0. Errors and truncation remain explicitly incomplete; no random, length-based or voting scores.",
+      "results": [
+        {
+          "name": "Kimi K3.1 Pro",
+          "provider": "relay",
+          "model": "kimi-k3.1-pro",
+          "status": "evaluated",
+          "certificate": {
+            "denominators": [
+              5,
+              12,
+              30,
+              60
+            ],
+            "method": "先取 1/3=1/4+1/12，再用 1/4=1/5+1/30+1/60 拆分。",
+            "reason": "四项分母互不相同且均在 [2,200] 内；通分可直接验证总和为 1/3。"
+          },
+          "verification": {
+            "valid": true,
+            "reasons": [
+              "Exactly 4 unit fractions match 1/3; all declared denominator constraints are satisfied"
+            ],
+            "algorithm": "exact_bigint_fraction_sum",
+            "values": [
+              {
+                "value": 5
+              },
+              {
+                "value": 12
+              },
+              {
+                "value": 30
+              },
+              {
+                "value": 60
+              }
+            ],
+            "checks": [
+              "exact_term_count",
+              "safe_integer_denominators",
+              "closed_denominator_bounds",
+              "pairwise_distinct",
+              "exact_bigint_unit_fraction_sum"
+            ],
+            "evidence": {
+              "target": "1/3",
+              "requiredTerms": 4,
+              "submittedTerms": 4,
+              "denominatorBounds": [
+                2,
+                200
+              ],
+              "requireDistinct": true,
+              "numerator": "36000",
+              "commonDenominator": "108000",
+              "crossMultipliedLeft": "108000",
+              "crossMultipliedRight": "108000"
+            }
+          },
+          "score": 10,
+          "finishReason": "completed",
+          "usage": {
+            "prompt_tokens": 224,
+            "completion_tokens": 314,
+            "total_tokens": 538
+          },
+          "latencyMs": 24512
+        },
+        {
+          "name": "OpenAI GPT-5.5",
+          "provider": "relay",
+          "model": "gpt-5.5",
+          "status": "evaluated",
+          "certificate": {
+            "denominators": [
+              4,
+              14,
+              147,
+              196
+            ],
+            "method": "先取 1/3=1/4+1/14+1/84，再用 1/84=1/147+1/196。",
+            "reason": "四个分母互不相同且均在[2,200]内；精确地，1/4+1/14+1/147+1/196=1/3。"
+          },
+          "verification": {
+            "valid": true,
+            "reasons": [
+              "Exactly 4 unit fractions match 1/3; all declared denominator constraints are satisfied"
+            ],
+            "algorithm": "exact_bigint_fraction_sum",
+            "values": [
+              {
+                "value": 4
+              },
+              {
+                "value": 14
+              },
+              {
+                "value": 147
+              },
+              {
+                "value": 196
+              }
+            ],
+            "checks": [
+              "exact_term_count",
+              "safe_integer_denominators",
+              "closed_denominator_bounds",
+              "pairwise_distinct",
+              "exact_bigint_unit_fraction_sum"
+            ],
+            "evidence": {
+              "target": "1/3",
+              "requiredTerms": 4,
+              "submittedTerms": 4,
+              "denominatorBounds": [
+                2,
+                200
+              ],
+              "requireDistinct": true,
+              "numerator": "537824",
+              "commonDenominator": "1613472",
+              "crossMultipliedLeft": "1613472",
+              "crossMultipliedRight": "1613472"
+            }
+          },
+          "score": 10,
+          "finishReason": "completed",
+          "usage": {
+            "prompt_tokens": 168,
+            "completion_tokens": 760,
+            "total_tokens": 928
+          },
+          "latencyMs": 18509
+        },
+        {
+          "name": "Claude Opus 5.5",
+          "provider": "relay",
+          "model": "claude-opus-5-5",
+          "status": "evaluated",
+          "certificate": {
+            "denominators": [
+              4,
+              18,
+              36,
+              72
+            ],
+            "method": "倍数分解法",
+            "reason": "1/3 = 4/12。取12的因子构造：1/4 + 1/18 + 1/36 + 1/72。验证：通分到分母144，得36/144 + 8/144 + 4/144 + 2/144 = 50/144 = 25/72 ≠ 1/3。重新构造：1/3 = 1/4 + 1/12。继续拆分1/12 = 1/18 + 1/36 + 1/72不成立。改用：1/3 = 1/6 + 1/6，拆1/6 = 1/12 + 1/12，再拆得1/3 = 1/6 + 1/12 + 1/18 + 1/36。验证：通分到分母36，得6/36 + 3/36 + 2/36 + 1/36 = 12/36 = 1/3"
+          },
+          "verification": {
+            "valid": false,
+            "reasons": [
+              "Unit-fraction sum does not exactly equal 1/3"
+            ],
+            "algorithm": "exact_bigint_fraction_sum",
+            "values": [
+              {
+                "value": 4
+              },
+              {
+                "value": 18
+              },
+              {
+                "value": 36
+              },
+              {
+                "value": 72
+              }
+            ],
+            "checks": [
+              "exact_term_count",
+              "safe_integer_denominators",
+              "closed_denominator_bounds",
+              "pairwise_distinct",
+              "exact_bigint_unit_fraction_sum"
+            ],
+            "evidence": {
+              "target": "1/3",
+              "requiredTerms": 4,
+              "submittedTerms": 4,
+              "denominatorBounds": [
+                2,
+                200
+              ],
+              "requireDistinct": true,
+              "numerator": "64800",
+              "commonDenominator": "186624",
+              "crossMultipliedLeft": "194400",
+              "crossMultipliedRight": "186624"
+            }
+          },
+          "score": 0,
+          "finishReason": "stop",
+          "usage": {
+            "prompt_tokens": 248,
+            "completion_tokens": 238,
+            "total_tokens": 486
+          },
+          "latencyMs": 7950
+        }
+      ],
+      "reviewCount": 2,
+      "createdAt": "2026-11-06T06:43:24.807Z"
+    }
+  ]
+}
