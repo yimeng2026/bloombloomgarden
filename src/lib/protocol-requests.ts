@@ -1,7 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { validateActivityEvidence, type ActivityRecord, type ConstructRecord } from "./activity-register";
+import {
+  validateActivityEvidence,
+  type ActivityRecord,
+  type AssayRecord,
+  type CompoundRecord,
+  type ConstructRecord,
+} from "./activity-register";
 import { getScenario } from "./research-scenarios";
 
 export type ProtocolRequestStatus = "draft" | "ready" | "sent" | "answered" | "bounced" | "closed_unavailable" | "complete";
@@ -71,9 +77,11 @@ export interface ProtocolEvidence {
   lineage?: EvidenceLineage;
   /** 原文字面值，不做跨文献方法补齐或单位换算。 */
   methodFacet?: MethodFacet;
-  /** 原始活性观测；构建引用只在同一证据内解析。 */
+  /** 原始活性观测；所有实验上下文引用只在同一证据内解析。 */
   activityRecords?: ActivityRecord[];
   constructRecords?: ConstructRecord[];
+  compoundRecords?: CompoundRecord[];
+  assayRecords?: AssayRecord[];
   createdAt: string;
 }
 
@@ -335,6 +343,8 @@ export function addProtocolEvidence(id: string, input: {
   methodFacet?: MethodFacet;
   activityRecords?: ActivityRecord[];
   constructRecords?: ConstructRecord[];
+  compoundRecords?: CompoundRecord[];
+  assayRecords?: AssayRecord[];
 }) {
   const request = readRequest(id);
   const document = request.documents.find((doc) => documentKey(doc) === input.documentKey);
