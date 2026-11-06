@@ -121,7 +121,11 @@
       "quote": "inhibition data against isozymes I, II, and IX have been published earlier, and will be not discussed in detail here",
       "coverage": "摘要、引言与 CA inhibition data 片段；不是完整全文或协议。",
       "independentWetExperiment": false,
-      "createdAt": "2026-10-31T17:00:00Z"
+      "createdAt": "2026-10-31T17:00:00Z",
+      "lineage": {
+        "kind": "citation",
+        "derivedFromEvidenceIds": []
+      }
     },
     {
       "id": "thiourea-pubmed-abstract",
@@ -133,7 +137,11 @@
       "quote": "The new thiourea derivatives showed strong affinities toward isozymes I, II, and IV of carbonic anhydrase (CA, EC 4.2.1.1).",
       "coverage": "仅摘要。",
       "independentWetExperiment": false,
-      "createdAt": "2026-10-31T17:00:00Z"
+      "createdAt": "2026-10-31T17:00:00Z",
+      "lineage": {
+        "kind": "primary",
+        "derivedFromEvidenceIds": []
+      }
     },
     {
       "id": "emate-crystallography-snippet",
@@ -145,7 +153,11 @@
       "quote": "The hCA II–1 adduct obtained by co-crystallization, was subjected to detailed X-ray crystallography.",
       "coverage": "摘要、引言与晶体学片段；不是乙酰唑胺 Ki 协议。",
       "independentWetExperiment": false,
-      "createdAt": "2026-10-31T17:00:00Z"
+      "createdAt": "2026-10-31T17:00:00Z",
+      "lineage": {
+        "kind": "primary",
+        "derivedFromEvidenceIds": []
+      }
     },
     {
       "id": "carboxybenzolamide-pubmed-abstract",
@@ -157,7 +169,11 @@
       "quote": "The new derivatives showed low nanomolar affinity for three carbonic anhydrase (CA) isozymes, CA I, II and IV, and were effective as topical antiglaucoma agents in normotensive rabbits.",
       "coverage": "仅摘要。",
       "independentWetExperiment": false,
-      "createdAt": "2026-10-31T17:00:00Z"
+      "createdAt": "2026-10-31T17:00:00Z",
+      "lineage": {
+        "kind": "primary",
+        "derivedFromEvidenceIds": []
+      }
     },
     {
       "id": "e7070-table-snippet",
@@ -169,7 +185,11 @@
       "quote": "Inhibition data against four CA isozymes with the six compounds 1–6 are shown in Table 1.",
       "coverage": "引言与活性片段；不是完整 Table 1 或协议。",
       "independentWetExperiment": false,
-      "createdAt": "2026-10-31T17:00:00Z"
+      "createdAt": "2026-10-31T17:00:00Z",
+      "lineage": {
+        "kind": "primary",
+        "derivedFromEvidenceIds": []
+      }
     },
     {
       "id": "dtpa-pubmed-abstract",
@@ -181,7 +201,11 @@
       "quote": "Many of these derivatives showed nanomolar affinity towards isozymes I, II and IV of carbonic anhydrase (CA).",
       "coverage": "仅摘要。",
       "independentWetExperiment": false,
-      "createdAt": "2026-10-31T17:00:00Z"
+      "createdAt": "2026-10-31T17:00:00Z",
+      "lineage": {
+        "kind": "primary",
+        "derivedFromEvidenceIds": []
+      }
     },
     {
       "id": "3bae3a73-0f02-441c-92c5-e13380cd25fb",
@@ -194,7 +218,11 @@
       "coverage": "Public lecture slide reproducing another study's table; a provenance lead, not an original protocol for the six documents.",
       "note": "The same standard values recur in a different context. It is not an independent replication.",
       "independentWetExperiment": false,
-      "createdAt": "2026-11-06T00:07:43.351Z"
+      "createdAt": "2026-11-06T00:07:43.351Z",
+      "lineage": {
+        "kind": "context",
+        "derivedFromEvidenceIds": []
+      }
     },
     {
       "id": "2126afab-57ee-4435-b5e4-2990da3ccbf4",
@@ -207,7 +235,16 @@
       "coverage": "A complete method section and Table 1 from a different 2012 DTC study; external method context only, not an original protocol for the six documents.",
       "note": "AAZ 250/12/25 nM recurs here. Reuse across experiments is not independent replication.",
       "independentWetExperiment": false,
-      "createdAt": "2026-11-06T00:07:43.377Z"
+      "createdAt": "2026-11-06T00:07:43.377Z",
+      "lineage": {
+        "kind": "context",
+        "derivedFromEvidenceIds": []
+      },
+      "methodFacet": {
+        "assayFamily": "stopped_flow_co2_hydration",
+        "instrument": "Applied Photophysics stopped-flow",
+        "substrate": "CO2 hydration"
+      }
     }
   ],
   "reviews": [
@@ -376,5 +413,5 @@
     "frontier-breakthrough/data/ca-document-methods-source.json"
   ],
   "createdAt": "2026-10-31T17:00:00Z",
-  "updatedAt": "2026-11-06T02:25:52.829Z"
+  "updatedAt": "2026-11-06T03:42:59.385115Z"
 }

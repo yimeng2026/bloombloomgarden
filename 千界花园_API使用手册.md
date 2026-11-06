@@ -10,6 +10,7 @@
 - `GET /api/research/scenarios` 查看六类研究场景；`GET /api/research/protocol-requests` 查看真实求援与证据状态。
 - 当前模型、密钥和 Responses／Chat Completions 配置见 `docs/MODEL_PROVIDER_PLAYBOOK.md`。
 - 证据状态机、三角色分工与六篇案例边界见 `docs/RESEARCH_SCENARIOS.md`。
+- 数学证书竞赛见 `docs/MATH_TOURNAMENT_2026-11-06.md`；实验方法指纹与血缘快照见 `docs/METHOD_LINEAGE.md`，只读接口为 `GET /api/research/method-lineage?requestId=ca-six-2026`。
 - 本机真实密钥放 `.env.local`，绝不要打印或提交。`.env.example` 只提供无密钥模板。
 
 以下“救援改动说明”和 2026-08-05 实测记录保留作历史背景；其中 GLM 失效、单一 Kimi 通道和隐式路由等描述不代表现行多供应商配置。显式指定 `provider` 时会锁定对应供应商，不再把 `provider:"zhipu"` 自动改道 Kimi。

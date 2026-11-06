@@ -2790,6 +2790,14 @@
       "source": "src/app/api/research/mentorships/[id]/sessions/route.ts"
     },
     {
+      "id": "research:GET:/api/research/method-lineage",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/method-lineage",
+      "risk": "read",
+      "source": "src/app/api/research/method-lineage/route.ts"
+    },
+    {
       "id": "research:GET:/api/research/millennium/init",
       "service": "research",
       "method": "GET",

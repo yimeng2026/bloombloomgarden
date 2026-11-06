@@ -114,6 +114,14 @@ try {
     coverage: "partial text only",
   }), 201);
 
+  const missingLineage = await call("GET", "/api/research/method-lineage");
+  assert.equal(missingLineage.status, 400);
+  const lineage = ok(await call("GET", "/api/research/method-lineage?requestId=e2e-protocol"));
+  assert.equal(lineage.evidenceUpgrade, false);
+  assert.equal(lineage.data.summary.documentCount, 2);
+  assert.equal(lineage.data.summary.comparisonCounts.insufficient, 1);
+  assert.equal(lineage.data.summary.independentWetExperimentCount, 0);
+
   const dryReview = ok(await call("POST", "/api/research/protocol-requests/e2e-protocol/review", { dryRun: true }));
   assert.equal(dryReview.data.roles.length, 3);
   assert.deepEqual(dryReview.data.roles.map((role) => ({ role: role.id, provider: role.provider, model: role.model || "provider-default" })), [

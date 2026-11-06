@@ -61,8 +61,8 @@ export const RESEARCH_SCENARIOS: ResearchScenario[] = [
     ],
     workItems: [
       { id: "activity-pairs", title: "构建文档内活性配对", kind: "compute", integration: "frontier-breakthrough/scripts/analyze_ca_document_stability.py", purpose: "保留原始值、方向与单位。" },
-      { id: "method-matrix", title: "建立 assay 与物种／构建矩阵", kind: "verify", integration: "POST /api/research/validations", purpose: "比较底物、酶源、检测方法、pH、温度和拟合口径。" },
-      { id: "independence-review", title: "审查参考值血缘与伪重复", kind: "review", integration: "POST /api/research/panels", purpose: "把同库转录、历史引用与独立湿实验分开。" },
+      { id: "method-matrix", title: "建立 assay 与物种／构建矩阵", kind: "verify", integration: "GET /api/research/method-lineage?requestId=<id>", purpose: "只用目标原始协议字段比较，缺失与冲突不得由外部方法补齐。" },
+      { id: "independence-review", title: "审查参考值血缘与伪重复", kind: "review", integration: "POST /api/research/protocol-requests/:id/review", purpose: "把同库转录、历史引用与独立湿实验分开，保留正常结束状态。" },
       { id: "sensitivity-output", title: "发布范围与不可合并边界", kind: "publish", integration: "widgets/ca-activity", purpose: "用反例和负结果约束后续建模。" },
     ],
     collaboration: {

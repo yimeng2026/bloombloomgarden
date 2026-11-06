@@ -42,6 +42,18 @@ export interface ProtocolReceipt {
   note: string;
 }
 
+export const METHOD_FACET_FIELDS = [
+  "assayFamily", "instrument", "substrate", "readout", "enzymeSource",
+  "pH", "temperature", "incubation", "kiCalculation", "replicates",
+] as const;
+export type MethodFacetKey = typeof METHOD_FACET_FIELDS[number];
+export type MethodFacet = Partial<Record<MethodFacetKey, string>>;
+export type EvidenceLineageKind = "primary" | "citation" | "curation" | "context" | "correspondence" | "lead" | "unspecified";
+export interface EvidenceLineage {
+  kind: EvidenceLineageKind;
+  derivedFromEvidenceIds?: string[];
+}
+
 export interface ProtocolEvidence {
   id: string;
   documentKey: string;
@@ -54,6 +66,10 @@ export interface ProtocolEvidence {
   note?: string;
   methodStatus?: MethodStatus;
   independentWetExperiment?: boolean;
+  /** 只登记原文明确支持的来源角色和派生关系，不由模型推断。 */
+  lineage?: EvidenceLineage;
+  /** 原文字面值，不做跨文献方法补齐或单位换算。 */
+  methodFacet?: MethodFacet;
   createdAt: string;
 }
 
@@ -311,6 +327,8 @@ export function addProtocolEvidence(id: string, input: {
   note?: string;
   methodStatus?: MethodStatus;
   independentWetExperiment?: boolean;
+  lineage?: EvidenceLineage;
+  methodFacet?: MethodFacet;
 }) {
   const request = readRequest(id);
   const document = request.documents.find((doc) => documentKey(doc) === input.documentKey);
@@ -325,6 +343,22 @@ export function addProtocolEvidence(id: string, input: {
       throw new Error("Verified full text or protocol requires quote, locator and coverage");
     }
   }
+  if (input.lineage) {
+    if (!["primary", "citation", "curation", "context", "correspondence", "lead", "unspecified"].includes(input.lineage.kind)) {
+      throw new Error("Invalid lineage kind");
+    }
+    const parents = input.lineage.derivedFromEvidenceIds || [];
+    if (!Array.isArray(parents)) throw new Error("derivedFromEvidenceIds must be an array");
+    for (const parent of parents) {
+      if (!request.evidence.some((item) => item.id === parent)) throw new Error("derivedFromEvidenceIds must reference existing evidence");
+    }
+  }
+  if (input.methodFacet) {
+    for (const [key, value] of Object.entries(input.methodFacet)) {
+      if (!METHOD_FACET_FIELDS.includes(key as MethodFacetKey)) throw new Error(`Unknown method facet: ${key}`);
+      if (typeof value !== "string" || !value.trim()) throw new Error(`Method facet ${key} must be a non-empty string`);
+    }
+  }
   request.evidence.push({
     id: randomUUID(),
     documentKey: input.documentKey,
@@ -336,6 +370,8 @@ export function addProtocolEvidence(id: string, input: {
     coverage: input.coverage || "未提供",
     note: input.note,
     independentWetExperiment: input.independentWetExperiment === true,
+    lineage: input.lineage ? { kind: input.lineage.kind, derivedFromEvidenceIds: [...new Set(input.lineage.derivedFromEvidenceIds || [])] } : undefined,
+    methodFacet: input.methodFacet ? Object.fromEntries(Object.entries(input.methodFacet).map(([key, value]) => [key, value.trim()])) : undefined,
     createdAt: now(),
   });
   if (input.level === "protocol" && input.verification === "verified" && input.methodStatus) {
