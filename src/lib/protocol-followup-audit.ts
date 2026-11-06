@@ -139,3 +139,21 @@ export function verifyProtocolFollowupAudit(record: ProtocolFollowupAudit): { ok
   }
   return { ok: true, auditKey: record.auditKey };
 }
+
+export function checkProtocolFollowupAuditDrift(
+  record: ProtocolFollowupAudit,
+  currentRequest: ProtocolRequest,
+): {
+  status: "unchanged" | "drifted";
+  recordedSnapshotHash: string;
+  currentSnapshotHash: string;
+} {
+  verifyProtocolFollowupAudit(record);
+  const recordedSnapshotHash = canonicalHash(record.inputs.requestSnapshot);
+  const currentSnapshotHash = canonicalHash(snapshotProtocolRequest(currentRequest));
+  return {
+    status: recordedSnapshotHash === currentSnapshotHash ? "unchanged" : "drifted",
+    recordedSnapshotHash,
+    currentSnapshotHash,
+  };
+}

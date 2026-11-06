@@ -4,6 +4,7 @@ import { buildProtocolFollowups } from "../src/lib/protocol-followups.ts";
 import {
   buildProtocolFollowupAudit,
   canonicalJson,
+  checkProtocolFollowupAuditDrift,
   computeProtocolFollowupAuditKey,
   snapshotProtocolRequest,
   verifyProtocolFollowupAudit,
@@ -101,4 +102,30 @@ test("audit bundle replays the same deterministic result while ignoring only res
   wrongVersion.algorithmVersion = "protocol-followup-reconciliation/v999";
   assert.throws(() => verifyProtocolFollowupAudit(wrongVersion), /algorithm version/i);
   assert.equal(JSON.stringify({ request, baseline }), before);
+});
+
+test("drift checks compare only computation-relevant snapshots and do not mutate the audit", () => {
+  const { request, baseline } = auditFixture();
+  const audit = buildProtocolFollowupAudit({
+    request,
+    baseline,
+    baselinePath: "data/protocol-followups/audit-fixture.json",
+    createdAt: "2026-11-06T02:00:00.000Z",
+  });
+  const before = JSON.stringify(audit);
+  const contactOnlyChange = structuredClone(request);
+  contactOnlyChange.contacts[0].email = "changed@example.invalid";
+  assert.deepEqual(checkProtocolFollowupAuditDrift(audit, contactOnlyChange), {
+    status: "unchanged",
+    recordedSnapshotHash: checkProtocolFollowupAuditDrift(audit, request).recordedSnapshotHash,
+    currentSnapshotHash: checkProtocolFollowupAuditDrift(audit, request).currentSnapshotHash,
+  });
+  const changed = structuredClone(request);
+  changed.documents[0].methodStatus = "explicit_matched";
+  const drift = checkProtocolFollowupAuditDrift(audit, changed);
+  assert.equal(drift.status, "drifted");
+  assert.match(drift.recordedSnapshotHash, /^[a-f0-9]{64}$/);
+  assert.match(drift.currentSnapshotHash, /^[a-f0-9]{64}$/);
+  assert.notEqual(drift.recordedSnapshotHash, drift.currentSnapshotHash);
+  assert.equal(JSON.stringify(audit), before);
 });
