@@ -259,9 +259,9 @@ test("calibration keeps hits, misses, near-misses, inconclusive, pending and abs
   ]);
   assert.deepEqual(result.counts, { total: 6, proposed: 5, resolved: 2, hit: 1, miss: 1, nearMiss: 1, inconclusive: 1, pending: 1, abstained: 1 });
   assert.equal(result.hitRate, 0.5);
-  assert.equal(result.brierScore, 0.2);
-  assert.equal(result.meanConfidence, 0.7);
-  assert.equal(result.confidenceGap, 0.2);
+  assert.ok(Math.abs(result.brierScore - 0.2) < 1e-12);
+  assert.ok(Math.abs(result.meanConfidence - 0.7) < 1e-12);
+  assert.ok(Math.abs(result.confidenceGap - 0.2) < 1e-12);
   assert.ok(Math.abs(result.coverage - 1 / 3) < 1e-12);
   assert.ok(Math.abs(result.abstentionRate - 1 / 6) < 1e-12);
   assert.equal(result.allOutcomesRecorded, false);
@@ -392,7 +392,7 @@ export function assertForwardCase(record: ForwardCase): void {
 
 export function freezeForwardCase(input: ForwardCaseInput): ForwardCase {
   const body = structuredClone(input);
-  const record = { schemaVersion: "physical-intuition-forward-case/v1" as const, ...body, caseHash: hash({ schemaVersion: "physical-intuition-forward-case/v1", ...body }), evidenceUpgrade: false as const };
+  const record = { schemaVersion: "physical-intuition-forward-case/v1" as const, ...body, caseHash: hash({ schemaVersion: "physical-intuition-forward-case/v1", ...body, evidenceUpgrade: false as const }), evidenceUpgrade: false as const };
   assertForwardCase(record);
   return record;
 }
@@ -441,7 +441,7 @@ export function assertForwardOutcome(caseRecord: ForwardCase, outcome: ForwardOu
 
 export function recordForwardOutcome(caseRecord: ForwardCase, input: ForwardOutcomeInput): ForwardOutcome {
   const body = structuredClone(input);
-  const outcome = { schemaVersion: "physical-intuition-forward-outcome/v1" as const, ...body, outcomeHash: hash({ schemaVersion: "physical-intuition-forward-outcome/v1", ...body }), evidenceUpgrade: false as const };
+  const outcome = { schemaVersion: "physical-intuition-forward-outcome/v1" as const, ...body, outcomeHash: hash({ schemaVersion: "physical-intuition-forward-outcome/v1", ...body, evidenceUpgrade: false as const }), evidenceUpgrade: false as const };
   assertForwardOutcome(caseRecord, outcome);
   return outcome;
 }
