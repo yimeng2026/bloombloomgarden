@@ -93,3 +93,6 @@ prisma/dev.db-journal
 *.db
 *.db-journal
 
+
+# 可复核研究图：仅允许物理直觉架构说明图
+!research/physical-intuition/assets/physical-intuition-architecture.svg
