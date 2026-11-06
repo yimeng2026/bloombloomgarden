@@ -7,7 +7,7 @@ function candidateId(task: IntuitionTask, key: string): string {
   return createHash("sha256").update(JSON.stringify([task.taskId, key, baseline])).digest("hex").slice(0, 16);
 }
 
-function candidate(task: IntuitionTask, structure: StructureCard): IntuitionCard {
+export function createCandidate(task: IntuitionTask, structure: StructureCard): IntuitionCard {
   const tests: Record<string, string> = {
     matrix_states: "对易残差、谱与观测量映射是否与基线产生可区分结果",
     hamiltonian_dynamics: "能量残差、对称性和低阻尼极限是否区别于基线",
@@ -41,5 +41,5 @@ export function generateCandidates(task: IntuitionTask): IntuitionCard[] {
   if (task.triggers?.relationalNetwork) keys.push("relation_graph");
   if (task.triggers?.noisyMeasurements) keys.push("sparse_symbolic_dynamics");
   if (keys.length === 0) keys.push("symmetry_invariants");
-  return [...new Set(keys)].map((key) => candidate(task, getStructureCard(key)!));
+  return [...new Set(keys)].map((key) => createCandidate(task, getStructureCard(key)!));
 }

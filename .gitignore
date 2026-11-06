@@ -94,5 +94,10 @@ prisma/dev.db-journal
 *.db-journal
 
 
+# Local research runs and user-provided archives
+.tmp/
+/data/physical-intuition/model-reviews/
+/data/zhihu-invites/
+
 # 可复核研究图：仅允许物理直觉架构说明图
 !research/physical-intuition/assets/physical-intuition-architecture.svg
