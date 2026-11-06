@@ -288,6 +288,87 @@
       },
       "id": "618c6c77-2a6c-4f44-b75e-b3c5e40c5e8c",
       "createdAt": "2026-11-06T00:50:08.269Z"
+    },
+    {
+      "role": "assay-specialist",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "content": "## 方法完整性复核意见\n\n**总体判断：** 六篇目标文献中，五篇仅有摘要或片段（明确声明\"非完整全文/协议\"），唯一含完整方法学段落的是 PMC 2012 年 DTC 研究，但**非本批六篇文献的原始协议**，不能作为其证据。\n\n**逐项缺失情况：**\n\n| 项目 | 缺失情况 |\n|---|---|\n| 底物 | 六篇原文均无底物（CO₂ 或 pNPA）描述；仅 PMC 外部文献提及 CO₂ 水合反应 |\n| 酶源 | 六篇仅提及 isozyme 编号（I/II/IV/IX），无酶的来源、制备、纯度说明 |\n| 仪器 | 六篇原文未提及；仅外部 PMC 文献说明使用 Applied Photophysics 停流仪 |\n| pH | 全部缺失（六篇原文及片段中均未见缓冲体系/pH） |\n| 温度 | 全部缺失 |\n| 浓度 | 全部缺失——无酶浓度、无化合物浓度梯度 |\n| 孵育 | 全部缺失——无预孵育条件、反应时间、加样顺序 |\n| Ki 换算 | 全部缺失——原文未报告 IC₅₀ 值、无 IC₅₀→Ki 换算公式或 Cheng–Prusoff 类方法 |\n| 重复 | 全部缺失——无 n 值、误差范围、独立实验次数 |\n\n**其他证据问题：**\n- 讲座幻灯片（page 55）仅是另一研究表格的转录（含 acetazolamide 数值 250/12/25），属溯源线索，不构成协议，且未能与六篇文献的化合物一一对应。\n- 部分摘要仅含定性表述（\"low nanomolar affinity\"），无任何可复核定量方法信息。\n\n**建议的可操作动作：**\n1. 获取六篇文献（S0960894X0400647X、S0960894X03010448、S0960894X03010424 等）全文 Methods/Experimental 部分，再按上表逐项核对。\n2. 在未取得全文前，本批材料的方法学证据等级只能标记为\"不完整/不可复核\"，不得用 PMC 2012 协议或讲座幻灯片数据回填。",
+      "usage": {
+        "prompt_tokens": 960,
+        "completion_tokens": 578,
+        "total_tokens": 1538
+      },
+      "id": "fef86989-97ef-45f3-b892-47e636e4d20d",
+      "createdAt": "2026-11-06T02:19:39.115Z"
+    },
+    {
+      "role": "provenance-auditor",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "content": "## 复核意见\n\n**一、文档身份：CHEMBL1146805 出现三份不同文献，须先拆分**\n\n1. 同一 documentKey 下并列出现三条 `verification: verified` 记录，但指向三份不同来源：ScienceDirect S0960894X0400647X（2004，partial_text）、IASOC 2016 讲义 PDF 第 55 页幻灯片截图（lead）、PMC3313672（2012 DTC 研究，partial_text）。→ 请拆分或标注为互斥来源；`verified` 在此只说明链接与引文存在，**不说明三者是同一文档**。\n2. 该三条的 coverage 已自陈边界（\"不是完整全文或协议\"／\"provenance lead\"／\"external method context only\"），但共用一个 key 会使后续引用把它们当作同一份证据累加。→ 建议对 lead 与 external-context 两条改用非文档级标识（如 lead:/context: 前缀），避免进入文档计数。\n\n**二、历史引用：CHEMBL1146805 的活性数据是转引，不是原始出处**\n\n3. 引文自述 \"inhibition data against isozymes I, II, and IX have been published earlier, and will be not discussed in detail here\"。→ 该文档不能作为这些数值的一手来源；若库中数据挂在该 key 下，应回溯标注先前发表文献，或降级为二次引用。\n4. 该文涉及同工酶 I、II、**IX**，与其余五份材料的 I、II、IV 不同。→ 不要把 IX 的条目与 I/II/IV 的条目合并到同一比较集合。\n\n**三、覆盖度决定证据等级（不得上调）**\n\n5. CHEMBL1133556、14611846、11229775 三条仅为 PubMed 摘要；CHEMBL1146695、1146805 的正文片段明确把数据推给未收录的 Table 1；CHEMBL1146697 的片段只涉及 hCA II–1 共结晶与 X 射线，且 coverage 明确排除\"乙酰唑胺 Ki 协议\"。→ 六份材料**均无可用实验方案**。任何关于测定条件、Ki 定义、浓度、pH、温度的描述，都不得以这六份材料为依据。\n6. CHEMBL1146697 的晶体学片段不应被用来支持酶抑制动",
+      "usage": {
+        "prompt_tokens": 1411,
+        "completion_tokens": 1600,
+        "total_tokens": 3011
+      },
+      "id": "ac63252c-0108-49fc-bdd0-3b18b4f8740a",
+      "createdAt": "2026-11-06T02:19:39.115Z"
+    },
+    {
+      "role": "skeptical-reviewer",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "content": "复核意见：\n\n1. **不得将“strong affinities”“nanomolar affinity”直接等同于具体 Ki 或活性等级。**  \n   摘要未提供数值、误差、测定条件或化合物逐一对应关系。应回溯完整原文及 Table 1，核对每个化合物、每个 CA 亚型的数值和单位。\n\n2. **不得据此确认乙酰唑胺的 Ki、对照结果或实验协议。**  \n   仅有讲义幻灯片中的“10 (acetazolamide) 250 12 25”，且明确是另一研究表格的再现，不能作为六篇文献的原始数据或协议。应取得原始论文和完整表格，确认数值含义、亚型、单位及实验方法。\n\n3. **不得将不同文献或不同研究的测定方法、结果合并使用。**  \n   2012 年 DTC 研究的 stopped-flow 方法仅能作为外部方法背景，不能证明其他六篇研究采用了相同方法。应分别核对各原始研究的底物、缓冲液、温度、酶来源、抑制剂浓度范围、拟合模型和重复次数。\n\n4. **“against four CA isozymes”不能推出具体四种亚型或完整活性矩阵。**  \n   片段仅说明存在四种亚型的数据，且未提供完整 Table 1。应补齐原表并核对是否包括 CA I、II、IV、IX，以及各化合物是否均完成测定。\n\n5. **“effective as topical antiglaucoma agents in normotensive rabbits”不能直接推出临床有效性或机制结论。**  \n   摘要未给出剂量、给药方案、对照、终点、统计结果及模型局限。复核时应将其限定为“摘要所述的兔模型结果”，不得外推至人类治疗效果。\n\n6. **晶体学证据不能替代抑制动力学证据。**  \n   “hCA II–1 adduct”仅支持存在该复合物及开展了 X 射线分析，不能推出乙酰唑胺或其他化合物的 Ki、结合强度或普适结合模式。应分开报告结构证据与活性证据。\n\n7. **证据覆盖范围应明确标注。**  \n   多数材料仅为摘要或局部片段，不能据此声称已核实完整实验协议、完整数据表或所有化合物结果。任何结论应注明“摘要/片段支持”，并将待核实项列为未确认，而非补充推断。",
+      "usage": {
+        "prompt_tokens": 872,
+        "completion_tokens": 651,
+        "total_tokens": 1523
+      },
+      "id": "17a5e3cd-92f4-4330-a7e7-cd4cfb9ade58",
+      "createdAt": "2026-11-06T02:19:39.115Z"
+    },
+    {
+      "role": "assay-specialist",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "content": "# 方法完整性复核意见\n\n所给材料均为摘要、片段或二手引用，**没有任何一条原文级完整的实验方案**。以下为逐项缺失清单：\n\n**1. 底物（CO₂ 或酯类底物）**\n- 全部 8 条材料均未明确所用底物种类及浓度。仅 CHEMBL1146805(PMC 片段) 提到 \"CO₂ hydration activity\"，属他文方法，不适用。\n\n**2. 酶源**\n- 无一条材料注明 CA I/II/IV/IX 的重组表达来源、纯度或供应商。摘要中的 \"isozymes\" 仅指明同工酶类型。\n\n**3. 仪器**\n- 唯一仪器信息（Applied Photophysics stopped-flow）出自 PMC 的 2012 DTC 他文方法，不适用于本六篇文献。原六篇文献的仪器全部未报告。\n\n**4. pH**\n- 全部缺失，无任何缓冲体系或 pH 值记录。\n\n**5. 温度**\n- 全部缺失，无孵育/测定温度信息。\n\n**6. 浓度（底物与酶的工作浓度）**\n- 全部缺失；lead 材料仅给出 IC₅₀/Ki 数值行（\"250 12 25\"），无实验浓度参数。\n\n**7. 孵育/反应时间**\n- 全部缺失；stopped-flow 测定条件未在本六篇文献中出现。\n\n**8. Ki 换算**\n- 无一条材料说明 IC₅₀→Ki 的换算方法或 Cheng-Prusoff 式使用。lead 材料直接列出数值但无换算依据，且为会议幻灯片转载他人数据，溯源性不成立。\n\n**9. 重复/统计**\n- 全部缺失，无 n 值、误差表示（SD/SEM）或统计检验说明。\n\n**结论**：在现有材料下无法对六篇文献的实验方法完整性作出任何验证性判断。可操作建议：\n1. 调取各 ScienceDirect 文章**全文及完整 Table 1**，核对原始报告数值（而非 Supuran 幻灯片转载值）；\n2. 取得每篇的 Experimental/Methods 章节，按上述九项逐一登记；\n3. 勿引用 PMC 2012 DTC 方法充当本批文献的协议证据；\n4. 在拿到全文前，不应对 Ki 数值的来源与可靠性出具验证结论。",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 960,
+        "completion_tokens": 566,
+        "total_tokens": 1526
+      },
+      "id": "afba275f-f9e2-43b1-bf72-f3025ab5c5cf",
+      "createdAt": "2026-11-06T02:25:52.829Z"
+    },
+    {
+      "role": "provenance-auditor",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "content": "## 复核意见\n\n### 证据状态\n- **六份文档均未找到完整实验协议**：仅获得摘要或局部文本片段\n- **CHEMBL1146805 有两条线索**，但均为**外部引用**：\n  - 2016 讲座幻灯片引用了其他研究的表格\n  - 2012 PMC 文章包含完整方法，但属于**不同研究**\n\n### 可操作建议\n1. **获取六份文档的完整全文**，确认是否存在 Methods/Experimental 章节\n2. **追溯 CHEMBL1146805 的原始出版物**：\n   - 检索 2004 年 Bioorg Med Chem Lett 完整 PDF\n   - 确认幻灯片中引用的 \"ChemComm Table 1\" 原文出处\n3. **核查 2012 PMC 文章 (PMC3313672)** 的实验对象范围，确认是否覆盖这六份文档中的化合物\n\n### 当前限制\n- 无法判断乙酰唑胺 Ki 数据的测定条件或可重复性\n- 数据库中多个文档报告相似数值，但**缺少独立方法学验证**",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 1027,
+        "completion_tokens": 303,
+        "total_tokens": 1330
+      },
+      "id": "7893184b-2cd3-462a-9ae7-18b09e5d475a",
+      "createdAt": "2026-11-06T02:25:52.829Z"
+    },
+    {
+      "role": "skeptical-reviewer",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "content": "- **证据范围标注**：将 `partial_text` 和 `abstract` 明确标为不完整证据；不得据此声称已获得完整活性表、实验条件或原始协议。  \n- **避免证据等级错配**：摘要中的“strong affinities”“low/nanomolar affinity”只能支持定性或量级描述，不能推出具体 \\(K_i\\)、抑制率、选择性或排名。  \n- **区分文献对象**：`CHEMBL1146805` 的 lecture slide 仅是其他研究表格的出处线索，不能作为该六篇文献的乙酰唑胺对照数据或原始实验依据。  \n- **禁止外部方法移植**：2012 年 DTC 研究的 stopped-flow 方法只能作为外部方法背景，不能据此断定六篇文献采用相同仪器、底物、缓冲液、温度或计算流程。  \n- **不要补写未提供的对照结论**：现有材料未给出六篇研究中乙酰唑胺的完整协议、单位、重复数或 \\(K_i\\) 测定条件；不得生成或比较具体乙酰唑胺数值。  \n- **谨慎解释晶体学证据**：`CHEMBL1146697` 仅证明 hCA II–1 复合物进行了详细 X 射线晶体学研究，不能推出其抑制效力、结合模式的完整细节或与乙酰唑胺的可比性。  \n- **谨慎处理体内结论**：`CHEMBL1136178` 的摘要支持“在正常血压兔中具有局部抗青光眼作用”的报道，但不足以核实剂量、终点、对照、统计学结果或因果机制。  \n- **补证要求**：若需报告具体活性、乙酰唑胺对照或跨研究比较，应补充原始全文、完整表格和实验方案；在补证前仅保留定性、限定范围的表述。",
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 872,
+        "completion_tokens": 538,
+        "total_tokens": 1410
+      },
+      "id": "ee939813-4474-49b6-91f7-d5bc621d08c7",
+      "createdAt": "2026-11-06T02:25:52.829Z"
     }
   ],
   "sourceReferences": [
@@ -295,5 +376,5 @@
     "frontier-breakthrough/data/ca-document-methods-source.json"
   ],
   "createdAt": "2026-10-31T17:00:00Z",
-  "updatedAt": "2026-11-06T00:50:08.270Z"
+  "updatedAt": "2026-11-06T02:25:52.829Z"
 }

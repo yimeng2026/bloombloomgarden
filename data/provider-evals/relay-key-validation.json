@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-06",
+  "endpoint": "GET /v1/models",
+  "candidateDistinctKeyCount": 9,
+  "validKeyCount": 7,
+  "invalidKeyCount": 2,
+  "initialChecks": [
+    { "slot": 1, "status": 200, "modelCount": 344 },
+    { "slot": 2, "status": 200, "modelCount": 344 },
+    { "slot": 3, "status": 200, "modelCount": 344 },
+    { "slot": 4, "status": 401, "modelCount": 0 },
+    { "slot": 5, "status": 200, "modelCount": 344 },
+    { "slot": 6, "status": 200, "modelCount": 344 },
+    { "slot": 7, "status": 401, "modelCount": 0 },
+    { "slot": 8, "status": 200, "modelCount": 344 },
+    { "slot": 9, "status": 200, "modelCount": 344 }
+  ],
+  "action": "移除第 4、7 槽位，不重复创建或重置；其余七槽重新逐枚验证。",
+  "activeCheck": {
+    "distinctKeyCount": 7,
+    "allReturned200": true,
+    "modelCountPerKey": 344
+  },
+  "concurrencyBoundary": "密钥数不是供应商数或推荐并发数；任务单独设置并发与预算，模型共识不视为独立实验。",
+  "secretPolicy": "只记录槽位、状态码与模型条目数，不含密钥、Cookie、完整请求头或账户会话。"
+}

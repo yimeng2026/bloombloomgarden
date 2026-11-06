@@ -131,7 +131,7 @@ function makeKey(providerId: string, envName: string, apiKey: string): PoolKeySl
  * 装载显式启用的外部 Provider；默认 Kimi 由原生 kimiChat 处理，不在此池重复注册：
  *   - 智谱 GLM 兼容位：ZHIPU_API_KEY + GLM51_API_KEY_1..10（priority 5）
  *   - Moonshot 公开端点：MOONSHOT_API_KEY（priority 6）
- *   - 通用 OpenAI 兼容：POOL_<ID>_BASE_URL / POOL_<ID>_API_KEY(+_2.._5) / POOL_<ID>_MODEL
+ *   - 通用 OpenAI 兼容：POOL_<ID>_BASE_URL / POOL_<ID>_API_KEY(+_2.._9) / POOL_<ID>_MODEL
  */
 export function loadPoolFromEnv(): PoolProvider[] {
   const env = process.env;
@@ -209,12 +209,16 @@ export function loadPoolFromEnv(): PoolProvider[] {
     const omitTemperatureModels = modelList("OMIT_TEMPERATURE_MODELS");
     const reasoningModels = modelList("REASONING_MODELS");
     const keys: PoolKeySlot[] = [];
-    const k1 = env[`POOL_${id}_API_KEY`]?.trim();
-    if (k1) keys.push(makeKey(id.toLowerCase(), `POOL_${id}_API_KEY`, k1));
-    for (let i = 2; i <= 5; i++) {
-      const kn = env[`POOL_${id}_API_KEY_${i}`]?.trim();
-      if (kn) keys.push(makeKey(id.toLowerCase(), `POOL_${id}_API_KEY_${i}`, kn));
-    }
+    const seenKeys = new Set<string>();
+    const pushKey = (envName: string) => {
+      const key = env[envName]?.trim();
+      if (key && !seenKeys.has(key)) {
+        seenKeys.add(key);
+        keys.push(makeKey(id.toLowerCase(), envName, key));
+      }
+    };
+    pushKey(`POOL_${id}_API_KEY`);
+    for (let i = 2; i <= 9; i++) pushKey(`POOL_${id}_API_KEY_${i}`);
     if (keys.length === 0) continue;
     providers.push({
       id: id.toLowerCase(),

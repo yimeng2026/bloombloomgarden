@@ -41,7 +41,7 @@
     }
   ],
   "supplierCount": 2,
-  "relayKeyCount": 3,
-  "authentication": "三枚 RelayRouter 密钥均于 2026-11-06 实测 GET /v1/models 返回 200 和 344 个条目。",
+  "relayKeyCount": 7,
+  "authentication": "九枚不同候选密钥中七枚有效；两枚 401 已排除且未重置。活动七枚均于 2026-11-06 实测 GET /v1/models 返回 200 和 344 个条目。",
   "secretPolicy": "不包含密钥、完整账户会话、Cookie 或请求认证头。"
 }

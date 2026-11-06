@@ -63,6 +63,8 @@ export interface ProtocolReview {
   provider: string;
   model: string;
   content: string;
+  /** 原始结束状态；缺失表示历史记录无法判断是否截断。 */
+  finishReason?: string;
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -353,7 +355,13 @@ export function appendProtocolReviews(id: string, reviews: Array<Omit<ProtocolRe
   const request = readRequest(id);
   const timestamp = now();
   request.reviews = [...(request.reviews || []), ...reviews.map((review) => ({ ...review, id: randomUUID(), createdAt: timestamp }))];
-  setWorkStatus(request, "panel-review", "done", "已保存三角色复核意见；证据等级未自动改变。");
+  const complete = reviews.length > 0 && reviews.every((review) => ["stop", "completed", "end_turn"].includes(review.finishReason || ""));
+  setWorkStatus(
+    request,
+    "panel-review",
+    complete ? "done" : "in_progress",
+    complete ? "已保存三角色复核意见；证据等级未自动改变。" : "输出截断或结束状态未知；已保留意见，但仍需复核，证据等级不变。",
+  );
   writeRequest(updateTimestamp(request));
   return request;
 }

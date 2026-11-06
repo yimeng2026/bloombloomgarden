@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 const ROLES = [
   { id: "assay-specialist", provider: "kimi", instruction: "只审查实验方法是否完整：底物、酶源、仪器、pH、温度、浓度、孵育、Ki 换算和重复。逐项指出缺失，不得补写。" },
-  { id: "provenance-auditor", provider: "relay", model: "claude-opus-5-5", instruction: "只审查文档身份、历史引用、数据库转录和独立实验边界。相同数值不是独立重复，数据库同值不是造假证据。" },
+  { id: "provenance-auditor", provider: "relay", model: "claude-opus-5-5", maxTokens: 4096, instruction: "只审查文档身份、历史引用、数据库转录和独立实验边界。相同数值不是独立重复，数据库同值不是造假证据。" },
   { id: "skeptical-reviewer", provider: "relay", model: "gpt-5.5", instruction: "作为反方寻找过度解释、证据等级错配和不能推出的结论。不要把作者回复当成完整协议，不要建议放松标准。" },
 ] as const;
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       userPrompt,
       provider: role.provider,
       model: "model" in role ? role.model : undefined,
-      maxTokens: 1600,
+      maxTokens: "maxTokens" in role ? role.maxTokens : 1600,
       reasoningEffort: "low",
     })), { concurrency: 3, maxRetries: 1 });
     const reviews = responses.map((response, index) => ({
@@ -52,14 +52,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       provider: response.provider,
       model: response.model,
       content: response.content,
+      finishReason: response.finishReason,
       usage: response.usage,
     }));
-    appendProtocolReviews(id, reviews);
+    const saved = appendProtocolReviews(id, reviews);
     return NextResponse.json({
       success: true,
       data: {
         mode: "provider_pool_review",
         reviews,
+        completeReview: saved.workItems.find((item) => item.id === "panel-review")?.status === "done",
         evidenceUpgrade: false,
         requestStatus: protocolRequest.status,
       },

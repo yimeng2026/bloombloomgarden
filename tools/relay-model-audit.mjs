@@ -9,8 +9,8 @@ for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
   if (match && process.env[match[1]] === undefined) process.env[match[1]] = match[2];
 }
 const base = (process.env.POOL_RELAY_BASE_URL || "").replace(/\/+$/, "");
-const keys = ["POOL_RELAY_API_KEY", "POOL_RELAY_API_KEY_2", "POOL_RELAY_API_KEY_3"]
-  .map((name) => process.env[name]?.trim()).filter(Boolean);
+const keyNames = ["POOL_RELAY_API_KEY", ...Array.from({ length: 8 }, (_, index) => `POOL_RELAY_API_KEY_${index + 2}`)];
+const keys = [...new Set(keyNames.map((name) => process.env[name]?.trim()).filter(Boolean))];
 if (!base || keys.length === 0) throw new Error("Relay base URL and keys are required in .env.local.");
 const redact = (text) => keys.reduce((result, key) => result.replaceAll(key, "[redacted]"), String(text)).slice(0, 300);
 const option = (name) => {

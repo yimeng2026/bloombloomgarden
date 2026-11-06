@@ -21,6 +21,7 @@ const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev"
     GARDEN_USE_CLUSTER: "0",
     POOL_RELAY_BASE_URL: "http://relay.test/v1",
     POOL_RELAY_API_KEY: "e2e-not-a-secret",
+    ...Object.fromEntries(Array.from({ length: 8 }, (_, index) => [`POOL_RELAY_API_KEY_${index + 2}`, ""])),
     POOL_RELAY_MODEL: "gpt-5.5",
     POOL_RELAY_API_STYLE: "responses",
     POOL_RELAY_REASONING_EFFORT: "low",

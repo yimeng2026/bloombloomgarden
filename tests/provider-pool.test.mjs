@@ -38,6 +38,24 @@ test("ProviderPool protocol compatibility", async (t) => {
     assert.equal(JSON.stringify(getPoolStatus()).includes("relay-test-secret"), false);
   });
 
+  await t.test("loads up to nine distinct key slots and deduplicates repeated values", () => {
+    const names = ["POOL_RELAY_API_KEY", ...Array.from({ length: 8 }, (_, index) => `POOL_RELAY_API_KEY_${index + 2}`)];
+    const previous = names.map((name) => process.env[name]);
+    try {
+      names.forEach((name, index) => { process.env[name] = `slot-key-${index + 1}`; });
+      process.env.POOL_RELAY_API_KEY_9 = process.env.POOL_RELAY_API_KEY;
+      const provider = loadPoolFromEnv().find((item) => item.id === "relay");
+      assert.equal(provider.keys.length, 8);
+      assert.equal(new Set(provider.keys.map((key) => key.apiKey)).size, 8);
+    } finally {
+      names.forEach((name, index) => {
+        if (previous[index] === undefined) delete process.env[name];
+        else process.env[name] = previous[index];
+      });
+      reloadPool();
+    }
+  });
+
   await t.test("sends Responses input and normalizes output_text and token usage", async () => {
     let request;
     globalThis.fetch = async (url, init) => {
