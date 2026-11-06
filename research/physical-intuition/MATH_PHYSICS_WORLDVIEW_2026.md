@@ -1,12 +1,12 @@
 # 数学—物理观与数学层级观：证据、边界和 AI 时代的制度设计
 
-**版本**：1.1（2026-11-06；初稿 2026-10-26）
+**版本**：1.2（2026-11-07；初稿 2026-10-26）
 **性质**：批判性综述、方法论框架与仓库整改依据；不是新的物理统一理论
 **配套文档**：`TOE_RESEARCH_ATLAS_2026.md`、`CNF_RESTRUCTURING_2026.md`、`62_mathematical_hierarchy_emergence.md`
 
 > 本文把“内部数学真理”“物理模型的适用性”“研究组织的资源分配”分开。文中使用“已核实”只表示已读取所指来源的相关部分，不表示独立证明了来源中的全部定理，更不表示独立复现了其实验。
 
-## 摘要与十三项结论
+## 摘要与十四项结论
 
 1. 知乎文章《唱唱反调……解决了一个寂寞》对王虹—Zahl 定理的转述有误：满 Hausdorff/Minkowski 维数不是正 Lebesgue 测度，也不是覆盖整个空间；单个零测度对象的并集不必仍为零测度。文章没有据此推翻挂谷定理。
 2. “数学规则不再全域有效”必须拆成两句：定理可以在公理系统内全域有效；物理映射只在声明的对象、尺度、近似和测量协议内有效。越界失败首先否定映射，不是否定定理。
@@ -21,6 +21,7 @@
 11. 没有一般定理证明某一种 TOE 永远不能吞并其他 TOE，也没有定理保证最终统一。真正可操作的是比较低能极限、可观测量、自由参数、近似域和区分性预言。
 12. 跨学科应采用接口联邦而不是概念帝国：统一标识、单位、数据协议、不确定度和证据门槛，不要求所有领域共享一个拉格朗日量或一个“熵”。
 13. 观测检验的对象是写清辅助假设、参数和系统误差的联合模型，而不是一个理论标签。CMB 可以否证明确的联合模型及其参数区域，但不能单独排除“暗物质”这个总类，更不能代替粒子探测。
+14. 多探针结果不能按实验数量或显著性数字简单累加。ACT、SPT 与 Planck 的联合透镜同原初 CMB 相容，DESI DR2 与 CMB 则存在数据和模型相关的轻中度张力；部分替代引力也能兼容线性 CMB。下一步应比较完整似然和系统误差，而不是投票决定理论真伪。
 
 ---
 
@@ -621,6 +622,55 @@ CMB lensing 则提供了另一种观测量：CMB 光子在传播中受前景大�
 
 ---
 
+## 15. 联合证据网：哪些假设相容，哪些假设正在承压
+
+### 15.1 当前数据不是一条单向证明链
+
+只引用 Planck 的基线相容性，会把后续实验写成多余的重复确认；只引用某一项张力，又会把标准模型写成已经失效。更准确的表述是：标准模型在多个高精度数据通道中继续提供强约束，同时，不同数据组合正在暴露与数据选择、似然和模型扩展方式有关的轻中度张力。
+
+| 原始研究 | 与本文相关的实际结果 | 不能被误写成的结论 |
+|---|---|---|
+| ACT DR6 功率谱 | CMB 与前景组成的谱可被 ΛCDM 描述；给出 \(\Omega_c h^2=0.118\pm0.001\)，未发现超额透镜或偏离空间平坦的证据。[R16] | 所有扩展模型和系统误差均已被排除 |
+| SPT-3G D1 | 参数与 Planck、ACT DR6 相容；CMB 单独未显示超出 ΛCDM 的证据，但 CMB 与 DESI DR2 BAO 在 ΛCDM 内存在 \(2.8\sigma\) 差异。[R17] | CMB 与 BAO 在所有分析中都必然一致 |
+| ACT＋SPT＋Planck 联合透镜 | 联合带功率信噪比为 61，\(A_{\rm lens}^{\rm recon}=1.025\pm0.017\)，并与原初 CMB 的 ΛCDM 拟合相容。[R18] | “61σ 证明暗物质粒子” |
+| DESI DR2 BAO | 距离—红移关系可由平坦 ΛCDM 描述，但与 CMB 参数存在 \(2.3\sigma\) 的轻度张力；引入 \(w_0w_a\) 后拟合改善。[R19] | 仅凭一个显著性数字就宣布新物理或已知系统误差 |
+
+这些结果并不是互相“打脸”。它们分别使用不同天空覆盖、频段、观测量、数据选择、前景和校准模型；同时，又共享一部分物理模板和系统假设。正确做法不是挑选最符合立场的一篇，而是恢复每项分析的数据与模型边界。
+
+### 15.2 联合透镜增强了什么，又没有增强什么
+
+ACT、SPT 与 Planck 的联合透镜分析把多个高统计功率的透镜数据联合起来，得到目前最精确的 CMB 透镜带功率之一，并进一步约束结构增长。这里最值得注意的是：**早期原初 CMB 与晚期大尺度结构引力势可以在同一套模型中交叉检验**，而不是只核对某一条经验公式。[R18]
+
+但信噪比 61 是对透镜带功率测量的统计描述，不是对“暗物质粒子存在”的 61σ 判定。\(A_{\rm lens}^{\rm recon}\) 又是相对于 Planck–ACT 最佳拟合宇宙学理论预测的幅度，不能脱离该参照系当成无模型常数。不同实验可以提供独立的仪器、观测区域和系统检查，却仍可能共享校准、前景模型、理论先验及数据相关部分。因而“实验数量”不等于“独立证明数量”，显著性也不能按数目相乘。
+
+ACT DR6 在功率谱分析中给出 \(\Omega_c h^2=0.118\pm0.001\)，与 Planck 的 \(0.120\pm0.001\) 共同表明，在各自联合模型下，冷暗物质成分的约束具有稳健性。它增强了标准模型所需成分的可信度，却仍没有鉴定该成分的微观粒子身份。[R14][R16]
+
+### 15.3 DESI 的张力应当怎样解释
+
+DESI DR2 的结果需要同时保留两句话：其 BAO 距离—红移关系与平坦 ΛCDM 相容，但与 CMB 参数存在 \(2.3\sigma\) 的轻度张力。把时间演化的暗能量方程写为 \(w_0w_a\) 模型后，数据拟合改善；在 DESI BAO 与 CMB 的组合下，偏好为 \(3.1\sigma\)，加入不同超新星样本后为 \(2.8\sigma\) 至 \(4.2\sigma\)。原论文也明确保留了“未知系统误差”这一可能。[R19]
+
+另一项 DESI DR2 暗能量分析使用形状函数和非参数方法，同样得到随红移变化的暗能量状态方程及约 \(3\sigma\) 的模型比较支持，并把剩余系统误差列为继续研究的问题。[R20] SPT-3G D1 则报告 CMB 与 DESI DR2 BAO 在 ΛCDM 内的 \(2.8\sigma\) 差异，而 ACT DR6 报告 P-ACT 与 DESI DR2 参数在 \(1.6\sigma\) 水平相容。[R16][R17]
+
+这些数字不能相加或简单平均成一个“总显著性”。它们共享 DESI 数据，并使用不同的距离先验、超新星样本、模型参数化和分析管线。张力更适合被理解为**哪些辅助假设正在承压的地图**：是曲率、透镜幅度、暗能量方程、复合史，还是某些数据处理与校准，而不是“标准模型赢／输”的单一比分。
+
+### 15.4 为什么替代引力也不能被一句话排除
+
+Famaey 与 McGaugh 对 MOND 的综述把质量缺失的可能解释分为不可见质量、相关尺度上的动力学失效，或两者兼有，并系统梳理了 MOND 的观测成功、困难及多种相对论嵌入。它提醒我们：星系尺度的 MOND 唯象关系与某个完整的相对论宇宙学并不是同一个命题。[R21]
+
+一个具体反例可以说明“CMB 相容”与“必须完全是 GR＋粒子暗物质”并不等价。Blanchet 与 Skordis 的 Khronon 理论在星系尺度呈现 MOND 行为，在强场区域恢复 GR＋宇宙学常数，并在线性宇宙学尺度上落入广义暗物质模型的一个子集，从而与标准 CMB 各向异性相容。该论文同时报告了小波数处哈密顿量无下界的问题，因此其稳定性与适用范围仍需另行审查，不能只凭“CMB 一致”就宣布理论完成。[R22]
+
+这意味着 CMB 的强约束与替代理论的存在并不矛盾。真正的比较对象必须包括：粒子组成、时空动力学、线性扰动、非线性结构形成、引力透镜、星系动力学以及各自的有效范围。某个替代理论若能重现标准 CMB，只能证明它通过了这一项检查，不能证明它在所有尺度都正确；反过来，某个替代模型在特定尺度失败，也不能自动推广为一切修改引力都失败。
+
+### 15.5 下一项有判别力的研究议程
+
+1. **统一数据与先验后再比较**：使用公开似然，在相同数据版本、前景模型、参数先验和显著性口径下比较基线与替代模型，不只比较摘要中的 \(H_0\)、\(\sigma_8\) 或 χ²。
+2. **一次只改变一类机制**：分别检查曲率、透镜幅度、暗能量方程、复合史和系统误差，保留一个无新机制的空模型，避免同时引入足够多自由度直到任何数据都能拟合。
+3. **对无 CDM 模型执行全域检验**：同一套动力学和参数必须同时面对 CMB、BAO、透镜、结构形成、星系动力学及必要的太阳系约束，禁止按领域选择最有利的一项。
+4. **保留负结果与未决项**：把负结果、近 miss、数据不兼容和无法判定分别登记；新数据复验前，不把轻中度张力升级为定论，也不把它降为噪声。
+5. **让 AI 管理判别流程而非投赞成票**：模型可以帮助恢复似然、追踪参数和生成反例，但物理直觉的价值应体现在选择最能区分模型的下一项观测，而不是让多个语言模型重复同一个结论。
+
+---
+
 ## 参考来源
 
 - **[R1]** Hong Wang & Joshua Zahl, *Volume estimates for unions of convex sets, and the Kakeya set conjecture in three dimensions*, arXiv:2502.17655，重点为摘要、定理 1.1、定理 1.2 及其后限定说明。<https://arxiv.org/abs/2502.17655>
@@ -638,3 +688,10 @@ CMB lensing 则提供了另一种观测量：CMB 光子在传播中受前景大�
 - **[R13]** Ram Zamir 及后续文献关于 Fisher 信息的数据处理不等式，强调参数无关通道的前提。<https://arxiv.org/abs/cs/0604028>
 - **[R14]** Planck Collaboration, *Planck 2018 results. VI. Cosmological parameters*，摘要及联合模型、参数和 CMB 温度／偏振／透镜约束。<https://arxiv.org/abs/1807.06209>
 - **[R15]** Planck Collaboration, *Planck 2018 results. VIII. Gravitational lensing*，CMB 透镜势测量、系统检查及其与功率谱在 ΛCDM 内的一致性。<https://arxiv.org/abs/1807.06210>
+- **[R16]** Thibaut Louis et al., *The Atacama Cosmology Telescope: DR6 power spectra, likelihoods and ΛCDM parameters*，ACT 功率谱、参数、平坦性与透镜检查。<https://arxiv.org/abs/2503.14452>
+- **[R17]** E. Camphuis et al., *SPT-3G D1: CMB temperature and polarization power spectra and cosmology from 2019 and 2020 observations of the SPT-3G Main field*，SPT 参数、CMB 与 DESI DR2 的比较。<https://arxiv.org/abs/2506.20707>
+- **[R18]** Frank J. Qu et al., *Unified and consistent structure growth measurements from joint ACT, SPT and Planck CMB lensing*，联合透镜带功率、结构增长及其与原初 CMB 的一致性。<https://arxiv.org/abs/2504.20038>
+- **[R19]** DESI Collaboration, *DESI DR2 Results II: Measurements of Baryon Acoustic Oscillations and Cosmological Constraints*，BAO、CMB 张力、动态暗能量及系统误差边界。<https://arxiv.org/abs/2503.14738>
+- **[R20]** Gan Gu et al., *Dynamical Dark Energy in light of the DESI DR2 Baryonic Acoustic Oscillations Measurements*，形状函数、非参数重建、模型比较及剩余系统误差。<https://arxiv.org/abs/2504.06118>
+- **[R21]** B. Famaey and S. S. McGaugh, *Modified Newtonian dynamics (MOND): observational phenomenology and relativistic extensions*，MOND 的观测成功、困难及多种相对论嵌入。<https://arxiv.org/abs/1112.3960>
+- **[R22]** Luc Blanchet and Constantinos Skordis, *Relativistic Khronon Theory in agreement with Modified Newtonian Dynamics and Large-Scale Cosmology*，MOND 行为、强场极限、线性 CMB 相容性及小波数稳定性警告。<https://arxiv.org/abs/2404.06584>
