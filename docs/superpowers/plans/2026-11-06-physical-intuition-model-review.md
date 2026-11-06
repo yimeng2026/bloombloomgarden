@@ -573,12 +573,49 @@ Run both new test files and TypeScript. Expected: six new tests pass in total, T
 
 **Files:**
 - Create: `scripts/physical-intuition-model-review.mjs`
+- Test: `tests/physical-intuition-live-cli.test.mjs`
 
 **Interfaces:**
 - Consumes: the real `researchChat`, `proposeIntuitionWithModel`, and `saveModelProposalReport`.
 - Produces: one local append-only report with real provider metadata and raw final opinions. Console output excludes raw opinions and credentials.
 
-- [ ] **Step 1: Add an explicit-cost guard and bounded live script**
+- [ ] **Step 1: Write the failing no-cost guard test**
+
+Create `tests/physical-intuition-live-cli.test.mjs`:
+
+```js
+import assert from "node:assert/strict";
+import test from "node:test";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+
+test("live CLI refuses billable calls without --live and creates no audit", (t) => {
+  const directory = `.tmp/physical-intuition-live-guard-${process.pid}`;
+  const previous = process.env.PHYSICAL_INTUITION_AUDIT_DIR;
+  fs.rmSync(directory, { recursive: true, force: true });
+  t.after(() => {
+    if (previous === undefined) delete process.env.PHYSICAL_INTUITION_AUDIT_DIR;
+    else process.env.PHYSICAL_INTUITION_AUDIT_DIR = previous;
+    fs.rmSync(directory, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+  });
+  const result = spawnSync(process.execPath, [
+    "--experimental-transform-types",
+    "--import", "./tests/register-ts.mjs",
+    "scripts/physical-intuition-model-review.mjs",
+  ], {
+    cwd: process.cwd(),
+    env: { ...process.env, PHYSICAL_INTUITION_AUDIT_DIR: directory },
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Refusing a billable model call without the explicit --live flag/);
+  assert.equal(fs.existsSync(directory), false);
+});
+```
+
+Run this test and confirm it fails because `scripts/physical-intuition-model-review.mjs` does not exist yet.
+
+- [ ] **Step 2: Add an explicit-cost guard and bounded live script**
 
 Create `scripts/physical-intuition-model-review.mjs`:
 
@@ -635,17 +672,11 @@ console.log(JSON.stringify({
 }, null, 2));
 ```
 
-- [ ] **Step 2: Verify the no-cost guard**
+- [ ] **Step 3: Verify the no-cost guard**
 
-Run:
+Run the guard test from Step 1. Expected: one test passes, the child exits non-zero with the explicit `--live` error, and no model call or audit file occurs.
 
-```bash
-node --experimental-transform-types --import ./tests/register-ts.mjs scripts/physical-intuition-model-review.mjs
-```
-
-Expected: non-zero exit with the explicit `--live` error; no model call and no audit file.
-
-- [ ] **Step 3: Run one bounded live demonstration**
+- [ ] **Step 4: Run one bounded live demonstration**
 
 Run:
 
@@ -655,7 +686,7 @@ node --env-file=.env.local --experimental-transform-types --import ./tests/regis
 
 Expected: exactly three attempted roles, one new local JSON audit, and no raw opinions or credentials in console output. `complete` is reported only if all calls finish normally and the proposal parses; failures remain an honestly recorded `partial` audit.
 
-- [ ] **Step 4: Run complete verification**
+- [ ] **Step 5: Run complete verification**
 
 ```bash
 node --experimental-transform-types --import ./tests/register-ts.mjs --test tests/*.test.mjs
@@ -668,11 +699,11 @@ node scripts/generate-kimi-operations.mjs --check
 git diff --check
 ```
 
-Expected: 99 Node/protocol tests, 58 project tests, six protocol scenarios, 457 operations, and clean TypeScript, ESLint, production build, and diff checks.
+Expected: 100 Node/protocol tests, 58 project tests, six protocol scenarios, 457 operations, and clean TypeScript, ESLint, production build, and diff checks.
 
-- [ ] **Step 5: Review, commit, and push**
+- [ ] **Step 6: Review, commit, and push**
 
-Review the live report's metadata and ensure `git status --short` contains no local audit or credential file. Commit only `scripts/physical-intuition-model-review.mjs` with `feat: demonstrate live physical intuition review`, then `git push origin HEAD`. Verify the remote branch tip equals local HEAD. Keep the worktree for the next calibration and distillation-preparation stage.
+Review the live report's metadata and ensure `git status --short` contains no local audit or credential file. Commit only the revised plan, `scripts/physical-intuition-model-review.mjs`, and `tests/physical-intuition-live-cli.test.mjs` with `feat: demonstrate live physical intuition review`, then `git push origin HEAD`. Verify the remote branch tip equals local HEAD. Keep the worktree for the next calibration and distillation-preparation stage.
 
 ## Explicitly Outside This Plan
 
