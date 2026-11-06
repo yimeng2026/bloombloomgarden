@@ -1,25 +1,26 @@
 # 数学—物理观与数学层级观：证据、边界和 AI 时代的制度设计
 
-**版本**：1.0（2026-10-26）
+**版本**：1.1（2026-11-06；初稿 2026-10-26）
 **性质**：批判性综述、方法论框架与仓库整改依据；不是新的物理统一理论
 **配套文档**：`TOE_RESEARCH_ATLAS_2026.md`、`CNF_RESTRUCTURING_2026.md`、`62_mathematical_hierarchy_emergence.md`
 
 > 本文把“内部数学真理”“物理模型的适用性”“研究组织的资源分配”分开。文中使用“已核实”只表示已读取所指来源的相关部分，不表示独立证明了来源中的全部定理，更不表示独立复现了其实验。
 
-## 摘要与十二项结论
+## 摘要与十三项结论
 
 1. 知乎文章《唱唱反调……解决了一个寂寞》对王虹—Zahl 定理的转述有误：满 Hausdorff/Minkowski 维数不是正 Lebesgue 测度，也不是覆盖整个空间；单个零测度对象的并集不必仍为零测度。文章没有据此推翻挂谷定理。
 2. “数学规则不再全域有效”必须拆成两句：定理可以在公理系统内全域有效；物理映射只在声明的对象、尺度、近似和测量协议内有效。越界失败首先否定映射，不是否定定理。
 3. 没有证据表明数学已经不再是描述世界的最简语言。“最简”依赖编码、误差、计算预算、外推目标和可理解性；它是多目标选择，不是绝对本体论标签。
 4. 数学中的逻辑强度层级、对象抽象层级、计算复杂度层级、物理有效理论层级、社会生产成本层级都有各自根据，但不存在一个把它们自然熔成唯一阶梯的已知科学定律。
 5. “数学层级与证明费用成正比”不成立为普遍命题。更强的形式系统有时能大幅缩短证明；搜索、形式化、命题忠实性审查和独立复核又是不同成本。
-6. OpenAI 当前官方目录为 719 篇、372 个成果族，官方报告约 42% 的 top-line results 有 Lean 形式化；最初 722 篇中的 3 篇已撤回。数量不是全部正确的证明，更不是完整成本审计。
+6. OpenAI 当前官方目录为 721 篇、373 个成果族，官方报告约 42% 的 top-line results 有 Lean 形式化。数量不是全部正确的证明，更不是完整成本审计。[R7]
 7. 高阶级数发散不是数学失效，也不自动带来物理信息。它可以是渐近展开；最佳截断、Borel 求和和 resurgence 在特定条件下有用，但一般需要额外的解析与非微扰信息。
 8. AI 若能廉价生成高阶项，人类“优雅”应更多指结构识别、误差控制、可迁移解释和提出好问题；物理直觉应被登记为可校准、可否证的模型选择启发式，而非不可讨论的灵感权威。
 9. 本仓库 CNF 指 Causal Network Field（因果网络场），是项目自定义研究框架，不是学界统一定义，也不是合取范式。现有材料不足以把 CNF 认定为完整的统一物理理论，但其因果网络、计算接口和证据治理可以保留。
 10. “TOE→综述→CNF”能形成研究地图，也易产生语义吞并、确认偏误和已知理论重述。应改为“定点问题与基线→最弱抽象→判别实验→反向综述”的闭环。
 11. 没有一般定理证明某一种 TOE 永远不能吞并其他 TOE，也没有定理保证最终统一。真正可操作的是比较低能极限、可观测量、自由参数、近似域和区分性预言。
 12. 跨学科应采用接口联邦而不是概念帝国：统一标识、单位、数据协议、不确定度和证据门槛，不要求所有领域共享一个拉格朗日量或一个“熵”。
+13. 观测检验的对象是写清辅助假设、参数和系统误差的联合模型，而不是一个理论标签。CMB 可以否证明确的联合模型及其参数区域，但不能单独排除“暗物质”这个总类，更不能代替粒子探测。
 
 ---
 
@@ -557,6 +558,67 @@ node --experimental-transform-types --import ./tests/register-ts.mjs scripts/phy
 
 ---
 
+## 14. 案例研究：CMB 与“暗物质能否被证伪”
+
+### 14.1 先区分总类、联合模型与参数区域
+
+“CMB 能否证伪暗物质理论”至少包含三个不同命题：
+
+1. 仅凭 CMB，排除所有可能被称为暗物质或替代暗物质的物理机制；
+2. 检验一个写清动力学、辅助假设、参数先验和系统误差的联合模型；
+3. 在同一模型族内排除某个参数区域。
+
+第一个命题通常没有唯一可计算的似然。仅说“没有暗物质”并没有规定时空动力学、原初扰动、复合史和观测映射，无法唯一计算 \(P(D\mid M)\)。第二、三个命题则可以接受实际检验，但被排除的首先是所声明的模型或参数区域，不是整个概念总类。这里不存在一句“CMB 能”或“CMB 不能”可以无条件覆盖所有情形的答案。
+
+本节把联合模型写成
+
+\[
+M=(\mathcal H,\Theta,\mathcal A,\mathcal S),
+\]
+
+其中 \(\mathcal H\) 是动力学与观测映射，\(\Theta\) 是参数及其先验，\(\mathcal A\) 是原初扰动、复合史、宇宙学背景等辅助假设，\(\mathcal S\) 是前景、波束、校准、噪声和数据处理等系统模型。观测所检验的是四者共同组成的对象，而不是“暗物质”三个字。
+
+### 14.2 一个可执行的否证协议
+
+以六参数 base-\(\Lambda\)CDM 为基线 \(M_0\) 时，应明确其平坦背景、广义相对论、标准复合史、冷暗物质和绝热功率律原初扰动等条件。另一个候选 \(M_1\) 也必须写出自己的完整动力学与参数空间，不能把“不要暗物质”当作一个已经定义完成的模型。
+
+一个可复核流程是：
+
+1. **前瞻冻结**：在拟合前固定 \(M_0\)、\(M_1\)、参数先验、系统误差模型、待比较观测量与否决阈值。
+2. **分轨比较**：分别检查 TT／TE／EE、低多极偏振与 CMB lensing 所约束的声学峰、阻尼尾和透镜势功率谱，而不是只看一张经过筛选的图。
+3. **全成本拟合**：比较两个模型各自最佳参数区域的预测，同时记录参数、计算、系统误差和模型复杂度成本。下式可作为诊断量之一：
+
+   \[
+   \Delta\chi^2=\min_{\theta_1\in\Theta_1}\chi^2_{M_1}(\theta_1)-\min_{\theta_0\in\Theta_0}\chi^2_{M_0}(\theta_0).
+   \]
+
+   它不能单独充当普适证伪器。模型是否嵌套、参数是否位于边界、先验如何设定、系统误差如何校准，都会改变显著性解释；后验预测检查、信息准则和独立留出也不能被一枚 χ² 数字替代。
+4. **独立复验**：检查前景、波束、校准和数据处理是否可能制造残差，再用独立仪器、独立分析管线或预留数据复验。独立仪器不自动意味着独立理论假设，两者都要登记。
+5. **限定结论**：若在预定统计标准下 \(M_1\) 的最佳参数区域仍不能产生观测，而 \(M_0\) 可以，则排除的是 \(M_1\) 的这个具体联合模型或参数区域。若更换为相互作用、衰变、温暗物质或修改引力模型，必须重新定义并重新检验，不能把旧模型的失败顺手推广为整个理论总类的失败。
+
+### 14.3 CMB 提供的是哪一类证据
+
+Planck 2018 的结果为这个边界提供了具体例子。其温度、偏振和透镜测量分别及联合都与空间平坦的六参数 base-\(\Lambda\)CDM 保持良好一致，并在该联合模型下给出 \(\Omega_c h^2=0.120\pm0.001\)（68% 置信区间）。这支持的是“在这套物理和系统模型下，冷暗物质成分及其引力效应具有明确观测约束”，不是“CMB 单独鉴定了暗物质粒子”。[R14]
+
+CMB lensing 则提供了另一种观测量：CMB 光子在传播中受前景大尺度结构引力影响，研究者可以重建透镜势及其功率谱。光路被偏折并不等于信息必然失效；只要传播过程与系统误差能够建模，偏折本身也可以成为信息来源。Planck 的透镜分析与 CMB 功率谱在 \(\Lambda\)CDM 内表现出一致性，但这仍不是独立于模型假设的粒子鉴定，也不是独立于所有系统误差的绝对判决。[R15]
+
+因此，CMB 的角色应写成：**约束联合模型、暴露不相容参数区域、提供不同观测通道之间的交叉检查**。它不能替代表面直接探测、对撞机或地下实验，也不能把“在 base-\(\Lambda\)CDM 中所需”直接翻译成“已经知道暗物质的全部微观本质”。
+
+### 14.4 对参数内生与物理直觉的约束
+
+这个案例也限制了“所有参数内生”的正确含义。基本理论中的物理参数应尽量对应明确实体、动力学关系及独立约束，不能用无实体的自由参数逐段拟合数据；但仪器响应、前景和校准等 nuisance 参数同样不能假装不存在。它们不是新的基本常数，而是测量模型的一部分，必须拥有仪器或系统层面的含义、先验和独立校准。
+
+由此得到四条对直觉引擎的硬约束：
+
+- 不用单段数据的优良拟合替代跨数据集的规则成立；
+- 不用增加无对应实体的参数替代新机制；
+- 不用同一数据同时构造候选并宣布独立验证；
+- 不用某个联合模型的成功或失败，升级为对整个理论总类的全称判断。
+
+物理直觉在这里不是“暗物质一定存在”或“暗物质一定不存在”的立场，而是帮助研究者选择**哪一组联合模型、哪一个观测量、哪一种系统误差和哪一项独立复验最值得优先投入**。这正是可校准直觉与不可讨论灵感的分界。
+
+---
+
 ## 参考来源
 
 - **[R1]** Hong Wang & Joshua Zahl, *Volume estimates for unions of convex sets, and the Kakeya set conjecture in three dimensions*, arXiv:2502.17655，重点为摘要、定理 1.1、定理 1.2 及其后限定说明。<https://arxiv.org/abs/2502.17655>
@@ -565,10 +627,12 @@ node --experimental-transform-types --import ./tests/register-ts.mjs scripts/phy
 - **[R4]** Eugene Wigner, *The Unreasonable Effectiveness of Mathematics in the Natural Sciences* (1960)，NASA/IPAC 转载全文，含理论唯一性、条件性和有限范围讨论。<https://ned.ipac.caltech.edu/level5/March02/Wigner/Wigner.html>
 - **[R5]** Peter Grünwald, *A Tutorial Introduction to the Minimum Description Length Principle*，含 MDL、模型类与编码问题。<https://homepages.cwi.nl/~paulv/course-kc/mdlintro.pdf>
 - **[R6]** *Introduction to universality and renormalization group techniques*, arXiv:1210.2262；以及 Renormalization Group/EFT 相关综述。本文只据此支持条件化的尺度与普适性讨论。<https://arxiv.org/abs/1210.2262>
-- **[R7]** OpenAI, `openai/math` README，当前目录、形式化口径、问题数与平均算力说明；本轮读取时最新列出提交为 `1581d4cbdd69a0faf34b2089614fe2a814316a6a`。<https://github.com/openai/math/blob/1581d4cbdd69a0faf34b2089614fe2a814316a6a/README.md>
+- **[R7]** OpenAI, `openai/math` README；2026-11-06 读取时目录为 721 篇、373 个成果族，约 42% 的 top-line results 有 Lean 形式化，另含问题数与平均算力说明。<https://github.com/openai/math>
 - **[R8]** OpenAI, `openai/math` `history.md`，2026-10-07 撤回、修订和形式化记录。<https://github.com/openai/math/blob/1581d4cbdd69a0faf34b2089614fe2a814316a6a/history.md>
 - **[R9]** OpenAI, *Sharing AI progress in mathematics*，关于发布方式、独立咨询和算力类比。<https://openai.com/index/sharing-ai-progress-in-mathematics/>
 - **[R10]** S. Cavagnetto, *The Lengths of Proofs: Kreisel’s conjecture and Gödel’s speed-up theorem* (2008)；MathOverflow 的相关讨论仅作辅助。<https://www.mathnet.ru/rus/znsl2150>
 - **[R11]** *Leiden Declaration on Artificial Intelligence and Mathematics*, arXiv:2609.35334，核心价值、威胁和复核建议。<https://arxiv.org/html/2609.35334v2>
 - **[R12]** Marcos Mariño, *An introduction to resurgence in quantum theory*，渐近级数、最佳截断、Borel 求和、transseries 与非微扰信息。<https://www.marcosmarino.net/uploads/1/3/3/5/133535336/resurgence-course.pdf>
 - **[R13]** Ram Zamir 及后续文献关于 Fisher 信息的数据处理不等式，强调参数无关通道的前提。<https://arxiv.org/abs/cs/0604028>
+- **[R14]** Planck Collaboration, *Planck 2018 results. VI. Cosmological parameters*，摘要及联合模型、参数和 CMB 温度／偏振／透镜约束。<https://arxiv.org/abs/1807.06209>
+- **[R15]** Planck Collaboration, *Planck 2018 results. VIII. Gravitational lensing*，CMB 透镜势测量、系统检查及其与功率谱在 ΛCDM 内的一致性。<https://arxiv.org/abs/1807.06210>
