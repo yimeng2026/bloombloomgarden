@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import fs from "node:fs";
+import { buildProtocolFollowupAudit } from "../src/lib/protocol-followup-audit.ts";
 import { buildProtocolFollowups } from "../src/lib/protocol-followups.ts";
 import {
   readProtocolFollowupAudit,
   readProtocolFollowupBaseline,
+  saveProtocolFollowupAudit,
   validateProtocolFollowupBaseline,
 } from "../src/lib/protocol-followup-audit-store.ts";
 
@@ -61,5 +63,66 @@ test("baseline validation rejects cross-request and duplicate semantic fingerpri
 test("audit reader rejects a missing record before any write occurs", (t) => {
   const directory = auditStoreEnvironment(t);
   assert.throws(() => readProtocolFollowupAudit("missing.json"), /ENOENT/);
+  assert.equal(fs.existsSync(directory), false);
+});
+
+function auditRecord() {
+  const { request, baseline } = storeFixture();
+  return buildProtocolFollowupAudit({
+    request,
+    baseline,
+    baselinePath: "data/protocol-followups/audit-store-fixture.json",
+    createdAt: "2026-11-06T02:00:00.000Z",
+  });
+}
+
+test("save publishes a verifiable record that can be read back", (t) => {
+  auditStoreEnvironment(t);
+  const record = auditRecord();
+  const before = JSON.stringify(record);
+  const saved = saveProtocolFollowupAudit(record);
+  assert.equal(saved.created, true);
+  assert.equal(saved.record.evidenceUpgrade, false);
+  assert.equal(fs.existsSync(saved.path), true);
+  const loaded = readProtocolFollowupAudit(`${record.requestId}-${record.auditKey}.json`);
+  assert.equal(loaded.record.auditKey, record.auditKey);
+  assert.equal(JSON.stringify(record), before);
+});
+
+test("valid repeated saves are idempotent and preserve content and modification time", (t) => {
+  auditStoreEnvironment(t);
+  const record = auditRecord();
+  const first = saveProtocolFollowupAudit(record);
+  const content = fs.readFileSync(first.path, "utf8");
+  const mtime = fs.statSync(first.path).mtimeMs;
+  const second = saveProtocolFollowupAudit(record);
+  assert.equal(second.created, false);
+  assert.equal(fs.readFileSync(first.path, "utf8"), content);
+  assert.equal(fs.statSync(first.path).mtimeMs, mtime);
+});
+
+test("tampered or invalid existing records cause conflict and are never overwritten", (t) => {
+  auditStoreEnvironment(t);
+  const record = auditRecord();
+  const saved = saveProtocolFollowupAudit(record);
+  const tampered = JSON.parse(fs.readFileSync(saved.path, "utf8"));
+  tampered.deterministicResult.followups[0].ask = "tampered on disk";
+  fs.writeFileSync(saved.path, JSON.stringify(tampered));
+  const tamperedContent = fs.readFileSync(saved.path, "utf8");
+  assert.throws(() => saveProtocolFollowupAudit(record), /conflict|replay/i);
+  assert.equal(fs.readFileSync(saved.path, "utf8"), tamperedContent);
+  fs.writeFileSync(saved.path, "not JSON");
+  assert.throws(() => saveProtocolFollowupAudit(record), /conflict|JSON/i);
+  assert.equal(fs.readFileSync(saved.path, "utf8"), "not JSON");
+});
+
+test("unsafe directories and secret-like content are rejected without creating files", (t) => {
+  const directory = auditStoreEnvironment(t);
+  const record = auditRecord();
+  process.env.PROTOCOL_FOLLOWUP_AUDIT_DIR = "../outside-audit";
+  assert.throws(() => saveProtocolFollowupAudit(record), /relative directory|inside the project/);
+  process.env.PROTOCOL_FOLLOWUP_AUDIT_DIR = directory;
+  const secretRecord = { ...record, sourceRevision: `sk-${"x".repeat(24)}` };
+  assert.throws(() => saveProtocolFollowupAudit(secretRecord), /secret/i);
   assert.equal(fs.existsSync(directory), false);
 });

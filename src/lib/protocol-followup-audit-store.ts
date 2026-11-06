@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { verifyProtocolFollowupAudit, type ProtocolFollowupAudit } from "./protocol-followup-audit";
@@ -56,4 +57,64 @@ export function readProtocolFollowupAudit(filename: string): { record: ProtocolF
   const record = JSON.parse(fs.readFileSync(target, "utf8")) as ProtocolFollowupAudit;
   verifyProtocolFollowupAudit(record);
   return { record, path: relativeProjectPath(target) };
+}
+
+export function assertNoAuditSecrets(serialized: string): void {
+  const patterns = [
+    /\bsk-[A-Za-z0-9_-]{16,}/,
+    /\bghp_[A-Za-z0-9]{20,}/,
+    /\bgithub_pat_[A-Za-z0-9_]{20,}/,
+    /\bBearer\s+[A-Za-z0-9._-]{16,}/i,
+  ];
+  if (patterns.some((pattern) => pattern.test(serialized))) {
+    throw new Error("Potential secret material detected; audit was not written");
+  }
+}
+
+function existingAudit(target: string, auditKey: string): { record: ProtocolFollowupAudit; path: string; created: false } {
+  try {
+    const record = JSON.parse(fs.readFileSync(target, "utf8")) as ProtocolFollowupAudit;
+    verifyProtocolFollowupAudit(record);
+    if (record.auditKey !== auditKey) throw new Error("Existing audit key differs from the requested record");
+    return { record, path: relativeProjectPath(target), created: false };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Existing audit conflict: ${message}`);
+  }
+}
+
+export function saveProtocolFollowupAudit(record: ProtocolFollowupAudit): {
+  record: ProtocolFollowupAudit;
+  path: string;
+  created: boolean;
+} {
+  verifyProtocolFollowupAudit(record);
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(record.requestId)) throw new Error("Invalid audit requestId");
+  if (!/^[a-f0-9]{64}$/.test(record.auditKey)) throw new Error("Invalid audit key format");
+  const serialized = `${JSON.stringify(record, null, 2)}\n`;
+  assertNoAuditSecrets(serialized);
+  const directory = protocolAuditDirectory();
+  const target = path.join(directory, `${record.requestId}-${record.auditKey}.json`);
+  if (fs.existsSync(target)) return existingAudit(target, record.auditKey);
+
+  fs.mkdirSync(directory, { recursive: true });
+  const temporary = `${target}.${process.pid}.${randomUUID()}.tmp`;
+  let descriptor: number | undefined;
+  try {
+    descriptor = fs.openSync(temporary, "wx");
+    fs.writeFileSync(descriptor, serialized, "utf8");
+    fs.fsyncSync(descriptor);
+    fs.closeSync(descriptor);
+    descriptor = undefined;
+    try {
+      fs.linkSync(temporary, target);
+      return { record, path: relativeProjectPath(target), created: true };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "EEXIST") return existingAudit(target, record.auditKey);
+      throw error;
+    }
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+    fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+  }
 }
