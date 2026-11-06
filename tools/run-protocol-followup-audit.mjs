@@ -1,13 +1,21 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
-import { buildProtocolFollowupAudit } from "../src/lib/protocol-followup-audit.ts";
-import { readProtocolFollowupBaseline, saveProtocolFollowupAudit } from "../src/lib/protocol-followup-audit-store.ts";
+import {
+  buildProtocolFollowupAudit,
+  checkProtocolFollowupAuditDrift,
+  verifyProtocolFollowupAudit,
+} from "../src/lib/protocol-followup-audit.ts";
+import {
+  readProtocolFollowupAudit,
+  readProtocolFollowupBaseline,
+  saveProtocolFollowupAudit,
+} from "../src/lib/protocol-followup-audit-store.ts";
 import { getProtocolRequest } from "../src/lib/protocol-requests.ts";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 process.chdir(ROOT);
 
-const OPTIONS = new Set(["--request-id", "--baseline"]);
+const OPTIONS = new Set(["--request-id", "--baseline", "--verify", "--check-current"]);
 
 function parseArguments(values) {
   const parsed = {};
@@ -46,9 +54,27 @@ function main() {
   const args = parseArguments(process.argv.slice(2));
   const requestId = args["--request-id"];
   const baselineName = args["--baseline"];
-  if (!requestId || !baselineName) {
-    throw new Error("Generation mode requires both --request-id and --baseline; exactly one mode is required");
+  const verifyName = args["--verify"];
+  const checkCurrentName = args["--check-current"];
+  const modeCount = [Boolean(requestId || baselineName), Boolean(verifyName), Boolean(checkCurrentName)].filter(Boolean).length;
+  if (modeCount !== 1) throw new Error("Exactly one CLI mode is required");
+
+  if (verifyName) {
+    const loaded = readProtocolFollowupAudit(verifyName);
+    const verification = verifyProtocolFollowupAudit(loaded.record);
+    console.log(JSON.stringify({ ok: true, mode: "verify", auditKey: verification.auditKey, path: loaded.path, evidenceUpgrade: false }, null, 2));
+    return;
   }
+
+  if (checkCurrentName) {
+    const loaded = readProtocolFollowupAudit(checkCurrentName);
+    const currentRequest = getProtocolRequest(loaded.record.requestId);
+    const drift = checkProtocolFollowupAuditDrift(loaded.record, currentRequest);
+    console.log(JSON.stringify({ ok: true, mode: "check-current", auditKey: loaded.record.auditKey, ...drift, evidenceUpgrade: false }, null, 2));
+    return;
+  }
+
+  if (!requestId || !baselineName) throw new Error("Generation mode requires both --request-id and --baseline");
   const { baseline, baselinePath } = readProtocolFollowupBaseline(baselineName, requestId);
   const request = getProtocolRequest(requestId);
   const audit = buildProtocolFollowupAudit({ request, baseline, baselinePath, sourceRevision: sourceRevision() });

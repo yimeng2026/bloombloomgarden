@@ -76,3 +76,38 @@ test("CLI rejects unsafe baselines and incomplete arguments without creating an 
   assert.match(JSON.parse(incomplete.stderr).error, /baseline|mode|required/i);
   assert.equal(fs.existsSync(audits), false);
 });
+
+test("CLI verifies a stored audit and reports current drift without modifying either input", (t) => {
+  const { requests, run } = cliEnvironment(t);
+  const generated = run(["--request-id", "ca-six-2026", "--baseline", "ca-six-2026-v3.json"]);
+  assert.equal(generated.status, 0, generated.stderr);
+  const created = JSON.parse(generated.stdout);
+  const filename = created.path.split("/").at(-1);
+  const originalAuditText = fs.readFileSync(created.path, "utf8");
+
+  const verified = run(["--verify", filename]);
+  assert.equal(verified.status, 0, verified.stderr);
+  const verification = JSON.parse(verified.stdout);
+  assert.equal(verification.mode, "verify");
+  assert.equal(verification.auditKey, created.auditKey);
+  assert.equal(verification.evidenceUpgrade, false);
+
+  const unchanged = run(["--check-current", filename]);
+  assert.equal(unchanged.status, 0, unchanged.stderr);
+  assert.equal(JSON.parse(unchanged.stdout).status, "unchanged");
+
+  const requestPath = path.join(ROOT, requests, "ca-six-2026.json");
+  const changedRequest = JSON.parse(fs.readFileSync(requestPath, "utf8"));
+  changedRequest.documents[0].methodStatus = changedRequest.documents[0].methodStatus === "explicit_matched" ? "method_incomplete" : "explicit_matched";
+  fs.writeFileSync(requestPath, JSON.stringify(changedRequest, null, 2));
+  const drifted = run(["--check-current", filename]);
+  assert.equal(drifted.status, 0, drifted.stderr);
+  const drift = JSON.parse(drifted.stdout);
+  assert.equal(drift.mode, "check-current");
+  assert.equal(drift.status, "drifted");
+  assert.notEqual(drift.recordedSnapshotHash, drift.currentSnapshotHash);
+  assert.equal(drift.evidenceUpgrade, false);
+  assert.equal(fs.readFileSync(created.path, "utf8"), originalAuditText);
+  const replayedAgain = run(["--verify", filename]);
+  assert.equal(replayedAgain.status, 0, replayedAgain.stderr);
+});
