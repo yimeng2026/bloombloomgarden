@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { validateActivityEvidence, type ActivityRecord, type ConstructRecord } from "./activity-register";
 import { getScenario } from "./research-scenarios";
 
 export type ProtocolRequestStatus = "draft" | "ready" | "sent" | "answered" | "bounced" | "closed_unavailable" | "complete";
@@ -70,6 +71,9 @@ export interface ProtocolEvidence {
   lineage?: EvidenceLineage;
   /** 原文字面值，不做跨文献方法补齐或单位换算。 */
   methodFacet?: MethodFacet;
+  /** 原始活性观测；构建引用只在同一证据内解析。 */
+  activityRecords?: ActivityRecord[];
+  constructRecords?: ConstructRecord[];
   createdAt: string;
 }
 
@@ -329,6 +333,8 @@ export function addProtocolEvidence(id: string, input: {
   independentWetExperiment?: boolean;
   lineage?: EvidenceLineage;
   methodFacet?: MethodFacet;
+  activityRecords?: ActivityRecord[];
+  constructRecords?: ConstructRecord[];
 }) {
   const request = readRequest(id);
   const document = request.documents.find((doc) => documentKey(doc) === input.documentKey);
@@ -359,6 +365,7 @@ export function addProtocolEvidence(id: string, input: {
       if (typeof value !== "string" || !value.trim()) throw new Error(`Method facet ${key} must be a non-empty string`);
     }
   }
+  const activityFields = validateActivityEvidence(input);
   request.evidence.push({
     id: randomUUID(),
     documentKey: input.documentKey,
@@ -372,6 +379,7 @@ export function addProtocolEvidence(id: string, input: {
     independentWetExperiment: input.independentWetExperiment === true,
     lineage: input.lineage ? { kind: input.lineage.kind, derivedFromEvidenceIds: [...new Set(input.lineage.derivedFromEvidenceIds || [])] } : undefined,
     methodFacet: input.methodFacet ? Object.fromEntries(Object.entries(input.methodFacet).map(([key, value]) => [key, value.trim()])) : undefined,
+    ...activityFields,
     createdAt: now(),
   });
   if (input.level === "protocol" && input.verification === "verified" && input.methodStatus) {

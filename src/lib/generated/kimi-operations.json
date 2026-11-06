@@ -2662,6 +2662,14 @@
       "source": "src/app/api/ontology/stats/route.ts"
     },
     {
+      "id": "research:GET:/api/research/activity-register",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/activity-register",
+      "risk": "read",
+      "source": "src/app/api/research/activity-register/route.ts"
+    },
+    {
       "id": "research:GET:/api/research/code-reviews",
       "service": "research",
       "method": "GET",
