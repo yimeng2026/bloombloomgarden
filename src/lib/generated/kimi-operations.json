@@ -3374,6 +3374,14 @@
       "source": "src/app/api/research/protocol-requests/[id]/evidence/route.ts"
     },
     {
+      "id": "research:POST:/api/research/protocol-requests/[id]/followups/reconcile",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/protocol-requests/[id]/followups/reconcile",
+      "risk": "write",
+      "source": "src/app/api/research/protocol-requests/[id]/followups/reconcile/route.ts"
+    },
+    {
       "id": "research:POST:/api/research/protocol-requests/[id]/receipts",
       "service": "research",
       "method": "POST",

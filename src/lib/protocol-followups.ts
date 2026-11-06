@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { buildMethodLineageFromRequest } from "./method-lineage";
 import { METHOD_FACET_FIELDS, type EvidenceLineageKind, type MethodFacetKey, type ProtocolRequest } from "./protocol-requests";
 
@@ -17,6 +18,7 @@ const FIELD_LABELS: Record<MethodFacetKey, string> = {
 export type ActivityContextField = "compoundIdentity" | "assayContext";
 
 export interface ProtocolFollowup {
+  followupKey: string;
   kind: "source_document" | "method_facet" | "resolve_conflict" | "activity_context";
   documentKey: string;
   documentTitle: string;
@@ -33,9 +35,34 @@ export interface ProtocolFollowup {
   curationEvidenceIds?: string[];
 }
 
+export type ProtocolFollowupInput = Omit<ProtocolFollowup, "followupKey"> & { followupKey?: string };
+type ProtocolFollowupDraft = Omit<ProtocolFollowup, "followupKey">;
+
+export function protocolFollowupKey(requestId: string, item: Pick<ProtocolFollowupInput, "kind" | "documentKey" | "field" | "contextField" | "activityRef">) {
+  if (typeof requestId !== "string" || !requestId.trim()) throw new Error("A requestId is required for followup fingerprints");
+  if (!item || typeof item.documentKey !== "string" || !item.documentKey.trim()) throw new Error("A documentKey is required for followup fingerprints");
+  if (!["source_document", "method_facet", "resolve_conflict", "activity_context"].includes(item.kind)) {
+    throw new Error(`Invalid followup kind: ${item.kind}`);
+  }
+  let identity: string[];
+  if (item.kind === "activity_context") {
+    if (!["compoundIdentity", "assayContext"].includes(item.contextField || "")
+      || !item.activityRef?.evidenceId?.trim() || !item.activityRef.activityId?.trim()) {
+      throw new Error("Activity context fingerprints require contextField and activityRef");
+    }
+    identity = [item.contextField!, item.activityRef.evidenceId, item.activityRef.activityId];
+  } else {
+    if (item.kind !== "source_document" && !METHOD_FACET_FIELDS.includes(item.field as MethodFacetKey)) {
+      throw new Error(`A valid method field is required for ${item.kind} fingerprints`);
+    }
+    identity = item.field ? [item.field] : [];
+  }
+  return createHash("sha256").update(JSON.stringify([requestId, item.documentKey, item.kind, ...identity])).digest("hex");
+}
+
 export function buildProtocolFollowups(request: ProtocolRequest) {
   const graph = buildMethodLineageFromRequest(request);
-  const followups: ProtocolFollowup[] = [];
+  const followups: ProtocolFollowupDraft[] = [];
   for (const fingerprint of graph.methodFingerprints) {
     const document = request.documents.find((item) => (item.documentChemblId || item.doi?.toLowerCase()) === fingerprint.documentKey);
     if (!document) continue;
@@ -120,24 +147,29 @@ export function buildProtocolFollowups(request: ProtocolRequest) {
       });
     }
   }
+  const keyedFollowups: ProtocolFollowup[] = followups.map((item) => ({
+    ...item,
+    followupKey: protocolFollowupKey(request.id, item),
+  }));
   return {
     requestId: request.id,
     generatedAt: new Date().toISOString(),
-    followups,
+    followups: keyedFollowups,
     methodFingerprints: graph.methodFingerprints,
     summary: {
       documentCount: graph.methodFingerprints.length,
-      sourceDocumentRequestCount: followups.filter((item) => item.kind === "source_document").length,
-      missingFacetCount: followups.filter((item) => item.kind === "method_facet").length,
-      conflictFacetCount: followups.filter((item) => item.kind === "resolve_conflict").length,
-      activityContextRequestCount: followups.filter((item) => item.kind === "activity_context").length,
-      missingCompoundRequestCount: followups.filter((item) => item.kind === "activity_context" && item.contextField === "compoundIdentity").length,
-      missingAssayRequestCount: followups.filter((item) => item.kind === "activity_context" && item.contextField === "assayContext").length,
-      followupCount: followups.length,
+      sourceDocumentRequestCount: keyedFollowups.filter((item) => item.kind === "source_document").length,
+      missingFacetCount: keyedFollowups.filter((item) => item.kind === "method_facet").length,
+      conflictFacetCount: keyedFollowups.filter((item) => item.kind === "resolve_conflict").length,
+      activityContextRequestCount: keyedFollowups.filter((item) => item.kind === "activity_context").length,
+      missingCompoundRequestCount: keyedFollowups.filter((item) => item.kind === "activity_context" && item.contextField === "compoundIdentity").length,
+      missingAssayRequestCount: keyedFollowups.filter((item) => item.kind === "activity_context" && item.contextField === "assayContext").length,
+      followupCount: keyedFollowups.length,
       evidenceUpgrade: false,
     },
     evidenceUpgrade: false,
     boundaries: [
+      "求援项由已登记证据确定性生成，followupKey 只由请求、文档、类型和字段／活性引用计算，与生成时间无关。",
       "求援项由已登记证据确定性生成，不由模型补写。",
       "缺少原始协议时先取原文；有原始协议后才逐字段求缺。",
       "只有 primary／verified 的 full_text／protocol 中实际登记的活性记录才生成化合物与测定体系求援；摘要不触发上下文字段求援。",
