@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildProtocolFollowups } from "../src/lib/protocol-followups.ts";
 import {
+  buildProtocolFollowupAudit,
   canonicalJson,
   computeProtocolFollowupAuditKey,
   snapshotProtocolRequest,
+  verifyProtocolFollowupAudit,
 } from "../src/lib/protocol-followup-audit.ts";
 
 export function auditFixture() {
@@ -68,4 +70,35 @@ test("audit keys are deterministic and include exact baseline and snapshot conte
       documents: [{ ...requestSnapshot.documents[0], methodStatus: "explicit_matched" }],
     },
   }), first);
+});
+
+test("audit bundle replays the same deterministic result while ignoring only result root generatedAt", () => {
+  const { request, baseline } = auditFixture();
+  const before = JSON.stringify({ request, baseline });
+  const audit = buildProtocolFollowupAudit({
+    request,
+    baseline,
+    baselinePath: "data/protocol-followups/audit-fixture.json",
+    sourceRevision: "fixture-revision",
+    createdAt: "2026-11-06T02:00:00.000Z",
+  });
+  assert.equal(audit.requestId, request.id);
+  assert.equal(audit.sourceRevision, "fixture-revision");
+  assert.equal(audit.evidenceUpgrade, false);
+  assert.deepEqual(audit.inputs.requestSnapshot.contacts, []);
+  assert.equal(verifyProtocolFollowupAudit(audit).ok, true);
+
+  const timestampsChanged = structuredClone(audit);
+  timestampsChanged.createdAt = "2026-11-06T03:00:00.000Z";
+  timestampsChanged.deterministicResult.generatedAt = "2026-11-06T03:00:00.000Z";
+  assert.equal(verifyProtocolFollowupAudit(timestampsChanged).ok, true);
+
+  const tampered = structuredClone(audit);
+  tampered.deterministicResult.followups[0].ask = "tampered ask";
+  assert.throws(() => verifyProtocolFollowupAudit(tampered), /deterministic result/i);
+
+  const wrongVersion = structuredClone(audit);
+  wrongVersion.algorithmVersion = "protocol-followup-reconciliation/v999";
+  assert.throws(() => verifyProtocolFollowupAudit(wrongVersion), /algorithm version/i);
+  assert.equal(JSON.stringify({ request, baseline }), before);
 });

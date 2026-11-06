@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { reconcileProtocolFollowups } from "./protocol-followup-reconciliation";
 import type { ProtocolFollowupBaseline } from "./protocol-followup-reconciliation";
 import type { ProtocolRequest } from "./protocol-requests";
 
@@ -66,4 +67,75 @@ export function computeProtocolFollowupAuditKey(input: {
     baseline: input.baseline,
     requestSnapshot: input.requestSnapshot,
   });
+}
+
+export interface ProtocolFollowupAudit {
+  schemaVersion: typeof PROTOCOL_FOLLOWUP_AUDIT_SCHEMA;
+  algorithmVersion: typeof PROTOCOL_FOLLOWUP_RECONCILIATION_VERSION;
+  auditKey: string;
+  requestId: string;
+  createdAt: string;
+  sourceRevision?: string;
+  inputs: {
+    baselinePath: string;
+    baseline: ProtocolFollowupBaseline;
+    requestSnapshot: ProtocolRequest;
+  };
+  deterministicResult: ReturnType<typeof reconcileProtocolFollowups>;
+  evidenceUpgrade: false;
+  boundaries: string[];
+}
+
+export function buildProtocolFollowupAudit(input: {
+  request: ProtocolRequest;
+  baseline: ProtocolFollowupBaseline;
+  baselinePath: string;
+  sourceRevision?: string;
+  createdAt?: string;
+}): ProtocolFollowupAudit {
+  const requestSnapshot = snapshotProtocolRequest(input.request);
+  const baseline = structuredClone(input.baseline);
+  const auditKey = computeProtocolFollowupAuditKey({
+    requestId: input.request.id,
+    baseline,
+    requestSnapshot,
+  });
+  return {
+    schemaVersion: PROTOCOL_FOLLOWUP_AUDIT_SCHEMA,
+    algorithmVersion: PROTOCOL_FOLLOWUP_RECONCILIATION_VERSION,
+    auditKey,
+    requestId: input.request.id,
+    createdAt: input.createdAt || new Date().toISOString(),
+    sourceRevision: input.sourceRevision,
+    inputs: { baselinePath: input.baselinePath, baseline, requestSnapshot },
+    deterministicResult: reconcileProtocolFollowups(requestSnapshot, baseline),
+    evidenceUpgrade: false,
+    boundaries: [
+      "审计束只绑定显式基线与最小计算快照，不修改原证据或历史求援。",
+      "核销只表示求援条件已补全，不表示实验真实、独立、可复现或理论成立。",
+      "模型意见不属于确定性审计结果，不能改变求援或证据状态。",
+    ],
+  };
+}
+
+function comparableResult(record: ProtocolFollowupAudit["deterministicResult"]): string {
+  return canonicalJson({ ...record, generatedAt: undefined });
+}
+
+export function verifyProtocolFollowupAudit(record: ProtocolFollowupAudit): { ok: true; auditKey: string } {
+  if (record.schemaVersion !== PROTOCOL_FOLLOWUP_AUDIT_SCHEMA) throw new Error("Unsupported audit schema version");
+  if (record.algorithmVersion !== PROTOCOL_FOLLOWUP_RECONCILIATION_VERSION) throw new Error("Unsupported audit algorithm version");
+  if (record.evidenceUpgrade !== false) throw new Error("Audit evidenceUpgrade must remain false");
+  const expectedKey = computeProtocolFollowupAuditKey({
+    requestId: record.requestId,
+    baseline: record.inputs.baseline,
+    requestSnapshot: record.inputs.requestSnapshot,
+    algorithmVersion: record.algorithmVersion,
+  });
+  if (record.auditKey !== expectedKey) throw new Error("Audit key does not match audit inputs");
+  const replayed = reconcileProtocolFollowups(record.inputs.requestSnapshot, record.inputs.baseline);
+  if (comparableResult(replayed) !== comparableResult(record.deterministicResult)) {
+    throw new Error("Audit deterministic result does not match replay");
+  }
+  return { ok: true, auditKey: record.auditKey };
 }
