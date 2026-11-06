@@ -82,6 +82,7 @@ pnpm-lock.yaml
 
 # Build outputs
 .next/
+.worktrees/
 out/
 dist/
 build/
