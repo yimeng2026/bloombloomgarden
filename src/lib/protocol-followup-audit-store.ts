@@ -5,7 +5,7 @@ import { verifyProtocolFollowupAudit, type ProtocolFollowupAudit } from "./proto
 import { protocolFollowupKey } from "./protocol-followups";
 import type { ProtocolFollowupBaseline } from "./protocol-followup-reconciliation";
 
-function relativeProjectPath(target: string): string {
+export function relativeProjectPath(target: string): string {
   return path.relative(process.cwd(), target).split(path.sep).join("/");
 }
 
@@ -16,7 +16,7 @@ function safeJsonBasename(filename: string): string {
   return filename;
 }
 
-function protocolAuditDirectory(): string {
+export function protocolAuditDirectory(): string {
   const directory = process.env.PROTOCOL_FOLLOWUP_AUDIT_DIR || "data/protocol-followup-audits";
   if (path.isAbsolute(directory) || directory.split(/[\\/]/).includes("..")) {
     throw new Error("PROTOCOL_FOLLOWUP_AUDIT_DIR must be a relative directory inside the project");
