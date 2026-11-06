@@ -1,9 +1,10 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { runtimeNodePath } from "./dev-node-path.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const nextCli = path.join(root, "node_modules", "next", "dist", "bin", "next");
+const nextCli = path.join(root, "scripts", "next-with-node-path.mjs");
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 const children = [];
 let stopping = false;
@@ -25,7 +26,7 @@ function stop(code) {
 function launch(command, args, env = {}) {
   const child = spawn(command, args, {
     cwd: root,
-    env: { ...process.env, ...env },
+    env: { ...process.env, NODE_PATH: runtimeNodePath(root), ...env },
     stdio: "inherit",
     windowsHide: true,
     shell: process.platform === "win32",
