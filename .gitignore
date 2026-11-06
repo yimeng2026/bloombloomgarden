@@ -97,6 +97,7 @@ prisma/dev.db-journal
 # Local research runs and user-provided archives
 .tmp/
 /data/physical-intuition/model-reviews/
+/data/physical-intuition/forward-calibration/
 /data/zhihu-invites/
 
 # 可复核研究图：仅允许物理直觉架构说明图
