@@ -205,6 +205,11 @@ test("GET returns exact groups and distinguishes missing, unknown and invalid re
   assert.equal(payload.success, true);
   assert.equal(payload.data.summary.groupCount, 2);
   assert.equal(payload.data.groups.find((group) => group.endpoint === "Ki").rawValues[0].sourceEvidenceId, saved.evidence[0].id);
+  assert.equal(payload.data.graph.summary.activityObservationCount, 2);
+  assert.equal(payload.data.graph.graphRag.persistentWrite, false);
+  assert.equal(payload.data.graph.graphRag.entityNameMerging, false);
+  assert.equal(payload.data.graph.nodes.filter((node) => node.type === "activity_observation").length, 2);
+  assert.equal(payload.data.graph.evidenceUpgrade, false);
   assert.equal(payload.evidenceUpgrade, false);
 
   const missing = await GET(new NextRequest("http://localhost/api/research/activity-register"));

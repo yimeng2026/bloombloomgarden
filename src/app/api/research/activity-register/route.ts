@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server.js";
+import { buildActivityGraphFromRequest } from "../../../../lib/activity-graph";
 import { buildActivityRegisterFromRequest } from "../../../../lib/activity-register";
 import { getProtocolRequest } from "../../../../lib/protocol-requests";
 
@@ -15,7 +16,11 @@ export async function GET(request: NextRequest) {
     }, { status: 400 });
   }
   try {
-    const data = buildActivityRegisterFromRequest(getProtocolRequest(requestId));
+    const protocolRequest = getProtocolRequest(requestId);
+    const data = {
+      ...buildActivityRegisterFromRequest(protocolRequest),
+      graph: buildActivityGraphFromRequest(protocolRequest),
+    };
     return NextResponse.json({ success: true, data, evidenceUpgrade: false });
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
