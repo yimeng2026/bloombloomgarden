@@ -13,6 +13,30 @@ export interface IntuitionModelRoleConfig {
 }
 export type IntuitionChat = (request: ResearchLLMRequest) => Promise<ResearchLLMResponse>;
 
+export interface ModelMethodCard {
+  cardId: string;
+  ruleText: string;
+  applicability: string;
+}
+
+function validateMethodCards(value: unknown): ModelMethodCard[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 20) throw new Error("One to twenty method cards are required");
+  const ids = new Set<string>();
+  return value.map((item) => {
+    if (!item || typeof item !== "object") throw new Error("Method cards must be objects");
+    const card = item as Record<string, unknown>;
+    if (typeof card.cardId !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(card.cardId) || ids.has(card.cardId)) {
+      throw new Error("Method card ids must be unique safe identifiers");
+    }
+    if (typeof card.ruleText !== "string" || !card.ruleText.trim() || card.ruleText.length > 4000
+      || typeof card.applicability !== "string" || !card.applicability.trim() || card.applicability.length > 2000) {
+      throw new Error("Method card rules and applicability are required and bounded");
+    }
+    ids.add(card.cardId);
+    return { cardId: card.cardId, ruleText: card.ruleText, applicability: card.applicability };
+  });
+}
+
 export interface IntuitionModelExchange {
   role: IntuitionModelRole;
   request: { provider: string; model?: string };
@@ -31,6 +55,7 @@ export interface ModelProposalReport {
   requestId: string;
   generatedAt: string;
   task: IntuitionTask;
+  methodCards?: ModelMethodCard[];
   evaluation: ReturnType<typeof evaluateIntuitionTask>;
   proposals: IntuitionCard[];
   exchanges: IntuitionModelExchange[];
@@ -113,6 +138,7 @@ export function assertModelProposalReport(report: ModelProposalReport): void {
   if (canonicalJson(report.evaluation) !== canonicalJson(evaluation)) throw new Error("Deterministic evaluation does not match the task");
   if (report.evidenceUpgrade !== false) throw new Error("Model review cannot upgrade evidence");
   if (typeof report.generatedAt !== "string" || Number.isNaN(Date.parse(report.generatedAt))) throw new Error("Invalid generatedAt");
+  if (report.methodCards !== undefined) validateMethodCards(report.methodCards);
   if (!Array.isArray(report.exchanges) || report.exchanges.length !== 3) throw new Error("Exactly three model exchanges are required");
   const roleIds = new Set(report.exchanges.map((exchange) => exchange.role));
   if (roleIds.size !== 3 || !["structure_proposer", "evidence_skeptic", "theory_gardener"].every((role) => roleIds.has(role as IntuitionModelRole))) {
@@ -134,6 +160,7 @@ export function assertModelProposalReport(report: ModelProposalReport): void {
 
 export async function proposeIntuitionWithModel(input: {
   task: IntuitionTask;
+  methodCards?: ModelMethodCard[];
   chat?: IntuitionChat;
   roles?: IntuitionModelRoleConfig[];
   generatedAt?: string;
@@ -146,7 +173,8 @@ export async function proposeIntuitionWithModel(input: {
     || !["structure_proposer", "evidence_skeptic", "theory_gardener"].every((id) => roles.some((role) => role.id === id))) {
     throw new Error("Exactly one proposer and two method-review roles are required");
   }
-  const material = JSON.stringify({ task, deterministicEvaluation: evaluation, availableStructures: listStructureCards() });
+  const methodCards = input.methodCards === undefined ? undefined : validateMethodCards(input.methodCards);
+  const material = JSON.stringify({ task, deterministicEvaluation: evaluation, availableStructures: listStructureCards(), methodCards: methodCards || [] });
   const settled = await Promise.allSettled(roles.map((role) => chat({
     provider: role.provider,
     model: role.model,
@@ -189,6 +217,7 @@ export async function proposeIntuitionWithModel(input: {
     requestId: task.taskId,
     generatedAt: input.generatedAt || new Date().toISOString(),
     task,
+    ...(methodCards ? { methodCards: structuredClone(methodCards) } : {}),
     evaluation,
     proposals,
     exchanges,

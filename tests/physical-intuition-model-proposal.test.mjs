@@ -38,6 +38,11 @@ test("typed model proposals stay separate from deterministic results and retain 
   const prompts = [];
   const report = await proposeIntuitionWithModel({
     task,
+    methodCards: [{
+      cardId: "method-evidence-boundary",
+      ruleText: "CHECK_SOURCE_BEFORE_CLAIM",
+      applicability: "Synthetic method-prompt test only",
+    }],
     generatedAt: "2026-11-06T12:00:00.000Z",
     roles: [
       { id: "structure_proposer", provider: "relay", model: "gpt-5.5" },
@@ -47,6 +52,11 @@ test("typed model proposals stay separate from deterministic results and retain 
     chat: (request) => { prompts.push(request.userPrompt); return successfulChat(request); },
   });
   assert.equal(report.status, "complete");
+  assert.deepEqual(report.methodCards, [{
+    cardId: "method-evidence-boundary",
+    ruleText: "CHECK_SOURCE_BEFORE_CLAIM",
+    applicability: "Synthetic method-prompt test only",
+  }]);
   assert.equal(report.evaluation.cards.length, 1);
   assert.equal(report.proposals.length, 2);
   assert.equal(report.exchanges.length, 3);
@@ -59,6 +69,7 @@ test("typed model proposals stay separate from deterministic results and retain 
   assert.equal(report.evidenceUpgrade, false);
   assert.equal(JSON.stringify(task), before);
   assert.equal(prompts.length, 3);
+  assert.ok(prompts.every((prompt) => prompt.includes("CHECK_SOURCE_BEFORE_CLAIM")));
   assert.ok(prompts.every((prompt) => !prompt.includes("wa9527we") && !prompt.includes("沧海红尘")));
 });
 
