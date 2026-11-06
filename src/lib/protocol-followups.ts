@@ -14,11 +14,15 @@ const FIELD_LABELS: Record<MethodFacetKey, string> = {
   replicates: "独立重复次数及重复定义",
 };
 
+export type ActivityContextField = "compoundIdentity" | "assayContext";
+
 export interface ProtocolFollowup {
-  kind: "source_document" | "method_facet" | "resolve_conflict";
+  kind: "source_document" | "method_facet" | "resolve_conflict" | "activity_context";
   documentKey: string;
   documentTitle: string;
   field?: MethodFacetKey;
+  contextField?: ActivityContextField;
+  activityRef?: { evidenceId: string; activityId: string };
   ask: string;
   evidenceIds: string[];
   locators: Array<{ evidenceId: string; locator: string; sourceUrl: string; level: string; lineageKind: EvidenceLineageKind; coverage: string }>;
@@ -71,6 +75,37 @@ export function buildProtocolFollowups(request: ProtocolRequest) {
         locators: locators.filter((item) => fingerprint.primaryEvidenceIds.includes(item.evidenceId)),
       });
     }
+    for (const evidence of documentEvidence.filter((item) => fingerprint.primaryEvidenceIds.includes(item.id))) {
+      for (const activity of evidence.activityRecords || []) {
+        const activityRef = { evidenceId: evidence.id, activityId: activity.id };
+        const activityLabel = `活性记录 ${activity.id}（${activity.endpoint}，原始值 ${activity.valueRaw} ${activity.unit}）`;
+        const activityLocators = locators.filter((item) => item.evidenceId === evidence.id);
+        if (!activity.compoundRef?.trim()) {
+          followups.push({
+            kind: "activity_context",
+            contextField: "compoundIdentity",
+            documentKey: fingerprint.documentKey,
+            documentTitle: document.title,
+            activityRef,
+            ask: `请提供《${document.title}》中${activityLabel}所对应的受试化合物原始名称／标识及页码／段落／表格定位。当前该观测未关联 compoundRef，不能用相似化合物、外部数据库或其他实验补齐。`,
+            evidenceIds: [evidence.id],
+            locators: activityLocators,
+          });
+        }
+        if (!activity.assayRef?.trim()) {
+          followups.push({
+            kind: "activity_context",
+            contextField: "assayContext",
+            documentKey: fingerprint.documentKey,
+            documentTitle: document.title,
+            activityRef,
+            ask: `请提供《${document.title}》中${activityLabel}所对应的原始测定体系、实验描述及页码／段落／表格定位。当前该观测未关联 assayRef，不能用常见实验条件或其他文献方法补齐。`,
+            evidenceIds: [evidence.id],
+            locators: activityLocators,
+          });
+        }
+      }
+    }
     for (const field of METHOD_FACET_FIELDS.filter((key) => fingerprint.conflictFields.includes(key))) {
       const existingValues = fingerprint.fields[field] || [];
       followups.push({
@@ -95,6 +130,9 @@ export function buildProtocolFollowups(request: ProtocolRequest) {
       sourceDocumentRequestCount: followups.filter((item) => item.kind === "source_document").length,
       missingFacetCount: followups.filter((item) => item.kind === "method_facet").length,
       conflictFacetCount: followups.filter((item) => item.kind === "resolve_conflict").length,
+      activityContextRequestCount: followups.filter((item) => item.kind === "activity_context").length,
+      missingCompoundRequestCount: followups.filter((item) => item.kind === "activity_context" && item.contextField === "compoundIdentity").length,
+      missingAssayRequestCount: followups.filter((item) => item.kind === "activity_context" && item.contextField === "assayContext").length,
       followupCount: followups.length,
       evidenceUpgrade: false,
     },
@@ -102,6 +140,8 @@ export function buildProtocolFollowups(request: ProtocolRequest) {
     boundaries: [
       "求援项由已登记证据确定性生成，不由模型补写。",
       "缺少原始协议时先取原文；有原始协议后才逐字段求缺。",
+      "只有 primary／verified 的 full_text／protocol 中实际登记的活性记录才生成化合物与测定体系求援；摘要不触发上下文字段求援。",
+      "activityRef 只定位待补证的原始观测，不表示化合物或测定体系已经获得，也不表示独立湿实验。",
       "冲突值并列保留，澄清前不选定事实；求援本身不提升证据等级。",
     ],
   };
