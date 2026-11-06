@@ -1,0 +1,862 @@
+{
+  "schemaVersion": "protocol-followup-audit/v1",
+  "algorithmVersion": "protocol-followup-reconciliation/v1",
+  "auditKey": "14190f30c54eb0745176fc062ce3580ebb9adff771d953ecbd2f4a998cd6dea7",
+  "requestId": "ca-six-2026",
+  "createdAt": "2026-11-06T11:57:04.263Z",
+  "sourceRevision": "fcda4d2fdfb4c51f7a00cb18add9430b7352519d",
+  "inputs": {
+    "baselinePath": "data/protocol-followups/ca-six-2026-v3.json",
+    "baseline": {
+      "requestId": "ca-six-2026",
+      "generatedAt": "2026-11-06T09:36:07.318Z",
+      "followups": [
+        {
+          "kind": "source_document",
+          "documentKey": "CHEMBL1146805",
+          "documentTitle": "Carbonic anhydrase inhibitors. Inhibition of cytosolic isozyme XIII with aromatic and heterocyclic sulfonamides: a novel target for the drug design",
+          "ask": "请提供《Carbonic anhydrase inhibitors. Inhibition of cytosolic isozyme XIII with aromatic and heterocyclic sulfonamides: a novel target for the drug design》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。还需追溯文中转引的早期文献原始出处，不能把转引当作原始协议。",
+          "evidenceIds": [
+            "ca13-publisher-snippet",
+            "3bae3a73-0f02-441c-92c5-e13380cd25fb",
+            "2126afab-57ee-4435-b5e4-2990da3ccbf4"
+          ],
+          "locators": [
+            {
+              "evidenceId": "ca13-publisher-snippet",
+              "locator": "CA inhibition data 片段",
+              "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X0400647X",
+              "level": "partial_text",
+              "lineageKind": "citation",
+              "coverage": "摘要、引言与 CA inhibition data 片段；不是完整全文或协议。"
+            },
+            {
+              "evidenceId": "3bae3a73-0f02-441c-92c5-e13380cd25fb",
+              "locator": "page 55, ChemComm Table 1 screenshot",
+              "sourceUrl": "https://www.iasoc.it/home/wp-content/uploads/2016/11/Supuran_2016.pdf",
+              "level": "lead",
+              "lineageKind": "context",
+              "coverage": "Public lecture slide reproducing another study's table; a provenance lead, not an original protocol for the six documents."
+            },
+            {
+              "evidenceId": "2126afab-57ee-4435-b5e4-2990da3ccbf4",
+              "locator": "Experimental Protocols, CA inhibition, and Table 1",
+              "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3313672/",
+              "level": "partial_text",
+              "lineageKind": "context",
+              "coverage": "A complete method section and Table 1 from a different 2012 DTC study; external method context only, not an original protocol for the six documents."
+            }
+          ],
+          "targetPrimaryEvidenceIds": [],
+          "citationEvidenceIds": [
+            "ca13-publisher-snippet"
+          ],
+          "contextEvidenceIds": [
+            "3bae3a73-0f02-441c-92c5-e13380cd25fb",
+            "2126afab-57ee-4435-b5e4-2990da3ccbf4"
+          ],
+          "curationEvidenceIds": []
+        },
+        {
+          "kind": "source_document",
+          "documentKey": "CHEMBL1133556",
+          "documentTitle": "Carbonic Anhydrase Inhibitors: Water-Soluble 4-Sulfamoylphenylthioureas as Topical Intraocular Pressure-Lowering Agents with Long-Lasting Effects",
+          "ask": "请提供《Carbonic Anhydrase Inhibitors: Water-Soluble 4-Sulfamoylphenylthioureas as Topical Intraocular Pressure-Lowering Agents with Long-Lasting Effects》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+          "evidenceIds": [
+            "thiourea-pubmed-abstract"
+          ],
+          "locators": [
+            {
+              "evidenceId": "thiourea-pubmed-abstract",
+              "locator": "PubMed 摘要",
+              "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/11123998/",
+              "level": "abstract",
+              "lineageKind": "primary",
+              "coverage": "仅摘要。"
+            }
+          ],
+          "targetPrimaryEvidenceIds": [
+            "thiourea-pubmed-abstract"
+          ],
+          "citationEvidenceIds": [],
+          "contextEvidenceIds": [],
+          "curationEvidenceIds": []
+        },
+        {
+          "kind": "source_document",
+          "documentKey": "CHEMBL1146697",
+          "documentTitle": "Carbonic anhydrase inhibitors: X-ray crystallographic structure of the adduct of human isozyme II with EMATE, a dual inhibitor of carbonic anhydrases and steroid sulfatase",
+          "ask": "请提供《Carbonic anhydrase inhibitors: X-ray crystallographic structure of the adduct of human isozyme II with EMATE, a dual inhibitor of carbonic anhydrases and steroid sulfatase》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+          "evidenceIds": [
+            "emate-crystallography-snippet"
+          ],
+          "locators": [
+            {
+              "evidenceId": "emate-crystallography-snippet",
+              "locator": "Crystallography 片段",
+              "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X03010448",
+              "level": "partial_text",
+              "lineageKind": "primary",
+              "coverage": "摘要、引言与晶体学片段；不是乙酰唑胺 Ki 协议。"
+            }
+          ],
+          "targetPrimaryEvidenceIds": [
+            "emate-crystallography-snippet"
+          ],
+          "citationEvidenceIds": [],
+          "contextEvidenceIds": [],
+          "curationEvidenceIds": []
+        },
+        {
+          "kind": "source_document",
+          "documentKey": "CHEMBL1136178",
+          "documentTitle": "Carbonic anhydrase inhibitors: Topically acting antiglaucoma sulfonamides incorporating esters and amides of 3- and 4-carboxybenzolamide",
+          "ask": "请提供《Carbonic anhydrase inhibitors: Topically acting antiglaucoma sulfonamides incorporating esters and amides of 3- and 4-carboxybenzolamide》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+          "evidenceIds": [
+            "carboxybenzolamide-pubmed-abstract"
+          ],
+          "locators": [
+            {
+              "evidenceId": "carboxybenzolamide-pubmed-abstract",
+              "locator": "PubMed 摘要",
+              "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/14611846/",
+              "level": "abstract",
+              "lineageKind": "primary",
+              "coverage": "仅摘要。"
+            }
+          ],
+          "targetPrimaryEvidenceIds": [
+            "carboxybenzolamide-pubmed-abstract"
+          ],
+          "citationEvidenceIds": [],
+          "contextEvidenceIds": [],
+          "curationEvidenceIds": []
+        },
+        {
+          "kind": "source_document",
+          "documentKey": "CHEMBL1146695",
+          "documentTitle": "Carbonic anhydrase inhibitors: E7070, a sulfonamide anticancer agent, potently inhibits cytosolic isozymes I and II, and transmembrane, tumor-associated isozyme IX",
+          "ask": "请提供《Carbonic anhydrase inhibitors: E7070, a sulfonamide anticancer agent, potently inhibits cytosolic isozymes I and II, and transmembrane, tumor-associated isozyme IX》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+          "evidenceIds": [
+            "e7070-table-snippet"
+          ],
+          "locators": [
+            {
+              "evidenceId": "e7070-table-snippet",
+              "locator": "Chemistry and CA inhibition 片段",
+              "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X03010424",
+              "level": "partial_text",
+              "lineageKind": "primary",
+              "coverage": "引言与活性片段；不是完整 Table 1 或协议。"
+            }
+          ],
+          "targetPrimaryEvidenceIds": [
+            "e7070-table-snippet"
+          ],
+          "citationEvidenceIds": [],
+          "contextEvidenceIds": [],
+          "curationEvidenceIds": []
+        },
+        {
+          "kind": "source_document",
+          "documentKey": "CHEMBL1134204",
+          "documentTitle": "Carbonic anhydrase inhibitors: synthesis of sulfonamides incorporating dtpa tails and of their zinc complexes with powerful topical antiglaucoma properties",
+          "ask": "请提供《Carbonic anhydrase inhibitors: synthesis of sulfonamides incorporating dtpa tails and of their zinc complexes with powerful topical antiglaucoma properties》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+          "evidenceIds": [
+            "dtpa-pubmed-abstract"
+          ],
+          "locators": [
+            {
+              "evidenceId": "dtpa-pubmed-abstract",
+              "locator": "PubMed 摘要",
+              "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/11229775/",
+              "level": "abstract",
+              "lineageKind": "primary",
+              "coverage": "仅摘要。"
+            }
+          ],
+          "targetPrimaryEvidenceIds": [
+            "dtpa-pubmed-abstract"
+          ],
+          "citationEvidenceIds": [],
+          "contextEvidenceIds": [],
+          "curationEvidenceIds": []
+        }
+      ],
+      "methodFingerprints": [
+        {
+          "documentKey": "CHEMBL1146805",
+          "status": "insufficient",
+          "fields": {},
+          "knownFields": [],
+          "unknownFields": [
+            "assayFamily",
+            "instrument",
+            "substrate",
+            "readout",
+            "enzymeSource",
+            "pH",
+            "temperature",
+            "incubation",
+            "kiCalculation",
+            "replicates"
+          ],
+          "conflictFields": [],
+          "primaryEvidenceIds": []
+        },
+        {
+          "documentKey": "CHEMBL1133556",
+          "status": "insufficient",
+          "fields": {},
+          "knownFields": [],
+          "unknownFields": [
+            "assayFamily",
+            "instrument",
+            "substrate",
+            "readout",
+            "enzymeSource",
+            "pH",
+            "temperature",
+            "incubation",
+            "kiCalculation",
+            "replicates"
+          ],
+          "conflictFields": [],
+          "primaryEvidenceIds": []
+        },
+        {
+          "documentKey": "CHEMBL1146697",
+          "status": "insufficient",
+          "fields": {},
+          "knownFields": [],
+          "unknownFields": [
+            "assayFamily",
+            "instrument",
+            "substrate",
+            "readout",
+            "enzymeSource",
+            "pH",
+            "temperature",
+            "incubation",
+            "kiCalculation",
+            "replicates"
+          ],
+          "conflictFields": [],
+          "primaryEvidenceIds": []
+        },
+        {
+          "documentKey": "CHEMBL1136178",
+          "status": "insufficient",
+          "fields": {},
+          "knownFields": [],
+          "unknownFields": [
+            "assayFamily",
+            "instrument",
+            "substrate",
+            "readout",
+            "enzymeSource",
+            "pH",
+            "temperature",
+            "incubation",
+            "kiCalculation",
+            "replicates"
+          ],
+          "conflictFields": [],
+          "primaryEvidenceIds": []
+        },
+        {
+          "documentKey": "CHEMBL1146695",
+          "status": "insufficient",
+          "fields": {},
+          "knownFields": [],
+          "unknownFields": [
+            "assayFamily",
+            "instrument",
+            "substrate",
+            "readout",
+            "enzymeSource",
+            "pH",
+            "temperature",
+            "incubation",
+            "kiCalculation",
+            "replicates"
+          ],
+          "conflictFields": [],
+          "primaryEvidenceIds": []
+        },
+        {
+          "documentKey": "CHEMBL1134204",
+          "status": "insufficient",
+          "fields": {},
+          "knownFields": [],
+          "unknownFields": [
+            "assayFamily",
+            "instrument",
+            "substrate",
+            "readout",
+            "enzymeSource",
+            "pH",
+            "temperature",
+            "incubation",
+            "kiCalculation",
+            "replicates"
+          ],
+          "conflictFields": [],
+          "primaryEvidenceIds": []
+        }
+      ],
+      "summary": {
+        "documentCount": 6,
+        "sourceDocumentRequestCount": 6,
+        "missingFacetCount": 0,
+        "conflictFacetCount": 0,
+        "followupCount": 6,
+        "evidenceUpgrade": false
+      },
+      "evidenceUpgrade": false,
+      "boundaries": [
+        "求援项由已登记证据确定性生成，不由模型补写。",
+        "缺少原始协议时先取原文；有原始协议后才逐字段求缺。",
+        "冲突值并列保留，澄清前不选定事实；求援本身不提升证据等级。"
+      ]
+    },
+    "requestSnapshot": {
+      "id": "ca-six-2026",
+      "title": "六组碳酸酐酶文献的实验协议求援与血缘核验",
+      "scenarioId": "protocol-rescue",
+      "status": "sent",
+      "documents": [
+        {
+          "documentChemblId": "CHEMBL1146805",
+          "doi": "10.1016/j.bmcl.2004.04.106",
+          "title": "Carbonic anhydrase inhibitors. Inhibition of cytosolic isozyme XIII with aromatic and heterocyclic sulfonamides: a novel target for the drug design",
+          "methodStatus": "explicit_matched",
+          "methodNote": "ChEMBL／BindingDB 均描述 CA I／II 为 esterase；完整协议未取得。"
+        },
+        {
+          "documentChemblId": "CHEMBL1133556",
+          "doi": "10.1021/jm001051+",
+          "title": "Carbonic Anhydrase Inhibitors: Water-Soluble 4-Sulfamoylphenylthioureas as Topical Intraocular Pressure-Lowering Agents with Long-Lasting Effects",
+          "methodStatus": "method_incomplete",
+          "methodNote": "仅摘要与数据库简写。"
+        },
+        {
+          "documentChemblId": "CHEMBL1146697",
+          "doi": "10.1016/j.bmcl.2003.09.064",
+          "title": "Carbonic anhydrase inhibitors: X-ray crystallographic structure of the adduct of human isozyme II with EMATE, a dual inhibitor of carbonic anhydrases and steroid sulfatase",
+          "methodStatus": "method_incomplete",
+          "methodNote": "可读晶体学片段不能补写乙酰唑胺 Ki 方法。"
+        },
+        {
+          "documentChemblId": "CHEMBL1136178",
+          "doi": "10.1016/S0960-894X(03)00580-8",
+          "title": "Carbonic anhydrase inhibitors: Topically acting antiglaucoma sulfonamides incorporating esters and amides of 3- and 4-carboxybenzolamide",
+          "methodStatus": "method_incomplete",
+          "methodNote": "仅摘要与数据库简写。"
+        },
+        {
+          "documentChemblId": "CHEMBL1146695",
+          "doi": "10.1016/j.bmcl.2003.09.062",
+          "title": "Carbonic anhydrase inhibitors: E7070, a sulfonamide anticancer agent, potently inhibits cytosolic isozymes I and II, and transmembrane, tumor-associated isozyme IX",
+          "methodStatus": "method_incomplete",
+          "methodNote": "正文片段确认 Table 1 存在，完整测定条件未取得。"
+        },
+        {
+          "documentChemblId": "CHEMBL1134204",
+          "doi": "10.1016/S0960-894X(00)00722-8",
+          "title": "Carbonic anhydrase inhibitors: synthesis of sulfonamides incorporating dtpa tails and of their zinc complexes with powerful topical antiglaucoma properties",
+          "methodStatus": "method_incomplete",
+          "methodNote": "仅摘要与数据库简写。"
+        }
+      ],
+      "contacts": [],
+      "workItems": [],
+      "receipts": [],
+      "evidence": [
+        {
+          "id": "ca13-publisher-snippet",
+          "documentKey": "CHEMBL1146805",
+          "level": "partial_text",
+          "verification": "verified",
+          "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X0400647X",
+          "locator": "CA inhibition data 片段",
+          "quote": "inhibition data against isozymes I, II, and IX have been published earlier, and will be not discussed in detail here",
+          "coverage": "摘要、引言与 CA inhibition data 片段；不是完整全文或协议。",
+          "independentWetExperiment": false,
+          "createdAt": "2026-10-31T17:00:00Z",
+          "lineage": {
+            "kind": "citation",
+            "derivedFromEvidenceIds": []
+          }
+        },
+        {
+          "id": "thiourea-pubmed-abstract",
+          "documentKey": "CHEMBL1133556",
+          "level": "abstract",
+          "verification": "verified",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/11123998/",
+          "locator": "PubMed 摘要",
+          "quote": "The new thiourea derivatives showed strong affinities toward isozymes I, II, and IV of carbonic anhydrase (CA, EC 4.2.1.1).",
+          "coverage": "仅摘要。",
+          "independentWetExperiment": false,
+          "createdAt": "2026-10-31T17:00:00Z",
+          "lineage": {
+            "kind": "primary",
+            "derivedFromEvidenceIds": []
+          }
+        },
+        {
+          "id": "emate-crystallography-snippet",
+          "documentKey": "CHEMBL1146697",
+          "level": "partial_text",
+          "verification": "verified",
+          "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X03010448",
+          "locator": "Crystallography 片段",
+          "quote": "The hCA II–1 adduct obtained by co-crystallization, was subjected to detailed X-ray crystallography.",
+          "coverage": "摘要、引言与晶体学片段；不是乙酰唑胺 Ki 协议。",
+          "independentWetExperiment": false,
+          "createdAt": "2026-10-31T17:00:00Z",
+          "lineage": {
+            "kind": "primary",
+            "derivedFromEvidenceIds": []
+          }
+        },
+        {
+          "id": "carboxybenzolamide-pubmed-abstract",
+          "documentKey": "CHEMBL1136178",
+          "level": "abstract",
+          "verification": "verified",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/14611846/",
+          "locator": "PubMed 摘要",
+          "quote": "The new derivatives showed low nanomolar affinity for three carbonic anhydrase (CA) isozymes, CA I, II and IV, and were effective as topical antiglaucoma agents in normotensive rabbits.",
+          "coverage": "仅摘要。",
+          "independentWetExperiment": false,
+          "createdAt": "2026-10-31T17:00:00Z",
+          "lineage": {
+            "kind": "primary",
+            "derivedFromEvidenceIds": []
+          }
+        },
+        {
+          "id": "e7070-table-snippet",
+          "documentKey": "CHEMBL1146695",
+          "level": "partial_text",
+          "verification": "verified",
+          "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X03010424",
+          "locator": "Chemistry and CA inhibition 片段",
+          "quote": "Inhibition data against four CA isozymes with the six compounds 1–6 are shown in Table 1.",
+          "coverage": "引言与活性片段；不是完整 Table 1 或协议。",
+          "independentWetExperiment": false,
+          "createdAt": "2026-10-31T17:00:00Z",
+          "lineage": {
+            "kind": "primary",
+            "derivedFromEvidenceIds": []
+          }
+        },
+        {
+          "id": "dtpa-pubmed-abstract",
+          "documentKey": "CHEMBL1134204",
+          "level": "abstract",
+          "verification": "verified",
+          "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/11229775/",
+          "locator": "PubMed 摘要",
+          "quote": "Many of these derivatives showed nanomolar affinity towards isozymes I, II and IV of carbonic anhydrase (CA).",
+          "coverage": "仅摘要。",
+          "independentWetExperiment": false,
+          "createdAt": "2026-10-31T17:00:00Z",
+          "lineage": {
+            "kind": "primary",
+            "derivedFromEvidenceIds": []
+          }
+        },
+        {
+          "id": "3bae3a73-0f02-441c-92c5-e13380cd25fb",
+          "documentKey": "CHEMBL1146805",
+          "level": "lead",
+          "verification": "verified",
+          "sourceUrl": "https://www.iasoc.it/home/wp-content/uploads/2016/11/Supuran_2016.pdf",
+          "locator": "page 55, ChemComm Table 1 screenshot",
+          "quote": "10 (acetazolamide) 250 12 25",
+          "coverage": "Public lecture slide reproducing another study's table; a provenance lead, not an original protocol for the six documents.",
+          "note": "The same standard values recur in a different context. It is not an independent replication.",
+          "independentWetExperiment": false,
+          "createdAt": "2026-11-06T00:07:43.351Z",
+          "lineage": {
+            "kind": "context",
+            "derivedFromEvidenceIds": []
+          }
+        },
+        {
+          "id": "2126afab-57ee-4435-b5e4-2990da3ccbf4",
+          "documentKey": "CHEMBL1146805",
+          "level": "partial_text",
+          "verification": "verified",
+          "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3313672/",
+          "locator": "Experimental Protocols, CA inhibition, and Table 1",
+          "quote": "An Applied Photophysics stopped-flow instrument has been used for assaying the CA catalysed CO2 hydration activity.",
+          "coverage": "A complete method section and Table 1 from a different 2012 DTC study; external method context only, not an original protocol for the six documents.",
+          "note": "AAZ 250/12/25 nM recurs here. Reuse across experiments is not independent replication.",
+          "independentWetExperiment": false,
+          "createdAt": "2026-11-06T00:07:43.377Z",
+          "lineage": {
+            "kind": "context",
+            "derivedFromEvidenceIds": []
+          },
+          "methodFacet": {
+            "assayFamily": "stopped_flow_co2_hydration",
+            "instrument": "Applied Photophysics stopped-flow",
+            "substrate": "CO2 hydration"
+          }
+        }
+      ],
+      "sourceReferences": [
+        "garden-widgets/snapshots/ca-document-methods.json",
+        "frontier-breakthrough/data/ca-document-methods-source.json"
+      ],
+      "createdAt": "2026-10-31T17:00:00Z",
+      "updatedAt": "2026-11-06T03:42:59.385115Z"
+    }
+  },
+  "deterministicResult": {
+    "requestId": "ca-six-2026",
+    "generatedAt": "2026-11-06T11:57:04.264Z",
+    "followups": [
+      {
+        "kind": "source_document",
+        "documentKey": "CHEMBL1146805",
+        "documentTitle": "Carbonic anhydrase inhibitors. Inhibition of cytosolic isozyme XIII with aromatic and heterocyclic sulfonamides: a novel target for the drug design",
+        "ask": "请提供《Carbonic anhydrase inhibitors. Inhibition of cytosolic isozyme XIII with aromatic and heterocyclic sulfonamides: a novel target for the drug design》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。还需追溯文中转引的早期文献原始出处，不能把转引当作原始协议。",
+        "evidenceIds": [
+          "ca13-publisher-snippet",
+          "3bae3a73-0f02-441c-92c5-e13380cd25fb",
+          "2126afab-57ee-4435-b5e4-2990da3ccbf4"
+        ],
+        "locators": [
+          {
+            "evidenceId": "ca13-publisher-snippet",
+            "locator": "CA inhibition data 片段",
+            "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X0400647X",
+            "level": "partial_text",
+            "lineageKind": "citation",
+            "coverage": "摘要、引言与 CA inhibition data 片段；不是完整全文或协议。"
+          },
+          {
+            "evidenceId": "3bae3a73-0f02-441c-92c5-e13380cd25fb",
+            "locator": "page 55, ChemComm Table 1 screenshot",
+            "sourceUrl": "https://www.iasoc.it/home/wp-content/uploads/2016/11/Supuran_2016.pdf",
+            "level": "lead",
+            "lineageKind": "context",
+            "coverage": "Public lecture slide reproducing another study's table; a provenance lead, not an original protocol for the six documents."
+          },
+          {
+            "evidenceId": "2126afab-57ee-4435-b5e4-2990da3ccbf4",
+            "locator": "Experimental Protocols, CA inhibition, and Table 1",
+            "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3313672/",
+            "level": "partial_text",
+            "lineageKind": "context",
+            "coverage": "A complete method section and Table 1 from a different 2012 DTC study; external method context only, not an original protocol for the six documents."
+          }
+        ],
+        "targetPrimaryEvidenceIds": [],
+        "citationEvidenceIds": [
+          "ca13-publisher-snippet"
+        ],
+        "contextEvidenceIds": [
+          "3bae3a73-0f02-441c-92c5-e13380cd25fb",
+          "2126afab-57ee-4435-b5e4-2990da3ccbf4"
+        ],
+        "curationEvidenceIds": [],
+        "followupKey": "47b22eedb919d36482893235a3bb188166781322cd2b96eb305d5f2537948cc8"
+      },
+      {
+        "kind": "source_document",
+        "documentKey": "CHEMBL1133556",
+        "documentTitle": "Carbonic Anhydrase Inhibitors: Water-Soluble 4-Sulfamoylphenylthioureas as Topical Intraocular Pressure-Lowering Agents with Long-Lasting Effects",
+        "ask": "请提供《Carbonic Anhydrase Inhibitors: Water-Soluble 4-Sulfamoylphenylthioureas as Topical Intraocular Pressure-Lowering Agents with Long-Lasting Effects》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+        "evidenceIds": [
+          "thiourea-pubmed-abstract"
+        ],
+        "locators": [
+          {
+            "evidenceId": "thiourea-pubmed-abstract",
+            "locator": "PubMed 摘要",
+            "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/11123998/",
+            "level": "abstract",
+            "lineageKind": "primary",
+            "coverage": "仅摘要。"
+          }
+        ],
+        "targetPrimaryEvidenceIds": [
+          "thiourea-pubmed-abstract"
+        ],
+        "citationEvidenceIds": [],
+        "contextEvidenceIds": [],
+        "curationEvidenceIds": [],
+        "followupKey": "a8fe60d4540cd32e10e852d0dfff03d09f5cdb0f6586babf95485fe6ea3ed6e2"
+      },
+      {
+        "kind": "source_document",
+        "documentKey": "CHEMBL1146697",
+        "documentTitle": "Carbonic anhydrase inhibitors: X-ray crystallographic structure of the adduct of human isozyme II with EMATE, a dual inhibitor of carbonic anhydrases and steroid sulfatase",
+        "ask": "请提供《Carbonic anhydrase inhibitors: X-ray crystallographic structure of the adduct of human isozyme II with EMATE, a dual inhibitor of carbonic anhydrases and steroid sulfatase》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+        "evidenceIds": [
+          "emate-crystallography-snippet"
+        ],
+        "locators": [
+          {
+            "evidenceId": "emate-crystallography-snippet",
+            "locator": "Crystallography 片段",
+            "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X03010448",
+            "level": "partial_text",
+            "lineageKind": "primary",
+            "coverage": "摘要、引言与晶体学片段；不是乙酰唑胺 Ki 协议。"
+          }
+        ],
+        "targetPrimaryEvidenceIds": [
+          "emate-crystallography-snippet"
+        ],
+        "citationEvidenceIds": [],
+        "contextEvidenceIds": [],
+        "curationEvidenceIds": [],
+        "followupKey": "938b640037b81503578314c8410b6e6c5e52cf5ee6bac47afaefe208aa513eaf"
+      },
+      {
+        "kind": "source_document",
+        "documentKey": "CHEMBL1136178",
+        "documentTitle": "Carbonic anhydrase inhibitors: Topically acting antiglaucoma sulfonamides incorporating esters and amides of 3- and 4-carboxybenzolamide",
+        "ask": "请提供《Carbonic anhydrase inhibitors: Topically acting antiglaucoma sulfonamides incorporating esters and amides of 3- and 4-carboxybenzolamide》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+        "evidenceIds": [
+          "carboxybenzolamide-pubmed-abstract"
+        ],
+        "locators": [
+          {
+            "evidenceId": "carboxybenzolamide-pubmed-abstract",
+            "locator": "PubMed 摘要",
+            "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/14611846/",
+            "level": "abstract",
+            "lineageKind": "primary",
+            "coverage": "仅摘要。"
+          }
+        ],
+        "targetPrimaryEvidenceIds": [
+          "carboxybenzolamide-pubmed-abstract"
+        ],
+        "citationEvidenceIds": [],
+        "contextEvidenceIds": [],
+        "curationEvidenceIds": [],
+        "followupKey": "6fedd8e18036ea215780d06dfa0431c7986371c8574d3d148c61db6929e166da"
+      },
+      {
+        "kind": "source_document",
+        "documentKey": "CHEMBL1146695",
+        "documentTitle": "Carbonic anhydrase inhibitors: E7070, a sulfonamide anticancer agent, potently inhibits cytosolic isozymes I and II, and transmembrane, tumor-associated isozyme IX",
+        "ask": "请提供《Carbonic anhydrase inhibitors: E7070, a sulfonamide anticancer agent, potently inhibits cytosolic isozymes I and II, and transmembrane, tumor-associated isozyme IX》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+        "evidenceIds": [
+          "e7070-table-snippet"
+        ],
+        "locators": [
+          {
+            "evidenceId": "e7070-table-snippet",
+            "locator": "Chemistry and CA inhibition 片段",
+            "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X03010424",
+            "level": "partial_text",
+            "lineageKind": "primary",
+            "coverage": "引言与活性片段；不是完整 Table 1 或协议。"
+          }
+        ],
+        "targetPrimaryEvidenceIds": [
+          "e7070-table-snippet"
+        ],
+        "citationEvidenceIds": [],
+        "contextEvidenceIds": [],
+        "curationEvidenceIds": [],
+        "followupKey": "d560b82a46a1f2a650f3c369bab86b23f80a3f2fdc32e9268697f909be5c7cb1"
+      },
+      {
+        "kind": "source_document",
+        "documentKey": "CHEMBL1134204",
+        "documentTitle": "Carbonic anhydrase inhibitors: synthesis of sulfonamides incorporating dtpa tails and of their zinc complexes with powerful topical antiglaucoma properties",
+        "ask": "请提供《Carbonic anhydrase inhibitors: synthesis of sulfonamides incorporating dtpa tails and of their zinc complexes with powerful topical antiglaucoma properties》的原始全文或实验方法页，并保留页码、段落或 supplement 定位。当前没有可用于方法指纹的 primary／verified 原始协议，不能用引用、数据库或外部方法替代。",
+        "evidenceIds": [
+          "dtpa-pubmed-abstract"
+        ],
+        "locators": [
+          {
+            "evidenceId": "dtpa-pubmed-abstract",
+            "locator": "PubMed 摘要",
+            "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/11229775/",
+            "level": "abstract",
+            "lineageKind": "primary",
+            "coverage": "仅摘要。"
+          }
+        ],
+        "targetPrimaryEvidenceIds": [
+          "dtpa-pubmed-abstract"
+        ],
+        "citationEvidenceIds": [],
+        "contextEvidenceIds": [],
+        "curationEvidenceIds": [],
+        "followupKey": "62f6cacb32599cad959d8377403cd309a6d5f1a95e2d7239fdfe90984d153e45"
+      }
+    ],
+    "methodFingerprints": [
+      {
+        "documentKey": "CHEMBL1146805",
+        "status": "insufficient",
+        "fields": {},
+        "knownFields": [],
+        "unknownFields": [
+          "assayFamily",
+          "instrument",
+          "substrate",
+          "readout",
+          "enzymeSource",
+          "pH",
+          "temperature",
+          "incubation",
+          "kiCalculation",
+          "replicates"
+        ],
+        "conflictFields": [],
+        "primaryEvidenceIds": []
+      },
+      {
+        "documentKey": "CHEMBL1133556",
+        "status": "insufficient",
+        "fields": {},
+        "knownFields": [],
+        "unknownFields": [
+          "assayFamily",
+          "instrument",
+          "substrate",
+          "readout",
+          "enzymeSource",
+          "pH",
+          "temperature",
+          "incubation",
+          "kiCalculation",
+          "replicates"
+        ],
+        "conflictFields": [],
+        "primaryEvidenceIds": []
+      },
+      {
+        "documentKey": "CHEMBL1146697",
+        "status": "insufficient",
+        "fields": {},
+        "knownFields": [],
+        "unknownFields": [
+          "assayFamily",
+          "instrument",
+          "substrate",
+          "readout",
+          "enzymeSource",
+          "pH",
+          "temperature",
+          "incubation",
+          "kiCalculation",
+          "replicates"
+        ],
+        "conflictFields": [],
+        "primaryEvidenceIds": []
+      },
+      {
+        "documentKey": "CHEMBL1136178",
+        "status": "insufficient",
+        "fields": {},
+        "knownFields": [],
+        "unknownFields": [
+          "assayFamily",
+          "instrument",
+          "substrate",
+          "readout",
+          "enzymeSource",
+          "pH",
+          "temperature",
+          "incubation",
+          "kiCalculation",
+          "replicates"
+        ],
+        "conflictFields": [],
+        "primaryEvidenceIds": []
+      },
+      {
+        "documentKey": "CHEMBL1146695",
+        "status": "insufficient",
+        "fields": {},
+        "knownFields": [],
+        "unknownFields": [
+          "assayFamily",
+          "instrument",
+          "substrate",
+          "readout",
+          "enzymeSource",
+          "pH",
+          "temperature",
+          "incubation",
+          "kiCalculation",
+          "replicates"
+        ],
+        "conflictFields": [],
+        "primaryEvidenceIds": []
+      },
+      {
+        "documentKey": "CHEMBL1134204",
+        "status": "insufficient",
+        "fields": {},
+        "knownFields": [],
+        "unknownFields": [
+          "assayFamily",
+          "instrument",
+          "substrate",
+          "readout",
+          "enzymeSource",
+          "pH",
+          "temperature",
+          "incubation",
+          "kiCalculation",
+          "replicates"
+        ],
+        "conflictFields": [],
+        "primaryEvidenceIds": []
+      }
+    ],
+    "summary": {
+      "documentCount": 6,
+      "sourceDocumentRequestCount": 6,
+      "missingFacetCount": 0,
+      "conflictFacetCount": 0,
+      "activityContextRequestCount": 0,
+      "missingCompoundRequestCount": 0,
+      "missingAssayRequestCount": 0,
+      "followupCount": 6,
+      "evidenceUpgrade": false,
+      "resolvedFollowupCount": 0,
+      "reviewRequiredPreviousCount": 0
+    },
+    "evidenceUpgrade": false,
+    "boundaries": [
+      "求援项由已登记证据确定性生成，followupKey 只由请求、文档、类型和字段／活性引用计算，与生成时间无关。",
+      "求援项由已登记证据确定性生成，不由模型补写。",
+      "缺少原始协议时先取原文；有原始协议后才逐字段求缺。",
+      "只有 primary／verified 的 full_text／protocol 中实际登记的活性记录才生成化合物与测定体系求援；摘要不触发上下文字段求援。",
+      "activityRef 只定位待补证的原始观测，不表示化合物或测定体系已经获得，也不表示独立湿实验。",
+      "冲突值并列保留，澄清前不选定事实；求援本身不提升证据等级。",
+      "核销只比较显式历史基线与当前登记证据，不读取发送回执或模型意见作为实验事实。",
+      "活性上下文只可由同一证据或显式派生的 primary／verified full_text／protocol 中的实际引用核销。",
+      "证据消失、来源降级、引用仍缺失以及非上下文求援消失都进入人工复核，不自动视为解决。",
+      "resolvedFollowups 表示求援条件已补全，不表示实验独立、结果真实、理论成立或证据等级提升。"
+    ],
+    "reconciliation": {
+      "previousFollowupCount": 6,
+      "resolvedFollowups": [],
+      "reviewRequired": []
+    }
+  },
+  "evidenceUpgrade": false,
+  "boundaries": [
+    "审计束只绑定显式基线与最小计算快照，不修改原证据或历史求援。",
+    "核销只表示求援条件已补全，不表示实验真实、独立、可复现或理论成立。",
+    "模型意见不属于确定性审计结果，不能改变求援或证据状态。"
+  ]
+}

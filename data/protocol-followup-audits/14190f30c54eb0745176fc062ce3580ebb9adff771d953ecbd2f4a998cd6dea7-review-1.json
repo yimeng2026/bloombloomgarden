@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "protocol-followup-review/v1",
+  "auditKey": "14190f30c54eb0745176fc062ce3580ebb9adff771d953ecbd2f4a998cd6dea7",
+  "requestId": "ca-six-2026",
+  "generatedAt": "2026-11-06T11:57:51.103Z",
+  "status": "complete",
+  "reviews": [
+    {
+      "role": "method-gap-auditor",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "instruction": "只检查求援项是否与原始证据一致，逐项指出错误证据归属，不补写任何实验字段。",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 5084,
+        "completion_tokens": 1465,
+        "total_tokens": 6549
+      },
+      "latencyMs": 27952,
+      "content": "# 审查结论\n\n## 一、与材料不符的求援项\n\n**未发现实质矛盾或错误的证据归属。** 逐项核对如下：\n\n1. **CHEMBL1146805（CA XIII）**：`ca13-publisher-snippet` 的血缘为 `citation`，求援项将其列入 `citationEvidenceIds` 且 `targetPrimaryEvidenceIds` 为空——归属正确。`3bae3a73`（公开讲座幻灯片）与 `2126afab`（2012 DTC 研究）血缘为 `context`，列入 `contextEvidenceIds`，未冒充本文协议——正确。文中转引早期文献一事与 snippet quote 一致（\"inhibition data ... have been published earlier\"）。\n\n2. **CHEMBL1133556 / CHEMBL1136178 / CHEMBL1134204（仅摘要）**：三个求援项均只登记各自 PubMed 摘要（`abstract` 级），明确\"仅摘要\"，且 ask 中\"当前没有可用于方法指纹的 primary／verified 原始协议\"与证据等级一致。摘要未触发化合物/测定体系求援，符合边界\"摘要不触发上下文字段求援\"。\n\n3. **CHEMBL1146697（EMATE）**：snippet 血缘 `primary` 列入 `targetPrimaryEvidenceIds`，但 coverage 明示\"不是乙酰唑胺 Ki 协议\"，与快照 methodNote 一致，未越界补写 Ki 方法。\n\n4. **CHEMBL1146695（E7070）**：snippet 确认 Table 1 存在但未取得完整表格/协议，求援口径与 quote 一致。\n\n## 二、来源边界核验\n\n- `2126afab` 提取的 methodFacet（stopped-flow、Applied Photophysics、CO2 hydration）**仅停留在该证据自身**，未泄漏进任何 methodFingerprint 的 fields——六个指纹 `knownFields` 全为空、`conflictFields` 全为空，**无字段污染**。\n- AAＺ 250/12/25 nM 值在两条 context 证据中重复出现，均标注\"非独立重复\"，未升级为本文事实——合规。\n- `evidenceUpgrade: false`、`resolvedFollowups: []`、`reviewRequired: []`，与\"求援不提升证据等级、核销需显式基线\"的边界一致。\n- 注意一处**语义需维持边界**：`targetPrimaryEvidenceIds` 中非空项（如 emate/e7070 snippet、各摘要）表示\"目标文档自身血缘为 primary 的已登记证据\"，不代表\"原始协议已存在\"；ask 文字与 boundaries 均维持了这一区分，求援项内部无自相矛盾，但审阅人不应将该字段读作协议可得性。\n\n## 三、必须补证事项\n\n1. 六篇均需**原文全文或实验方法页**（含页码/段落/supplement 定位），摘要与片段不足以核销任何方法字段。\n2. **CHEMBL1146805 需追溯文中转引早期文献的原始出处**（CA I/II/IX 数据的 early publications），转引不可当原始协议。\n3. 在取得原始协议前，methodFingerprint 的十个 unknownFields（assayFamily、instrument、substrate、readout、enzymeSource、pH、temperature、incubation、kiCalculation、replicates）**保持空白，不得以外部 DTC 方法或讲座表格回填**。\n4. CHEMBL1146695 需补完整 Table 1 及测定条件；CHEMBL1146697 需补 Ki 测定方法（当前仅有晶体学片段）。\n\n## 四、不应写成事实的内容（提醒）\n\n- \"Applied Photophysics stopped-flow\" 等仪器/底物信息仅属于 2012 DTC 研究，**不能写为六篇目标文献的测定条件**。\n- 摘要中的\"strong/low-nanomolar affinity\"表述不可升级为具体 Ki 值或协议参数。\n\n**总结：本批求援结果与原始证据一致，无错误归属、无证据等级越升；六项求援均为实质必要的原文补证。**"
+    },
+    {
+      "role": "provenance-reviewer",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "instruction": "审查求援项的来源边界。引用、数据库、讲座和其他研究不能被当成目标原始协议，不补写方法。",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 9095,
+        "completion_tokens": 1675,
+        "total_tokens": 10770
+      },
+      "latencyMs": 45978,
+      "content": "## 与材料不符的求援项\n\n**CHEMBL1146805** 的 `targetPrimaryEvidenceIds` 声明为空数组 `[]`，但该文档已登记 **primary-level** 证据 `ca13-publisher-snippet`（`lineageKind: \"primary\"` 标记为来源血缘，但 `level: \"partial_text\"` + `lineageKind: \"citation\"` 的标注矛盾），且该证据在 `citationEvidenceIds` 中出现。根据材料本身，`ca13-publisher-snippet` 的 `lineage.kind` 为 `\"citation\"`，不应列入 `targetPrimaryEvidenceIds`；但求援项描述中同时将其 `lineageKind` 标记为 `\"citation\"`，与 `evidence` 数组中实际登记的 `\"primary\"` 冲突。\n\n---\n\n## 来源边界违例\n\n1. **CHEMBL1146805**  \n   - 证据 `3bae3a73-0f02-441c-92c5-e13380cd25fb` 和 `2126afab-57ee-4435-b5e4-2990da3ccbf4` 均为外部讲座幻灯片或他处实验的上下文引用（`lineageKind: \"context\"`），不是六份文档的原始协议。  \n   - 证据 `ca13-publisher-snippet` 在 `evidence` 数组中标记 `lineage.kind: \"citation\"`，但在 `followups[0].locators` 中被重新归类为 `lineageKind: \"citation\"`，两处血缘标签一致；然而该证据本身只是片段引言，**不包含完整实验协议**，不应当作方法指纹的原始来源。\n\n2. **所有六份文档的 `methodFingerprints`**  \n   - 全部 `status: \"insufficient\"`，`knownFields: []`，`primaryEvidenceIds: []`。  \n   - 所有方法字段均列入 `unknownFields`，但**没有任何求援项触发字段级别的缺失跟进**（未见 `kind: \"missing_facet\"` 或 `kind: \"activity_context\"` 类型的 followup）。  \n   - 原始协议缺失时应先补全文，**不应在仅有摘要或片段时生成字段求援**；当前结果符合规则，但 `methodFingerprints` 数据结构本身未能反映任何已知字段来源，与\"只有 primary/verified 的 full_text/protocol 中实际登记的活性记录才生成字段求援\"原则一致，无违例。\n\n---\n\n## 必须补证的事项\n\n1. **CHEMBL1146805**  \n   - `ca13-publisher-snippet` 的 `lineage.kind` 在 `evidence` 数组中登记为 `\"primary\"`，在 `followups[0].locators` 中标注为 `\"citation\"`，**血缘标签冲突**，需澄清该证据是原始出处还是转引片段。  \n   - 如确为转引，需追溯**引言中提到的\"earlier published data\"原始文献**，补充真实 primary 全文。\n\n2. **CHEMBL1133556、CHEMBL1136178、CHEMBL1134204**  \n   - 仅 PubMed 摘要，`level: \"abstract\"`，无法提取方法细节。需补充**期刊全文或 Supporting Information**。\n\n3. **CHEMBL1146697**  \n   - 已有晶体学片段，但**不含乙酰唑胺 Ki 测定协议**。需补充该文完整 Methods 或 Experimental section，或引用的早期测定方法出处。\n\n4. **CHEMBL1146695**  \n   - 已有活性表提及片段，但**完整 Table 1 和测定条件未取得**。需补充全文 Experimental、Materials and Methods 或 Supporting Information。\n\n5. **2126afab-57ee-4435-b5e4-2990da3ccbf4（外部 2012 DTC 研究）**  \n   - 该证据包含完整 stopped-flow CO₂ hydration 协议与 AAZ 标准值 (250/12/25 nM)，但**不是六份文档的原始协议**，只能作为上下文参考。  \n   - 若六份文档的乙酰唑胺数据与此值一致，需确认**是否引用该方法或更早的共同出处**，不能将外部实验追溯为独立重复。\n\n---\n\n## 总结\n\n- **实质差异**：CHEMBL1146805 的 `ca13-publisher-snippet` 血缘标签在两处记录中冲突（`\"primary\"` vs. `\"citation\"`）。  \n- **边界合规**：外部讲座幻灯片与 2012 DTC 研究已正确标记为 `\"context\"`，未被误认作原始协议；字段求援因缺乏全文而未触发，符合规则。  \n- **待补证**：六份文档全部需要**期刊全文、Supporting Information 或引用的早期方法出处**；CHEMBL1146805 需澄清引言转引的原始数据来源。"
+    },
+    {
+      "role": "skeptical-reviewer",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "instruction": "作为反方检查求援项是否遗漏证据边界、错误晋升证据或产生无依据结论。只指出可验证的问题。",
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 5146,
+        "completion_tokens": 1572,
+        "total_tokens": 6718
+      },
+      "latencyMs": 30407,
+      "content": "审查后，未发现会把外部方法、摘要或片段错误晋升为“已取得原始实验协议”的实质性问题。各文档均仍被判为 `insufficient`，且 `methodFingerprints.primaryEvidenceIds` 均为空，整体未提升证据等级。\n\n但有以下可验证的边界/表述问题需要注意或补证：\n\n1. **`targetPrimaryEvidenceIds` 与“可用于方法指纹的 primary/protocol”边界容易混淆**\n   - 受影响项：\n     - `CHEMBL1133556`：`targetPrimaryEvidenceIds:[\"thiourea-pubmed-abstract\"]`\n     - `CHEMBL1146697`：`targetPrimaryEvidenceIds:[\"emate-crystallography-snippet\"]`\n     - `CHEMBL1136178`：`targetPrimaryEvidenceIds:[\"carboxybenzolamide-pubmed-abstract\"]`\n     - `CHEMBL1146695`：`targetPrimaryEvidenceIds:[\"e7070-table-snippet\"]`\n     - `CHEMBL1134204`：`targetPrimaryEvidenceIds:[\"dtpa-pubmed-abstract\"]`\n   - 原始证据中这些证据的 `level` 分别为 `abstract` 或 `partial_text`，并非 `full_text/protocol`。\n   - 虽然结果中没有把它们用于填充方法字段，但字段名 `targetPrimaryEvidenceIds` 可能被误读为“目标原始协议证据已存在”。若该字段语义是“文献本身来源/一手线索”，需明确不等同于可用于方法指纹的 primary protocol。\n\n2. **`CHEMBL1146805` 的 `ca13-publisher-snippet` 血缘为 `citation`，不应被视为该文原始协议证据**\n   - 原始证据：\n     - `lineage.kind:\"citation\"`\n     - quote：“inhibition data against isozymes I, II, and IX have been published earlier…”\n   - 确定性结果已将其放入 `citationEvidenceIds`，且 `targetPrimaryEvidenceIds` 为空，这一点与材料一致。\n   - 需要补证事项仍是：取得该文原始全文/方法页，并追溯其所称“published earlier”的早期原始出处；不能用该片段本身补方法字段。\n\n3. **`CHEMBL1146805` 中两个上下文证据不能补写该六篇文献的方法指纹**\n   - `3bae3a73-...` 为讲座幻灯片截图，`level:\"lead\"`，`lineage.kind:\"context\"`。\n   - `2126afab-...` 为不同 2012 DTC 研究的完整方法，`lineage.kind:\"context\"`，且 coverage 明确为外部方法背景。\n   - 结果中未把其 `methodFacet` 写入 `CHEMBL1146805` 的方法指纹，符合边界。\n   - 必须补证：若要使用 stopped-flow/CO₂ hydration、Applied Photophysics 等字段，需要同一目标文献或其明确派生的 primary/verified full_text/protocol 中出现，当前材料不足。\n\n4. **`missingFacetCount:0` 与 `methodFingerprints.unknownFields` 大量存在，需依赖规则解释**\n   - 每篇 `methodFingerprints` 都列出未知字段：\n     - `assayFamily`\n     - `instrument`\n     - `substrate`\n     - `readout`\n     - `enzymeSource`\n     - `pH`\n     - `temperature`\n     - `incubation`\n     - `kiCalculation`\n     - `replicates`\n   - 但 summary 中 `missingFacetCount:0`。\n   - 若规则是“没有取得原始协议前只生成 source_document 求援，不逐字段生成 missing facet 求援”，则一致。\n   - 若 `missingFacetCount` 被外部读者理解为“没有缺失方法字段”，则与 `unknownFields` 不符，需要在输出边界中明确该计数仅指已触发的字段级求援数，而不是未知字段总数。\n\n5. **必须补证的共同事项**\n   - 六篇文献均缺少可用于方法指纹的原始全文/实验方法页或 supplement 定位。\n   - 当前证据仅支持“存在摘要、片段、引用线索或外部上下文”，不支持确定以下字段：\n     - assay family\n     - instrument\n     - substrate/readout\n     - enzyme source\n     - pH/temperature/incubation\n     - Ki 计算方式\n     - replicates\n   - 因此不能据当前材料生成化合物、测定体系、活性上下文或独立湿实验结论。"
+    }
+  ],
+  "evidenceUpgrade": false,
+  "boundaries": [
+    "complete 只表示全部角色正常结束且意见非空，不表示意见正确或证据升级。",
+    "模型意见不能核销求援、修改证据、methodStatus 或确定性审计结果。",
+    "复核输入只包含确定性结果和最小请求快照，不包含联系人、回执或历史评论。"
+  ]
+}
