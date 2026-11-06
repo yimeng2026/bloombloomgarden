@@ -1,0 +1,57 @@
+{
+  "sources": [
+    {
+      "sourceId": "zhihu-wa9527we-discussion-lead",
+      "sourceUrl": "https://zhuanlan.zhihu.com/p/2079855144901011157",
+      "authorLabel": "wa9527we（既有研究文档中的账号标识，待原文复核）",
+      "recordState": "lead",
+      "coverage": "既有研究文档登记的公开讨论入口；不是完整主页或训练语料",
+      "authorship": "unknown",
+      "permission": {
+        "status": "unverified",
+        "identifier": "unverified",
+        "evidenceLocator": "",
+        "notes": "公开可访问不等于训练授权；待原文与许可复核"
+      }
+    },
+    {
+      "sourceId": "zhihu-canghaihongchen-article-lead",
+      "sourceUrl": "https://zhuanlan.zhihu.com/p/2091384018986182648",
+      "authorLabel": "沧海红尘（既有研究文档中的账号标识，待原文复核）",
+      "recordState": "lead",
+      "coverage": "既有研究文档登记的公开文章入口；不是完整主页或训练语料",
+      "authorship": "unknown",
+      "permission": {
+        "status": "unverified",
+        "identifier": "unverified",
+        "evidenceLocator": "",
+        "notes": "公开可访问不等于训练授权；待原文与许可复核"
+      }
+    },
+    {
+      "sourceId": "zhihu-reply-exchange-lead",
+      "sourceUrl": "https://zhuanlan.zhihu.com/p/2098087169327888097",
+      "authorLabel": "公开回复交流（具体作者关系待原文复核）",
+      "recordState": "lead",
+      "coverage": "既有研究文档登记的公开回复入口；不据此认定双方完整观点或作者关系",
+      "authorship": "unknown",
+      "permission": {
+        "status": "unverified",
+        "identifier": "unverified",
+        "evidenceLocator": "",
+        "notes": "回复信不能误标为对方原文；公开可访问不等于训练授权"
+      }
+    }
+  ],
+  "methodCards": [],
+  "candidates": [],
+  "partitionAssignments": {
+    "trainProblemFamilies": [],
+    "validationProblemFamilies": [],
+    "testProblemFamilies": []
+  },
+  "cutoffs": {
+    "trainBefore": "2027-01-01T00:00:00.000Z",
+    "validationBefore": "2027-02-01T00:00:00.000Z"
+  }
+}
