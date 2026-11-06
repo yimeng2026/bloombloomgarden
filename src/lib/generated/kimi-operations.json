@@ -2902,6 +2902,14 @@
       "source": "src/app/api/research/pipelines/[id]/tasks/route.ts"
     },
     {
+      "id": "research:GET:/api/research/protocol-consistency",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/protocol-consistency",
+      "risk": "read",
+      "source": "src/app/api/research/protocol-consistency/route.ts"
+    },
+    {
       "id": "research:GET:/api/research/protocol-requests",
       "service": "research",
       "method": "GET",
