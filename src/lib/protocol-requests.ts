@@ -22,6 +22,20 @@ export interface ProtocolDocument {
   title: string;
   methodStatus: MethodStatus;
   methodNote?: string;
+  /** 仅由显式人工更正追加，保留每次原始声明。 */
+  methodStatusHistory?: MethodStatusCorrection[];
+}
+
+export interface MethodStatusCorrection {
+  id: string;
+  documentKey: string;
+  previousStatus: MethodStatus;
+  nextStatus: MethodStatus;
+  reviewer: string;
+  rationale: string;
+  evidenceIds: string[];
+  decisionSource: "human_review";
+  createdAt: string;
 }
 
 export interface ProtocolContact {
@@ -418,4 +432,64 @@ export function appendProtocolReviews(id: string, reviews: Array<Omit<ProtocolRe
   );
   writeRequest(updateTimestamp(request));
   return request;
+}
+
+export interface MethodStatusCorrectionInput {
+  documentKey: string;
+  expectedPreviousStatus: MethodStatus;
+  nextStatus: MethodStatus;
+  reviewer: string;
+  rationale: string;
+  evidenceIds: string[];
+  decisionSource: "human_review";
+}
+
+function hasCompletePrimaryMethodFingerprint(request: ProtocolRequest, key: string): boolean {
+  const primary = request.evidence.filter((evidence) => evidence.documentKey === key
+    && evidence.verification === "verified"
+    && ["full_text", "protocol"].includes(evidence.level)
+    && evidence.lineage?.kind === "primary");
+  return primary.length > 0 && METHOD_FACET_FIELDS.every((field) => {
+    const values = new Set(primary.map((evidence) => evidence.methodFacet?.[field]?.trim()).filter((value): value is string => Boolean(value)));
+    return values.size === 1;
+  });
+}
+
+/** 只由显式人工决定调用；模型意见不能作为 decisionSource。 */
+export function correctProtocolMethodStatus(id: string, input: MethodStatusCorrectionInput) {
+  const request = readRequest(id);
+  const document = request.documents.find((item) => documentKey(item) === input.documentKey);
+  if (!document) throw new Error("Unknown documentKey for this request");
+  if (!input || input.decisionSource !== "human_review") throw new Error("A human_review decisionSource is required");
+  if (typeof input.reviewer !== "string" || !input.reviewer.trim()) throw new Error("A reviewer is required");
+  if (typeof input.rationale !== "string" || !input.rationale.trim()) throw new Error("A correction rationale is required");
+  if (!["explicit_matched", "method_incomplete"].includes(input.nextStatus)) throw new Error("Invalid nextStatus");
+  if (document.methodStatus !== input.expectedPreviousStatus) {
+    throw new Error(`expectedPreviousStatus does not match current status: ${document.methodStatus}`);
+  }
+  if (input.nextStatus === document.methodStatus) throw new Error("nextStatus must differ from the current methodStatus");
+  if (!Array.isArray(input.evidenceIds) || input.evidenceIds.length === 0) throw new Error("At least one evidence reference is required");
+  if (new Set(input.evidenceIds).size !== input.evidenceIds.length) throw new Error("Evidence references must be unique");
+  for (const evidenceId of input.evidenceIds) {
+    const evidence = request.evidence.find((item) => item.id === evidenceId && item.documentKey === input.documentKey);
+    if (!evidence) throw new Error(`Unknown evidence reference for this document: ${evidenceId}`);
+  }
+  if (input.nextStatus === "explicit_matched" && !hasCompletePrimaryMethodFingerprint(request, input.documentKey)) {
+    throw new Error("Cannot mark explicit_matched without a complete primary method fingerprint");
+  }
+  const correction: MethodStatusCorrection = {
+    id: randomUUID(),
+    documentKey: input.documentKey,
+    previousStatus: document.methodStatus,
+    nextStatus: input.nextStatus,
+    reviewer: input.reviewer.trim(),
+    rationale: input.rationale.trim(),
+    evidenceIds: [...input.evidenceIds],
+    decisionSource: "human_review",
+    createdAt: now(),
+  };
+  document.methodStatusHistory = [...(document.methodStatusHistory || []), correction];
+  document.methodStatus = input.nextStatus;
+  writeRequest(updateTimestamp(request));
+  return { request, correction, evidenceUpgrade: false as const };
 }
