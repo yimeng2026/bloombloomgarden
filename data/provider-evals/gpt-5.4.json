@@ -1,0 +1,15 @@
+{
+  "model": "gpt-5.4",
+  "configuredStyle": "chat_completions",
+  "protocol": "responses",
+  "provider": "relay",
+  "returnedModel": "gpt-5.4",
+  "latencyMs": 9046,
+  "finishReason": "completed",
+  "usage": {
+    "prompt_tokens": 130,
+    "completion_tokens": 365,
+    "total_tokens": 495
+  },
+  "content": "{\n  \"verdict\": \"Insufficient protocol evidence to confirm assay comparability or treat the six publications as independent experimental support. Only one publication is explicitly consistent with the stopped-flow CO2 hydration esterase assay; the other five are unsupported beyond abstract/snippet level. The three ChEMBL-curated database rows are derivative records, not independent experiments.\",\n  \"missing_protocol_fields\": [\n    \"Full experimental protocol text for each publication\",\n    \"Direct confirmation of assay type for the five snippet-only publications\",\n    \"Enzyme isoform/source identity\",\n    \"Substrate/reaction measured and detection/readout details\",\n    \"Instrument/setup details for the stopped-flow assay\",\n    \"Buffer composition, pH, temperature, and ionic conditions\",\n    \"Inhibitor preincubation conditions and concentration range\",\n    \"Reference/control compounds and calibration approach\",\n    \"Replicate count, error/statistical treatment, and data analysis method\",\n    \"Raw or full reported potency values tied to the protocol\"\n  ],\n  \"forbidden_inferences\": [\n    \"Do not assume the five snippet-only publications used the same stopped-flow CO2 hydration esterase assay\",\n    \"Do not count the three ChEMBL-curated rows as independent experimental confirmations\",\n    \"Do not infer protocol equivalence from shared topic, authorship, citation linkage, or database curation\",\n    \"Do not infer negative evidence from the lack of author reply beyond 'no clarification received'\",\n    \"Do not invent missing assay parameters or full-text details\"\n  ],\n  \"next_action\": \"Hold at insufficient evidence. Obtain full texts or author-supplied protocols for all six publications before making any stronger claim about assay identity, comparability, or independent experimental support.\"\n}"
+}

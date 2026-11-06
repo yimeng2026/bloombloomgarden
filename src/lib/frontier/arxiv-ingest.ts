@@ -70,10 +70,10 @@ export interface IngestReport {
 
 // ==================== 路径工具 ====================
 function dataRoot(): string {
-  return path.resolve(FRONTIER_DATA_DIR);
+  return path.resolve(/* turbopackIgnore: true */ FRONTIER_DATA_DIR);
 }
 function kbRoot(): string {
-  return path.resolve(FRONTIER_KB_DIR);
+  return path.resolve(/* turbopackIgnore: true */ FRONTIER_KB_DIR);
 }
 function dayFilePath(date: string): string {
   return path.join(dataRoot(), `arxiv_${date}.json`);
@@ -309,11 +309,11 @@ function firstSentence(abstract: string): string {
 }
 
 export function kbCardPath(topic: string, versionedId: string): string {
-  return path.join(kbRoot(), topic, `${versionedId.replace(/\//g, "_")}.md`);
+  return path.resolve(/* turbopackIgnore: true */ kbRoot(), topic, `${versionedId.replace(/\//g, "_")}.md`);
 }
 
 export function writeKbCard(e: ArxivEntry): string {
-  const dir = path.join(kbRoot(), e.topic);
+  const dir = path.resolve(/* turbopackIgnore: true */ kbRoot(), e.topic);
   fs.mkdirSync(dir, { recursive: true });
   const md = [
     "---",

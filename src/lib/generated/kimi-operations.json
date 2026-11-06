@@ -2878,6 +2878,22 @@
       "source": "src/app/api/research/pipelines/[id]/tasks/route.ts"
     },
     {
+      "id": "research:GET:/api/research/protocol-requests",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/protocol-requests",
+      "risk": "read",
+      "source": "src/app/api/research/protocol-requests/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/protocol-requests/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/protocol-requests/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/protocol-requests/[id]/route.ts"
+    },
+    {
       "id": "research:GET:/api/research/registry",
       "service": "research",
       "method": "GET",
@@ -2932,6 +2948,14 @@
       "path": "/api/research/review-boards/[id]/reviews/stats",
       "risk": "read",
       "source": "src/app/api/research/review-boards/[id]/reviews/stats/route.ts"
+    },
+    {
+      "id": "research:GET:/api/research/scenarios",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/scenarios",
+      "risk": "read",
+      "source": "src/app/api/research/scenarios/route.ts"
     },
     {
       "id": "research:GET:/api/research/stats",
@@ -3052,6 +3076,14 @@
       "path": "/api/workflows/[id]",
       "risk": "read",
       "source": "src/app/api/workflows/[id]/route.ts"
+    },
+    {
+      "id": "research:PATCH:/api/research/protocol-requests/[id]",
+      "service": "research",
+      "method": "PATCH",
+      "path": "/api/research/protocol-requests/[id]",
+      "risk": "write",
+      "source": "src/app/api/research/protocol-requests/[id]/route.ts"
     },
     {
       "id": "research:POST:/api/agents",
@@ -3294,6 +3326,38 @@
       "source": "src/app/api/research/pipelines/[id]/tasks/route.ts"
     },
     {
+      "id": "research:POST:/api/research/protocol-requests",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/protocol-requests",
+      "risk": "write",
+      "source": "src/app/api/research/protocol-requests/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/protocol-requests/[id]/evidence",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/protocol-requests/[id]/evidence",
+      "risk": "write",
+      "source": "src/app/api/research/protocol-requests/[id]/evidence/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/protocol-requests/[id]/receipts",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/protocol-requests/[id]/receipts",
+      "risk": "write",
+      "source": "src/app/api/research/protocol-requests/[id]/receipts/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/protocol-requests/[id]/review",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/protocol-requests/[id]/review",
+      "risk": "write",
+      "source": "src/app/api/research/protocol-requests/[id]/review/route.ts"
+    },
+    {
       "id": "research:POST:/api/research/review-boards",
       "service": "research",
       "method": "POST",
@@ -3316,6 +3380,14 @@
       "path": "/api/research/review-boards/[id]/reviews",
       "risk": "write",
       "source": "src/app/api/research/review-boards/[id]/reviews/route.ts"
+    },
+    {
+      "id": "research:POST:/api/research/scenarios",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/research/scenarios",
+      "risk": "write",
+      "source": "src/app/api/research/scenarios/route.ts"
     },
     {
       "id": "research:POST:/api/research/sylva-sync",

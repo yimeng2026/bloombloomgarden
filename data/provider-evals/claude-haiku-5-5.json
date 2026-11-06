@@ -1,0 +1,15 @@
+{
+  "model": "claude-haiku-5-5",
+  "configuredStyle": "chat_completions",
+  "protocol": "chat_completions",
+  "provider": "relay",
+  "returnedModel": "claude-haiku-5-5",
+  "latencyMs": 2743,
+  "finishReason": "stop",
+  "usage": {
+    "prompt_tokens": 197,
+    "completion_tokens": 262,
+    "total_tokens": 459
+  },
+  "content": "```json\n{\n  \"verdict\": \"Insufficient evidence for carbonic anhydrase inhibition claim\",\n  \"missing_protocol_fields\": [\n    \"assay_methodology (5 of 6 publications)\",\n    \"inhibition_constants (IC50/Ki values)\",\n    \"concentration_range_tested\",\n    \"buffer_conditions\",\n    \"temperature\",\n    \"incubation_time\",\n    \"enzyme_source_and_purity\",\n    \"substrate_identity_and_concentration\",\n    \"controls_and_replicates\",\n    \"full_text_access (5 of 6 publications)\"\n  ],\n  \"forbidden_inferences\": [\n    \"The three ChEMBL rows constitute independent validation (they reference the same curated source)\",\n    \"Abstract snippets confirm assay specificity or quantitative activity\",\n    \"Author non-reply indicates data unavailability or confirms reported values\",\n    \"One matching assay validates the other five publications\",\n    \"Publisher snippets contain sufficient methodological detail for reproducibility\"\n  ],\n  \"next_action\": \"Request full text or protocol sheets for the five publications lacking assay detail. Follow up on author email via alternative contact channel. Do not cite this record as established evidence until primary data or full-text methodology is accessible.\"\n}\n```"
+}

@@ -1,0 +1,15 @@
+{
+  "model": "claude-opus-5-5",
+  "configuredStyle": "chat_completions",
+  "protocol": "chat_completions",
+  "provider": "relay",
+  "returnedModel": "claude-opus-5-5",
+  "latencyMs": 7879,
+  "finishReason": "stop",
+  "usage": {
+    "prompt_tokens": 197,
+    "completion_tokens": 269,
+    "total_tokens": 466
+  },
+  "content": "```json\n{\n  \"verdict\": \"INSUFFICIENT_PROVENANCE\",\n  \"missing_protocol_fields\": [\n    \"Enzyme source and preparation method for 5 publications\",\n    \"Substrate concentration and buffer composition for 5 publications\",\n    \"Temperature and pH conditions for 5 publications\",\n    \"Inhibitor concentration range tested\",\n    \"Replicate count and statistical methods\",\n    \"Full-text access to verify methods sections\"\n  ],\n  \"forbidden_inferences\": [\n    \"Cannot assume identical protocols across six publications without full text\",\n    \"Cannot treat three ChEMBL-curated rows as independent experiments (single source)\",\n    \"Cannot infer stopped-flow CO2 hydration method was used in five abstracts without explicit statement\",\n    \"Cannot assume esterase assay equivalence to CO2 hydration assay without validation data\",\n    \"Cannot conclude reproducibility from database curation alone\"\n  ],\n  \"next_action\": \"ESCALATE_FOR_FULL_TEXT_RETRIEVAL — Need complete methods sections from all six publications to verify: (1) whether protocols are comparable, (2) actual inhibition values and conditions, (3) whether the three ChEMBL entries derive from same underlying experiment. Author non-response requires institutional library access or direct publisher requests.\"\n}\n```"
+}

@@ -1,0 +1,299 @@
+{
+  "id": "ca-six-2026",
+  "title": "六组碳酸酐酶文献的实验协议求援与血缘核验",
+  "scenarioId": "protocol-rescue",
+  "status": "sent",
+  "documents": [
+    {
+      "documentChemblId": "CHEMBL1146805",
+      "doi": "10.1016/j.bmcl.2004.04.106",
+      "title": "Carbonic anhydrase inhibitors. Inhibition of cytosolic isozyme XIII with aromatic and heterocyclic sulfonamides: a novel target for the drug design",
+      "methodStatus": "explicit_matched",
+      "methodNote": "ChEMBL／BindingDB 均描述 CA I／II 为 esterase；完整协议未取得。"
+    },
+    {
+      "documentChemblId": "CHEMBL1133556",
+      "doi": "10.1021/jm001051+",
+      "title": "Carbonic Anhydrase Inhibitors: Water-Soluble 4-Sulfamoylphenylthioureas as Topical Intraocular Pressure-Lowering Agents with Long-Lasting Effects",
+      "methodStatus": "method_incomplete",
+      "methodNote": "仅摘要与数据库简写。"
+    },
+    {
+      "documentChemblId": "CHEMBL1146697",
+      "doi": "10.1016/j.bmcl.2003.09.064",
+      "title": "Carbonic anhydrase inhibitors: X-ray crystallographic structure of the adduct of human isozyme II with EMATE, a dual inhibitor of carbonic anhydrases and steroid sulfatase",
+      "methodStatus": "method_incomplete",
+      "methodNote": "可读晶体学片段不能补写乙酰唑胺 Ki 方法。"
+    },
+    {
+      "documentChemblId": "CHEMBL1136178",
+      "doi": "10.1016/S0960-894X(03)00580-8",
+      "title": "Carbonic anhydrase inhibitors: Topically acting antiglaucoma sulfonamides incorporating esters and amides of 3- and 4-carboxybenzolamide",
+      "methodStatus": "method_incomplete",
+      "methodNote": "仅摘要与数据库简写。"
+    },
+    {
+      "documentChemblId": "CHEMBL1146695",
+      "doi": "10.1016/j.bmcl.2003.09.062",
+      "title": "Carbonic anhydrase inhibitors: E7070, a sulfonamide anticancer agent, potently inhibits cytosolic isozymes I and II, and transmembrane, tumor-associated isozyme IX",
+      "methodStatus": "method_incomplete",
+      "methodNote": "正文片段确认 Table 1 存在，完整测定条件未取得。"
+    },
+    {
+      "documentChemblId": "CHEMBL1134204",
+      "doi": "10.1016/S0960-894X(00)00722-8",
+      "title": "Carbonic anhydrase inhibitors: synthesis of sulfonamides incorporating dtpa tails and of their zinc complexes with powerful topical antiglaucoma properties",
+      "methodStatus": "method_incomplete",
+      "methodNote": "仅摘要与数据库简写。"
+    }
+  ],
+  "contacts": [
+    {
+      "name": "Professor Claudiu T. Supuran",
+      "email": "claudiu.supuran@unifi.it",
+      "channel": "public corresponding-author email",
+      "url": "https://doi.org/10.1016/j.bmcl.2003.09.064"
+    }
+  ],
+  "workItems": [
+    {
+      "id": "source-scan",
+      "title": "核对文档身份与现有原文范围",
+      "kind": "retrieve",
+      "integration": "GET /api/graphrag/documents",
+      "purpose": "先确认是哪一篇，避免把同年同数值候选串错。",
+      "status": "done",
+      "note": "六组身份、DOI、活性组合及三组片段／三组摘要已审计。"
+    },
+    {
+      "id": "author-request",
+      "title": "通过公开渠道申请方法与表格",
+      "kind": "request",
+      "integration": "POST /api/research/protocol-requests/ca-six-2026/receipts",
+      "purpose": "合并求援、减少打扰，并保存发送事实而非假定送达。",
+      "status": "done",
+      "note": "Gmail 已发送；未假定作者已读或回复。"
+    },
+    {
+      "id": "evidence-intake",
+      "title": "登记全文片段、协议和未决缺口",
+      "kind": "verify",
+      "integration": "POST /api/research/protocol-requests/ca-six-2026/evidence",
+      "purpose": "区分线索、摘要、片段、全文与完整协议。",
+      "status": "in_progress",
+      "note": "仍有文档缺少核验协议。"
+    },
+    {
+      "id": "panel-review",
+      "title": "实验、血缘与反方三角色复核",
+      "kind": "review",
+      "integration": "POST /api/research/protocol-requests/ca-six-2026/review",
+      "purpose": "让 ProviderPool 集群复核材料，但禁止模型自行晋升证据。",
+      "status": "done",
+      "note": "已保存三角色复核意见；证据等级未自动改变。"
+    },
+    {
+      "id": "publication",
+      "title": "同步论文、组件和可重放审计",
+      "kind": "publish",
+      "integration": "garden-widgets + frontier-breakthrough",
+      "purpose": "只发布实际取得的证据与保留的限制。",
+      "status": "pending"
+    }
+  ],
+  "receipts": [
+    {
+      "id": "ca-six-gmail-20261101-0237",
+      "type": "sent",
+      "channel": "Gmail",
+      "occurredAt": "2026-11-01T02:37:00+08:00",
+      "note": "Message sent；已发送列表确认；截至 02:40 未见目标邮件的即时退信。"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ca13-publisher-snippet",
+      "documentKey": "CHEMBL1146805",
+      "level": "partial_text",
+      "verification": "verified",
+      "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X0400647X",
+      "locator": "CA inhibition data 片段",
+      "quote": "inhibition data against isozymes I, II, and IX have been published earlier, and will be not discussed in detail here",
+      "coverage": "摘要、引言与 CA inhibition data 片段；不是完整全文或协议。",
+      "independentWetExperiment": false,
+      "createdAt": "2026-10-31T17:00:00Z"
+    },
+    {
+      "id": "thiourea-pubmed-abstract",
+      "documentKey": "CHEMBL1133556",
+      "level": "abstract",
+      "verification": "verified",
+      "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/11123998/",
+      "locator": "PubMed 摘要",
+      "quote": "The new thiourea derivatives showed strong affinities toward isozymes I, II, and IV of carbonic anhydrase (CA, EC 4.2.1.1).",
+      "coverage": "仅摘要。",
+      "independentWetExperiment": false,
+      "createdAt": "2026-10-31T17:00:00Z"
+    },
+    {
+      "id": "emate-crystallography-snippet",
+      "documentKey": "CHEMBL1146697",
+      "level": "partial_text",
+      "verification": "verified",
+      "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X03010448",
+      "locator": "Crystallography 片段",
+      "quote": "The hCA II–1 adduct obtained by co-crystallization, was subjected to detailed X-ray crystallography.",
+      "coverage": "摘要、引言与晶体学片段；不是乙酰唑胺 Ki 协议。",
+      "independentWetExperiment": false,
+      "createdAt": "2026-10-31T17:00:00Z"
+    },
+    {
+      "id": "carboxybenzolamide-pubmed-abstract",
+      "documentKey": "CHEMBL1136178",
+      "level": "abstract",
+      "verification": "verified",
+      "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/14611846/",
+      "locator": "PubMed 摘要",
+      "quote": "The new derivatives showed low nanomolar affinity for three carbonic anhydrase (CA) isozymes, CA I, II and IV, and were effective as topical antiglaucoma agents in normotensive rabbits.",
+      "coverage": "仅摘要。",
+      "independentWetExperiment": false,
+      "createdAt": "2026-10-31T17:00:00Z"
+    },
+    {
+      "id": "e7070-table-snippet",
+      "documentKey": "CHEMBL1146695",
+      "level": "partial_text",
+      "verification": "verified",
+      "sourceUrl": "https://www.sciencedirect.com/science/article/pii/S0960894X03010424",
+      "locator": "Chemistry and CA inhibition 片段",
+      "quote": "Inhibition data against four CA isozymes with the six compounds 1–6 are shown in Table 1.",
+      "coverage": "引言与活性片段；不是完整 Table 1 或协议。",
+      "independentWetExperiment": false,
+      "createdAt": "2026-10-31T17:00:00Z"
+    },
+    {
+      "id": "dtpa-pubmed-abstract",
+      "documentKey": "CHEMBL1134204",
+      "level": "abstract",
+      "verification": "verified",
+      "sourceUrl": "https://pubmed.ncbi.nlm.nih.gov/11229775/",
+      "locator": "PubMed 摘要",
+      "quote": "Many of these derivatives showed nanomolar affinity towards isozymes I, II and IV of carbonic anhydrase (CA).",
+      "coverage": "仅摘要。",
+      "independentWetExperiment": false,
+      "createdAt": "2026-10-31T17:00:00Z"
+    },
+    {
+      "id": "3bae3a73-0f02-441c-92c5-e13380cd25fb",
+      "documentKey": "CHEMBL1146805",
+      "level": "lead",
+      "verification": "verified",
+      "sourceUrl": "https://www.iasoc.it/home/wp-content/uploads/2016/11/Supuran_2016.pdf",
+      "locator": "page 55, ChemComm Table 1 screenshot",
+      "quote": "10 (acetazolamide) 250 12 25",
+      "coverage": "Public lecture slide reproducing another study's table; a provenance lead, not an original protocol for the six documents.",
+      "note": "The same standard values recur in a different context. It is not an independent replication.",
+      "independentWetExperiment": false,
+      "createdAt": "2026-11-06T00:07:43.351Z"
+    },
+    {
+      "id": "2126afab-57ee-4435-b5e4-2990da3ccbf4",
+      "documentKey": "CHEMBL1146805",
+      "level": "partial_text",
+      "verification": "verified",
+      "sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3313672/",
+      "locator": "Experimental Protocols, CA inhibition, and Table 1",
+      "quote": "An Applied Photophysics stopped-flow instrument has been used for assaying the CA catalysed CO2 hydration activity.",
+      "coverage": "A complete method section and Table 1 from a different 2012 DTC study; external method context only, not an original protocol for the six documents.",
+      "note": "AAZ 250/12/25 nM recurs here. Reuse across experiments is not independent replication.",
+      "independentWetExperiment": false,
+      "createdAt": "2026-11-06T00:07:43.377Z"
+    }
+  ],
+  "reviews": [
+    {
+      "role": "assay-specialist",
+      "provider": "kimi-gateway",
+      "model": "kimi-for-coding",
+      "content": "**复核意见（仅审查实验方法完整性）**\n\n材料引文仅提及\"对 I、II、IX 同工酶的抑制数据已早前发表\"，未提供任何实验方法细节。逐项核对，以下方法学要素**全部缺失**：\n\n1. **底物**：未说明所用底物种类及浓度。\n2. **酶源**：未说明 CA I、II、IX 的来源（重组/组织提取）、表达与纯化方式。\n3. **仪器**：未说明检测仪器型号及读数方式。\n4. **pH**：未说明反应缓冲液组成及 pH 值。\n5. **温度**：未说明反应/孵育温度。\n6. **浓度**：未说明酶浓度、抑制剂浓度梯度及 IC₅₀ 测定条件。\n7. **孵育**：未说明预孵育及反应时长。\n8. **Kᵢ 换算**：未说明是否由 IC₅₀ 换算 Kᵢ，及所用换算公式与底物 Kₘ 值。\n9. **重复**：未说明技术/生物学重复次数及误差表示方式。\n\n**结论**：现有材料不含可复核的实验方法信息，方法完整性无法评估。建议调取\"earlier published\"所指原始文献的全文及实验方案（protocol）后再行复核。",
+      "usage": {
+        "prompt_tokens": 264,
+        "completion_tokens": 320,
+        "total_tokens": 584
+      },
+      "id": "32eb1419-c8ae-4ba5-b107-686505b7f1a8",
+      "createdAt": "2026-10-31T19:12:31.660Z"
+    },
+    {
+      "role": "provenance-auditor",
+      "provider": "kimi-gateway",
+      "model": "kimi-for-coding",
+      "content": "## 复核意见（仅依据所给材料）\n\n1. **文档身份**\n   - 材料标注为 CHEMBL1146805 的 partial_text，已验证（verification: verified），来源为 ScienceDirect 指定链接。\n   - 覆盖范围仅为摘要、引言及 CA inhibition data 片段，**不是完整全文**。引用时应注明为部分文本，不得表述为已审阅全文或原始实验协议。\n\n2. **历史引用**\n   - 引文明确说明对 isozymes I、II、IX 的抑制数据\"此前已发表，此处不再详述\"。据此可确认：文中未提供该部分数据的新的实验细节，**仅能作为对既有工作的引述**。\n   - 本材料未给出原早期文献的出处信息，无法在本次审查中确认其身份。\n\n3. **可操作性建议**\n   - 如需完整核查 CA 抑制数据，应：(a) 获取该文献全文，确认\"此前发表\"所指原文的完整书目信息；(b) 调取原始文献核对数据与方法；(c) 在引用时标注本文仅为二手转述。\n   - 就现有材料而言，本文不能作为该抑制数据的独立实验证据来源。\n\n4. **证据等级声明**\n   - 本材料未包含数据库转录比对结果，未提供独立重复实验信息；审查范围内未见可作\"造假\"或\"数值一致性\"判断的依据，相关问题超出本次材料支持范围，不做判断。",
+      "usage": {
+        "prompt_tokens": 255,
+        "completion_tokens": 369,
+        "total_tokens": 624
+      },
+      "id": "d4350d61-c230-450b-972d-c1b799d7a354",
+      "createdAt": "2026-10-31T19:12:31.660Z"
+    },
+    {
+      "role": "skeptical-reviewer",
+      "provider": "kimi-gateway",
+      "model": "kimi-for-coding",
+      "content": "复核意见如下：\n\n- **已核内容仅限于部分文本**：现有材料只能确认文中提到“I、II、IX 同工酶抑制数据已早些时候发表，本文不详细讨论”，不能确认具体化合物、数值、实验条件或数据可靠性。  \n- **存在证据等级错配风险**：不得把“已另行发表”等同于“已验证无误”或“可由本文复核”；当前摘录也不足以支持 CA 抑制活性、选择性或结论成立。  \n- **建议操作**：  \n  1. 调取并核对早期发表文献及补充材料，确认化合物身份、同工酶亚型、实验方法、数值与单位；  \n  2. 获取本文完整全文/图表/补充信息，确认引用是否准确、是否存在更新或更正；  \n  3. 对关键数值要求原始数据或可追溯图表核对；  \n  4. 在完整证据补齐前，将相关定量结论标注为“未独立复核”，不接受“实验已证实”或“数据可靠”的表述。  \n- **结论**：依据现有材料，仅支持“作者称早期已发表且本文不详述”的弱结论；不足以支持任何具体生物学活性结论。",
+      "usage": {
+        "prompt_tokens": 254,
+        "completion_tokens": 467,
+        "total_tokens": 721
+      },
+      "id": "dd5468e1-aa8a-4121-8ce6-01516a5ee984",
+      "createdAt": "2026-10-31T19:12:31.660Z"
+    },
+    {
+      "role": "assay-specialist",
+      "provider": "kimi-gateway",
+      "model": "kimi-for-coding",
+      "content": "## 复核意见：实验方法完整性审查\n\n**依据材料性质说明**：三份材料均非目标六个化合物的原始实验方案——①为 Bioorg. Med. Chem. 论文的 CA inhibition data 片段（明确称数据\"published earlier\"）；②为 Supuran 2016 讲座幻灯片，转引他文表格（provenance lead）；③为另一篇 2012 年 DTC 研究的完整方法学，仅可作外部方法参照。因此无法据现有材料确认任何目标化合物的原始方法细节，只能指出缺失项。\n\n**逐项缺失情况**：\n\n1. **底物**：全部缺失。无目标六个化合物（推测为化合物 1–6）的身份、结构、纯度与配制方式。\n2. **酶源**：缺失。无 hCA I、II、IX（及任何其他亚型）的来源、表达/纯化方式、批号。\n3. **仪器**：缺失。目标文献未提供；材料③的 Applied Photophysics stopped-flow 仅属外部参照，不能认定为目标实验所用。\n4. **pH**：缺失。\n5. **温度**：缺失。\n6. **浓度**：缺失。无酶浓度、底物（CO₂/对硝基苯酯等）浓度、化合物测试浓度范围与溶剂。\n7. **孵育**：缺失。无预孵育时间、反应时间、检测波长/信号。\n8. **Ki 换算**：缺失。材料②仅见 IC₅₀ 类数值（\"10 (acetazolamide) 250 12 25\"），无 IC₅₀→Ki 换算方法或原始抑制曲线；且该数值对应乙酰唑胺，非目标化合物。\n9. **重复**：缺失。无生物学/技术性重复次数、误差表示（SD/SEM）。\n\n**结论**：九项方法学要素对目标六个化合物全部缺失；现有材料仅为引用性线索和异源方法上下文，不足以支撑方法学核实或任何效力数据的确证。",
+      "usage": {
+        "prompt_tokens": 484,
+        "completion_tokens": 456,
+        "total_tokens": 940
+      },
+      "id": "bfce9048-a64a-40f1-8ce0-beb3dcace172",
+      "createdAt": "2026-11-06T00:50:08.269Z"
+    },
+    {
+      "role": "provenance-auditor",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "content": "**复核意见**\n\n**证据状态**\n- CHEMBL1146805 的三份材料均为**间接引用或外部方法参考**，未定位到原始实验协议\n- 第一份材料明确表明抑制数据已在更早文献中发表（\"published earlier\"）\n- 第二份材料是会议幻灯片转载的他人表格\n- 第三份材料是2012年不同研究的方法章节\n\n**需要的操作**\n1. 追溯第一份材料中提到的\"更早发表\"的原始文献\n2. 确认第二份幻灯片表格引用的原始出处\n3. 验证这六份文档的实际数据来源是否与已定位材料一致\n\n**当前结论**\n现有材料**不构成**这六份文档的原始实验协议。需继续向上游追溯才能确定数据的初始实验条件。",
+      "usage": {
+        "prompt_tokens": 496,
+        "completion_tokens": 263,
+        "total_tokens": 759
+      },
+      "id": "6f9026c0-3822-4378-9671-376fd988097e",
+      "createdAt": "2026-11-06T00:50:08.269Z"
+    },
+    {
+      "role": "skeptical-reviewer",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "content": "- **限制证据等级**：CHEMBL1146805 仅有部分正文，且明确称 I、II、IX 亚型抑制数据已在先前文献发表、本文不详述；不能据此复原完整实验协议、数据表或统计方法。  \n- **不得将表格截图作为原始证据**：2016 年讲座幻灯片中的“10（乙酰唑胺）250、12、25”仅能作为出处线索，不能确认其对应的化合物、亚型、单位、实验条件或是否属于该六份文献。  \n- **排除跨研究方法嫁接**：2012 年另一项 DTC 研究的 stopped-flow 方法和 Table 1 只能作为外部方法背景，不能据此断定 CHEMBL1146805 采用相同仪器、条件或分析流程。  \n- **建议复核动作**：追溯被原文引用的早期论文及其完整实验部分，核对化合物编号、CA 亚型、抑制指标、单位、测定条件和重复/统计信息；在获得原始协议前，将相关数值标记为“来源线索/不可独立验证”，不要报告为已确认结果。",
+      "usage": {
+        "prompt_tokens": 395,
+        "completion_tokens": 319,
+        "total_tokens": 714
+      },
+      "id": "618c6c77-2a6c-4f44-b75e-b3c5e40c5e8c",
+      "createdAt": "2026-11-06T00:50:08.269Z"
+    }
+  ],
+  "sourceReferences": [
+    "garden-widgets/snapshots/ca-document-methods.json",
+    "frontier-breakthrough/data/ca-document-methods-source.json"
+  ],
+  "createdAt": "2026-10-31T17:00:00Z",
+  "updatedAt": "2026-11-06T00:50:08.270Z"
+}

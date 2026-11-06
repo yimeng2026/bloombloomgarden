@@ -1,0 +1,15 @@
+{
+  "model": "gpt-5.5",
+  "configuredStyle": "chat_completions",
+  "protocol": "responses",
+  "provider": "relay",
+  "returnedModel": "gpt-5.5",
+  "latencyMs": 6312,
+  "finishReason": "completed",
+  "usage": {
+    "prompt_tokens": 130,
+    "completion_tokens": 327,
+    "total_tokens": 457
+  },
+  "content": "{\n  \"verdict\": \"insufficient_provenance_to_confirm_assay_equivalence_or_independent_replication\",\n  \"missing_protocol_fields\": [\n    \"full assay protocol for five publications\",\n    \"substrate and reaction format details for snippet-only records\",\n    \"enzyme source, isoform, and concentration\",\n    \"compound concentrations and dose-response design\",\n    \"buffer composition, pH, temperature, and timing\",\n    \"detection method and instrumentation settings\",\n    \"controls, reference inhibitor, and normalization method\",\n    \"IC50/Ki calculation method and statistics\",\n    \"raw or tabulated experimental data\",\n    \"confirmation that database rows correspond to primary experiments rather than curated duplicates\"\n  ],\n  \"forbidden_inferences\": [\n    \"that all six publications used the stopped-flow CO2 hydration esterase assay\",\n    \"that the five snippet-only publications contain compatible protocols\",\n    \"that ChEMBL-curated database rows represent independent experiments\",\n    \"that six publications equal six independent confirmations\",\n    \"that lack of author reply implies confirmation or rejection\",\n    \"that assay conditions, target isoforms, or potency values can be inferred from abstracts or snippets alone\"\n  ],\n  \"next_action\": \"obtain full texts/protocols or author responses before treating the evidence as protocol-confirmed; currently count only one explicitly protocol-matching report and treat the rest as unverified\"\n}"
+}

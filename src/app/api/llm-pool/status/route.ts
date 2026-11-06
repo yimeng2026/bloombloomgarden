@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getKimiGateway } from "@/lib/kimi-gateway";
+import { getPool } from "@/lib/provider-pool";
 import { researchLLMHealthCheck } from "@/lib/research-llm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function externalProviders() {
+  return getPool().map((provider) => ({
+    id: provider.id,
+    name: provider.name,
+    model: provider.model,
+    apiStyle: provider.apiStyle || "chat_completions",
+    keyCount: provider.keys.length,
+    priority: provider.priority,
+  }));
+}
 
 async function clusterConfiguration(): Promise<{ configured: boolean; endpoints: number; reachable: boolean; error?: string }> {
   const token = process.env.GARDEN_AGENT_TOKEN?.trim();
@@ -28,29 +40,43 @@ async function clusterConfiguration(): Promise<{ configured: boolean; endpoints:
   }
 }
 
-/** No-probe mode is free and reports cluster configuration, not model health. */
+/** No-probe mode is free and reports configuration, not model health. */
 export async function GET(request: NextRequest) {
-  const probe = new URL(request.url).searchParams.get("probe") === "1";
+  const searchParams = new URL(request.url).searchParams;
+  const probe = searchParams.get("probe") === "1";
+  const providers = externalProviders();
   if (!probe) {
     if (process.env.GARDEN_USE_CLUSTER === "0") {
       const direct = getKimiGateway();
       return NextResponse.json({
+        success: true,
         probed: false,
         mode: "direct",
         provider: "kimi",
         configured: direct !== null,
         model: direct?.model || "kimi-for-coding",
         healthy: null,
+        externalProviders: providers,
       });
     }
     return NextResponse.json({
+      success: true,
       probed: false,
       mode: "cluster",
       provider: "kimi",
       healthy: null,
       ...(await clusterConfiguration()),
+      externalProviders: providers,
     });
   }
-  const result = await researchLLMHealthCheck();
-  return NextResponse.json({ probed: true, mode: process.env.GARDEN_USE_CLUSTER === "0" ? "direct" : "cluster", ...result }, { status: result.ok ? 200 : 502 });
+  const provider = searchParams.get("provider") || undefined;
+  const result = await researchLLMHealthCheck(provider);
+  const external = provider && !["kimi", "kimi-gateway"].includes(provider);
+  return NextResponse.json({
+    success: result.ok,
+    probed: true,
+    mode: external ? "external" : process.env.GARDEN_USE_CLUSTER === "0" ? "direct" : "cluster",
+    ...result,
+    externalProviders: providers,
+  }, { status: result.ok ? 200 : 502 });
 }

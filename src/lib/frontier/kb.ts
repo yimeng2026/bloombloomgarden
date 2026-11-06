@@ -26,7 +26,7 @@ export interface KbCard {
 
 function parseCard(filePath: string): KbCard | null {
   try {
-    const raw = fs.readFileSync(filePath, "utf-8");
+    const raw = fs.readFileSync(/* turbopackIgnore: true */ filePath, "utf-8");
     const fm = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
     if (!fm) return null;
     const get = (key: string): string => {
@@ -54,19 +54,19 @@ function parseCard(filePath: string): KbCard | null {
 }
 
 export function searchKb(filter: { topic?: string; tag?: string; q?: string; limit?: number }): { count: number; cards: KbCard[] } {
-  const root = path.resolve(FRONTIER_KB_DIR);
+  const root = path.resolve(/* turbopackIgnore: true */ FRONTIER_KB_DIR);
   const cards: KbCard[] = [];
   let topics: string[] = [];
   try {
-    topics = fs.readdirSync(root).filter((d) => fs.statSync(path.join(root, d)).isDirectory());
+    topics = fs.readdirSync(root).filter((d) => fs.statSync(path.resolve(/* turbopackIgnore: true */ root, d)).isDirectory());
   } catch {
     return { count: 0, cards: [] };
   }
   for (const t of topics) {
     if (filter.topic && t !== filter.topic) continue;
-    const dir = path.join(root, t);
+    const dir = path.resolve(/* turbopackIgnore: true */ root, t);
     for (const f of fs.readdirSync(dir).filter((f) => f.endsWith(".md"))) {
-      const card = parseCard(path.join(dir, f));
+      const card = parseCard(path.resolve(/* turbopackIgnore: true */ dir, f));
       if (!card) continue;
       if (filter.tag && !card.tags.includes(filter.tag)) continue;
       if (filter.q) {

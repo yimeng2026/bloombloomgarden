@@ -1,7 +1,18 @@
 # 千界花园 API 使用手册
 
-> 版本：救援修复版（Kimi 网关通道） · 更新日期：2026-08-05
-> 适用环境：本地开发（Windows + Kimi Desktop 捆绑 Node.js）
+> 当前版本：多供应商与证据工作流版 · 更新日期：2026-11-06
+> 适用环境：本地开发（Windows + Node.js，纯 API 模式）
+
+## 当前入口
+
+- 在项目根目录执行 `npm install`（已有依赖时可跳过）和 `npm run dev`；可用 `npm run dev -- --hostname 127.0.0.1 --port 3001` 指定监听地址。
+- `GET /` 返回 API 服务发现，不提供已移除的旧前端。
+- `GET /api/research/scenarios` 查看六类研究场景；`GET /api/research/protocol-requests` 查看真实求援与证据状态。
+- 当前模型、密钥和 Responses／Chat Completions 配置见 `docs/MODEL_PROVIDER_PLAYBOOK.md`。
+- 证据状态机、三角色分工与六篇案例边界见 `docs/RESEARCH_SCENARIOS.md`。
+- 本机真实密钥放 `.env.local`，绝不要打印或提交。`.env.example` 只提供无密钥模板。
+
+以下“救援改动说明”和 2026-08-05 实测记录保留作历史背景；其中 GLM 失效、单一 Kimi 通道和隐式路由等描述不代表现行多供应商配置。显式指定 `provider` 时会锁定对应供应商，不再把 `provider:"zhipu"` 自动改道 Kimi。
 
 ---
 
@@ -35,7 +46,7 @@ cd "C:\Users\一梦\Documents\kimi\workspace"
 | 提示 "Another next dev server is already running" | 旧 dev 进程残留：`taskkill //PID <旧PID> //F //T` 后重启 |
 | Prisma Client 未生成 | `"<node路径>" node_modules/prisma/build/index.js generate` |
 | 3001 端口被占用 | `netstat -ano \| grep ":3001"` 找到 PID 后 taskkill，或换 `-p 3002` |
-| LLM 全部 401 | 确认启动 shell 中 `echo $KIMI_API_KEY` 非空（`.env` 里的 GLM Key 已全部失效，不影响） |
+| LLM 全部 401 | 通过 `/api/llm-pool/status` 检查通道健康与鉴权状态；不要打印密钥。Relay 密钥可用 `node tools/relay-model-audit.mjs` 做只读 `/models` 检查 |
 
 > 注意：环境变量 `KIMI_BASE_URL` 末尾可能带 `/`，代码已自动去除尾部斜杠，无需处理。
 
@@ -56,12 +67,14 @@ cd "C:\Users\一梦\Documents\kimi\workspace"
 - 流式 SSE 格式为 `data:{...}`（`data:` 后**无空格**；仅 `[DONE]` 行有空格），解析器已兼容
 - 推理型模型：思考会消耗大量 token（实测 450 completion 中 359 为 reasoning_tokens），`max_tokens` 不宜过小
 
-### Provider 优先级
+### 当前 Provider 与角色
 
 ```
-1. Kimi 网关（KIMI_API_KEY + KIMI_BASE_URL 存在时永远优先，model=kimi-for-coding，temperature=1）
-2. 智谱 GLM-5.1（fallback：ZHIPU_API_KEY / GLM51_API_KEY_1 / GLM_API_KEY）
+1. Kimi 网关（代码、形式化、实验方法；model=kimi-for-coding，temperature=1）
+2. RelayRouter（claude-opus-5-5 血缘复核、gpt-5.5 反方审查、claude-haiku-5-5 批量初筛）
 ```
+
+不指定 `provider` 时保留原生 Kimi 集群／直连行为；显式指定外部供应商时才进入 ProviderPool，不在不同语义角色之间静默换模型。按模型的 Responses／Chat Completions 配置与密钥模板见 `docs/MODEL_PROVIDER_PLAYBOOK.md`。旧的 GLM 救援配置只保留历史兼容，不计入当前活动供应商。所有 `/api/*` 调用需使用独立的 `GARDEN_AGENT_TOKEN` 鉴权，不能复用出站模型密钥。
 
 ### 改动文件清单（共 5 个，1 个新增）
 

@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-06",
+  "scope": "同一个实验方法血缘审查题的一次真实调用；不是通用模型排行榜。",
+  "inputRecord": "六篇 CA 文献，一篇明确同酯酶方法，五篇仅有摘要或正文片段；ChEMBL 策划记录不是独立实验；求援邮件有发送回执、尚无作者回复。",
+  "artifacts": [
+    "gpt-5.4.json",
+    "gpt-5.5.json",
+    "claude-opus-5-5.json",
+    "claude-haiku-5-5.json"
+  ],
+  "rubric": {
+    "evidenceBoundary": "是否拒绝把策划记录、摘要、发送回执升级为原始协议或独立实验",
+    "protocolCompleteness": "是否识别方法字段缺口而不是编造实验条件",
+    "outputContract": "是否按请求返回结构化结果",
+    "scopeDiscipline": "是否避免把局部方法证据扩大成对全部活性主张的裁决"
+  },
+  "selection": [
+    {
+      "role": "code-and-formalization",
+      "provider": "kimi-gateway",
+      "model": "kimi-for-coding",
+      "basis": "保留既有代码和形式化工作环境；真实三角色评审已成功。"
+    },
+    {
+      "role": "provenance-auditor",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "basis": "正确区分目标协议、历史引用和外部方法参照；不将数据库策划记录当独立实验。"
+    },
+    {
+      "role": "skeptical-reviewer",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "basis": "遵守证据边界并给出简洁的反方结论；本题延迟低于其他两个旗舰候选。"
+    },
+    {
+      "role": "batch-extraction-only",
+      "provider": "relay",
+      "model": "claude-haiku-5-5",
+      "basis": "适合字段清单和初筛；本题 verdict 措辞过宽，不能独立裁决证据。"
+    }
+  ],
+  "supplierCount": 2,
+  "relayKeyCount": 3,
+  "authentication": "三枚 RelayRouter 密钥均于 2026-11-06 实测 GET /v1/models 返回 200 和 344 个条目。",
+  "secretPolicy": "不包含密钥、完整账户会话、Cookie 或请求认证头。"
+}
