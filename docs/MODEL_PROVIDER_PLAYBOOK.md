@@ -30,6 +30,8 @@ RelayRouter 密钥属于同一供应商，不是独立供应商，也不自动�
 - 文档血缘角色：`claude-opus-5-5`。
 - 反方审查角色：`gpt-5.5`。
 - 批量字段提取：`claude-haiku-5-5`，必须经规则检查和必要的人工／强模型复核。
+- 数学构造：`kimi-k3.1-pro` 与 GPT／Claude 独立生成候选，Kimi 编码通道做反方；具体证书由独立程序裁决，见 `docs/MATH_TOURNAMENT_2026-11-06.md`。
+- 限时数学角色使用 `providerAttempts=1` 和任务级超时，不逐枚密钥重试；其他场景保留正常容错。
 - 此结论只覆盖当前任务的小样本。更换研究方向时，用该方向的真实题目重测，不以名称、宣传语或单一跑分代替验收。
 
 真实三角色 API 评审已返回 `kimi-gateway/kimi-for-coding`、`relay/claude-opus-5-5`、`relay/gpt-5.5`，并保留 `evidenceUpgrade=false`。

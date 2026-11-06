@@ -13,6 +13,8 @@ export interface ResearchLLMRequest {
   temperature?: number;
   maxTokens?: number;
   timeoutMs?: number;
+  /** 外部 Provider 最多尝试几枚密钥；数学等限时任务可设为 1，缺省保留正常容错。 */
+  providerAttempts?: number;
   /** Omit for Kimi. External values must match a POOL_<ID> lowercase identifier. */
   provider?: "kimi" | "kimi-gateway" | "relay" | "zhipu" | "moonshot" | (string & {});
   reasoningEffort?: "none" | "low" | "medium" | "high";
@@ -45,7 +47,7 @@ export async function researchChat(
       reasoningEffort: req.reasoningEffort,
       providerId: externalProvider,
       timeoutMs: req.timeoutMs,
-    }, { maxProviders: 1 });
+    }, { maxProviders: 1, maxKeysPerProvider: req.providerAttempts });
     const content = requireLlmText(response.content, response.provider);
     return {
       content,

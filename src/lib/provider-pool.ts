@@ -613,22 +613,26 @@ export class PoolCallError extends Error {
  * 池化调用：按 provider priority 顺序尝试；每个 provider 内最多尝试全部可用 key；
  * 单 key 失败自动熔断并切换下一 key/provider。
  */
-export async function poolChat(req: PoolChatRequest, options?: { maxProviders?: number }): Promise<PoolChatResponse> {
+export async function poolChat(req: PoolChatRequest, options?: { maxProviders?: number; maxKeysPerProvider?: number }): Promise<PoolChatResponse> {
   const pool = getPool();
   if (pool.length === 0) {
-    throw new Error("ProviderPool 为空：请配置 KIMI_API_KEY+KIMI_BASE_URL 或其他 POOL_* 环境变量");
+    throw new Error("ProviderPool 为空：请配置 POOL_* 或其他外部 Provider 环境变量");
   }
   const providers = req.providerId ? pool.filter((p) => p.id === req.providerId) : pool;
   if (providers.length === 0) {
     throw new Error(`ProviderPool 中不存在 provider: ${req.providerId}`);
   }
+  const keyLimit = options?.maxKeysPerProvider;
+  if (keyLimit !== undefined && (!Number.isInteger(keyLimit) || keyLimit < 1)) {
+    throw new Error("maxKeysPerProvider must be a positive integer");
+  }
 
   const errors: string[] = [];
   let attempts = 0;
   for (const p of providers.slice(0, options?.maxProviders ?? providers.length)) {
-    // 每个 provider 尝试其全部 key 一轮
+    // 默认每 provider 尝试全部 key；限时任务可显式设置更小的上限。
     const tried = new Set<string>();
-    for (let n = 0; n < p.keys.length; n++) {
+    for (let n = 0; n < Math.min(p.keys.length, keyLimit ?? p.keys.length); n++) {
       const key = pickKey(p);
       if (!key || tried.has(key.id)) break;
       tried.add(key.id);

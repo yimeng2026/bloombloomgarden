@@ -1,0 +1,71 @@
+{
+  "id": "06822922-0c6d-4b49-9200-feb4125f7c07",
+  "competitionId": "813019b9-035c-4391-884e-df212ec1c4e9",
+  "challenge": {
+    "type": "prime_quadruple",
+    "start": 1000024262,
+    "end": 1000026260
+  },
+  "claimScope": "known_answer_certificate_benchmark",
+  "status": "partial",
+  "modelCallsSucceeded": false,
+  "llmEnabled": false,
+  "winners": [
+    "Claude Opus 5.5"
+  ],
+  "winnerInterpretation": "仅表示有效证书持有者；全场胜负仍需所有调用完成，不能将错误视为数学反证。",
+  "scoringRule": "Verified certificate = 10; otherwise = 0. Errors and truncation remain explicitly incomplete; no random, length-based or voting scores.",
+  "results": [
+    {
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "status": "error",
+      "valid": false,
+      "score": 0,
+      "error": "ProviderPool 全部通道失败: relay/sk-4xe…len51: This operation was aborted"
+    },
+    {
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "status": "evaluated",
+      "certificate": {
+        "p": 1000025351,
+        "method": "按模3、5、7等小素数构造并筛选四元组候选，交由独立素性检验复核",
+        "reason": "该整数位于指定区间，且其四个相关数均通过所述小素数轮筛；未将此筛选视为完整素性证明。"
+      },
+      "valid": false,
+      "score": 0,
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 143,
+        "completion_tokens": 2387,
+        "total_tokens": 2530
+      },
+      "latencyMs": 46190
+    },
+    {
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "status": "evaluated",
+      "certificate": {
+        "p": 1000025261,
+        "method": "基于同余结构的构造筛选：p、p+2、p+6、p+8 全为奇素数要求 p 为奇数且 p≡2 (mod 3)、p≡1 (mod 5)，即 p≡11 (mod 15)；且 p mod 7∈{2,3,4}、p mod 11∉{0,3,5,9} 等。区间 [1000024262,1000026260] 恰好关于 1000025261 对称（中点为整数、奇数、且≡11 mod 15），对该中点用素数 2 至 181 逐个手算 p mod q，四个偏移 0,2,6,8 均无零剩余，故取其为候选。",
+        "reason": "候选由模小素数的筛法构造而非素性证明：p=1000025261, p+2=1000025263, p+6=1000025267, p+8=1000025269 对 2..181 的所有素数均非零剩余，且落在区间内。这里不做任何素数断言；完整素性需由独立方用试除至 31623 或确定性 Miller–Rabin（底 2,3,5,7,11,13,17 对 10^9 级整数足够）重算确认。"
+      },
+      "valid": true,
+      "score": 10,
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 183,
+        "completion_tokens": 6143,
+        "total_tokens": 6326
+      },
+      "latencyMs": 61367
+    }
+  ],
+  "reviewCount": 2,
+  "createdAt": "2026-11-06T03:25:47.086Z"
+}

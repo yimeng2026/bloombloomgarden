@@ -1,0 +1,243 @@
+{
+  "checkedAt": "2026-11-06T03:31:54.786Z",
+  "algorithm": "trial_division_to_sqrt",
+  "sourceRecordCount": 3,
+  "originalScoresPreserved": true,
+  "note": "离线重算已有证书，不调用模型，不覆盖原始回答或评审意见。",
+  "rechecks": [
+    {
+      "tournamentId": "06822922-0c6d-4b49-9200-feb4125f7c07",
+      "challenge": {
+        "type": "prime_quadruple",
+        "start": 1000024262,
+        "end": 1000026260
+      },
+      "results": [
+        {
+          "competitorId": "807c7805-2766-47d1-b9ad-71b7eafbb585",
+          "certificate": {
+            "p": 1000025351,
+            "method": "按模3、5、7等小素数构造并筛选四元组候选，交由独立素性检验复核",
+            "reason": "该整数位于指定区间，且其四个相关数均通过所述小素数轮筛；未将此筛选视为完整素性证明。"
+          },
+          "verification": {
+            "valid": false,
+            "reasons": [
+              "1000025351 is not prime (smallest factor 13)",
+              "1000025353 is not prime (smallest factor 139)",
+              "1000025357 is not prime (smallest factor 17)",
+              "1000025359 is not prime (smallest factor 53)"
+            ],
+            "algorithm": "trial_division_to_sqrt",
+            "values": [
+              {
+                "value": 1000025351,
+                "prime": false,
+                "smallestFactor": 13,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025353,
+                "prime": false,
+                "smallestFactor": 139,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025357,
+                "prime": false,
+                "smallestFactor": 17,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025359,
+                "prime": false,
+                "smallestFactor": 53,
+                "trialDivisionLimit": 31623
+              }
+            ]
+          }
+        },
+        {
+          "competitorId": "b23fc168-314d-4349-a600-c239b328de77",
+          "certificate": {
+            "p": 1000025261,
+            "method": "基于同余结构的构造筛选：p、p+2、p+6、p+8 全为奇素数要求 p 为奇数且 p≡2 (mod 3)、p≡1 (mod 5)，即 p≡11 (mod 15)；且 p mod 7∈{2,3,4}、p mod 11∉{0,3,5,9} 等。区间 [1000024262,1000026260] 恰好关于 1000025261 对称（中点为整数、奇数、且≡11 mod 15），对该中点用素数 2 至 181 逐个手算 p mod q，四个偏移 0,2,6,8 均无零剩余，故取其为候选。",
+            "reason": "候选由模小素数的筛法构造而非素性证明：p=1000025261, p+2=1000025263, p+6=1000025267, p+8=1000025269 对 2..181 的所有素数均非零剩余，且落在区间内。这里不做任何素数断言；完整素性需由独立方用试除至 31623 或确定性 Miller–Rabin（底 2,3,5,7,11,13,17 对 10^9 级整数足够）重算确认。"
+          },
+          "verification": {
+            "valid": true,
+            "reasons": [
+              "All four values are prime and p is in range"
+            ],
+            "algorithm": "trial_division_to_sqrt",
+            "values": [
+              {
+                "value": 1000025261,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025263,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025267,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025269,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "tournamentId": "bde64f99-e1e6-477e-9f6c-ca82ee7223a2",
+      "challenge": {
+        "type": "prime_quadruple",
+        "start": 1000024262,
+        "end": 1000026260
+      },
+      "results": [
+        {
+          "competitorId": "1f4b6253-20d6-40e2-936e-c8cb79dffe9a",
+          "certificate": {
+            "p": 1000024463,
+            "method": "筛选法加试除验证",
+            "reason": "在给定区间内系统筛选满足 p≡3(mod 5) 的候选（排除被5整除的情况），对每个候选的四个数 p, p+2, p+6, p+8 进行小素数试除至√p，确认无小因子后作为候选提交"
+          },
+          "verification": {
+            "valid": false,
+            "reasons": [
+              "1000024463 is not prime (smallest factor 17033)",
+              "1000024465 is not prime (smallest factor 5)",
+              "1000024469 is not prime (smallest factor 43)",
+              "1000024471 is not prime (smallest factor 2099)"
+            ],
+            "algorithm": "trial_division_to_sqrt",
+            "values": [
+              {
+                "value": 1000024463,
+                "prime": false,
+                "smallestFactor": 17033,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000024465,
+                "prime": false,
+                "smallestFactor": 5,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000024469,
+                "prime": false,
+                "smallestFactor": 43,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000024471,
+                "prime": false,
+                "smallestFactor": 2099,
+                "trialDivisionLimit": 31623
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "tournamentId": "dd00eec6-59df-4bf4-8c3f-452c274be49c",
+      "challenge": {
+        "type": "prime_quadruple",
+        "start": 1000024262,
+        "end": 1000026260
+      },
+      "results": [
+        {
+          "competitorId": "7eb48f26-a525-4fdb-995e-e5d58fb62ffc",
+          "certificate": {
+            "p": 1000025261,
+            "method": "按模 2、3、5 的必要条件先取 p≡11 mod 15；随后对区间内候选做小素数轮筛，并用确定性 Miller–Rabin 基集合筛出候选。",
+            "reason": "该 p 位于给定闭区间内，且 p,p+2,p+6,p+8 通过上述独立筛选流程得到；最终素性由花园独立重算。"
+          },
+          "verification": {
+            "valid": true,
+            "reasons": [
+              "All four values are prime and p is in range"
+            ],
+            "algorithm": "trial_division_to_sqrt",
+            "values": [
+              {
+                "value": 1000025261,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025263,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025267,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000025269,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              }
+            ]
+          }
+        },
+        {
+          "competitorId": "2c86df75-308d-4244-a82f-765ecc1c44dd",
+          "certificate": {
+            "p": 1000024871,
+            "method": "筛选法：遍历区间内 p≡11(mod30) 的数，检验 p,p+2,p+6,p+8 的素性",
+            "reason": "素数四元组 (p,p+2,p+6,p+8) 必满足 p≡11(mod30)。在给定区间用试除法逐一验证各候选的四个数是否都为素数"
+          },
+          "verification": {
+            "valid": false,
+            "reasons": [
+              "1000024873 is not prime (smallest factor 383)",
+              "1000024877 is not prime (smallest factor 31)",
+              "1000024879 is not prime (smallest factor 7)"
+            ],
+            "algorithm": "trial_division_to_sqrt",
+            "values": [
+              {
+                "value": 1000024871,
+                "prime": true,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000024873,
+                "prime": false,
+                "smallestFactor": 383,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000024877,
+                "prime": false,
+                "smallestFactor": 31,
+                "trialDivisionLimit": 31623
+              },
+              {
+                "value": 1000024879,
+                "prime": false,
+                "smallestFactor": 7,
+                "trialDivisionLimit": 31623
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

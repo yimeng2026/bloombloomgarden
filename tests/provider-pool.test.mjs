@@ -162,6 +162,25 @@ test("ProviderPool protocol compatibility", async (t) => {
     await assert.rejects(poolChat({ providerId: "relay", userPrompt: "Hi", temperature: 0.3 }), /temperature/);
   });
 
+  await t.test("bounds key attempts for time-limited research roles", async () => {
+    const previous = process.env.POOL_RELAY_API_KEY_2;
+    process.env.POOL_RELAY_API_KEY_2 = "second-slot-test-secret";
+    reloadPool();
+    let calls = 0;
+    globalThis.fetch = async () => {
+      calls += 1;
+      return calls === 1 ? new Response("temporary failure", { status: 500 }) : Response.json({ status: "completed", output_text: "second key" });
+    };
+    try {
+      await assert.rejects(poolChat({ providerId: "relay", userPrompt: "Hi", maxTokens: 8 }, { maxProviders: 1, maxKeysPerProvider: 1 }));
+      assert.equal(calls, 1);
+    } finally {
+      if (previous === undefined) delete process.env.POOL_RELAY_API_KEY_2;
+      else process.env.POOL_RELAY_API_KEY_2 = previous;
+      reloadPool();
+    }
+  });
+
   await t.test("redacts credentials if an upstream error reflects them", async () => {
     reloadPool();
     globalThis.fetch = async () => new Response("bad credential: relay-test-secret", { status: 401 });

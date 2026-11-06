@@ -133,7 +133,7 @@ export const RESEARCH_SCENARIOS: ResearchScenario[] = [
     ],
     workItems: [
       { id: "claim-normalize", title: "规范化命题与假设边界", kind: "retrieve", integration: "POST /api/ontology/extract", purpose: "避免把不同命题或不同强度混为一谈。" },
-      { id: "proof-attempt", title: "生成候选证明或反例", kind: "review", integration: "POST /api/research/panels", purpose: "让构造者与反方分别工作。" },
+      { id: "proof-attempt", title: "生成候选证明或反例", kind: "review", integration: "POST /api/research/competitions/:id/rounds (mode=certificate)", purpose: "构造者独立工作，反方审查范围，确定性程序裁决证书，禁止随机评分。" },
       { id: "formal-check", title: "运行形式化与已知答案检查", kind: "verify", integration: "Z3／Lean／自定义验证脚本", purpose: "把编译、公理依赖和 sorry 分开记录。" },
       { id: "budget-ledger", title: "记录成本、失败与未决状态", kind: "publish", integration: "POST /api/research/validations", purpose: "费用只用于资源规划，不晋升数学结论。" },
     ],

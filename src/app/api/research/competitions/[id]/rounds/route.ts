@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateCollaborationResponses, PromptContext } from "@/lib/research-prompts";
+import { MathTournamentInputError, runMathTournament } from "@/lib/math-tournament";
 
 export const runtime = "nodejs";
 
@@ -52,6 +53,75 @@ export async function POST(
     }
 
     const nextRoundNumber = competition.currentRound + 1;
+
+    // 真实数学证书模式：不走模拟内容、随机分数或长度估分。
+    if (body.mode === "certificate") {
+      try {
+        const contestants = competition.competitors.map((competitor) => {
+          const model = competitor.model || "kimi";
+          const separator = model.indexOf(":");
+          const native = model === "kimi" || model === "kimi-for-coding" || model.startsWith("kimi:");
+          return {
+            id: competitor.id,
+            name: competitor.name,
+            provider: native ? "kimi" : separator > 0 ? model.slice(0, separator) : "relay",
+            model: native ? undefined : separator > 0 ? model.slice(separator + 1) : model,
+            systemPrompt: competitor.systemPrompt,
+          };
+        });
+        const tournament = await runMathTournament({
+          competitionId: id,
+          challenge: body.challenge,
+          contestants,
+          reviewers: body.reviewers,
+        });
+        const scores = tournament.results.map((result) => ({
+          competitorId: result.competitorId,
+          name: result.name,
+          score: result.score,
+          status: result.status,
+          valid: result.verification.valid,
+        }));
+        const round = await prisma.competitionRound.create({
+          data: {
+            competitionId: id,
+            roundNumber: nextRoundNumber,
+            phase: "certificate",
+            topic: topic?.trim() || "prime_quadruple",
+            content: JSON.stringify(tournament),
+            scores: JSON.stringify(scores),
+            consensusLevel: tournament.consensusLevel,
+          },
+        });
+        for (const result of tournament.results) {
+          if (result.status !== "evaluated") continue;
+          const competitor = competition.competitors.find((item) => item.id === result.competitorId);
+          if (!competitor) continue;
+          const score = (competitor.score * competition.currentRound + result.score) / nextRoundNumber;
+          await prisma.academicCompetitor.update({ where: { id: competitor.id }, data: { score } });
+        }
+        const complete = tournament.status === "complete";
+        const status = nextRoundNumber >= competition.maxRounds && complete ? "concluded" : "active";
+        await prisma.academicCompetition.update({
+          where: { id },
+          data: { currentRound: nextRoundNumber, status },
+        });
+        return NextResponse.json({
+          success: true,
+          round: { ...round, content: tournament, scores },
+          competition: { id, currentRound: nextRoundNumber, status, consensusLevel: tournament.consensusLevel },
+          llmEnabled: tournament.modelCallsSucceeded,
+          verificationMode: "deterministic_certificate",
+          tournamentId: tournament.id,
+        });
+      } catch (error) {
+        if (error instanceof MathTournamentInputError) {
+          return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+        }
+        throw error;
+      }
+    }
+
     const roundTopic = topic?.trim() || customPrompt?.trim() || `Round ${nextRoundNumber}`;
 
     // 2. 根据 format 生成轮次内容（模拟结构作为基础）

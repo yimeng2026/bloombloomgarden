@@ -1,0 +1,183 @@
+{
+  "id": "06822922-0c6d-4b49-9200-feb4125f7c07",
+  "competitionId": "813019b9-035c-4391-884e-df212ec1c4e9",
+  "challenge": {
+    "type": "prime_quadruple",
+    "start": 1000024262,
+    "end": 1000026260
+  },
+  "contestants": [
+    {
+      "id": "9d6313fa-eb5f-44b0-b410-1accbcaca34a",
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    },
+    {
+      "id": "807c7805-2766-47d1-b9ad-71b7eafbb585",
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    },
+    {
+      "id": "b23fc168-314d-4349-a600-c239b328de77",
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "systemPrompt": "你是严谨的构造性数论研究者。给出候选证书和简短方法，不虚构计算或验证，不宣称新定理。"
+    }
+  ],
+  "results": [
+    {
+      "competitorId": "9d6313fa-eb5f-44b0-b410-1accbcaca34a",
+      "name": "Kimi K3.1 Pro",
+      "provider": "relay",
+      "model": "kimi-k3.1-pro",
+      "status": "error",
+      "content": "",
+      "verification": {
+        "valid": false,
+        "reasons": [
+          "model call failed"
+        ],
+        "values": []
+      },
+      "score": 0,
+      "error": "ProviderPool 全部通道失败: relay/sk-4xe…len51: This operation was aborted"
+    },
+    {
+      "competitorId": "807c7805-2766-47d1-b9ad-71b7eafbb585",
+      "name": "OpenAI GPT-5.5",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "status": "evaluated",
+      "content": "{\"p\":1000025351,\"method\":\"按模3、5、7等小素数构造并筛选四元组候选，交由独立素性检验复核\",\"reason\":\"该整数位于指定区间，且其四个相关数均通过所述小素数轮筛；未将此筛选视为完整素性证明。\"}",
+      "certificate": {
+        "p": 1000025351,
+        "method": "按模3、5、7等小素数构造并筛选四元组候选，交由独立素性检验复核",
+        "reason": "该整数位于指定区间，且其四个相关数均通过所述小素数轮筛；未将此筛选视为完整素性证明。"
+      },
+      "verification": {
+        "valid": false,
+        "reasons": [
+          "1000025351 is not prime (smallest factor 13)",
+          "1000025353 is not prime (smallest factor 139)",
+          "1000025357 is not prime (smallest factor 17)",
+          "1000025359 is not prime (smallest factor 53)"
+        ],
+        "values": [
+          {
+            "value": 1000025351,
+            "prime": false,
+            "smallestFactor": 13
+          },
+          {
+            "value": 1000025353,
+            "prime": false,
+            "smallestFactor": 139
+          },
+          {
+            "value": 1000025357,
+            "prime": false,
+            "smallestFactor": 17
+          },
+          {
+            "value": 1000025359,
+            "prime": false,
+            "smallestFactor": 53
+          }
+        ]
+      },
+      "score": 0,
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 143,
+        "completion_tokens": 2387,
+        "total_tokens": 2530
+      },
+      "latencyMs": 46190
+    },
+    {
+      "competitorId": "b23fc168-314d-4349-a600-c239b328de77",
+      "name": "Claude Opus 5.5",
+      "provider": "relay",
+      "model": "claude-opus-5-5",
+      "status": "evaluated",
+      "content": "{\"p\":1000025261,\"method\":\"基于同余结构的构造筛选：p、p+2、p+6、p+8 全为奇素数要求 p 为奇数且 p≡2 (mod 3)、p≡1 (mod 5)，即 p≡11 (mod 15)；且 p mod 7∈{2,3,4}、p mod 11∉{0,3,5,9} 等。区间 [1000024262,1000026260] 恰好关于 1000025261 对称（中点为整数、奇数、且≡11 mod 15），对该中点用素数 2 至 181 逐个手算 p mod q，四个偏移 0,2,6,8 均无零剩余，故取其为候选。\",\"reason\":\"候选由模小素数的筛法构造而非素性证明：p=1000025261, p+2=1000025263, p+6=1000025267, p+8=1000025269 对 2..181 的所有素数均非零剩余，且落在区间内。这里不做任何素数断言；完整素性需由独立方用试除至 31623 或确定性 Miller–Rabin（底 2,3,5,7,11,13,17 对 10^9 级整数足够）重算确认。\"}",
+      "certificate": {
+        "p": 1000025261,
+        "method": "基于同余结构的构造筛选：p、p+2、p+6、p+8 全为奇素数要求 p 为奇数且 p≡2 (mod 3)、p≡1 (mod 5)，即 p≡11 (mod 15)；且 p mod 7∈{2,3,4}、p mod 11∉{0,3,5,9} 等。区间 [1000024262,1000026260] 恰好关于 1000025261 对称（中点为整数、奇数、且≡11 mod 15），对该中点用素数 2 至 181 逐个手算 p mod q，四个偏移 0,2,6,8 均无零剩余，故取其为候选。",
+        "reason": "候选由模小素数的筛法构造而非素性证明：p=1000025261, p+2=1000025263, p+6=1000025267, p+8=1000025269 对 2..181 的所有素数均非零剩余，且落在区间内。这里不做任何素数断言；完整素性需由独立方用试除至 31623 或确定性 Miller–Rabin（底 2,3,5,7,11,13,17 对 10^9 级整数足够）重算确认。"
+      },
+      "verification": {
+        "valid": true,
+        "reasons": [
+          "All four values are prime and p is in range"
+        ],
+        "values": [
+          {
+            "value": 1000025261,
+            "prime": true
+          },
+          {
+            "value": 1000025263,
+            "prime": true
+          },
+          {
+            "value": 1000025267,
+            "prime": true
+          },
+          {
+            "value": 1000025269,
+            "prime": true
+          }
+        ]
+      },
+      "score": 10,
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 183,
+        "completion_tokens": 6143,
+        "total_tokens": 6326
+      },
+      "latencyMs": 61367
+    }
+  ],
+  "reviews": [
+    {
+      "reviewerId": "kimi-adversary",
+      "provider": "kimi",
+      "model": "kimi-for-coding",
+      "content": "## 复核意见\n\n### 1. 条目 `807c7805…` — 存在构造自洽性问题（比\"未证明\"更严重的错配）\n\n- **范围错配在构造层而非仅证明层**：该证书宣称\"按模 3、5、7 等小素数构造并筛选四元组候选\"。但 p=1000025351 的各位数字和为 16，即 **p ≡ 1 (mod 3)**，此时 p+2 被 3 整除。对四元组 {p, p+2, p+6, p+8}，任何仅做模 3 筛的构造都应排除 p≡1 (mod 3) 的候选（正确条件为 p≡2 (mod 3)）。\n- 验证结果与此一致：1000025353 的最小因子恰为 3 的倍数类失败之外的——验证给出 139，但 p≡1 (mod 3) 已单独足以淘汰。\n- **结论**：此条目的失败不是\"筛选≠证明\"的通常情况，而是**所述筛选本身没有按其声称的条件执行**。method 字段与实际候选之间存在内部矛盾。验证方的否定裁决正确，但验证理由中未指出这一构造层矛盾（验证只报告了因子，未指出 mod 3 违规），属于覆盖不完全，不影响结论有效性。\n\n### 2. 条目 `b23fc168…` — 证书范围诚实，但验证方证据链缺失\n\n- **证书侧**：明确声明\"不做任何素数断言\"，并指定了两种可接受的独立确认方式（试除至 √p≈31623，或对 10⁹ 级整数用底 {2,3,5,7,11,13,17} 的确定性 Miller–Rabin）。边界条件给得正确：√1000025269 ≈ 31623.2，试除上限表述准确。\n- **验证侧的范围缺口**：verification 仅给出 `\"prime\":true` 与结论性语句，**未声明使用了哪种方法、试除上限或 MR 底数**。证书要求的独立验证范围是明确的，而验证方未证明自己在该范围内执行。作为评审，\"`valid`:true\" 这一标签本身不可直接采信——它只是一条未经展示工作过程的断言。\n- **逐项抽查无反例**：未在本次复核中发现矛盾（p=1000025261 为奇、数位和 22 → p≡1 mod 3，与 p≡2 的要求……注意此处 p≡1 (mod 3) 会使 p+2 被 3 整除？1000025263 数位和 24，可被 3 整除？24/3=8，是，则 p+2 应被 3 整除。但验证称 1000025263 为素数。重新核算：p=1000025261，数位和 1+0+0+0+0+2+5+2+6+1=17，p≡2 (mod 3)；p+2=1000025263，数位和 19，≡1 (mod 3)。一致，无误。），但抽查不能替代验证方声明方法。\n- **结论**：结论可能正确，但 **\"valid\":true 的证据范围未对齐证书所要求的验证范围**。应要求验证方补记方法（MR 底数或试除界），否则该裁决只能记为\"未证明其验证过程\"。\n\n### 3. 条目 `9d6313fa…` — 无验证范围可言\n\n- `model call failed`，values 为空。此条不应参与任何计分或多数派推理；\"error\" 状态本身是唯一可支持的结论。**不得**以另两条的多数结果间接填补此条。\n\n### 总体\n\n- 不得把三条的\"投票\"（1 error、1 invalid、1 valid）当作任何意义上的证明聚合——三者相互独立，且第 2 条的验证过程未留证。\n- 主要未覆盖假设：条目 2 的验证方法学完全缺失；条目 3 的构造声称与其候选自相矛盾（模 3 条件未被其自身筛法满足），这一点验证方漏报。",
+      "finishReason": "stop",
+      "usage": {
+        "prompt_tokens": 841,
+        "completion_tokens": 1472,
+        "total_tokens": 2313
+      }
+    },
+    {
+      "reviewerId": "openai-adversary",
+      "provider": "relay",
+      "model": "gpt-5.5",
+      "content": "复核结论（不改变机器分数，也不将投票视为证明）：\n\n1. **competitor 9d6313fa…**\n   - 验证调用失败，只有 `model call failed`。\n   - 因而没有形成可检查的证书，也没有覆盖区间、构造性质或相关数的素性。\n   - 不能据此支持或反驳其构造结论；当前材料仅表明“未验证”。\n\n2. **competitor 807c7805…**\n   - 证书明确只说明：用模 \\(3,5,7\\) 等小素数筛选候选，并承认这不是完整素性证明。\n   - 独立验证发现四个数分别含因子 \\(13,139,17,53\\)，因此该候选并不满足四元素数性质。\n   - 这里不存在“把筛选当作证明”的证书层面过度宣称；相反，独立验证覆盖了证书未覆盖的完整素性要求，并直接否定该候选。\n   - 其“位于指定区间”与“通过小素数筛”即使成立，也不足以推出四数为素数。\n\n3. **competitor b23fc168…**\n   - 证书的逻辑范围较明确：它只把模小素数筛选作为候选生成，不声称这是素性证明，并明确要求独立素性检验。\n   - 给出的同余限制与排除 \\(p,p+2,p+6,p+8\\) 被小素数整除的目的相符；对模 \\(7\\)、模 \\(11\\) 的排除集合也与四个偏移一致。\n   - 证书声称对 \\(2\\) 至 \\(181\\) 的素数做了筛选，但这只覆盖小素数除数，不能单独覆盖完整素性。该缺口由独立验证的“四个值均为素数且 \\(p\\) 在区间内”所覆盖，前提是该独立验证器本身确实使用了可靠的确定性方法。\n   - 证书中“确定性 Miller–Rabin（底 \\(2,3,5,7,11,13,17\\) 对 \\(10^9\\) 级整数足够）”的表述存在轻微范围措辞问题：所列数约为 \\(1.000025\\times10^9\\)，严格说略高于 \\(10^9\\)。不过这些底数对远大于该数量级的已知范围也足够，因此这不是该具体候选的实质性漏洞；材料没有提供实际验证算法或运行记录，故只能确认独立验证结果，不能从证书本身重建其证明过程。\n   - “试除至 \\(31623\\)”对约 \\(10^9\\) 的数是合理覆盖，因为相关数的平方根略低于 \\(31624\\)；但证书没有实际列出试除过程，因此这只是所述方法的覆盖说明，不是证书中已经展示的逐项证明。\n\n**总体范围判断：**  \n唯一明显的构造失败是第二个候选被独立因子证书直接否定。第三个候选没有发现由所给材料导致的范围错配或过度宣称；其完整结论依赖独立验证，而不是小素数筛本身。第一项由于调用失败，没有可审查的证明覆盖范围。",
+      "finishReason": "completed",
+      "usage": {
+        "prompt_tokens": 819,
+        "completion_tokens": 1244,
+        "total_tokens": 2063
+      }
+    }
+  ],
+  "status": "partial",
+  "modelCallsSucceeded": false,
+  "winners": [
+    "Claude Opus 5.5"
+  ],
+  "consensusLevel": 0.3333333333333333,
+  "claimScope": "known_answer_certificate_benchmark",
+  "scoringRule": "Verified certificate = 10; otherwise = 0. Errors and truncation remain explicitly incomplete; no random, length-based or voting scores.",
+  "createdAt": "2026-11-06T03:25:47.086Z"
+}

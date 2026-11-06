@@ -24,6 +24,8 @@ export function GET() {
       { method: "GET", path: "/api/research/protocol-requests", purpose: "实验协议求援与证据计数" },
       { method: "POST", path: "/api/research/scenarios", purpose: "创建研究场景或工作计划" },
       { method: "POST", path: "/api/research/protocol-requests/:id/review", purpose: "三角色评审；dryRun 可免费预览" },
+      { method: "POST", path: "/api/research/competitions/:id/rounds", purpose: "mode=certificate 的数学对抗与确定性判分" },
+      { method: "GET", path: "/api/research/math-tournaments/:id", purpose: "读取数学证书、反方与机器验证" },
     ],
     evidenceBoundary: "模型评审不是原始证据，不自动提升证据等级。",
   });

@@ -2758,6 +2758,14 @@
       "source": "src/app/api/research/law-packages/[id]/route.ts"
     },
     {
+      "id": "research:GET:/api/research/math-tournaments/[id]",
+      "service": "research",
+      "method": "GET",
+      "path": "/api/research/math-tournaments/[id]",
+      "risk": "read",
+      "source": "src/app/api/research/math-tournaments/[id]/route.ts"
+    },
+    {
       "id": "research:GET:/api/research/mentorships",
       "service": "research",
       "method": "GET",
