@@ -1,6 +1,6 @@
 # 数学—物理观与数学层级观：证据、边界和 AI 时代的制度设计
 
-**版本**：2.4（2026-11-08；初稿 2026-10-26）
+**版本**：2.5（2026-11-08；初稿 2026-10-26）
 **性质**：批判性综述、方法论框架与仓库整改依据；不是新的物理统一理论
 **配套文档**：`TOE_RESEARCH_ATLAS_2026.md`、`CNF_RESTRUCTURING_2026.md`、`62_mathematical_hierarchy_emergence.md`
 
@@ -1291,6 +1291,8 @@ CLASS 的单位曲率归一化和 `delta_m` 选择因此得到同次功率的强
 
 原生重建与同次直接功率在零模型中的最大相对差仅为 \(7.46\times10^{-4}\)，基线最大相对差为 \(2.08\times10^{-7}\)。相反，同次功率与此前冻结插值在零模型深谷的最大相对差达到约 507.03，基线最大相对差为 \(2.26\times10^{-5}\)。这直接说明：**原生重建公式本身并没有造成此前的巨大点值偏差，既往冻结插值才是深谷局部失真的关键来源之一。**
 
+进一步的[跨运行复现检查](zero-cdm/transfer-reproducibility-summary.json)直接比较了两次独立运行的原生重建结果。零模型的 3888 个对齐点最大相对差仅为 \(3.33\times10^{-15}\)，基线的 4132 个对齐点最大相对差仅为 \(9.99\times10^{-16}\)，即几乎逐位一致。这排除了跨运行求解器变化，支持把深谷局部失真归因于既往插值；但不能据此推出带功率的跨代码差异已经消失。
+
 带积分则统一使用 2603 个公共 \(\log_{10}k\) 网格点，同时计算原始、0.05 dex 和 0.10 dex 三种口径。实际上限取各数据源交集 \(k=1.9985652306116815\)，不向 2.0 外推。不同原生网格不再分别积分后直接比较。
 
 ### 25.2 最高波数带：局部插值问题不是全部答案
@@ -1317,7 +1319,7 @@ CLASS 的单位曲率归一化和 `delta_m` 选择因此得到同次功率的强
 
 完整数值见[同次功率摘要](zero-cdm/same-run-power-summary.json)，运行程序为[camb_transfer_same_run.py](zero-cdm/camb_transfer_same_run.py)，公共网格分析为[analyze_same_run_power.py](zero-cdm/analyze_same_run_power.py)，独立重算为[verify_same_run_power.py](zero-cdm/verify_same_run_power.py)。后者覆盖 4 个来源、3 种统计口径及最高带的全部带功率，零模型现有 14 项 Python 测试全部通过。
 
-第一次运行因插值上界的浮点舍入而停止，未外推，见[第一次修订](zero-cdm/same-run-transfer-amendment-01.json)。对齐数组和公共网格修订分别见[第二次](zero-cdm/same-run-transfer-amendment-02.json)与[第三次修订](zero-cdm/same-run-transfer-amendment-03.json)。这些修订不改变物理输入或既有原始证据。
+第一次运行因插值上界的浮点舍入而停止，未外推，见[第一次修订](zero-cdm/same-run-transfer-amendment-01.json)。对齐数组和公共网格修订分别见[第二次](zero-cdm/same-run-transfer-amendment-02.json)与[第三次修订](zero-cdm/same-run-transfer-amendment-03.json)。跨运行原生重建的一致性由[第四次修订](zero-cdm/same-run-transfer-amendment-04.json)和[独立复算](zero-cdm/verify_transfer_reproducibility.py)进一步确认。这些修订不改变物理输入或既有原始证据。
 
 ![同次 CAMB 功率与公共网格带功率对照](zero-cdm/same-run-power-comparison.svg)
 

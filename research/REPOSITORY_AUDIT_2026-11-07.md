@@ -137,3 +137,4 @@
 - 原生 Windows Lake 随后成功构建 `PhysicalChemistry.ReactionNetwork`，退出码 0，3288 个任务完成。完整 `--with-lean-build` 自检、声明级公理审计和验证回读全部通过，临时资源均清理。两份历史快照比较为 0 变化、评审队列为空；新增 `reaction-lake-self-check.json` 与 `reaction-lean-history-diff.json`。该结果只覆盖选定目标，不排除源树 dirty 状态、既有警告、占位定理或其他未审计声明。
 - 同次 CAMB 功率对照已实际完成：原生重建与同次直接功率高度一致，既往冻结插值在深谷产生巨大局部误差。公共 2603 点网格和三种口径重算表明，旧插值只解释部分偏差；最高带同次功率／CLASS 对数差仍为 −2.283065，不能宣称极端跨代码问题已解决。
 - 新增 `same_run_power.py`、`camb_transfer_same_run.py`、`analyze_same_run_power.py`、`verify_same_run_power.py`、协议与三份修订、完整摘要和可复核图。独立校验覆盖 4 个来源、3 种方法及最高带；零模型 14 项 Python 测试通过，主文档升级为 2.4。既往插值构造、规范变换、复合实现和观测检验仍是开放方向。
+- 新增 `analyze_transfer_reproducibility.py`、`verify_transfer_reproducibility.py`、`transfer-reproducibility-summary.json` 和第四份修订。两次原生重建在零模型 3888 点、基线 4132 点上几乎逐位一致，最大差分别为 \(3.33\times10^{-15}\) 和 \(9.99\times10^{-16}\)，独立复算与全部 14 项 Python 测试通过。跨运行求解器变化因此被排除，既往插值是深谷局部失真的已证实来源；极端跨代码带功率差异仍需规范、复合实现和网格研究。主文档升级为 2.5。

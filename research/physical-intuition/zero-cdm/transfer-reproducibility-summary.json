@@ -1,0 +1,107 @@
+{
+  "status": "computed_native_reconstruction_reproducibility_not_observational_fit",
+  "comparison": "old native reconstructed power divided by new native reconstructed power, then minus one",
+  "records": {
+    "zero": {
+      "aligned_points": 3888,
+      "old_over_new": {
+        "points": 3888,
+        "median_abs_fraction": 4.440892098500626e-16,
+        "p95_abs_fraction": 1.3322676295501878e-15,
+        "max_abs_fraction": 3.3306690738754696e-15
+      },
+      "max_location": {
+        "k_h_per_Mpc": 0.9038152170544876,
+        "old_native": 3.259258291443792e-16,
+        "new_native_interpolated": 3.259258291443781e-16,
+        "old_over_new_minus_1": 3.3306690738754696e-15
+      },
+      "point_values": {
+        "0.01": {
+          "old_native": 32346.9168729713,
+          "new_native": 32346.9168729713,
+          "old_over_new_minus_1": 0.0
+        },
+        "0.05": {
+          "old_native": 495.5579298106692,
+          "new_native": 495.5579298106692,
+          "old_over_new_minus_1": 0.0
+        },
+        "0.1": {
+          "old_native": 102.04128229480588,
+          "new_native": 102.04128229480588,
+          "old_over_new_minus_1": 0.0
+        },
+        "0.5": {
+          "old_native": 1.242026099804514e-06,
+          "new_native": 1.242026099804514e-06,
+          "old_over_new_minus_1": 0.0
+        },
+        "1.0": {
+          "old_native": 1.826071492698862e-11,
+          "new_native": 1.826071492698862e-11,
+          "old_over_new_minus_1": 0.0
+        }
+      }
+    },
+    "baseline": {
+      "aligned_points": 4132,
+      "old_over_new": {
+        "points": 4132,
+        "median_abs_fraction": 2.220446049250313e-16,
+        "p95_abs_fraction": 7.771561172376096e-16,
+        "max_abs_fraction": 9.992007221626409e-16
+      },
+      "max_location": {
+        "k_h_per_Mpc": 0.01061782589095738,
+        "old_native": 22902.332410133,
+        "new_native_interpolated": 22902.33241013302,
+        "old_over_new_minus_1": -9.992007221626409e-16
+      },
+      "point_values": {
+        "0.01": {
+          "old_native": 22380.988764744066,
+          "new_native": 22380.988764744066,
+          "old_over_new_minus_1": 0.0
+        },
+        "0.05": {
+          "old_native": 12662.377075001037,
+          "new_native": 12662.377075001037,
+          "old_over_new_minus_1": 0.0
+        },
+        "0.1": {
+          "old_native": 5633.952006713227,
+          "new_native": 5633.952006713227,
+          "old_over_new_minus_1": 0.0
+        },
+        "0.5": {
+          "old_native": 325.2152647358755,
+          "new_native": 325.2152647358755,
+          "old_over_new_minus_1": 0.0
+        },
+        "1.0": {
+          "old_native": 70.13740449623822,
+          "new_native": 70.13740449623822,
+          "old_over_new_minus_1": 0.0
+        }
+      }
+    }
+  },
+  "raw_output_sha256": {
+    "zero": {
+      "old_transfer": "36ad4566557c473e9afb86b2fddc6b4822988af5b65c80a6e414388496e6da95",
+      "new_same_run_transfer": "376691b72632e83455db9a1067b3e958472222e705f5ca2de931c98c415ca606",
+      "previous_frozen_spectra": "c7b08a3478a2e9c14b633d2f115fc67938a14f22c4dd7a9c91f8883ec660e91d"
+    },
+    "baseline": {
+      "old_transfer": "a85d54636b1ac48fe80145dc5efb0939177cefb87b660ea0cff485b098e01395",
+      "new_same_run_transfer": "1cdc9ae1d4ba99384238de2fc1897fcba0d2ce120e9304f5f5b27f8ef3ae807b",
+      "previous_frozen_spectra": "fc480c5b2efa95833858d96a37f5f7c0ba789d8e681b7c9ea91ba4a76bec450a"
+    }
+  },
+  "analysis_runner_sha256": "5fb86128a1c56514e858c947c41677662e2ca93eeea9f10396771e164d1aaca5",
+  "boundaries": [
+    "This tests native-reconstruction reproducibility across two runs; it does not isolate interpolation from solver variation by itself.",
+    "No observational likelihood, covariance, or model-family exclusion."
+  ]
+}

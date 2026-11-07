@@ -1,0 +1,15 @@
+{
+  "status": "native_reconstruction_reproducibility_verified",
+  "amended_on": "2026-11-08",
+  "previous_protocol_sha256": "8a096df828c7d64d7b279442d8189eb3b815702b6abdb3e8bf4a2a3f2636198e",
+  "analysis_runner": "analyze_transfer_reproducibility.py",
+  "analysis_runner_sha256": "5fb86128a1c56514e858c947c41677662e2ca93eeea9f10396771e164d1aaca5",
+  "verification_runner": "verify_transfer_reproducibility.py",
+  "result": "Old and new native reconstructed power are bitwise-identical within floating-point text/interpolation precision. Maximum absolute fractional differences are 3.33e-15 for zero and 9.99e-16 for baseline.",
+  "aligned_points": {
+    "zero": 3888,
+    "baseline": 4132
+  },
+  "interpretation": "The deep-valley local discrepancy is evidenced to arise from previous interpolation, not run-to-run solver variation. This does not eliminate the remaining cross-code band-power discrepancy or its gauge and implementation systematics.",
+  "verification": "An independent verifier recomputed the aligned fractional errors and confirmed the summary; all 14 Python tests pass."
+}

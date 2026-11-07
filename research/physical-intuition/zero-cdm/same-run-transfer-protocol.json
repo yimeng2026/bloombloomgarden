@@ -28,12 +28,14 @@
   "amendments": [
     "same-run-transfer-amendment-01.json",
     "same-run-transfer-amendment-02.json",
-    "same-run-transfer-amendment-03.json"
+    "same-run-transfer-amendment-03.json",
+    "same-run-transfer-amendment-04.json"
   ],
   "input_sha256": {
     "camb_transfer_same_run.py": "d9621e0c8823950cc20521b065525bb43aa2f67ed462bc55d7202ec28939b627",
     "same_run_power.py": "f4586235da8c2d356f7d324999f9b340d06a0a093ec0a6c25e0f280c40ff0d90",
-    "analyze_same_run_power.py": "f1eebcc573b60d283ad36182f8f5f5091826271cc4198941501a6f916a262690"
+    "analyze_same_run_power.py": "f1eebcc573b60d283ad36182f8f5f5091826271cc4198941501a6f916a262690",
+    "analyze_transfer_reproducibility.py": "5fb86128a1c56514e858c947c41677662e2ca93eeea9f10396771e164d1aaca5"
   },
   "output_rule": "Write new transfer-same-run.npz and transfer-same-run-summary.json files; never overwrite earlier native-transfer artifacts.",
   "boundaries": [
