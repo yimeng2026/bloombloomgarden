@@ -73,7 +73,7 @@
 2. 清理可证实的死代码和未使用导入，保留并标注有意的接口预留；
 3. 对极端物质谱实现平滑化和带功率对照，同时记录低波数规范边界；
 4. 在数值系统误差进一步闭合后，再评估公开似然、联合 BBN 与非线性工作；
-5. 每次修改后重跑根平台 64 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
+5. 每次修改后重跑根平台 66 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
 
 本记录是下一轮工作的基线，不是“全部问题已经解决”的声明。
 
@@ -84,3 +84,5 @@
 - 全库 `no-explicit-any` 从 52 降至 42；`lint:all` 当前为 42 错误、17 警告。TypeScript 与 Next standalone 构建已复验通过。
 - `panels/[id]/execute/route.ts` 的 6 个 `no-explicit-any` 已全部移除，`hasChair` 未使用警告也已清理。执行计划、成员、阶段和自定义策略解析已迁移到 `src/lib/panel-execution.ts`，使用明确类型和 `unknown` 类型守卫。
 - 新增 `tests/unit/panel-execution.test.js`，覆盖顺序阶段排序、自定义阶段默认值和无效策略回退。根平台测试总数从 61 增至 64，全部通过。全库 `no-explicit-any` 进一步降至 36，`lint:all` 为 36 错误、16 警告；TypeScript 与 Next standalone 构建已复验通过。
+- `collaborations/init/route.ts` 的 3 个 `as any` 已全部移除。专家模板迁移到 `src/lib/collaboration-init.ts`，使用 `ValidationRole` 联合类型约束 `lead_validator、validator、witness、checker`；未知领域继续回退到默认模板。
+- 新增 `tests/unit/collaboration-init.test.js`，验证所有模板角色、必要字段和默认回退。根平台测试总数从 64 增至 66，全部通过。全库 `no-explicit-any` 进一步降至 33，`lint:all` 为 33 错误、16 警告；TypeScript 与 Next standalone 构建已复验通过。
