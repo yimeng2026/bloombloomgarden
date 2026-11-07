@@ -29,11 +29,17 @@ def main():
     proof = args.proof.read_text(encoding="utf-8")
     start = original.index(START_MARKER)
     end = original.index(END_MARKER, start) + len(END_MARKER)
-    replacement_start = proof.index("/-- **定义**：恢复 `CrystalMomentum2D=ℝ×ℝ`")
+    replacement_start = proof.index("/-- **定义**：导出 `CrystalMomentum2D=ℝ×ℝ`")
     replacement_end = proof.rindex("\nend BerryConnection")
     replacement = proof[replacement_start:replacement_end].rstrip() + "\n"
     replacement = replacement.replace(CONCRETE_NAME, ORIGINAL_NAME)
     patched = original[:start] + replacement + original[end:]
+    for required_instance in [
+        "noncomputable instance : NormedAddCommGroup BlochTheorem.CrystalMomentum2D",
+        "noncomputable instance : NormedSpace ℝ BlochTheorem.CrystalMomentum2D",
+    ]:
+        if required_instance not in patched:
+            raise ValueError(f"Required shared instance is missing: {required_instance}")
     if patched.count(f"theorem {ORIGINAL_NAME}\n") != 1:
         raise ValueError("Expected exactly one concrete identity theorem after patching")
     if "let idGauge : GaugeTransformation L := { theta := fun _ => 0, smoothness := True }\n    -- 恒等规范变换下联络不变：A' = A + d(0) = A\n    True := by trivial" in patched:

@@ -1,0 +1,54 @@
+--- a/BerryConnection.lean
++++ b/BerryConnection.lean
+@@ -225,17 +225,41 @@
+     -- 联络在原点处的存在性：A_n(0) = ⟨u_n0| i∇_k |u_n0⟩ 是良定义的
+     A.connection origin 0 = A.connection origin 0 := by rfl
+ 
+-/-- Berry 联络在规范变换复合下的行为（边界问题）。
+-    若依次施加规范变换 θ₁ 和 θ₂，则总变换为 θ₁ + θ₂，
+-    联络变换为 A → A + dθ₁ + dθ₂ = A + d(θ₁ + θ₂)。
+-    这体现了 U(1) 规范群的 Abel 性质。 -/
++/-- **定理**：若 `θ₁`、`θ₂` 在 `k` 点可微，则依次施加两个规范变换，
++等于一次施加 `θ₁+θ₂`。
++
++**证明思路**：用 `fderiv_add` 展开相位和的导数，再分别取 `(1,0)`、`(0,1)` 的标量值，
++使用函数外延性和环代数完成证明。共享实例保证定义中的 `fderiv` 与假设中的 `fderiv` 相同。
++
++**物理意义**：局部 Abel 相位旋转按加法复合，联络规范变换保持这一群结构。 -/
+ theorem BerryConnection_GaugeTransformComposition
+-    (L : BlochTheorem.Lattice2D) (A : BerryConnection L)
+-    (gauge1 gauge2 : GaugeTransformation L) :
+-    -- 两个规范变换的复合：θ_total = θ₁ + θ₂
+-    let totalTheta : BlochTheorem.CrystalMomentum2D → ℝ := fun k => gauge1.theta k + gauge2.theta k
+-    -- 联络变换的可加性：d(θ₁ + θ₂) = dθ₁ + dθ₂（导数的线性性）
+-    True := by trivial
++    (L : BlochTheorem.Lattice2D)
++    (connection : BlochTheorem.CrystalMomentum2D → Fin 2 → ℝ)
++    (gauge1 gauge2 : GaugeTransformation L) (k : BlochTheorem.CrystalMomentum2D)
++    (hθ1 : DifferentiableAt ℝ gauge1.theta k)
++    (hθ2 : DifferentiableAt ℝ gauge2.theta k) :
++    gaugeTransformConnection2D L (gaugeTransformConnection2D L connection gauge1) gauge2 k
++    = gaugeTransformConnection2D L connection
++      { theta := fun k' => gauge1.theta k' + gauge2.theta k', smoothness := True } k := by
++  have hsum : (fun k' => gauge1.theta k' + gauge2.theta k') = gauge1.theta + gauge2.theta := rfl
++  have hadd : fderiv ℝ (fun k' => gauge1.theta k' + gauge2.theta k') k
++      = fderiv ℝ gauge1.theta k + fderiv ℝ gauge2.theta k := by
++    rw [hsum, fderiv_add hθ1 hθ2]
++  have haddX : (fderiv ℝ (fun k' => gauge1.theta k' + gauge2.theta k') k) (1, 0)
++      = (fderiv ℝ gauge1.theta k) (1, 0) + (fderiv ℝ gauge2.theta k) (1, 0) := by
++    simpa using congrArg (fun D => D (1, 0)) hadd
++  have haddY : (fderiv ℝ (fun k' => gauge1.theta k' + gauge2.theta k') k) (0, 1)
++      = (fderiv ℝ gauge1.theta k) (0, 1) + (fderiv ℝ gauge2.theta k) (0, 1) := by
++    simpa using congrArg (fun D => D (0, 1)) hadd
++  funext μ
++  fin_cases μ
++  · simp [gaugeTransformConnection2D, realDirectionX]
++    rw [haddX]
++    ring
++  · simp [gaugeTransformConnection2D, realDirectionY]
++    rw [haddY]
++    ring
++
+ 
+ /-- Berry 联络在反演对称性下的行为（边界问题）。
+     若系统具有时间反演对称性，则 Berry 联络满足 A_n(-k) = -A_n(k)。

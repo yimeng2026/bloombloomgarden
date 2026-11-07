@@ -9,9 +9,9 @@
                    "originalFile":  "BerryConnection.lean",
                    "originalSha256":  "2e0066e9063e3639ba16ce6105aaf965685e54a7a7c12f6ebef55ae6c5fc0ee8",
                    "proofFile":  "research/formalization/BerryConnectionGaugeIdentity.lean",
-                   "proofSha256":  "38e32eeb73aeb7ff12d229291d7ca8405632a3f6618b650ff8811196845f8a54",
+                   "proofSha256":  "d98a8e5e835f0de0438f15a5390d2396e3e05f4ba18adff1fcd01deebc18da26",
                    "patchFile":  "research/formalization/berry-connection-gauge-identity.patch",
-                   "patchSha256":  "c35af137ab660e12ac89563e4e14d261fd7bd2d19809776558367a3478964233",
+                   "patchSha256":  "db48059861fe07bfa0f1e39f93f475969a0056463e80db99cb243e0a639ccaea",
                    "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
                },
     "build":  {
@@ -23,8 +23,8 @@
                                  "patched":  0,
                                  "patchedAudit":  0
                              },
-                  "standaloneOutputSha256":  "976407bc4f688fb1e12c32f0bec4c4b8760a1e3d17b28a06403edbd6311a0353",
-                  "patchedOutputSha256":  "40d283500bf5a0adb85480b8aa34557e02463f09e97f1f0c2efd19b8467bf0b2",
+                  "standaloneOutputSha256":  "af2604725ea61ae936ea4ea5c7fcdd5997e63a62ace21e219d529292e27b16e0",
+                  "patchedOutputSha256":  "6501b3744443a634be13e38a94d3a50d1eb3ec5aae6edb3bc54dcd45a4636f20",
                   "warningsPreserved":  true
               },
     "axiomAudit":  {

@@ -31,12 +31,12 @@ namespace BerryConnection
 
 open Real Complex Set MeasureTheory intervalIntegral
 
-/-- **定义**：恢复 `CrystalMomentum2D=ℝ×ℝ` 的局部范数结构。
+/-- **定义**：导出 `CrystalMomentum2D=ℝ×ℝ` 的共享范数结构。
 
-**证明思路**：直接委托积空间的现有实例，不引入新假设。
+**证明思路**：直接委托积空间的现有实例，不引入新假设；下游复合证明复用同一实例。
 
 **物理意义**：为动量空间中的导数提供距离和拓扑结构。 -/
-noncomputable local instance : NormedAddCommGroup BlochTheorem.CrystalMomentum2D :=
+noncomputable instance : NormedAddCommGroup BlochTheorem.CrystalMomentum2D :=
   inferInstanceAs (NormedAddCommGroup (ℝ × ℝ))
 
 /-- **定义**：恢复 `CrystalMomentum2D=ℝ×ℝ` 的实向量空间结构。
@@ -44,7 +44,7 @@ noncomputable local instance : NormedAddCommGroup BlochTheorem.CrystalMomentum2D
 **证明思路**：直接委托积空间的现有 `NormedSpace` 实例。
 
 **物理意义**：允许对联络和规范相位取 Fréchet 导数。 -/
-noncomputable local instance : NormedSpace ℝ BlochTheorem.CrystalMomentum2D :=
+noncomputable instance : NormedSpace ℝ BlochTheorem.CrystalMomentum2D :=
   inferInstanceAs (NormedSpace ℝ (ℝ × ℝ))
 
 /-- **定义**：实值动量空间的 x 单位方向。

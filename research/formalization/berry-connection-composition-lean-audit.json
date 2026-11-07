@@ -1,0 +1,52 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "Concrete 2D real Berry-connection identity and composition proofs with sequential patches; not a full-project proof",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "originalFile":  "BerryConnection.lean",
+                   "originalSha256":  "2e0066e9063e3639ba16ce6105aaf965685e54a7a7c12f6ebef55ae6c5fc0ee8",
+                   "identityProofSha256":  "d98a8e5e835f0de0438f15a5390d2396e3e05f4ba18adff1fcd01deebc18da26",
+                   "compositionProofSha256":  "cc5bd9976f4af4a2c757bcaad4f3d202afc1f5ec0c9acfffa5b42a1c3969bf4d",
+                   "identityPatchSha256":  "db48059861fe07bfa0f1e39f93f475969a0056463e80db99cb243e0a639ccaea",
+                   "compositionPatchSha256":  "ad26ae3efbf610a93651dcaff2e5b2453120ac687d9886b5c299dcd30ea0b64f",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "stages":  {
+                                 "bloch":  0,
+                                 "originalConnection":  0,
+                                 "identity":  0,
+                                 "composition":  0,
+                                 "standaloneAudit":  0,
+                                 "patched":  0,
+                                 "patchedAudit":  0
+                             },
+                  "identityOutputSha256":  "af2604725ea61ae936ea4ea5c7fcdd5997e63a62ace21e219d529292e27b16e0",
+                  "compositionOutputSha256":  "48b98f053f24b8f3ae50932922b60885703b3aa58dce97588cdd9c9179d61c28",
+                  "patchedOutputSha256":  "5dfc87ab4f2b2924a63a8060931e1336788f7cc36e65d58becde0dcd326ed0f2",
+                  "warningsPreserved":  true
+              },
+    "axiomAudit":  {
+                       "standalone":  "\u0027BerryConnection.BerryConnection_GaugeTransformComposition_concrete\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.BerryConnection_GaugeTransformationIdentity_concrete\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "patched":  "\u0027BerryConnection.BerryConnection_GaugeTransformationIdentity\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.BerryConnection_GaugeTransformComposition\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]"
+                   },
+    "validation":  {
+                       "identityPatchSynchronized":  true,
+                       "compositionPatchSynchronized":  true,
+                       "sequentialApplicationMatches":  true,
+                       "forbiddenPlaceholderOrNewAxiom":  false,
+                       "externalSourceModified":  false,
+                       "fullProjectBuilt":  false,
+                       "physicalSemanticProof":  false
+                   },
+    "boundaries":  [
+                       "Both theorems are narrowed to real 2D connection components.",
+                       "Composition requires DifferentiableAt for both phases; no general gauge-law axiom is used or cleared.",
+                       "The composition patch must be applied after the identity patch, which supplies gaugeTransformConnection2D and shared instances.",
+                       "Standalone and patched audits run in separate dependency environments to avoid duplicate helper declarations.",
+                       "Other placeholders and warnings remain visible; the external TOE-SYLVA source tree is not modified."
+                   ]
+}

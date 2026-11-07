@@ -36,7 +36,7 @@ A'_\mu(k)=A_\mu(k)+\partial_\mu\theta(k),
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-berry-connection-identity-lean.ps1 `
   -LeanHome 'C:\Users\一梦\Documents\kimi\workspace\.worktrees\provider-main-integration\.tmp\lean-4.29.0-windows\lean-4.29.0-windows' `
   -SylvaRoot 'D:\kimi-workspace\TOE-SYLVA-pull\sylva_formalization\SylvaFormalization' `
-  -OutputDirectory 'C:\Users\一梦\Documents\kimi\workspace\.worktrees\provider-main-integration\.tmp\berry-identity-verification' `
+  -OutputDirectory 'C:\Users\一梦\Documents\kimi\workspace\.worktrees\provider-main-integration\.tmp\berry-identity-verification-v2' `
   -ReportPath 'C:\Users\一梦\Documents\kimi\workspace\.worktrees\provider-main-integration\research\formalization\berry-connection-identity-lean-audit.json'
 ```
 
@@ -56,3 +56,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-berry-connect
 - 本定理只证明恒等变换，不清偿一般规范变换律、复合、时间反演或其他 `True` 占位。
 - 原文件其他公理和警告仍保留，未关闭或隐藏。
 - 外部 TOE-SYLVA 项目尚需由维护者应用补丁并更新状态登记；本仓库不宣称外部项目已合入或全库已证明。
+
+
+## 6. 共享实例与复合证明补充
+
+为支持 `BerryConnectionGaugeComposition.lean`，恒等模块的两套 `CrystalMomentum2D` 类型类实例已由局部实例改为导出的共享实例，避免定义与证明中的 `fderiv` 隐式实例不同。恒等单独审计已以 `.tmp/berry-identity-verification-v2` 重新执行，退出码仍为 0，公理依赖不变。
+
+复合定理及顺序补丁见 `BERRY_CONNECTION_COMPOSITION_LEAN_AUDIT_2026-11-08.md` 与 `berry-connection-composition-lean-audit.json`。恒等补丁生成器已增加双实例完整性检查，防止因文档标记变化漏提取。
