@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildCompetitorFilter } from "@/lib/competitor-filter";
 
 export const runtime = "nodejs";
 
@@ -38,11 +39,7 @@ export async function GET(
     const role = searchParams.get("role");
     const eliminated = searchParams.get("eliminated");
 
-    const where: any = { competitionId: id };
-    if (role) where.role = role;
-    if (eliminated !== null) {
-      where.eliminated = eliminated === "true";
-    }
+    const where = buildCompetitorFilter(id, role, eliminated);
 
     const competitors = await prisma.academicCompetitor.findMany({
       where,

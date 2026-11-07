@@ -73,7 +73,7 @@
 2. 清理可证实的死代码和未使用导入，保留并标注有意的接口预留；
 3. 对极端物质谱实现平滑化和带功率对照，同时记录低波数规范边界；
 4. 在数值系统误差进一步闭合后，再评估公开似然、联合 BBN 与非线性工作；
-5. 每次修改后重跑根平台 74 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
+5. 每次修改后重跑根平台 76 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
 
 本记录是下一轮工作的基线，不是“全部问题已经解决”的声明。
 
@@ -92,3 +92,5 @@
 - 新增 `tests/unit/platform-sse.test.js`，覆盖完整事件、未完成缓冲区和非法 JSON。根平台测试总数从 69 增至 72，全部通过。全库 `no-explicit-any` 进一步降至 28，`lint:all` 为 28 错误、15 警告；TypeScript 与 Next standalone 构建已复验通过。
 - `src/lib/research-prompts.ts` 的 3 个 `any` 已全部移除。`PromptTemplate` 改为使用 `PromptContext`，索引签名收紧为 `unknown`，并补齐阶段、标题、文件、行号等显式字段；竞赛提示词由 `src/lib/competition-prompt.ts` 统一构造。
 - 新增 `tests/unit/competition-prompt.test.js`，验证轮次、格式、参赛者列表和默认值。根平台测试总数从 72 增至 74，全部通过。全库 `no-explicit-any` 进一步降至 25，`lint:all` 为 25 错误、15 警告；TypeScript 与 Next standalone 构建已复验通过。
+- `competitions/[id]/competitors/route.ts` 的 1 个 `any` 已移除，参赛者筛选改由 `src/lib/competitor-filter.ts` 返回 `Prisma.AcademicCompetitorWhereInput`。
+- 新增 `tests/unit/competitor-filter.test.js`，验证角色、淘汰状态和空筛选。根平台测试总数从 74 增至 76，全部通过。全库 `no-explicit-any` 进一步降至 24，`lint:all` 为 24 错误、15 警告；TypeScript 与 Next standalone 构建已复验通过。
