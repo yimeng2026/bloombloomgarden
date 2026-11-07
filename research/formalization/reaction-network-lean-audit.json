@@ -1,0 +1,41 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "direct Lean compilation of one selected module and one declaration; not a full Lake build or physical-semantic proof",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "file":  "PhysicalChemistry/ReactionNetwork.lean",
+                   "sha256":  "1fcfeb8a662e73ebb9b40239835d4c6aaaa3bc3194b03e9db07abcb5f27d160b",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "exitCode":  0,
+                  "moduleOutput":  "D:\\kimi-migration\\workspace\\provider-main-integration\\.tmp\\reaction-lean-audit-run\\PhysicalChemistry\\ReactionNetwork.olean",
+                  "moduleOutputSha256":  "14f72a0d62e1a9dd40bd97b2746a452d9c8cc05482bbb4c4b769200828bf1d09",
+                  "log":  "D:\\kimi-migration\\workspace\\provider-main-integration\\.tmp\\reaction-lean-audit-run\\lean-build.log"
+              },
+    "axiomAudit":  {
+                       "declaration":  "Sylva.ReactionNetwork.MM_deficiency_zero_computed",
+                       "exitCode":  0,
+                       "axioms":  [
+                                      "propext",
+                                      "Classical.choice",
+                                      "Quot.sound"
+                                  ],
+                       "sorryAx":  false,
+                       "output":  "\u0027Sylva.ReactionNetwork.MM_deficiency_zero_computed\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "log":  "D:\\kimi-migration\\workspace\\provider-main-integration\\.tmp\\reaction-lean-audit-run\\lean-axiom.log"
+                   },
+    "environment":  {
+                        "leanHome":  "D:\\kimi-migration\\workspace\\provider-main-integration\\.tmp\\lean-4.29.0-windows\\lean-4.29.0-windows",
+                        "outputDirectory":  "D:\\kimi-migration\\workspace\\provider-main-integration\\.tmp\\reaction-lean-audit-run",
+                        "note":  "Native Windows Lean is used because WSL 9P access stalled in p9_client_rpc during Lake configuration and direct Lean reads. This is an environment workaround, not a Lake success claim."
+                    },
+    "boundaries":  [
+                       "Warnings in lean-build.log remain visible and are not suppressed.",
+                       "No full-repository build, physical-semantic validation, observational test, or model-family exclusion is claimed.",
+                       "The audit is for one declaration, not for every declaration in the source module or repository."
+                   ]
+}
