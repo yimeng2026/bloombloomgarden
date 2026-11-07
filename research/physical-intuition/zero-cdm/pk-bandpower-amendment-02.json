@@ -1,0 +1,15 @@
+{
+  "status": "visual_verification_only_no_statistical_change",
+  "amended_on": "2026-11-07",
+  "previous_protocol_sha256": "4317a712f419529ec827af277322670fb059b47ca03e6ff53a8ebe2060ebc01c",
+  "previous_analysis_runner_sha256": "f5ec1c098fbedd2e2d04a847f858d3df23f1c247044e15aa66db3da131487e0f",
+  "updated_analysis_runner_sha256": "eeaad651e358009b49b243a764c5b51fa6d19ae11ce08fcf77c146c9da84944c",
+  "reason": "Inkscape is unavailable and the media reader treats SVG as text. Matplotlib also warned about missing subscript glyphs in one axis label.",
+  "change": "Replace the two Unicode subscripts with explicit R_first / R_second text and save an ignored PNG preview under .tmp for visual inspection. Keep the tracked SVG output.",
+  "unchanged": [
+    "all source spectrum files and hashes",
+    "grid, exact band edges, smoothing and integration definitions",
+    "statistics helper and unit-test hashes",
+    "all computed band-power values"
+  ]
+}

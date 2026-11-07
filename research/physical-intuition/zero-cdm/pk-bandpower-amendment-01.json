@@ -1,0 +1,17 @@
+{
+  "status": "serialization_validation_fix_before_any_bandpower_result",
+  "amended_on": "2026-11-07",
+  "previous_protocol_sha256": "1848f921b5940876d1e76bdfa68d2f7f0a89241c732f9279ce9d65fff5e3ea24",
+  "previous_analysis_runner_sha256": "a375c26afa3f31b99fddae6a5e1fa7ad6c3e996a6b4019d833414b4a532a8601",
+  "updated_analysis_runner_sha256": "f5ec1c098fbedd2e2d04a847f858d3df23f1c247044e15aa66db3da131487e0f",
+  "failure": "The first analysis stopped at validate_protocol with 'Frozen protocol mismatch: comparisons'. Python tuples became JSON arrays after protocol serialization, so direct dictionary equality rejected an unchanged comparison definition.",
+  "fix": "Canonicalize the expected protocol through JSON before comparing it with the loaded protocol. No statistical definition or physical input changed.",
+  "result_boundary": "The failed run stopped before prepare_curves and produced no band-power summary or figure.",
+  "unchanged": [
+    "all source spectrum files and their hashes",
+    "grid and exact band edges",
+    "0.05 and 0.10 dex smoothing definitions",
+    "integration and signed-log-ratio definitions",
+    "statistics helper and unit-test hashes"
+  ]
+}

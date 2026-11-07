@@ -1,0 +1,157 @@
+{
+  "status": "frozen_before_any_bandpower_statistic",
+  "frozen_at_local": "2026-11-07T21:28:06.104597+08:00",
+  "analysis_runner": "research/physical-intuition/zero-cdm/analyze_pk_bandpowers.py",
+  "analysis_runner_sha256": "eeaad651e358009b49b243a764c5b51fa6d19ae11ce08fcf77c146c9da84944c",
+  "amendments": [
+    "pk-bandpower-amendment-01.json",
+    "pk-bandpower-amendment-02.json"
+  ],
+  "statistics_helper_sha256": "05e9c5b9bfc09e91d4e0edcf8cf74790b27dfc09603e3e587e52907684d48c98",
+  "unit_tests_sha256": "cfe13df6667beeaa4bf33b706f8dc22bf3b6b537fa7214fa33e14c64bae9e381",
+  "grid": {
+    "minimum_k": 0.005,
+    "maximum_k": 2.0,
+    "point_count": 2603
+  },
+  "band_edges_h_per_Mpc": [
+    0.01,
+    0.02,
+    0.04,
+    0.08,
+    0.16,
+    0.32,
+    0.64,
+    1.28
+  ],
+  "extreme_band_lower_edge_h_per_Mpc": 0.16,
+  "smoothing": {
+    "coordinate": "uniform log10(k)",
+    "quantity": "natural log of each positive P(k), separately for zero and baseline",
+    "sigmas_dex": [
+      0.05,
+      0.1
+    ],
+    "primary_sigma_dex": 0.05,
+    "truncate_at_sigma": 3.0,
+    "edge_rule": "renormalize the available truncated Gaussian weights; no reflection or extrapolation",
+    "sensitivity_rule": "0.10 dex is a registered sensitivity check, not a post-hoc choice"
+  },
+  "integration": {
+    "dimensionless_power": "Delta^2(k) = k^3 P(k)/(2 pi^2)",
+    "band_statistic": "mean of Delta^2 over dln(k) between exact band edges",
+    "interpolation": "linear in log(k) and log(P); add exact band edges before trapezoid integration",
+    "ratio_rule": "integrate zero and baseline separately, then divide; never average point ratios",
+    "not_a_survey_window": "fixed log-band diagnostic, not survey band powers, top-hat variance, or observational errors"
+  },
+  "signed_statistics": {
+    "model_ratio": "ln[(zero band power)/(baseline band power)]",
+    "comparison": "ln[(first model ratio)/(second model ratio)]; orientation is explicit in comparison names",
+    "information_boundary": "P(k) is positive and does not encode the sign of delta(k); these are signed log ratios, not signed density transfer functions"
+  },
+  "comparisons": {
+    "camb_ultra_over_class_integral": [
+      "camb_ultra",
+      "class_integral"
+    ],
+    "class_recfast_over_camb_ultra": [
+      "class_recfast",
+      "camb_ultra"
+    ],
+    "class_recfast_over_class_integral": [
+      "class_recfast",
+      "class_integral"
+    ],
+    "camb_ultra_over_camb_high": [
+      "camb_ultra",
+      "camb_high"
+    ],
+    "camb_high_over_camb_fiducial": [
+      "camb_high",
+      "camb_fiducial"
+    ],
+    "class_integral_over_class_pk_ref": [
+      "class_integral",
+      "class_pk_ref"
+    ]
+  },
+  "sources": {
+    "class_pk_ref": {
+      "zero": {
+        "path": ".tmp/class_public/convergence/pk_ref/zero-cdm-pkref00_pk.dat",
+        "sha256": "98c850e06bc00a80b92f78681df766f5182a4cceaf15b757c953456adc43d3e0"
+      },
+      "baseline": {
+        "path": ".tmp/class_public/convergence/pk_ref/baseline-lcdm-pkref00_pk.dat",
+        "sha256": "1c45cbf92027d961b68dfd863b1d7622de2bdd4ac9ea906601e75a64e7cc89ab"
+      },
+      "kind": "class"
+    },
+    "class_integral": {
+      "zero": {
+        "path": ".tmp/class_public/convergence/integral/zero-cdm-integral00_pk.dat",
+        "sha256": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0"
+      },
+      "baseline": {
+        "path": ".tmp/class_public/convergence/integral/baseline-lcdm-integral00_pk.dat",
+        "sha256": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea"
+      },
+      "kind": "class"
+    },
+    "class_recfast": {
+      "zero": {
+        "path": ".tmp/class_public/convergence/recfast/zero-cdm-recfast00_pk.dat",
+        "sha256": "98414a096d6b28be245e8c73193aaf3e2f4140464a95b67b2b069eef9977bfa9"
+      },
+      "baseline": {
+        "path": ".tmp/class_public/convergence/recfast/baseline-lcdm-recfast00_pk.dat",
+        "sha256": "f7cbc92a08101e24c481b0ed4bfad5b0fb9f4708eba1a67c95256a858542a43f"
+      },
+      "kind": "class"
+    },
+    "camb_fiducial": {
+      "zero": {
+        "path": ".tmp/camb-runs/fiducial/zero/spectra.npz",
+        "sha256": "0610b33340ead0a3b2b59ef86b31103be44d996f58b1aa996791743607c971ef"
+      },
+      "baseline": {
+        "path": ".tmp/camb-runs/fiducial/baseline/spectra.npz",
+        "sha256": "84f25417b3ab667082ac1d2443b5fdf031b6c3d1daf50e62f6eac9604325781f"
+      },
+      "kind": "camb"
+    },
+    "camb_high": {
+      "zero": {
+        "path": ".tmp/camb-runs/high/zero/spectra.npz",
+        "sha256": "6cdbaa4dd0e4b6bf5dce4334ceae17f7d090a393fa2f9870f932b03da63146fe"
+      },
+      "baseline": {
+        "path": ".tmp/camb-runs/high/baseline/spectra.npz",
+        "sha256": "7e8e5f67dbbcd81e1ed2a5456e753147992eda9b5317128d1227a98a97f9e72f"
+      },
+      "kind": "camb"
+    },
+    "camb_ultra": {
+      "zero": {
+        "path": ".tmp/camb-runs/ultra/zero/spectra.npz",
+        "sha256": "c7b08a3478a2e9c14b633d2f115fc67938a14f22c4dd7a9c91f8883ec660e91d"
+      },
+      "baseline": {
+        "path": ".tmp/camb-runs/ultra/baseline/spectra.npz",
+        "sha256": "fc480c5b2efa95833858d96a37f5f7c0ba789d8e681b7c9ea91ba4a76bec450a"
+      },
+      "kind": "camb"
+    }
+  },
+  "source_limitations": [
+    "CAMB spectra are 2500-point samples of the saved matter-power interpolator, not saved signed transfer functions.",
+    "CLASS pk.dat contains positive matter power spectra, not signed density transfer functions.",
+    "CLASS Newtonian and CAMB synchronous densities are not naively gauge identical; k>=0.01 remains the registered comparison range.",
+    "The bands and smoothing diagnose numerical stability only; they do not create an observational likelihood."
+  ],
+  "boundaries": [
+    "No new physical run, parameter fitting, or retuning is performed.",
+    "No likelihood, covariance, parameter search, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "Smoothing sensitivity and cross-code differences remain visible; no single extreme point is promoted to a best answer."
+  ]
+}
