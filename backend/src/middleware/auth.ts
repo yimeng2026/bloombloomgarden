@@ -157,7 +157,6 @@ export function rateLimit(options: RateLimitOptions) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const key = options.keyGenerator?.(req) || req.ip || 'unknown';
     const now = Date.now();
-    const windowStart = now - options.windowMs;
 
     let entry = rateLimitMap.get(key);
     if (!entry || entry.resetAt < now) {

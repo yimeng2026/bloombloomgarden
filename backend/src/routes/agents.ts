@@ -1,16 +1,10 @@
 import { Router } from 'express';
-import { AgentService, AgentStatus, VALID_AGENT_TYPES } from '../services/AgentService';
+import { AgentStatus } from '../services/AgentService';
 import { getAgentService, getDialogService } from '../services';
 import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
 import prisma from '../config/prisma';
 
 const router = Router();
-
-// ─── 根据 protocolLevel 推导 dashboardType ───────────────
-function getDashboardType(level: number): string {
-  const map: Record<number, string> = { 0: 'L0', 1: 'L1', 2: 'L2', 3: 'L3' };
-  return map[level] || 'L1';
-}
 
 // 1. GET /api/agents — 列表（支持按 agentType 过滤）
 router.get('/', asyncHandler(async (req, res) => {
@@ -124,7 +118,7 @@ router.get('/:id/context/stream', (req, res) => {
 
 `);
       }
-    } catch (e) {
+    } catch {
       if (!isClosed) {
         res.write(`data: ${JSON.stringify({ type: 'error', message: 'heartbeat failed' })}
 

@@ -134,6 +134,7 @@ app.get('/api/intervention/status', async (_req, res) => {
 });
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  void _next;
   console.error(err);
   res.status(500).json({ success: false, error: err.message || 'Internal server error' });
 });

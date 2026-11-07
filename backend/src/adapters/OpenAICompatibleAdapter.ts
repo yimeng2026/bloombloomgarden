@@ -62,7 +62,6 @@ export class OpenAICompatibleAdapter extends BaseBackendAdapter {
   }
 
   private normalizeMessages(messages: any[]): any[] {
-    const systemRole = this.compatConfig.systemRoleName || 'system';
     return messages.map(m => ({
       role: m.role === 'agent' ? 'assistant' : m.role,
       content: m.content,

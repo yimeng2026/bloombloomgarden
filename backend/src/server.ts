@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
-import express from 'express';
 import app from './app';
 import { PrismaService } from './services/PrismaService';
 
@@ -10,7 +9,7 @@ import { syncProvidersToDatabase } from './services/InitService';
 
 
 // ─── 全局错误处理（防止进程崩溃） ──────────────────────
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
   console.error('[FATAL] Unhandled Rejection:', reason);
   // 不退出进程，只记录错误
 });

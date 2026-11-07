@@ -17,9 +17,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 // GET /api/platform-details/:id/test — 测试平台连接
 router.post('/:id/test', async (req: Request, res: Response) => {
-  const { id } = req.params;
+  void req;
   // 实际测试连接
-  const result = await testPlatformConnection(id);
+  const result = await testPlatformConnection();
   res.json({ success: true, data: result });
 });
 
@@ -446,7 +446,7 @@ function generateL3Dashboard(id: string) {
   return configs[id] || configs['openrouter'];
 }
 
-async function testPlatformConnection(id: string) {
+async function testPlatformConnection() {
   // 简单的连接测试
   return { success: true, latency: Math.floor(Math.random() * 200) + 50, status: 200 };
 }

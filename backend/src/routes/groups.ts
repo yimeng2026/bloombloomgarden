@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { GroupService, GroupStatus, VALID_GROUP_TYPES } from '../services/GroupService';
+import { GroupStatus, VALID_GROUP_TYPES } from '../services/GroupService';
 import { getGroupService, getAgentService } from '../services';
 import prisma from '../config/prisma';
 import { asyncHandlerAny as asyncHandler } from '../middleware/asyncHandler';
@@ -96,17 +96,6 @@ async function detectEntityType(entityId: string): Promise<'agent' | 'group' | n
   const grp = await prisma.group.findUnique({ where: { id: entityId }, select: { id: true } });
   if (grp) return 'group';
   return null;
-}
-
-// ─── 辅助：计算 entityType ─────────────────────────────
-function computeEntityType(
-  currentIds: string[],
-  currentType: string
-): 'agents' | 'groups' | 'mixed' {
-  if (currentIds.length === 0) return currentType as any;
-  // 简化：根据已有 type 和新添加的推断
-  // 实际应用中可遍历所有 entity 重新检测
-  return currentType as any;
 }
 
 // 1. GET /api/groups — 列表（支持按 groupType 过滤）

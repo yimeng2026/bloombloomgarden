@@ -10,7 +10,7 @@
 
 import { Router } from 'express';
 import { apiKeyService } from '../services/APIKeyService';
-import { getAllProviders, getProviderConfig } from '../services/LLMProviderRegistry';
+import { getProviderConfig } from '../services/LLMProviderRegistry';
 import providersData from '../config/providers.json';
 
 const router = Router();

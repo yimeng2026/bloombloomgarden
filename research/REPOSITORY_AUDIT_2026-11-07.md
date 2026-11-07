@@ -128,3 +128,5 @@
 - 新增 `tests/unit/workshop-content.test.js`，覆盖正常发言、默认值、内容截断和非记录输入。根平台测试总数从 110 增至 113，113 项通过、0 失败，共 440 个断言、39 个文件；TypeScript、定向 ESLint 和 Next standalone 构建通过。全库 `lint:all` 现为 0 错误、11 警告，显式 `any` 已清零，但警告尚待逐项处理。
 - 剩余 11 个根平台警告已逐项清理：删除 arXiv 多余导入、代码审查和辅导的无引用模拟函数及状态常量、淘汰逻辑的冗余参数；省略 millennium、stats、sylva-sync、tasks/stats 和 verification 中完全未使用的请求参数，并移除随之无用的 `NextRequest` 导入。`listDayDates` 在库内的真实调用保留，未误删实现。
 - 提交前复验：根平台 113 项测试、后端 12 项测试、TypeScript、Next standalone 和 Express 构建全部通过；根平台 `lint:all` 为 0 错误、0 警告。后端 lint 仍为 0 错误、40 警告，下一阶段继续处理后端警告，不宣称全库或全部研究方向已经完成。
+- 后端适配器、中间件、路由和 `server.ts` 共清理 24 个未使用警告：删除无引用导入、变量和局部函数；Express 错误中间件保留第四参数并显式 `void`，平台连接测试只移除未使用参数，响应结构未改。
+- 后端 lint 从 40 降至 16，剩余问题位于服务层与测试文件。提交前复验后端 12 项单元测试与 Express 构建通过，根平台仍为 0 错误、0 警告；不宣称全部后端警告或全部端到端场景已解决。

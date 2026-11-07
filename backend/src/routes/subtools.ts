@@ -1,5 +1,4 @@
 import express from 'express';
-import { optionalAuth } from '../middleware/auth';
 
 const router = express.Router();
 
