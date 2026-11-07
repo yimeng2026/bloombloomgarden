@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildPipelineFilter } from "@/lib/pipeline-filter";
 
 export const runtime = "nodejs";
 
@@ -18,8 +19,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
-    const where: any = {};
-    if (status) where.status = status;
+    const where = buildPipelineFilter(status);
 
     const pipelines = await prisma.manuscriptPipeline.findMany({
       where,
