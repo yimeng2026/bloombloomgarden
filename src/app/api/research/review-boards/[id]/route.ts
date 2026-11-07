@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildReviewBoardUpdate } from "@/lib/research-entity-update";
 
 export const runtime = "nodejs";
 
@@ -47,8 +48,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
-    const { name, description, status, reviewMode, strategy } = body;
+    const body: unknown = await request.json();
 
     const existing = await prisma.academicReviewBoard.findUnique({
       where: { id },
@@ -61,17 +61,7 @@ export async function PUT(
       );
     }
 
-    const validModes = ["single_blind", "double_blind", "open"];
-    const validStatuses = ["active", "closed", "archived"];
-
-    const data: any = {};
-    if (name !== undefined) data.name = name.trim();
-    if (description !== undefined) data.description = description;
-    if (status !== undefined && validStatuses.includes(status)) data.status = status;
-    if (reviewMode !== undefined && validModes.includes(reviewMode)) data.reviewMode = reviewMode;
-    if (strategy !== undefined) {
-      data.strategy = typeof strategy === "object" ? JSON.stringify(strategy) : strategy;
-    }
+    const data = buildReviewBoardUpdate(body);
 
     const board = await prisma.academicReviewBoard.update({
       where: { id },

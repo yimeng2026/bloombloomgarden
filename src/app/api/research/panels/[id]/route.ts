@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildPanelUpdate } from "@/lib/research-entity-update";
 
 export const runtime = "nodejs";
 
@@ -52,8 +53,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
-    const { name, description, domain, strategy, status } = body;
+    const body: unknown = await request.json();
 
     const existing = await prisma.academicPanel.findUnique({
       where: { id },
@@ -66,14 +66,7 @@ export async function PUT(
       );
     }
 
-    const data: any = {};
-    if (name !== undefined) data.name = name.trim();
-    if (description !== undefined) data.description = description;
-    if (domain !== undefined) data.domain = domain;
-    if (status !== undefined) data.status = status;
-    if (strategy !== undefined) {
-      data.strategy = typeof strategy === "object" ? JSON.stringify(strategy) : strategy;
-    }
+    const data = buildPanelUpdate(body);
 
     const panel = await prisma.academicPanel.update({
       where: { id },

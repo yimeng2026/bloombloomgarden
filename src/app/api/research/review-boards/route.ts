@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildReviewBoardFilter } from "@/lib/research-entity-update";
 
 export const runtime = "nodejs";
 
@@ -11,10 +12,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const reviewMode = searchParams.get("reviewMode");
 
-    const where: any = {};
-    if (domain) where.domain = domain;
-    if (status) where.status = status;
-    if (reviewMode) where.reviewMode = reviewMode;
+    const where = buildReviewBoardFilter(domain, status, reviewMode);
 
     const boards = await prisma.academicReviewBoard.findMany({
       where,

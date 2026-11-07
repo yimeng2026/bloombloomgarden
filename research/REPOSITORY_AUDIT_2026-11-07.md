@@ -73,7 +73,7 @@
 2. 清理可证实的死代码和未使用导入，保留并标注有意的接口预留；
 3. 对极端物质谱实现平滑化和带功率对照，同时记录低波数规范边界；
 4. 在数值系统误差进一步闭合后，再评估公开似然、联合 BBN 与非线性工作；
-5. 每次修改后重跑根平台 93 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
+5. 每次修改后重跑根平台 100 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
 
 本记录是下一轮工作的基线，不是“全部问题已经解决”的声明。
 
@@ -112,3 +112,5 @@
 - 新增 `tests/unit/pipeline-filter.test.js`，验证状态存在与空筛选。根平台测试总数从 91 增至 93，全部通过。全库 `no-explicit-any` 进一步降至 14，`lint:all` 为 14 错误、14 警告；TypeScript 与 Next standalone 构建已复验通过。
 - `review-boards/[id]/reviewers/route.ts` 的 1 个 `any` 已移除，评审员角色与专长筛选改由 `src/lib/reviewer-filter.ts` 返回 `Prisma.ReviewBoardMemberWhereInput`。
 - 新增 `tests/unit/reviewer-filter.test.js`，验证组合筛选与空筛选。根平台测试总数从 93 增至 95，95 项通过、0 失败，共 404 个断言、35 个文件。全库 `no-explicit-any` 进一步降至 13，`lint:all` 为 13 错误、14 警告；TypeScript、定向 ESLint 与 Next standalone 构建已复验通过。剩余问题包括 13 个具名 `any` 错误及 14 个警告（`tools.ts` 同时有 1 个未使用导入警告），仍不能宣称全库 lint 通过。
+- `panels/[id]/route.ts`、`review-boards/[id]/route.ts` 和 `review-boards/route.ts` 各移除 1 个 `any`。`src/lib/research-entity-update.ts` 使用 `unknown` 与类型守卫解析更新请求，保留状态／评审模式白名单，并返回明确的 Prisma 更新或筛选类型。
+- 新增 `tests/unit/research-entity-update.test.js`，验证面板更新、空更新、评审团组合筛选、白名单与策略序列化。根平台测试总数从 95 增至 100，100 项通过、0 失败，共 411 个断言、36 个文件；TypeScript、定向 ESLint 和 Next standalone 构建通过。全库 `lint:all` 现为 10 错误、14 警告，错误均为剩余文件中的显式 `any`，尚未清零。
