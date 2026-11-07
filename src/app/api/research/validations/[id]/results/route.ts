@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateCollaborationResponse } from "@/lib/research-prompts";
+import { buildValidationResultFilter } from "@/lib/research-validations";
 
 export const runtime = "nodejs";
 
@@ -41,16 +42,6 @@ function extractConfidence(content: string): number {
   return 0.5;
 }
 
-/** 生成 fallback 模拟验证结果 */
-function generateMockValidation(validationType: string, content: string): { output: string; conclusion: string; confidence: number } {
-  const hasContent = content && content.trim().length > 0;
-  return {
-    output: `【模拟验证 — ${validationType}】\n\n${hasContent ? "已审阅提供的待验证内容。" : "未提供待验证内容。"}\n\n验证方法：模拟交叉验证\n验证结果：内容结构基本合理，关键推导步骤完整。\n结论：inconclusive（模拟模式）\n置信度：0.50\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    conclusion: "inconclusive",
-    confidence: 0.5,
-  };
-}
-
 // GET: 列出验证结果，支持 ?conclusion=xxx 筛选，按 createdAt 排序
 // 返回统计：按 conclusion 的分布、平均置信度、验证方法分布
 export async function GET(
@@ -73,8 +64,7 @@ export async function GET(
       );
     }
 
-    const where: any = { groupId: id };
-    if (conclusion) where.conclusion = conclusion;
+    const where = buildValidationResultFilter(id, conclusion);
 
     const results = await prisma.validationResult.findMany({
       where,

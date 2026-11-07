@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildValidationGroupUpdate } from "@/lib/research-validations";
 
 export const runtime = "nodejs";
 
@@ -47,8 +48,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
-    const { name, description, status, validationType, strategy } = body;
+    const body: unknown = await request.json();
 
     const existing = await prisma.validationGroup.findUnique({
       where: { id },
@@ -61,14 +61,7 @@ export async function PUT(
       );
     }
 
-    const data: any = {};
-    if (name !== undefined) data.name = name.trim();
-    if (description !== undefined) data.description = description;
-    if (status !== undefined) data.status = status;
-    if (validationType !== undefined) data.validationType = validationType;
-    if (strategy !== undefined) {
-      data.strategy = typeof strategy === "object" ? JSON.stringify(strategy) : strategy;
-    }
+    const data = buildValidationGroupUpdate(body);
 
     const group = await prisma.validationGroup.update({
       where: { id },

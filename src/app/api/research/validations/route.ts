@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildValidationFilter } from "@/lib/research-validations";
 
 export const runtime = "nodejs";
 
 const VALID_TYPES = ["numerical", "symbolic", "experimental", "cross_reference", "peer"];
-const VALID_STATUS = ["active", "completed", "failed", "archived"];
 
 // GET: 返回所有验证组（含 validators 和 results 关联），支持筛选
 export async function GET(request: NextRequest) {
@@ -14,10 +14,7 @@ export async function GET(request: NextRequest) {
     const validationType = searchParams.get("validationType");
     const status = searchParams.get("status");
 
-    const where: any = {};
-    if (targetModule) where.targetModule = targetModule;
-    if (validationType) where.validationType = validationType;
-    if (status) where.status = status;
+    const where = buildValidationFilter(targetModule, validationType, status);
 
     const groups = await prisma.validationGroup.findMany({
       where,

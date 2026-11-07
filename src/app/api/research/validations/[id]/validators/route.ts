@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildValidatorFilter } from "@/lib/research-validations";
 
 export const runtime = "nodejs";
 
@@ -27,9 +28,7 @@ export async function GET(
       );
     }
 
-    const where: any = { groupId: id };
-    if (role) where.role = role;
-    if (specialty) where.specialty = { contains: specialty };
+    const where = buildValidatorFilter(id, role, specialty);
 
     const validators = await prisma.validationMember.findMany({
       where,
