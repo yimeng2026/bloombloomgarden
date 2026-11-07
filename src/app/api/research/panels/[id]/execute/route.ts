@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateCollaborationResponses, PromptContext } from "@/lib/research-prompts";
+import { ExecutionPlan, generateStages, parseCustomStages } from "@/lib/panel-execution";
 
 export const runtime = "nodejs";
 
@@ -9,139 +10,6 @@ export const runtime = "nodejs";
  * 根据专家组和模式生成执行计划，集成真实 LLM 调用（GLM-5.1）
  * 失败时自动 fallback 到模拟内容，不报错
  */
-
-interface ExecutionPlan {
-  mode: string;
-  topic: string;
-  panelId: string;
-  panelName: string;
-  members: Array<{
-    id: string;
-    role: string;
-    specialty: string;
-    weight: number;
-    systemPrompt: string;
-    model: string;
-  }>;
-  stages: Array<{
-    name: string;
-    description: string;
-    assigneeRoles: string[];
-    expectedOutput: string;
-  }>;
-  meta: {
-    totalMembers: number;
-    chairCount: number;
-    reviewerCount: number;
-    contributorCount: number;
-    totalWeight: number;
-  };
-  steps: Array<{
-    memberId: string;
-    role: string;
-    specialty: string;
-    content: string;
-    latencyMs: number;
-    model: string;
-    usage?: {
-      prompt_tokens: number;
-      completion_tokens: number;
-      total_tokens: number;
-    };
-  }>;
-}
-
-// 根据执行模式生成阶段
-function generateStages(mode: string, members: any[]): ExecutionPlan["stages"] {
-  const roles = members.map((m) => m.role);
-  const hasChair = roles.includes("chair");
-  const hasReviewer = roles.includes("reviewer");
-
-  switch (mode) {
-    case "committee":
-      return [
-        {
-          name: "初步审议",
-          description: "各专家基于自身专长提出对议题的初步分析和见解",
-          assigneeRoles: ["contributor", "chair"],
-          expectedOutput: "每位成员提交一份初步分析备忘录",
-        },
-        {
-          name: "交叉评议",
-          description: "成员之间就初步分析进行交叉质疑和补充",
-          assigneeRoles: hasReviewer ? ["reviewer", "chair"] : ["contributor", "chair"],
-          expectedOutput: "交叉评议报告，包含质疑点和补充建议",
-        },
-        {
-          name: "综合决议",
-          description: "主席或全体委员会综合各方意见形成共识决议",
-          assigneeRoles: ["chair", "contributor"],
-          expectedOutput: "委员会共识决议文档",
-        },
-      ];
-
-    case "debate":
-      return [
-        {
-          name: "立论陈词",
-          description: "正方和反方分别阐述自己的立场和论据",
-          assigneeRoles: ["contributor"],
-          expectedOutput: "立论陈词记录",
-        },
-        {
-          name: "自由辩论",
-          description: "各方成员自由展开辩论，提出反驳和质疑",
-          assigneeRoles: ["contributor", "reviewer"],
-          expectedOutput: "辩论过程记录和关键论点",
-        },
-        {
-          name: "总结评议",
-          description: "主席或评审员总结辩论结果，评估各方论证质量",
-          assigneeRoles: ["chair", "reviewer"],
-          expectedOutput: "辩论总结与裁决报告",
-        },
-      ];
-
-    case "sequential":
-      // 按专长排序的流水线
-      return members
-        .filter((m) => m.role !== "observer")
-        .sort((a: any, b: any) => b.weight - a.weight)
-        .map((member: any, index: number) => ({
-          name: `阶段 ${index + 1}: ${member.specialty}`,
-          description: `${member.role === "chair" ? "主席" : "专家"} (${member.specialty}) 基于前一阶段的输出进行深化分析`,
-          assigneeRoles: [member.role],
-          expectedOutput: `阶段 ${index + 1} 分析报告，基于 ${member.specialty} 视角`,
-        }));
-
-    case "parallel":
-      // 所有专家同时工作，最后汇总
-      return [
-        {
-          name: "并行分析",
-          description: "所有专家同时从各自专长角度对议题进行独立分析",
-          assigneeRoles: ["contributor", "chair", "reviewer"],
-          expectedOutput: "各专家独立分析报告",
-        },
-        {
-          name: "汇总整合",
-          description: "主席或协调员将各专家的独立分析整合为综合报告",
-          assigneeRoles: ["chair"],
-          expectedOutput: "综合整合报告",
-        },
-      ];
-
-    default:
-      return [
-        {
-          name: "通用分析",
-          description: "专家组基于各自专长进行综合分析",
-          assigneeRoles: ["contributor", "chair", "reviewer"],
-          expectedOutput: "综合分析报告",
-        },
-      ];
-  }
-}
 
 // Fallback：生成模拟的 LLM 响应
 function generateFallbackStep(
@@ -239,20 +107,16 @@ export async function POST(
     };
 
     // 如果专家组策略中定义了自定义阶段，合并
-    let strategyObj: any = {};
+    let strategyObj: unknown = {};
     try {
       strategyObj = JSON.parse(panel.strategy || "{}");
     } catch {
       strategyObj = {};
     }
 
-    if (strategyObj.customStages && Array.isArray(strategyObj.customStages)) {
-      plan.stages = strategyObj.customStages.map((s: any) => ({
-        name: s.name || "自定义阶段",
-        description: s.description || "",
-        assigneeRoles: s.assigneeRoles || ["contributor"],
-        expectedOutput: s.expectedOutput || "",
-      }));
+    const customStages = parseCustomStages(strategyObj);
+    if (customStages) {
+      plan.stages = customStages;
     }
 
     // ─── 真实 LLM 调用（带 fallback）───
