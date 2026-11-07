@@ -1,0 +1,41 @@
+{
+  "status": "accuracy_level_comoving_phase_and_bandpowers_verified_not_converged",
+  "amended_on": "2026-11-08",
+  "protocol_sha256": "c20f7eca1778ea3dca237881de00250810cf23345c0afe7477297111be9da71c",
+  "power_runner_sha256": "05ab758748d0f2332013d97605871e75a6b54420414c6ebc58a2e54139a780d7",
+  "analysis_runner_sha256": "cc1cb01d0240293833ecd5ede1788ddfabef7013bde37567d83dffcadf0837a5",
+  "verification_runner_sha256": "d3d8b33c969bb112166a49a5724d2b9713532ccdbf7d0c7c2e5d38d3c87fbb0c",
+  "zero_common_grid_crossing_counts": {
+    "class_hyrec": 41,
+    "camb_fiducial": 27,
+    "camb_high": 31,
+    "camb_ultra": 107
+  },
+  "baseline_common_grid_crossing_counts_all_zero": true,
+  "class_to_ultra_nearest_distance": {
+    "class_reference_points": 41,
+    "camb_candidate_points": 107,
+    "median_abs_ln_distance": 0.0006726651181268584,
+    "max_abs_ln_distance": 0.01084393636541997,
+    "interpretation": "Every CLASS crossing has a nearby ultra candidate, but ultra contains many additional crossings; nearest-neighbor proximity is not equality of complete phase sequences."
+  },
+  "highest_band_smooth_0.05dex_zero_over_baseline": {
+    "class_hyrec": 6.14517700201632e-12,
+    "class_recfast": 2.8870948472695882e-12,
+    "camb_fiducial": 4.733860803050941e-12,
+    "camb_high": 2.352460273759423e-12,
+    "camb_ultra": 6.266309266531573e-13
+  },
+  "highest_band_level_changes_ln": {
+    "camb_high_over_fiducial": -0.699279401478428,
+    "camb_ultra_over_high": -1.3228592509053758,
+    "camb_ultra_over_fiducial": -2.022138652383804
+  },
+  "interpretation": "Accuracy and phase sampling are not converged. Ultra cannot be called a converged best estimate, and its extreme ratio cannot support a physical exclusion. The three levels also change multiple numerical knobs, so single-variable experiments are required before attribution to a specific setting.",
+  "verification": "Independent reconstruction verified all six level/model outputs, crossing counts and positions, CLASS-to-level nearest distances, and highest bands for 5 sources and 3 methods.",
+  "boundaries": [
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "Additional crossings may include newly resolved structure; they are not automatically labeled numerical noise.",
+    "The next experiment must vary one numerical setting at a time with unchanged physical inputs."
+  ]
+}

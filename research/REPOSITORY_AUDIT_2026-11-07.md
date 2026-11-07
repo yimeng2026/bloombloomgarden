@@ -152,3 +152,6 @@
 - RECFAST／HyRec 复合实现比较已完成。首轮来源均覆盖 2.0 导致网格上限变化，保留为端点敏感性；随后用既往完全相同的 2603 点网格重算，四个来源、三种口径均独立复验通过。
 - 同网格最高带中，CLASS RECFAST／HyRec 对数差为 −0.755417；CAMB／CLASS RECFAST 剩余 −1.527648，CAMB／CLASS HyRec 为 −2.283065。复合实现是重要贡献因素但不是完整解释。端点变化对 CAMB 极端比值另产生约 0.04198 对数差，不能混入复合效应。
 - 新增 `analyze_recombination_bandpowers.py`、`analyze_recombination_matched.py`、对应验证、协议、摘要、修订和 SVG。主文档升级为 2.9；下一步扩展到 fiducial／high／ultra 的共动相位和精度档带功率，继续分离剩余差异。
+- 三档共动转换和相位／带功率分析已完成。CLASS、fiducial、high、ultra 的零模型公共网格零交叉数分别为 41、27、31、107；CLASS 的 41 个位置在 ultra 中均有近邻，最大对数距离 0.010844，但 ultra 额外的 66 个交叉意味着完整序列不能称为一致。
+- 最高带比值从 fiducial 的 \(4.73386\times10^{-12}\)、high 的 \(2.35246\times10^{-12}\) 到 ultra 的 \(6.26631\times10^{-13}\)，相邻档位对数变化为 −0.699279 和 −1.322859，精度未收敛，不能把 ultra 当作最佳收敛答案。六个转换输出、交叉位置和五个来源的最高带均独立复验通过。
+- 新增 `phase_comoving.py`、`analyze_phase_sampling.py`、`verify_phase_sampling.py`、协议、修订、摘要和 SVG。主文档升级为 3.0；下一步是单变量精度实验，分离 `k_per_logint` 与积分／时间精度设置，观测检验仍未完成。

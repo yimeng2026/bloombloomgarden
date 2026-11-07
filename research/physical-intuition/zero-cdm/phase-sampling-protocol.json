@@ -1,0 +1,95 @@
+{
+  "status": "frozen_before_accuracy_level_comoving_phase_analysis",
+  "frozen_at_local": "2026-11-08T02:37:14.689954+08:00",
+  "new_solver_execution": false,
+  "levels": [
+    "fiducial",
+    "high",
+    "ultra"
+  ],
+  "models": [
+    "zero",
+    "baseline"
+  ],
+  "transformation": {
+    "input": "existing transfer.npz at each level, including direct v_baryon_cdm",
+    "density": "same CLASS pressureless-matter comoving formula as the verified ultra mapping",
+    "velocity": "direct synchronous v_baryon_cdm only; no Newtonian subtraction",
+    "power": "same unit-curvature squared-transfer reconstruction as the comoving ultra analysis"
+  },
+  "signed_phase_grid": {
+    "minimum_k_h_per_Mpc": 0.01,
+    "maximum_k_h_per_Mpc": 1.28,
+    "point_count": 4096,
+    "interpolation": "signed linear values in log10(k), no log-abs, smoothing, or extrapolation",
+    "crossings": "exact zeros and sign changes, linearly interpolated in ln(k)",
+    "comparison": "directed nearest-neighbor distances in ln(k), retaining unequal counts; no unique oscillation assignment or Hilbert phase"
+  },
+  "band_grid": {
+    "minimum_k_h_per_Mpc": 0.005,
+    "actual_maximum_k_h_per_Mpc": 1.9985652306116815,
+    "point_count": 2603,
+    "band_edges_h_per_Mpc": [
+      0.01,
+      0.02,
+      0.04,
+      0.08,
+      0.16,
+      0.32,
+      0.64,
+      1.28
+    ],
+    "methods": [
+      "raw",
+      "smooth_0.05dex",
+      "smooth_0.10dex"
+    ],
+    "integration": "integrate before zero/baseline ratios with the tested log_bandpower function"
+  },
+  "required_comparisons": [
+    "CLASS HyRec native d_m and each CAMB level crossing sequence",
+    "camb fiducial/high/ultra versus CLASS HyRec and CLASS RECFAST band ratios",
+    "camb high/fiducial, ultra/high and ultra/fiducial band-ratio log differences"
+  ],
+  "output_rule": "Write new phase-comoving and phase-sampling artifacts without modifying previous outputs.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_phase_sampling.py": "7d180ac0b6512440968e8e6d6497bcbcb4256cc3f6491a188c7357e5d2e98f43",
+    "research/physical-intuition/zero-cdm/phase_comoving.py": "05ab758748d0f2332013d97605871e75a6b54420414c6ebc58a2e54139a780d7",
+    "research/physical-intuition/zero-cdm/analyze_phase_sampling.py": "cc1cb01d0240293833ecd5ede1788ddfabef7013bde37567d83dffcadf0837a5",
+    "research/physical-intuition/zero-cdm/verify_phase_sampling.py": "d3d8b33c969bb112166a49a5724d2b9713532ccdbf7d0c7c2e5d38d3c87fbb0c",
+    "research/physical-intuition/zero-cdm/gauge_transform.py": "06ee7ef1b29ab9882d76e2ccbcc9dc50bc1662175039c153d753ce31464b98ba",
+    "research/physical-intuition/zero-cdm/signed_transfer_statistics.py": "16886b26f7f5deb4a84a53f49afd42ce7eb4a1ca288c1b2b3c1b7b269b4aefdd",
+    "research/physical-intuition/zero-cdm/pk_band_statistics.py": "05e9c5b9bfc09e91d4e0edcf8cf74790b27dfc09603e3e587e52907684d48c98",
+    ".tmp/camb-wsl-site/camb/model.py": "d7d689d56b4832df965d81c85a31bb43c38e4708bcf9d6bd1a58d58d27da2aab",
+    ".tmp/CAMB/docs/source/transfer_variables.rst": "15848e08cfafc24bc48a7cdf4e010ce8df3354113131b912fd3051e89d45ad32",
+    ".tmp/class_public/convergence/transfer/zero-cdm-transfer-dense00_00_tk.dat": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+    ".tmp/class_public/convergence/transfer/baseline-lcdm-transfer-dense00_00_tk.dat": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+    ".tmp/class_public/convergence/integral/zero-cdm-integral00_pk.dat": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    ".tmp/class_public/convergence/integral/baseline-lcdm-integral00_pk.dat": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea",
+    ".tmp/class_public/convergence/recfast/zero-cdm-recfast00_pk.dat": "98414a096d6b28be245e8c73193aaf3e2f4140464a95b67b2b069eef9977bfa9",
+    ".tmp/class_public/convergence/recfast/baseline-lcdm-recfast00_pk.dat": "f7cbc92a08101e24c481b0ed4bfad5b0fb9f4708eba1a67c95256a858542a43f",
+    ".tmp/camb-runs/fiducial/zero/transfer.npz": "aa2a0dc78e6c05af6781b2a5e820f9c213a2355bbb3ac0c4b70042fad5afdf6e",
+    ".tmp/camb-runs/fiducial/zero/summary.json": "7b9b07a669bab35e299351ee756f20ed8bfbaa5def8a6fd27cca17c98e13d6f7",
+    ".tmp/camb-runs/fiducial/zero/parameters.ini": "e3ef569b5912efe2ed9373025e5175c9fe26f9f01dc0724c664c62e45f2f5373",
+    ".tmp/camb-runs/fiducial/baseline/transfer.npz": "f7d6b86d1a20757ec16f56b398ab52c3a63f2e136ad7bf9cfa986b1aa9df6828",
+    ".tmp/camb-runs/fiducial/baseline/summary.json": "a63e9f4b904d05a4c99df532ea5c5c72bc9d2a0f693f0b6d7e8f7ad343ff86f6",
+    ".tmp/camb-runs/fiducial/baseline/parameters.ini": "11305563a34578b68ccf7cec71d0954ff41a90504e8edb4205f58c369df9131a",
+    ".tmp/camb-runs/high/zero/transfer.npz": "dad8eed6aa4095a3941691c7eb6eb9baf09e70aecbb579e1a48d6918bf231da9",
+    ".tmp/camb-runs/high/zero/summary.json": "c3654148c33919921764a92a27654e5d29420ef5e04f358216e9bd4bdaa647d6",
+    ".tmp/camb-runs/high/zero/parameters.ini": "5e8680a70c2af48648f17c3d56a9451720dad403fbbfb0f6fe35ec5de5a87b87",
+    ".tmp/camb-runs/high/baseline/transfer.npz": "19574d95432cea925bdbee3b8270a2d5734024b83e71d099a94bd562ff636902",
+    ".tmp/camb-runs/high/baseline/summary.json": "64332c57abe3acf525a63582b62ec760db7bb7749ae0ad7d29daa65d3bf19795",
+    ".tmp/camb-runs/high/baseline/parameters.ini": "7764462a11f9b2e2ade3926a2028bcb24a8bc5676934e48aa021f96b1abcc3c4",
+    ".tmp/camb-runs/ultra/zero/transfer.npz": "36ad4566557c473e9afb86b2fddc6b4822988af5b65c80a6e414388496e6da95",
+    ".tmp/camb-runs/ultra/zero/summary.json": "92a80164739f62fdd5e8722220c2d8b0333c14615adc16234e1a193c9776b31b",
+    ".tmp/camb-runs/ultra/zero/parameters.ini": "1254abd04b0ca4acf303649038a937be17155ca7a7dbfbce4b4920d047173400",
+    ".tmp/camb-runs/ultra/baseline/transfer.npz": "a85d54636b1ac48fe80145dc5efb0939177cefb87b660ea0cff485b098e01395",
+    ".tmp/camb-runs/ultra/baseline/summary.json": "f8fe8e6992a9543e5049b4faf9cc525f5b49a47c5a966b16556614fa6e952ee6",
+    ".tmp/camb-runs/ultra/baseline/parameters.ini": "911f9bd1312cb7282f6bed71d78b31bcbdad5efbc791679c091de1ef6fc61def"
+  },
+  "boundaries": [
+    "No physical parameter changes, new solver run, or nonzero CDM placeholder.",
+    "Crossing positions are diagnostics, not unique phase labels or convergence proofs.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion."
+  ]
+}
