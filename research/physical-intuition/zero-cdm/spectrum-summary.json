@@ -1,5 +1,8 @@
 {
-  "status": "computed_fixed_inputs_not_observational_fit",
+  "status": "default_precision_superseded_for_point_estimates_not_observational_fit",
+  "precision_level": "class_default",
+  "superseded_for_point_estimates_by": "convergence-summary.json",
+  "audit_note": "保留默认精度原始比较用于审计；极端物质谱比值未收敛，当前最佳估计见 convergence-summary.json 的 integral 档位。",
   "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
   "class_version": "3.4.2",
   "gauge": "newtonian",

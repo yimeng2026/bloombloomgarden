@@ -1,0 +1,33 @@
+{
+  "status": "frozen_before_resource_bounded_integral_run",
+  "frozen_at_local": "2026-11-07T14:16:38.722206+08:00",
+  "parent_amendment": "convergence-amendment-01.json",
+  "failed_attempt": {
+    "configuration": "convergence-refined.pre",
+    "configuration_sha256_at_run": "da45b6d1866a04beaa2239909eddb7216ac100f778f15c198e249da45e12eb09",
+    "documented_configuration_sha256": "3f05cfcb9ddbda7800544694380a31c134a0fdb0077eeb987c512df5e667bffa",
+    "documentation_change": "失败后仅在文件开头增加 OOM 警告注释；数值参数未变，运行时哈希继续保留。",
+    "exit_code": 15,
+    "wall_time_seconds_observed": 171.866,
+    "root_cause": "WSL kernel out-of-memory killer; not a CLASS physics or input-syntax error.",
+    "kernel_evidence": [
+      "class invoked oom-killer",
+      "Out of memory: Killed process 736 (class) total-vm:21768084kB, anon-rss:15507056kB",
+      "Free swap = 0kB"
+    ],
+    "available_memory_after_restart_gib": 15,
+    "result_files": "没有生成 refined cl.dat、pk.dat 或 background.dat；不得把该次运行计为数值结果。"
+  },
+  "resource_bounded_strategy": {
+    "configuration": "convergence-integral.pre",
+    "sha256": "670f9e9425508a498cd126436eecdb4197977ce8e84489944cf366ba22f96565",
+    "single_change_from_failed_attempt": "k_step_sub 与 k_step_super 恢复 pk_ref 的 0.015 与 0.0001，不再加倍全局波数网格。",
+    "retained_tightening": "tol_perturbations_integration=1.e-7；perturbations_sampling_stepsize=0.005。",
+    "reason": "隔离积分与时间采样影响，避免同时扩大全局波数网格带来的额外内存需求；现有单次 OOM 记录不足以拟合内存缩放阶数。"
+  },
+  "run_commands": [
+    "./class baseline-lcdm-integral.ini convergence-integral.pre",
+    "./class zero-cdm-integral.ini convergence-integral.pre"
+  ],
+  "acceptance": "比较 integral 与 pk_ref 的同口径比值；超过 1% 的量标为未收敛，不以增加内存硬撑。"
+}

@@ -1,0 +1,69 @@
+{
+  "status": "frozen_before_refined_run",
+  "frozen_at_local": "2026-11-07T14:10:28.953908+08:00",
+  "parent_protocol": "convergence-protocol.json",
+  "parent_protocol_sha256": "7592f91214cbf3787ce430809dfcca05e3abd17f043af03dfa75e5831826ed32",
+  "trigger": {
+    "rule": "任一关键物质谱比值变化超过 1% 即追加更严格精度。",
+    "exceeded_k_h_per_Mpc": [
+      0.05,
+      0.1,
+      0.5,
+      1.0
+    ],
+    "measured_changes": [
+      {
+        "k_h_per_Mpc": 0.001,
+        "default_ratio": 11.779562307668199,
+        "pk_ref_ratio": 11.78080272294085,
+        "pk_ref_over_default_minus_1": 0.00010530232280725471
+      },
+      {
+        "k_h_per_Mpc": 0.01,
+        "default_ratio": 1.4452427382235598,
+        "pk_ref_ratio": 1.4449044148396453,
+        "pk_ref_over_default_minus_1": -0.0002340945053496135
+      },
+      {
+        "k_h_per_Mpc": 0.05,
+        "default_ratio": 0.038589078633081995,
+        "pk_ref_ratio": 0.03913422381132525,
+        "pk_ref_over_default_minus_1": 0.014126929109313124
+      },
+      {
+        "k_h_per_Mpc": 0.1,
+        "default_ratio": 0.01761020378875935,
+        "pk_ref_ratio": 0.01806718135948183,
+        "pk_ref_over_default_minus_1": 0.025949590146944868
+      },
+      {
+        "k_h_per_Mpc": 0.5,
+        "default_ratio": 7.420012810306085e-11,
+        "pk_ref_ratio": 8.184982733845174e-10,
+        "pk_ref_over_default_minus_1": 10.03095499036953
+      },
+      {
+        "k_h_per_Mpc": 1.0,
+        "default_ratio": 3.647039509438676e-12,
+        "pk_ref_ratio": 4.0111147065014083e-13,
+        "pk_ref_over_default_minus_1": -0.8900172401170733
+      }
+    ],
+    "additional_implementation_reason": "pk_ref.pre 中 tol_perturb_integration 与 perturb_sampling_stepsize 被 CLASS 列为未使用参数。"
+  },
+  "refined_precision_file": {
+    "file": "convergence-refined.pre",
+    "sha256": "da45b6d1866a04beaa2239909eddb7216ac100f778f15c198e249da45e12eb09",
+    "changes_from_pk_ref": {
+      "k_step_sub": "0.015 -> 0.0075",
+      "k_step_super": "0.0001 -> 0.00005",
+      "tol_perturb_integration (unused)": "改为 tol_perturbations_integration = 1.e-7",
+      "perturb_sampling_stepsize (unused)": "改为 perturbations_sampling_stepsize = 0.005"
+    }
+  },
+  "run_commands": [
+    "./class baseline-lcdm-refined.ini convergence-refined.pre",
+    "./class zero-cdm-refined.ini convergence-refined.pre"
+  ],
+  "acceptance": "比较 refined 与 pk_ref 的同口径比值；仍超过 1% 的量继续标为未收敛，不作物理排除依据。"
+}

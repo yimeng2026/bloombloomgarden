@@ -1,0 +1,83 @@
+{
+  "status": "frozen_before_high_precision_run",
+  "frozen_at_local": "2026-11-07T14:05:36.197463+08:00",
+  "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
+  "class_version": "3.4.2",
+  "gauge": "newtonian",
+  "comparison_levels": [
+    "class_default",
+    "official_pk_ref_pre"
+  ],
+  "precision_file": {
+    "name": "pk_ref.pre",
+    "sha256": "038e13c2e5364e27e7efb2f7ac337540736de22b8af0f8f09a70f216b4851467",
+    "boundary": "官方高精度预设，不预设它已保证零模型物质谱收敛。"
+  },
+  "physical_inputs": {
+    "zero-cdm": {
+      "file": "zero-cdm.ini",
+      "sha256": "59263dba43b6c91c3a5a27a891f06bde446d772ef63c7c6946805030e510b768",
+      "high_precision_run_input": "zero-cdm-pkref.ini"
+    },
+    "baseline-lcdm": {
+      "file": "baseline-lcdm.ini",
+      "sha256": "99a2d6da27763281a49679cff4d8e990ea52e6652ee4195b5cdf7ff676078cfb",
+      "high_precision_run_input": "baseline-lcdm-pkref.ini"
+    }
+  },
+  "default_output_sha256": {
+    "baseline-lcdm01_background.dat": "e9397babb5d8ea1a58d0a7e0bc919e603c45c5d7ef281e8a203363a4190d95e0",
+    "baseline-lcdm01_cl.dat": "6878c0741b7298a4c28473d66441625a6d1f18015e63af0899085579996be441",
+    "baseline-lcdm01_parameters.ini": "182c843f8231eb6395a2bb99cdfc83962a13d6159b5591122c210af4bf5387cd",
+    "baseline-lcdm01_pk.dat": "bb82ec0baa6c0941340f6651855773f4b8e5b88abed3bea85a4625b05e969356",
+    "zero-cdm01_background.dat": "27b51370a2ddcb647c23c0524614d81cd63e2fffe4a9e7913228fdf61694b20d",
+    "zero-cdm01_cl.dat": "9c0e823b3723f4dcbe938ac97a037897c27eabcc907709e5445df925b36c0557",
+    "zero-cdm01_parameters.ini": "ab03dc3983c1a782bf740fc0e3552e3138bd81ae75bae50b4c0fb47938ab8787",
+    "zero-cdm01_pk.dat": "d9b739e7652aa0ba009ba62623320bacb1113e72cadb922f6f0913027fcc782c"
+  },
+  "run_commands": [
+    "./class baseline-lcdm-pkref.ini pk_ref.pre",
+    "./class zero-cdm-pkref.ini pk_ref.pre"
+  ],
+  "metrics": {
+    "pk_k_h_per_Mpc": [
+      0.001,
+      0.01,
+      0.05,
+      0.1,
+      0.5,
+      1.0
+    ],
+    "cl_ell": [
+      100,
+      200,
+      500,
+      1000,
+      2000
+    ],
+    "tt_peak_search_ell": [
+      50,
+      1500
+    ],
+    "background": [
+      "rho_lambda_over_rho_total",
+      "Omega_m",
+      "growth_f"
+    ],
+    "ratio_definition": "zero-cdm divided by baseline-lcdm at each precision level",
+    "convergence_measure": "absolute relative change between pk_ref and default ratio-of-ratios"
+  },
+  "acceptance": {
+    "key_pk_ratio_max_relative_change": 0.01,
+    "key_cl_ratio_max_relative_change": 0.01,
+    "background_and_growth_max_relative_change": 1e-06,
+    "on_failure": "标记对应量尚未收敛，追加更严格精度档位；不把极端比值用于物理排除结论。",
+    "note": "这些阈值只是本轮数值验收规则，不是观测误差或物理判据。"
+  },
+  "boundaries": [
+    "物理输入保持不变，只改变精度文件。",
+    "不接入观测似然，不进行参数空间搜索。",
+    "不使用非线性拟合器，不重写默认计算结果。",
+    "即使数值收敛，也只说明该固定参数点的数值稳定性。"
+  ]
+}
