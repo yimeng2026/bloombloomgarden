@@ -68,7 +68,7 @@ npm --prefix backend run test:unit
 npm --prefix backend run build
 ```
 
-本次实测：根平台 113 项单元测试、后端集群 12 项单元测试通过；根平台 `lint:all` 为 0 错误、0 警告，TypeScript 检查、Next standalone 构建和 Express 构建均通过。后端 lint 为 0 错误、16 警告，不能据此宣称全库无警告或全部端到端场景已验证。
+本次实测：根平台 113 项单元测试、后端集群 12 项单元测试通过；根平台与后端 lint 均为 0 错误、0 警告，TypeScript 检查、Next standalone 构建和 Express 构建均通过。实时 API 集成脚本及其他端到端场景不据此视为已验证。
 
 操作目录由 `node scripts/generate-kimi-operations.mjs` 生成，当前为 457 个操作。该数字只表示已登记路由，不表示全部已端到端验证。
 

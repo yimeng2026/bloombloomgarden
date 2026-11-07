@@ -361,7 +361,7 @@ export class SwarmCoordinator extends EventEmitter {
     if (!coordinatorId || !agentIds.includes(coordinatorId)) {
       throw new Error('Coordinator not found in chariot');
     }
-    const decomposition = await this.dispatchToAgent(coordinatorId, { ...task, type: 'decompose' } as any);
+    await this.dispatchToAgent(coordinatorId, { ...task, type: 'decompose' } as any);
     const children = this.getChariotChildren(chariot.id);
     const results: SubtaskResult[] = [];
     for (const child of children) {
@@ -591,11 +591,6 @@ export class SwarmCoordinator extends EventEmitter {
     | { type: 'subtask_error'; agentId: string; subtaskId: string; error: string; willRetry: boolean }
   > {
     const subtasks = this.decomposeTask(task, agentIds.length);
-    const promises = agentIds.map(async (agentId, i) => {
-      const subtask = subtasks[i];
-      // 先发送 start 事件（通过回调）
-      return { agentId, subtask, index: i };
-    });
 
     // 并行启动所有任务
     const running = agentIds.map(async (agentId, i) => {
@@ -607,7 +602,6 @@ export class SwarmCoordinator extends EventEmitter {
     });
 
     // 由于 AsyncGenerator 不支持真正的并行 yield，我们按完成顺序 yield
-    const completed = new Set<number>();
     const results = await Promise.all(running);
     for (const r of results) {
       yield { type: 'subtask_start', agentId: r.agentId, subtaskId: r.subtaskId, index: r.index, total: agentIds.length };
@@ -681,6 +675,7 @@ export class SwarmCoordinator extends EventEmitter {
   }
 
   private selectOptimalMode(task: Task, _agentIds: string[]): ExecutionMode {
+    void _agentIds;
     const payload = task.payload as any;
     if (payload?.requiresCoordination) return ExecutionMode.HIERARCHICAL;
     if (payload?.canParallelize) return ExecutionMode.PARALLEL;

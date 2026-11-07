@@ -366,6 +366,7 @@ export class UnifiedLLMAdapter {
 
   // ── 解析响应 ────────────────────────────────────────────────
   private parseResponse(config: any, response: any, request: LLMRequest): { content: string; reasoning?: string; usage: any; finishReason: string } {
+    void request;
     const opt = config.optimization;
 
     // 使用Provider自定义的responseParser

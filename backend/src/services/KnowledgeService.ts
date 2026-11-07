@@ -79,6 +79,7 @@ export class KnowledgeService extends EventEmitter {
     if (this.prisma) {
       try {
         const { documentIds, ...prismaData } = data;
+        void documentIds;
         const raw = await this.prisma.knowledgeBase.update({ where: { id }, data: prismaData as any });
         return { ...raw, documentIds: [], updatedAt: raw.updatedAt || new Date() };
       } catch {

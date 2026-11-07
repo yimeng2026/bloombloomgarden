@@ -9,7 +9,6 @@
 import { getSwarmCoordinator, ExecutionMode, GroupStatus } from '../services/CollabFramework';
 import { getHandoffProtocol } from '../services/CollabFramework';
 import { getInterventionService } from '../services/CollabFramework';
-import { getBackendRouter } from '../services/BackendRouter';
 
 // ─── 测试工具 ─────────────────────────────────────────
 
@@ -342,7 +341,7 @@ async function runGroupTests(): Promise<void> {
       maxDepth: 2,
     });
 
-    const level3 = coordinator.registerChariot({
+    coordinator.registerChariot({
       name: 'Level 3 Squad',
       parentId: level2.id,
       executionMode: ExecutionMode.PARALLEL,

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { SwarmCoordinator, Chariot, Task, TaskResult } from './SwarmCoordinator';
+import { SwarmCoordinator, Task, TaskResult } from './SwarmCoordinator';
 
 // ─── 类型定义 ───────────────────────────────────────────
 

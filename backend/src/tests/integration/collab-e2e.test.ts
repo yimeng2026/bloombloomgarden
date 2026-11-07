@@ -19,10 +19,6 @@ function assert(condition: boolean, message: string): void {
   console.log(`  ✅ ${message}`);
 }
 
-async function delay(ms: number): Promise<void> {
-  return new Promise(r => setTimeout(r, ms));
-}
-
 // ─── 测试套件 ─────────────────────────────────────────
 
 async function runTests(): Promise<void> {
@@ -304,7 +300,7 @@ async function runTests(): Promise<void> {
       maxDepth: 2,
     });
 
-    const grandChild = coordinator.registerChariot({
+    coordinator.registerChariot({
       name: '突击小组',
       parentId: child.id,
       executionMode: ExecutionMode.SEQUENTIAL,

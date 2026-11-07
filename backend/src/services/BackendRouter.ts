@@ -117,6 +117,7 @@ export class BackendRouter {
   }
 
   async chat(backendId: string, request: ChatRequest, _fallbackIds?: string[]): Promise<ChatResponse> {
+    void _fallbackIds;
     if (backendId !== 'kimi-code') throw new Error('Kimi-only mode: use backendId=kimi-code');
     const backend = this.backends.get(backendId);
     if (!backend) throw new Error('Kimi backend is not configured; set KIMI_API_KEY');

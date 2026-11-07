@@ -44,21 +44,6 @@ function getApiKeyForProvider(providerId: string): string | undefined {
   return undefined;
 }
 
-/** 获取 provider 的所有可用 Key（用于轮换） */
-function getAllKeysForProvider(providerId: string): string[] {
-  const keys: string[] = [];
-  const single = getApiKeyForProvider(providerId);
-  if (single) keys.push(single);
-  // 智谱多 Key 轮换
-  if (providerId === 'zhipu' || providerId === 'glm') {
-    for (let i = 1; i <= 20; i++) {
-      const k = process.env[`GLM51_API_KEY_${i}`];
-      if (k && !keys.includes(k)) keys.push(k);
-    }
-  }
-  return keys;
-}
-
 export class GatewayService extends EventEmitter {
   // 统一聊天入口（非流式）
   async chat(request: ChatRequest): Promise<ChatResponse> {
@@ -237,6 +222,7 @@ export class GatewayService extends EventEmitter {
 
   // 构建请求端点
   private buildEndpoint(provider: any, stream: boolean): string {
+    void stream;
     const base = (provider.baseUrl || '').replace(/\/+$/, '');
     // 本地/基础设施 provider 不支持真实调用
     if (base.startsWith('local://') || base.startsWith('http://localhost')) {

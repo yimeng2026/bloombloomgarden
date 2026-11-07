@@ -3,7 +3,7 @@
  * 根据意图分类结果，路由到对应技能，并支持上下文回注
  */
 
-import { intentClassifier, type ClassifiedIntent } from './IntentClassifier'
+import { intentClassifier } from './IntentClassifier'
 
 export interface SkillHandler {
   skillId: string

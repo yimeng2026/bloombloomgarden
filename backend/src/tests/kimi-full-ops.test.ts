@@ -14,8 +14,6 @@ const assert = (cond: boolean, msg: string) => {
   console.log(`  ✅ ${msg}`);
 };
 
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-
 async function runFullTest() {
   console.log('\n🌸 千界花园 — KimiCode 全操作综合测试\n');
   let pass = 0, fail = 0;
