@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ingest, listEntries, listDayDates, loadDigest, todayUtc, loadDayFile, generateDigest, saveDigest } from "@/lib/frontier/arxiv-ingest";
+import { ingest, listEntries, loadDigest, todayUtc, loadDayFile, generateDigest, saveDigest } from "@/lib/frontier/arxiv-ingest";
 import { FRONTIER_TOPICS } from "@/lib/frontier/frontier.config";
 
 export const runtime = "nodejs";

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const totalModules = await prisma.researchModule.count();
     const totalPapers = await prisma.researchPaper.count();

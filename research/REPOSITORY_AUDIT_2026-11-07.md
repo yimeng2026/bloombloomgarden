@@ -126,3 +126,5 @@
 - 经全 `src` 引用核查，确认 `VALID_STATUS` 与 `generateMockValidation` 只有定义、没有运行时引用，已删除这两处死代码，不影响真实 Kimi 验证路径。全库 `lint:all` 现为 3 错误、12 警告，剩余错误在工作坊两个路由与 `tools.ts`。
 - `workshops/[id]/conclude/route.ts` 与 `workshops/[id]/rounds/route.ts` 的发言解析回调改用 `workshop-content.ts` 的 `unknown` 类型守卫，保留角色、专长和截断行为；`tools.ts` 中未导出且无调用的 `execSync` 包装已删除，实际代码执行路径未改。最后 3 个显式 `any` 已全部清除。
 - 新增 `tests/unit/workshop-content.test.js`，覆盖正常发言、默认值、内容截断和非记录输入。根平台测试总数从 110 增至 113，113 项通过、0 失败，共 440 个断言、39 个文件；TypeScript、定向 ESLint 和 Next standalone 构建通过。全库 `lint:all` 现为 0 错误、11 警告，显式 `any` 已清零，但警告尚待逐项处理。
+- 剩余 11 个根平台警告已逐项清理：删除 arXiv 多余导入、代码审查和辅导的无引用模拟函数及状态常量、淘汰逻辑的冗余参数；省略 millennium、stats、sylva-sync、tasks/stats 和 verification 中完全未使用的请求参数，并移除随之无用的 `NextRequest` 导入。`listDayDates` 在库内的真实调用保留，未误删实现。
+- 提交前复验：根平台 113 项测试、后端 12 项测试、TypeScript、Next standalone 和 Express 构建全部通过；根平台 `lint:all` 为 0 错误、0 警告。后端 lint 仍为 0 错误、40 警告，下一阶段继续处理后端警告，不宣称全库或全部研究方向已经完成。

@@ -212,7 +212,7 @@ export async function POST(
 
     // 10. 处理淘汰逻辑（elimination / bracket 格式）
     if (competition.format === "elimination" || competition.format === "bracket") {
-      await handleElimination(id, competition.format, scores, competition.competitors);
+      await handleElimination(id, competition.format, scores);
     }
 
     // 11. 更新竞赛当前轮次和状态
@@ -558,8 +558,7 @@ function determinePhase(roundNumber: number, maxRounds: number): string {
 async function handleElimination(
   competitionId: string,
   format: string,
-  scores: Array<{ competitorId: string; name: string; score: number }>,
-  competitors: Array<{ id: string; name: string }>
+  scores: Array<{ competitorId: string; name: string; score: number }>
 ) {
   if (format === "elimination") {
     // 淘汰最低分者

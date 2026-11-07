@@ -31,35 +31,6 @@ function extractScore(content: string): number {
   return 6.5;
 }
 
-/** 生成 fallback 模拟辅导内容 */
-function generateMockMentorship(
-  mode: string,
-  topic: string,
-  studentResponse: string
-): { content: string; feedback: string; score: number } {
-  if (studentResponse && studentResponse.trim().length > 0) {
-    return {
-      content: "",
-      feedback: `【模拟反馈】已审阅学生的回答。\n\n总体评价：回答思路基本正确，对核心概念有一定理解。\n\n建议：\n1. 可以进一步深化对关键定理的理解\n2. 尝试从不同角度思考问题\n3. 补充更多具体例子支持论点\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-      score: 6.5,
-    };
-  }
-
-  const modeDescriptions: Record<string, string> = {
-    lecture: `【模拟讲解 — ${topic}】\n\n本节将介绍 ${topic} 的核心概念。\n\n1. 定义与背景\n2. 核心定理及其证明思路\n3. 典型例子与反例\n4. 常见误区与注意事项\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    exercise: `【模拟练习 — ${topic}】\n\n题目：请证明或推导与 ${topic} 相关的核心结论。\n\n提示：\n1. 回顾相关定义和引理\n2. 尝试归纳法或反证法\n3. 注意边界条件的处理\n\n参考答案：...\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    discussion: `【模拟讨论 — ${topic}】\n\n开放性问题：${topic} 在当代数学研究中还有哪些未解决的难题？\n\n请从以下角度思考：\n1. 理论推广的可能性\n2. 与其他领域的交叉点\n3. 计算复杂度的挑战\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    critique: `【模拟批判 — ${topic}】\n\n以下是一段关于 ${topic} 的论述，其中可能包含错误：\n\n[模拟论述内容]\n\n请找出其中的问题并给出正确解释。\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    review: `【模拟复习 — ${topic}】\n\n核心知识点回顾：\n\nQ1: ${topic} 的定义是什么？\nQ2: 主要定理有哪些？\nQ3: 典型应用场景？\nQ4: 与其他概念的关系？\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-  };
-
-  return {
-    content: modeDescriptions[mode] || modeDescriptions.lecture,
-    feedback: "",
-    score: 0,
-  };
-}
-
 // ── GET ───────────────────────────────────────────────────
 export async function GET(
   request: NextRequest,

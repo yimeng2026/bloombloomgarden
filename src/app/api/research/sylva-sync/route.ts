@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET: 获取同步状态
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const [modules, theorems, tasks, syncs] = await Promise.all([
       prisma.researchModule.findMany({

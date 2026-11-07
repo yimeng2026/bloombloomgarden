@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -148,7 +148,7 @@ const MILLENNIUM_PROBLEMS = [
 ];
 
 // POST: 初始化千年难题研究生态
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const result = await prisma.$transaction(async (tx) => {
       const created: Array<{
@@ -407,7 +407,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET: 获取千年难题研究生态状态
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const panels = await prisma.academicPanel.findMany({
       where: {
