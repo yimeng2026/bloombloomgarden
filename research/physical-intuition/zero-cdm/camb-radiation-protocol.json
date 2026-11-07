@@ -1,0 +1,44 @@
+{
+  "status": "frozen_before_no_late_rad_run",
+  "frozen_at_local": "2026-11-07T17:44:09.404866+08:00",
+  "runner": "camb_radiation_test.py",
+  "runner_sha256": "d887e7bbf951bac90e7e6b64cc7ec662c3a21107911332507a68696c4024ddae",
+  "base_runner": "camb_crosscode.py",
+  "base_runner_sha256": "32e5e300c4351644426cf841278cd1957bcb43f20aecb684805eeebe042a5706",
+  "camb_version": "2.0.5",
+  "single_change": "DoLateRadTruncation=True -> False in CAMB ultra; all other settings unchanged",
+  "unchanged": [
+    "omch2=0 for zero and 0.1201075 for baseline",
+    "Recfast recombination and fixed CLASS YHe",
+    "AccuracyBoost=4, lSampleBoost=4, lAccuracyBoost=4",
+    "k_per_logint=400 and linear lens_potential_accuracy=8",
+    "nonlinear=False"
+  ],
+  "references": {
+    "A_class_hyrec_integral": {
+      "file": "convergence-summary.json",
+      "sha256": "1d9a213659080604663a25d598f7bd5ffae35efad7d760962b05724c2b5db431"
+    },
+    "B_camb_recfast_ultra_with_late_rad": {
+      "file": "camb-crosscode-summary.json",
+      "sha256": "6f0ac9d17ba18a75f6199507025d405a5d04916d736a5f57f4423eb80bfcf9e8"
+    },
+    "C_class_recfast": {
+      "file": "recfast-systematics-summary.json",
+      "sha256": "f7826598e1ef24c85ae6d85e9a8a4643e654bac026a8fe4cacc5773b1eefacd6"
+    }
+  },
+  "primary_decision": {
+    "quantity": "zero/baseline TT ratio at ell=1000",
+    "D": "CAMB Recfast ultra with DoLateRadTruncation=False",
+    "supports_late_rad_dominated_residual": "abs(D/A-1)<0.005, given previous abs(B/A-1)>0.02",
+    "internal_effect": "D/B-1 measures the direct effect of disabling late radiation truncation",
+    "otherwise": "标记未分离，不把近似无关或唯一根因当作既定事实"
+  },
+  "additional_outputs": "保存 lensed_scalar、unlensed_scalar 与 lens_potential，供后续非透镜 TT 检验；本轮不预写其结果。",
+  "boundaries": [
+    "不引入微量 CDM，不改变物理参数或精度档位。",
+    "不接入观测似然，不搜索参数，不做非线性计算。",
+    "运行失败时记录异常，不以旧结果替代新结果。"
+  ]
+}

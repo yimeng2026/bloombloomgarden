@@ -101,8 +101,8 @@ for ell in ELLS:
             "zero_over_baseline_tt": zero_tt / baseline_tt,
             "zero_over_baseline_phiphi": zero_pp / baseline_pp,
         }
-    zero_tt = float(B["zero"]["tt"][ell])
-    baseline_tt = float(B["baseline"]["tt"][ell])
+    zero_tt = float(B["zero"]["tt_unlensed"][ell])
+    baseline_tt = float(B["baseline"]["tt_unlensed"][ell])
     zero_pp = float(B["zero"]["pp_deflection"][ell] / (ell * (ell + 1)))
     baseline_pp = float(B["baseline"]["pp_deflection"][ell] / (ell * (ell + 1)))
     row["B_camb_recfast"] = {
@@ -139,7 +139,7 @@ primary = next(row for row in cl_records if row["ell"] == 1000)
 previous_gap = primary["tt_changes"]["A_over_B_minus_1"]
 new_gap = primary["tt_changes"]["C_over_B_minus_1"]
 recfast_effect = primary["tt_changes"]["C_over_A_minus_1"]
-supports = abs(previous_gap) > 0.02 and abs(new_gap) < 0.005
+consistent = abs(previous_gap) < 0.005 and abs(new_gap) < 0.005
 background = {}
 for model in ["zero", "baseline"]:
     recfast_bg = class_background(model)
@@ -158,11 +158,11 @@ for model in ["zero", "baseline"]:
     }
 
 summary = {
-    "status": "computed_recfast_systematic_test_not_observational_fit",
+    "status": "computed_recfast_systematic_test_corrected_tt_not_observational_fit",
     "definitions": {
-        "A": "CLASS HyRec 2020 integral",
-        "B": "CAMB Recfast ultra",
-        "C": "CLASS RECFAST integral",
+        "A": "CLASS HyRec 2020 integral，非透镜 cl.dat",
+        "B": "CAMB Recfast ultra，非透镜 unlensed_scalar",
+        "C": "CLASS RECFAST integral，非透镜 cl.dat",
         "change_units": "fractions, not percentages",
     },
     "primary_decision": {
@@ -170,12 +170,14 @@ summary = {
         "A_over_B_minus_1": previous_gap,
         "C_over_B_minus_1": new_gap,
         "C_over_A_minus_1": recfast_effect,
-        "supports_recombination_dominated_residual": supports,
-        "classification": "not_separated_recfast_did_not_close_tt_gap" if not supports else "consistent_with_recombination_dominated_residual",
+        "supports_recombination_dominated_residual": None,
+        "legacy_criterion_applicable": abs(previous_gap) > 0.02,
+        "classification": "no_tt_residual_after_convention_correction" if consistent else "residual_remains_after_correction",
+        "corrected_consistency_within_0.5_percent": consistent,
         "absolute_gap_increased": abs(new_gap) > abs(previous_gap),
         "gap_change_percentage_points": (new_gap - previous_gap) * 100,
-        "criterion": "support required abs(C/B-1)<0.005 with previous abs(A/B-1)>0.02",
-        "boundary": "RecFastCLASS and CAMB Recfast are different implementations; this test cannot uniquely prove or eliminate every recombination effect.",
+        "criterion": "统一非透镜口径后，A/B 与 C/B 均应小于 0.005；原混合口径判别不再适用。",
+        "boundary": "RECFAST 与 HyRec 的实现差异可以研究，但旧约 2.9% 残差已证明来自口径混比。",
     },
     "cl_comparisons": cl_records,
     "pk_comparisons": pk_records,
@@ -190,7 +192,12 @@ summary = {
         "zero_omch2_exactly_zero_in_input": "omega_cdm = 0" in (OUT / "zero-cdm-recfast.ini").read_text(encoding="utf-8"),
         "recfast_explicit_in_input": "recombination = RECFAST" in (OUT / "zero-cdm-recfast.ini").read_text(encoding="utf-8"),
         "class_reference_hash_matches_protocol": sha256(OUT / "convergence-summary.json") == protocol["references"]["class_hyrec_integral"]["sha256"],
-        "camb_reference_hash_matches_protocol": sha256(OUT / "camb-crosscode-summary.json") == protocol["references"]["camb_recfast_ultra"]["sha256"],
+        "camb_reference_correction_chain_valid": (
+            json.loads((OUT / "class-lensed-protocol.json").read_text(encoding="utf-8"))["references"]["historical_crosscode_summary_sha256"]
+            == protocol["references"]["camb_recfast_ultra"]["sha256"]
+            and "corrected_tt" in crosscode["status"]
+            and "unlensed_scalar" in crosscode["tt_convention"]
+        ),
         "resource_exit_zero": all(resource(model)["exit_status"] == 0 for model in ["zero", "baseline"]),
     },
     "resource_usage": {model: resource(model) for model in ["zero", "baseline"]},
@@ -209,8 +216,8 @@ summary = {
     "protocol_sha256": sha256(OUT / "class-recfast-protocol.json"),
     "analysis_runner_sha256": sha256(Path(__file__).resolve()),
     "boundaries": [
-        "RECFAST switching did not satisfy the frozen TT residual criterion at ell=1000.",
-        "The result does not prove that recombination is irrelevant or identify the remaining cause.",
+        "统一非透镜口径后，A/B 与 C/B 在 ell=1000 均小于 0.5%，旧残差不再适用。",
+        "RECFAST 与 HyRec 的实现差异仍存在，但不能用旧混比结果归因。",
         "Extreme P(k) ratios remain non-robust and are not rehabilitated by this test.",
         "No likelihood, parameter search, joint BBN, nonlinear calculation, or observational exclusion.",
     ],
@@ -232,7 +239,7 @@ for name, data, color, label in [
 ]:
     ratio = data["zero"]["cl"][ell_dense - 2, 1] / data["baseline"]["cl"][ell_dense - 2, 1]
     axes[0].loglog(ell_dense, ratio, color=color, lw=1.25, label=label)
-ratio = B["zero"]["tt"][ell_dense] / B["baseline"]["tt"][ell_dense]
+ratio = B["zero"]["tt_unlensed"][ell_dense] / B["baseline"]["tt_unlensed"][ell_dense]
 axes[0].loglog(ell_dense, ratio, color="#2563a6", lw=1.25, label="B：CAMB Recfast")
 axes[0].set(title="TT 比值：零模型／ΛCDM", xlabel="多极矩 ℓ", ylabel="比值")
 axes[0].legend(frameon=False, fontsize=8)
@@ -256,7 +263,7 @@ axes[2].set(title="物质谱比值差异", xlabel="k [h/Mpc]", ylabel="差异绝
 axes[2].legend(frameon=False, fontsize=8)
 for ax in axes:
     ax.grid(alpha=0.25, which="both")
-fig.suptitle("RECFAST 对照：ℓ=1000 的 TT 差异未按预冻结规则闭合", fontsize=13)
+fig.suptitle("统一非透镜口径后的 RECFAST 对照", fontsize=13)
 svg_path = OUT / "recfast-systematics-comparison.svg"
 fig.savefig(svg_path, bbox_inches="tight", metadata={"Date": None})
 svg_path.write_text("\n".join(line.rstrip() for line in svg_path.read_text(encoding="utf-8").splitlines()) + "\n", encoding="utf-8")

@@ -1,0 +1,33 @@
+{
+  "status": "frozen_before_tt_convention_reruns",
+  "frozen_at_local": "2026-11-07T18:05:43.240505+08:00",
+  "parent_amendment_sha256": "919c461da4c1fd20846358606e829f9693ea30cf3091d6852f600636595a8b59",
+  "previous_runner_sha256": "32e5e300c4351644426cf841278cd1957bcb43f20aecb684805eeebe042a5706",
+  "updated_runner_sha256": "894582eeba01532ef5d0217be226ad4660c4711c8a96ff91575a28b5dfe949f5",
+  "reason": "原运行只保存 lensed_scalar，导致分析误与 CLASS 非透镜 cl.dat 比较。现在同时保存 lensed_scalar 与 unlensed_scalar。",
+  "physics_or_precision_changes": false,
+  "archived_lensed_only_outputs_sha256": {
+    "fiducial/zero/spectra-lensed-only.npz": "05caf670ad17a8249ed57bccaf93bd0d89e3c335a42e0494699f062d0fe438df",
+    "fiducial/zero/summary-lensed-only.json": "003f1173227d02e2a134a0540f71d6250a625a81ddfb2091eef9c262fa777321",
+    "fiducial/baseline/spectra-lensed-only.npz": "e719857d33f8e2623dcfd182c13d985be30d7d61a8e5fdf1a048039b785cebf6",
+    "fiducial/baseline/summary-lensed-only.json": "b41839038f18568f1e7ce4d0b0ccd2ded44aae354f3d16f90abca60103d49632",
+    "high/zero/spectra-lensed-only.npz": "6c2bea74fe5bd48efa85c3b0c85391d278816d102eb7bc805a2942b2055f395e",
+    "high/zero/summary-lensed-only.json": "adf43fac7afc6fca74893f2b338f50fafbffadc41d63d2691e7ed882f497d9c9",
+    "high/baseline/spectra-lensed-only.npz": "9491e91bebc2951ba89c7e7e3075c9bf417a4b623986174c3604f2f8b0bce9d5",
+    "high/baseline/summary-lensed-only.json": "5300b3ad97c0f42f441bbfdc0ac914d0da12bb114420de7951cf7523a999481b",
+    "ultra/zero/spectra-lensed-only.npz": "161e5ed7f49ac4bb8e7563373c59e3ae12162cb7b8d587b494bcdd4e207dae2a",
+    "ultra/zero/summary-lensed-only.json": "87c76eb7b65bf965a64525576180588abd8e7a3a25f5d60058dadef9bedeac2a",
+    "ultra/baseline/spectra-lensed-only.npz": "bf923cb2cf8294932d77e6ec39d78cba818028864219ca0896b03ef8b022dc78",
+    "ultra/baseline/summary-lensed-only.json": "9bb8eddf28be9f9f26fe38f88cd8ef330d6bdefcfbeb47d582e6320bf4355671"
+  },
+  "rerun_levels": [
+    "fiducial",
+    "high",
+    "ultra"
+  ],
+  "new_output_contract": {
+    "tt": "lensed_scalar；只与 CLASS cl_lensed.dat 比较",
+    "tt_unlensed": "unlensed_scalar；与 CLASS cl.dat 比较"
+  },
+  "related_correction_protocol": "class-lensed-protocol.json"
+}

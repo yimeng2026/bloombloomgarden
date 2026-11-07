@@ -1,22 +1,24 @@
 {
-  "status": "computed_recfast_systematic_test_not_observational_fit",
+  "status": "computed_recfast_systematic_test_corrected_tt_not_observational_fit",
   "definitions": {
-    "A": "CLASS HyRec 2020 integral",
-    "B": "CAMB Recfast ultra",
-    "C": "CLASS RECFAST integral",
+    "A": "CLASS HyRec 2020 integral，非透镜 cl.dat",
+    "B": "CAMB Recfast ultra，非透镜 unlensed_scalar",
+    "C": "CLASS RECFAST integral，非透镜 cl.dat",
     "change_units": "fractions, not percentages"
   },
   "primary_decision": {
     "ell": 1000,
-    "A_over_B_minus_1": 0.029370287541135687,
-    "C_over_B_minus_1": 0.03200338896717936,
+    "A_over_B_minus_1": -0.0024704671134000433,
+    "C_over_B_minus_1": 8.118652121047454e-05,
     "C_over_A_minus_1": 0.002557973022840221,
-    "supports_recombination_dominated_residual": false,
-    "classification": "not_separated_recfast_did_not_close_tt_gap",
-    "absolute_gap_increased": true,
-    "gap_change_percentage_points": 0.26331014260436714,
-    "criterion": "support required abs(C/B-1)<0.005 with previous abs(A/B-1)>0.02",
-    "boundary": "RecFastCLASS and CAMB Recfast are different implementations; this test cannot uniquely prove or eliminate every recombination effect."
+    "supports_recombination_dominated_residual": null,
+    "legacy_criterion_applicable": false,
+    "classification": "no_tt_residual_after_convention_correction",
+    "corrected_consistency_within_0.5_percent": true,
+    "absolute_gap_increased": false,
+    "gap_change_percentage_points": 0.2551653634610518,
+    "criterion": "统一非透镜口径后，A/B 与 C/B 均应小于 0.005；原混合口径判别不再适用。",
+    "boundary": "RECFAST 与 HyRec 的实现差异可以研究，但旧约 2.9% 残差已证明来自口径混比。"
   },
   "cl_comparisons": [
     {
@@ -30,12 +32,12 @@
         "zero_over_baseline_phiphi": 0.09064350733749978
       },
       "B_camb_recfast": {
-        "zero_over_baseline_tt": 2.1507335965349927,
+        "zero_over_baseline_tt": 2.1525877765637476,
         "zero_over_baseline_phiphi": 0.09061679354884722
       },
       "tt_changes": {
-        "A_over_B_minus_1": 0.0009507941956874433,
-        "C_over_B_minus_1": 0.0008694360558407777,
+        "A_over_B_minus_1": 8.860265461740902e-05,
+        "C_over_B_minus_1": 7.314594439478128e-06,
         "C_over_A_minus_1": -8.128085847824984e-05
       },
       "phiphi_changes": {
@@ -55,12 +57,12 @@
         "zero_over_baseline_phiphi": 0.020567514326868673
       },
       "B_camb_recfast": {
-        "zero_over_baseline_tt": 2.0436790300808907,
+        "zero_over_baseline_tt": 2.041540160184139,
         "zero_over_baseline_phiphi": 0.02056310810298925
       },
       "tt_changes": {
-        "A_over_B_minus_1": -0.0010855698155513016,
-        "C_over_B_minus_1": -0.0010796384886260224,
+        "A_over_B_minus_1": -3.903247779968311e-05,
+        "C_over_B_minus_1": -3.309493677339237e-05,
         "C_over_A_minus_1": 5.9377727923415335e-06
       },
       "phiphi_changes": {
@@ -80,12 +82,12 @@
         "zero_over_baseline_phiphi": 0.007285523807130336
       },
       "B_camb_recfast": {
-        "zero_over_baseline_tt": 2.3477564234457127,
+        "zero_over_baseline_tt": 2.342008058229099,
         "zero_over_baseline_phiphi": 0.007287154866503803
       },
       "tt_changes": {
-        "A_over_B_minus_1": -0.004077502361398144,
-        "C_over_B_minus_1": -0.0023452290476361215,
+        "A_over_B_minus_1": -0.0016330503776600391,
+        "C_over_B_minus_1": 0.00010347473174698862,
         "C_over_A_minus_1": 0.0017393655810260533
       },
       "phiphi_changes": {
@@ -105,12 +107,12 @@
         "zero_over_baseline_phiphi": 0.0028757637360380017
       },
       "B_camb_recfast": {
-        "zero_over_baseline_tt": 2.2008103729876947,
+        "zero_over_baseline_tt": 2.2710593839865747,
         "zero_over_baseline_phiphi": 0.0028766209827281765
       },
       "tt_changes": {
-        "A_over_B_minus_1": 0.029370287541135687,
-        "C_over_B_minus_1": 0.03200338896717936,
+        "A_over_B_minus_1": -0.0024704671134000433,
+        "C_over_B_minus_1": 8.118652121047454e-05,
         "C_over_A_minus_1": 0.002557973022840221
       },
       "phiphi_changes": {
@@ -130,12 +132,12 @@
         "zero_over_baseline_phiphi": 0.0004518678908152689
       },
       "B_camb_recfast": {
-        "zero_over_baseline_tt": 2.9407680269956153,
+        "zero_over_baseline_tt": 2.955502097290015,
         "zero_over_baseline_phiphi": 0.00045188239992735097
       },
       "tt_changes": {
-        "A_over_B_minus_1": 0.002047936753665436,
-        "C_over_B_minus_1": 0.00516400482205448,
+        "A_over_B_minus_1": -0.00294757475418439,
+        "C_over_B_minus_1": 0.00015295877406562575,
         "C_over_A_minus_1": 0.003109699600284843
       },
       "phiphi_changes": {
@@ -384,33 +386,33 @@
       "zero": [
         {
           "ell": 297,
-          "value": 1.888153797429189e-09
+          "value": 1.888366502703363e-09
         },
         {
           "ell": 778,
-          "value": 7.38088888194318e-10
+          "value": 7.38643552124863e-10
         },
         {
           "ell": 1223,
-          "value": 3.8924605630148725e-10
+          "value": 3.8986068340144e-10
         }
       ],
       "baseline": [
         {
-          "ell": 220,
-          "value": 7.653577412009251e-10
+          "ell": 221,
+          "value": 7.665466087992204e-10
         },
         {
           "ell": 536,
-          "value": 3.488718728006024e-10
+          "value": 3.506257156983991e-10
         },
         {
-          "ell": 813,
-          "value": 3.4109042027737787e-10
+          "ell": 814,
+          "value": 3.4707504607660463e-10
         },
         {
-          "ell": 1126,
-          "value": 1.6674974262639897e-10
+          "ell": 1129,
+          "value": 1.7000007298294885e-10
         }
       ]
     }
@@ -420,7 +422,7 @@
     "zero_omch2_exactly_zero_in_input": true,
     "recfast_explicit_in_input": true,
     "class_reference_hash_matches_protocol": true,
-    "camb_reference_hash_matches_protocol": true,
+    "camb_reference_correction_chain_valid": true,
     "resource_exit_zero": true
   },
   "resource_usage": {
@@ -452,10 +454,10 @@
     "zero-cdm-recfast00_pk.dat": "98414a096d6b28be245e8c73193aaf3e2f4140464a95b67b2b069eef9977bfa9"
   },
   "protocol_sha256": "f2c5530be874ac53b9d96aba29858dd70dc016c49e41794061e089c1247849d2",
-  "analysis_runner_sha256": "ef9db59624cab515ed4cae894697f709050813929dfb233926ee94881fa7595c",
+  "analysis_runner_sha256": "504639e8554d08db87861a2042b36f5766cfd15fd4acc5a3c284b5962f1d43df",
   "boundaries": [
-    "RECFAST switching did not satisfy the frozen TT residual criterion at ell=1000.",
-    "The result does not prove that recombination is irrelevant or identify the remaining cause.",
+    "统一非透镜口径后，A/B 与 C/B 在 ell=1000 均小于 0.5%，旧残差不再适用。",
+    "RECFAST 与 HyRec 的实现差异仍存在，但不能用旧混比结果归因。",
     "Extreme P(k) ratios remain non-robust and are not rehabilitated by this test.",
     "No likelihood, parameter search, joint BBN, nonlinear calculation, or observational exclusion."
   ]

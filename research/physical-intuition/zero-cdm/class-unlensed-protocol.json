@@ -1,0 +1,50 @@
+{
+  "status": "frozen_before_class_unlensed_run",
+  "frozen_at_local": "2026-11-07T17:51:00.899998+08:00",
+  "purpose": "检验 ell=1000 的 TT 残差是否主要来自 CMB 透镜化路径。",
+  "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
+  "precision_file_sha256": "670f9e9425508a498cd126436eecdb4197977ce8e84489944cf366ba22f96565",
+  "new_inputs": {
+    "zero-cdm": {
+      "file": "zero-cdm-unlensed.ini",
+      "sha256": "ea9a80cf1b6973871cac9b4c19f84c1154dcb699225c5c2940eeb143d5ec39e7",
+      "lensing": "no"
+    },
+    "baseline-lcdm": {
+      "file": "baseline-lcdm-unlensed.ini",
+      "sha256": "0f7c5c788b36bed841dd1e975b449de46ed0baa87773b4203e6abbd38163ac15",
+      "lensing": "no"
+    }
+  },
+  "references": {
+    "A_class_hyrec_lensed": {
+      "file": "convergence-summary.json",
+      "sha256": "1d9a213659080604663a25d598f7bd5ffae35efad7d760962b05724c2b5db431"
+    },
+    "D_camb_no_late_rad": {
+      "zero_summary": ".tmp/camb-runs/no-late-rad/zero/summary.json",
+      "zero_sha256": "829d1a3824303011f621c01c768e271fa83ba68cf417220206f54f04973192aa",
+      "baseline_summary": ".tmp/camb-runs/no-late-rad/baseline/summary.json",
+      "baseline_sha256": "292236d688264cbce28162fdd5e6f97aad887de747aa7fa78844e34e8d055069"
+    },
+    "radiation_protocol": {
+      "file": "camb-radiation-protocol.json",
+      "sha256": "d9b9e3a11370d43ca7e392d070d7d94f890e702d9b855b0bbe8a6c2e811dcf4e"
+    }
+  },
+  "run_commands": [
+    "./class baseline-lcdm-unlensed.ini convergence-integral.pre",
+    "./class zero-cdm-unlensed.ini convergence-integral.pre"
+  ],
+  "decision_rule": {
+    "E": "CLASS HyRec unlensed TT, lensing=no",
+    "D_unlensed": "CAMB Recfast ultra with DoLateRadTruncation=False, unlensed TT",
+    "supports_lensing_path_dominated_residual": "abs(D_unlensed/E-1)<0.005 at ell=1000, while the lensed CAMB/CLASS residual exceeded 2%",
+    "additional_checks": "比较 E/A 的 CLASS 透镜化效应和 D_unlensed/D_lensed 的 CAMB 透镜化效应；不能只看单一百分比。",
+    "otherwise": "标记未分离，不把透镜化路径或其他机制当作已证明根因。"
+  },
+  "boundaries": [
+    "只关闭 CLASS 的 lensed Cl 输出，不改变物理输入、扰动初值或精度文件。",
+    "不引入微量 CDM，不接入观测似然，不做参数搜索或非线性计算。"
+  ]
+}

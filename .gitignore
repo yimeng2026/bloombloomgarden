@@ -96,6 +96,8 @@ prisma/dev.db-journal
 
 # Local research runs and user-provided archives
 .tmp/
+__pycache__/
+*.pyc
 /data/physical-intuition/model-reviews/
 /data/physical-intuition/forward-calibration/
 /data/zhihu-invites/
@@ -106,3 +108,4 @@ prisma/dev.db-journal
 !research/physical-intuition/zero-cdm/convergence-comparison.svg
 !research/physical-intuition/zero-cdm/camb-crosscode-comparison.svg
 !research/physical-intuition/zero-cdm/recfast-systematics-comparison.svg
+!research/physical-intuition/zero-cdm/tt-convention-correction.svg

@@ -1,0 +1,326 @@
+{
+  "status": "tt_residual_resolved_as_output_convention_mismatch_not_physics",
+  "root_cause": {
+    "class_cl_dat": "非透镜谱；原输入未显式 lensing=yes。",
+    "class_cl_lensed_dat": "只有显式 lensing=yes 才生成的透镜谱。",
+    "camb_tt": "lensed_scalar。",
+    "camb_tt_unlensed": "unlensed_scalar。",
+    "old_error": "把 CLASS cl.dat 与 CAMB lensed_scalar 直接比较。",
+    "class_source_evidence": "source/output.c 分开写 cl.dat 与 cl_lensed.dat；input.c 只有显式 yes 才启用 has_lensed_cls。"
+  },
+  "primary_ell_1000": {
+    "ell": 1000,
+    "A_class_unlensed": 2.2654488064658573,
+    "E_class_explicit_unlensed": 2.2654488064658573,
+    "L_class_explicit_lensed": 2.1951166650805476,
+    "B_camb_unlensed": 2.2710593839865747,
+    "B_camb_lensed": 2.2008103729876947,
+    "D_camb_no_late_rad_lensed": 2.200809774316328,
+    "D_camb_no_late_rad_unlensed": 2.27105878295838,
+    "C_class_recfast_unlensed": 2.2712437633974227,
+    "E_over_A_minus_1": 0.0,
+    "old_mixed_A_over_B_lensed_minus_1": 0.029370287541135687,
+    "old_mixed_C_over_B_lensed_minus_1": 0.03200338896717936,
+    "corrected_B_unlensed_over_A_minus_1": 0.002476585436273826,
+    "corrected_B_lensed_over_L_minus_1": 0.0025938065150346024,
+    "late_rad_D_lensed_over_B_lensed_minus_1": -2.7202314845098385e-07,
+    "class_lensing_effect_L_over_A_minus_1": -0.031045566416938453,
+    "camb_lensing_effect_bl_over_bu_minus_1": -0.03093226513327285
+  },
+  "all_comparisons": [
+    {
+      "ell": 100,
+      "A_class_unlensed": 2.1527785015550482,
+      "E_class_explicit_unlensed": 2.1527785015550482,
+      "L_class_explicit_lensed": 2.1509210052956558,
+      "B_camb_unlensed": 2.1525877765637476,
+      "B_camb_lensed": 2.1507335965349927,
+      "D_camb_no_late_rad_lensed": 2.150734177702057,
+      "D_camb_no_late_rad_unlensed": 2.1525883578106737,
+      "C_class_recfast_unlensed": 2.1526035218703283,
+      "E_over_A_minus_1": 0.0,
+      "old_mixed_A_over_B_lensed_minus_1": 0.0009507941956874433,
+      "old_mixed_C_over_B_lensed_minus_1": 0.0008694360558407777,
+      "corrected_B_unlensed_over_A_minus_1": -8.85948048825469e-05,
+      "corrected_B_lensed_over_L_minus_1": -8.712954134604267e-05,
+      "late_rad_D_lensed_over_B_lensed_minus_1": 2.7021806192628617e-07,
+      "class_lensing_effect_L_over_A_minus_1": -0.0008628366820138123,
+      "camb_lensing_effect_bl_over_bu_minus_1": -0.0008613725530461913
+    },
+    {
+      "ell": 200,
+      "A_class_unlensed": 2.0414604738131596,
+      "E_class_explicit_unlensed": 2.0414604738131596,
+      "L_class_explicit_lensed": 2.043588388106274,
+      "B_camb_unlensed": 2.041540160184139,
+      "B_camb_lensed": 2.0436790300808907,
+      "D_camb_no_late_rad_lensed": 2.0436783644248266,
+      "D_camb_no_late_rad_unlensed": 2.041539495082099,
+      "C_class_recfast_unlensed": 2.0414725955416175,
+      "E_over_A_minus_1": 0.0,
+      "old_mixed_A_over_B_lensed_minus_1": -0.0010855698155513016,
+      "old_mixed_C_over_B_lensed_minus_1": -0.0010796384886260224,
+      "corrected_B_unlensed_over_A_minus_1": 3.903400139337876e-05,
+      "corrected_B_lensed_over_L_minus_1": 4.435432063720768e-05,
+      "late_rad_D_lensed_over_B_lensed_minus_1": -3.257145835267039e-07,
+      "class_lensing_effect_L_over_A_minus_1": 0.00104234900474931,
+      "camb_lensing_effect_bl_over_bu_minus_1": 0.0010476746617409383
+    },
+    {
+      "ell": 500,
+      "A_class_unlensed": 2.338183441085125,
+      "E_class_explicit_unlensed": 2.338183441085125,
+      "L_class_explicit_lensed": 2.343853463998736,
+      "B_camb_unlensed": 2.342008058229099,
+      "B_camb_lensed": 2.3477564234457127,
+      "D_camb_no_late_rad_lensed": 2.3477546763823374,
+      "D_camb_no_late_rad_unlensed": 2.3420063034362695,
+      "C_class_recfast_unlensed": 2.3422503968846735,
+      "E_over_A_minus_1": 0.0,
+      "old_mixed_A_over_B_lensed_minus_1": -0.004077502361398144,
+      "old_mixed_C_over_B_lensed_minus_1": -0.0023452290476361215,
+      "corrected_B_unlensed_over_A_minus_1": 0.001635721593425954,
+      "corrected_B_lensed_over_L_minus_1": 0.0016651891882002445,
+      "late_rad_D_lensed_over_B_lensed_minus_1": -7.441416656206457e-07,
+      "class_lensing_effect_L_over_A_minus_1": 0.002424969236365593,
+      "camb_lensing_effect_bl_over_bu_minus_1": 0.0024544600503895175
+    },
+    {
+      "ell": 1000,
+      "A_class_unlensed": 2.2654488064658573,
+      "E_class_explicit_unlensed": 2.2654488064658573,
+      "L_class_explicit_lensed": 2.1951166650805476,
+      "B_camb_unlensed": 2.2710593839865747,
+      "B_camb_lensed": 2.2008103729876947,
+      "D_camb_no_late_rad_lensed": 2.200809774316328,
+      "D_camb_no_late_rad_unlensed": 2.27105878295838,
+      "C_class_recfast_unlensed": 2.2712437633974227,
+      "E_over_A_minus_1": 0.0,
+      "old_mixed_A_over_B_lensed_minus_1": 0.029370287541135687,
+      "old_mixed_C_over_B_lensed_minus_1": 0.03200338896717936,
+      "corrected_B_unlensed_over_A_minus_1": 0.002476585436273826,
+      "corrected_B_lensed_over_L_minus_1": 0.0025938065150346024,
+      "late_rad_D_lensed_over_B_lensed_minus_1": -2.7202314845098385e-07,
+      "class_lensing_effect_L_over_A_minus_1": -0.031045566416938453,
+      "camb_lensing_effect_bl_over_bu_minus_1": -0.03093226513327285
+    },
+    {
+      "ell": 2000,
+      "A_class_unlensed": 2.946790533922104,
+      "E_class_explicit_unlensed": 2.946790533922104,
+      "L_class_explicit_lensed": 2.930904486332268,
+      "B_camb_unlensed": 2.955502097290015,
+      "B_camb_lensed": 2.9407680269956153,
+      "D_camb_no_late_rad_lensed": 2.940767970351747,
+      "D_camb_no_late_rad_unlensed": 2.955502002280855,
+      "C_class_recfast_unlensed": 2.9559541672675644,
+      "E_over_A_minus_1": 0.0,
+      "old_mixed_A_over_B_lensed_minus_1": 0.002047936753665436,
+      "old_mixed_C_over_B_lensed_minus_1": 0.00516400482205448,
+      "corrected_B_unlensed_over_A_minus_1": 0.0029562886359337792,
+      "corrected_B_lensed_over_L_minus_1": 0.0033653572504133145,
+      "late_rad_D_lensed_over_B_lensed_minus_1": -1.926159010068318e-08,
+      "class_lensing_effect_L_over_A_minus_1": -0.005390966004187536,
+      "camb_lensing_effect_bl_over_bu_minus_1": -0.004985301924809837
+    }
+  ],
+  "maxima": {
+    "max_corrected_unlensed_difference_fraction": 0.0029562886359337792,
+    "max_corrected_lensed_difference_fraction": 0.0033653572504133145,
+    "max_late_rad_truncation_effect_fraction": 7.441416656206457e-07,
+    "all_corrected_tt_differences_within_0.5_percent": true,
+    "late_rad_effect_below_0.001_percent": true
+  },
+  "peaks": {
+    "A_class_unlensed": {
+      "zero": [
+        {
+          "ell": 297,
+          "value": 1.887907026811e-09
+        },
+        {
+          "ell": 778,
+          "value": 7.37968266987e-10
+        },
+        {
+          "ell": 1223,
+          "value": 3.892452172448e-10
+        }
+      ],
+      "baseline": [
+        {
+          "ell": 221,
+          "value": 7.665674246266e-10
+        },
+        {
+          "ell": 537,
+          "value": 3.50683037832e-10
+        },
+        {
+          "ell": 814,
+          "value": 3.471368052688e-10
+        },
+        {
+          "ell": 1129,
+          "value": 1.700539800955e-10
+        }
+      ]
+    },
+    "B_camb_unlensed": {
+      "zero": [
+        {
+          "ell": 297,
+          "value": 1.888366502703363e-09
+        },
+        {
+          "ell": 778,
+          "value": 7.38643552124863e-10
+        },
+        {
+          "ell": 1223,
+          "value": 3.8986068340144e-10
+        }
+      ],
+      "baseline": [
+        {
+          "ell": 221,
+          "value": 7.665466087992204e-10
+        },
+        {
+          "ell": 536,
+          "value": 3.506257156983991e-10
+        },
+        {
+          "ell": 814,
+          "value": 3.4707504607660463e-10
+        },
+        {
+          "ell": 1129,
+          "value": 1.7000007298294885e-10
+        }
+      ]
+    },
+    "L_class_lensed": {
+      "zero": [
+        {
+          "ell": 297,
+          "value": 1.887694346668e-09
+        },
+        {
+          "ell": 777,
+          "value": 7.374151806357e-10
+        },
+        {
+          "ell": 1223,
+          "value": 3.886296939123e-10
+        }
+      ],
+      "baseline": [
+        {
+          "ell": 220,
+          "value": 7.653848863669e-10
+        },
+        {
+          "ell": 536,
+          "value": 3.48940867442e-10
+        },
+        {
+          "ell": 813,
+          "value": 3.411782643926e-10
+        },
+        {
+          "ell": 1126,
+          "value": 1.668261584878e-10
+        }
+      ]
+    },
+    "B_camb_lensed": {
+      "zero": [
+        {
+          "ell": 297,
+          "value": 1.888153797429189e-09
+        },
+        {
+          "ell": 778,
+          "value": 7.38088888194318e-10
+        },
+        {
+          "ell": 1223,
+          "value": 3.8924605630148725e-10
+        }
+      ],
+      "baseline": [
+        {
+          "ell": 220,
+          "value": 7.653577412009251e-10
+        },
+        {
+          "ell": 536,
+          "value": 3.488718728006024e-10
+        },
+        {
+          "ell": 813,
+          "value": 3.4109042027737787e-10
+        },
+        {
+          "ell": 1126,
+          "value": 1.6674974262639897e-10
+        }
+      ]
+    }
+  },
+  "corrected_references": {
+    "camb-crosscode-summary.json": {
+      "sha256": "d78536bc7c4fbd4450736b6d01d56cce20e1b3189f1a3eebf7d2159d1f7f829d",
+      "tt_convention": "CAMB unlensed_scalar compared with CLASS cl.dat；CAMB lensed_scalar 只能与 CLASS cl_lensed.dat 比较。旧混合口径由 amendment-04 修正。"
+    },
+    "recfast-systematics-summary.json": {
+      "sha256": "5fdb14a5444815040f111c1d9ac076fba105470fe3b01391d4828a5392a596d0",
+      "primary_decision": {
+        "ell": 1000,
+        "A_over_B_minus_1": -0.0024704671134000433,
+        "C_over_B_minus_1": 8.118652121047454e-05,
+        "C_over_A_minus_1": 0.002557973022840221,
+        "supports_recombination_dominated_residual": null,
+        "legacy_criterion_applicable": false,
+        "classification": "no_tt_residual_after_convention_correction",
+        "corrected_consistency_within_0.5_percent": true,
+        "absolute_gap_increased": false,
+        "gap_change_percentage_points": 0.2551653634610518,
+        "criterion": "统一非透镜口径后，A/B 与 C/B 均应小于 0.005；原混合口径判别不再适用。",
+        "boundary": "RECFAST 与 HyRec 的实现差异可以研究，但旧约 2.9% 残差已证明来自口径混比。"
+      }
+    }
+  },
+  "historical_references": {
+    "D_camb_no_late_rad_zero_sha256": "829d1a3824303011f621c01c768e271fa83ba68cf417220206f54f04973192aa",
+    "D_camb_no_late_rad_baseline_sha256": "292236d688264cbce28162fdd5e6f97aad887de747aa7fa78844e34e8d055069",
+    "class_unlensed_protocol_sha256": "2b3ce3c287095889668178605b2ecb1cb478833f119e217ce1690fca053385d0",
+    "historical_crosscode_summary_sha256": "6f0ac9d17ba18a75f6199507025d405a5d04916d736a5f57f4423eb80bfcf9e8",
+    "historical_recfast_summary_sha256": "f7826598e1ef24c85ae6d85e9a8a4643e654bac026a8fe4cacc5773b1eefacd6"
+  },
+  "raw_class_lensed_sha256": {
+    "baseline-lcdm-lensed00_background.dat": "e9397babb5d8ea1a58d0a7e0bc919e603c45c5d7ef281e8a203363a4190d95e0",
+    "baseline-lcdm-lensed00_cl.dat": "f405f51b0272e058f8afd25e5b274ec278f4317b5081e8d437f09b64d0602fc3",
+    "baseline-lcdm-lensed00_cl_lensed.dat": "0233fb0bd2e05122f9b6e29749f0f9f06003ef20b3354788b3ed5a6119cbf81d",
+    "baseline-lcdm-lensed00_pk.dat": "320120c26d97b8b95763fb1033d304ee633716d426c1823cf1a9da8ba971cbe5",
+    "zero-cdm-lensed00_background.dat": "27b51370a2ddcb647c23c0524614d81cd63e2fffe4a9e7913228fdf61694b20d",
+    "zero-cdm-lensed00_cl.dat": "ee0010af0cf4f1d3976ea92c9536a5be5937728c9814898aecc1d2de73b2d345",
+    "zero-cdm-lensed00_cl_lensed.dat": "9212f281a4b05de0b31a72b838173ffdeb007980b8f8572626a95d87e6f683b5",
+    "zero-cdm-lensed00_pk.dat": "e6914ccdebd1b85a63d6e9cc2451f763f41592a616130f6f6e1ab1f0cf2bd1b3"
+  },
+  "validation": {
+    "explicit_lensed_files_exist": true,
+    "all_spectra_finite": true,
+    "unlensed_control_matches_original": true,
+    "old_residual_not_used_as_physics": true,
+    "corrected_crosscode_uses_unlensed": true,
+    "corrected_recfast_has_no_residual": true
+  },
+  "analysis_runner_sha256": "3400830db6f76de2216c264efe56cd15a5010b3670ceabb9ae670baa7b2f400f",
+  "boundaries": [
+    "本次修正的是 TT 输出口径错误，不是新物理机制。",
+    "透镜势、背景、主要物质谱区间与极端物质谱的结论不因该修正而自动改变。",
+    "不据此宣称所有数值系统误差已闭合，也不接入观测排除或支持。"
+  ]
+}

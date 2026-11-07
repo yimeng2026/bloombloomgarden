@@ -75,7 +75,7 @@ class_data = {
 }
 class_convergence = json.loads((OUT / "convergence-summary.json").read_text(encoding="utf-8"))
 protocol = json.loads((OUT / "camb-crosscode-protocol.json").read_text(encoding="utf-8"))
-amendment = json.loads((OUT / "camb-crosscode-amendment-03.json").read_text(encoding="utf-8"))
+amendment = json.loads((OUT / "camb-crosscode-amendment-04.json").read_text(encoding="utf-8"))
 
 pk_records = []
 for k in KS:
@@ -134,8 +134,8 @@ for ell in ELLS:
         "camb_levels": {},
     }
     for level in LEVELS:
-        zero_tt = float(camb[level]["zero"]["spectra"]["tt"][ell])
-        baseline_tt = float(camb[level]["baseline"]["spectra"]["tt"][ell])
+        zero_tt = float(camb[level]["zero"]["spectra"]["tt_unlensed"][ell])
+        baseline_tt = float(camb[level]["baseline"]["spectra"]["tt_unlensed"][ell])
         zero_pp = float(camb[level]["zero"]["spectra"]["pp_deflection"][ell] / (ell * (ell + 1)))
         baseline_pp = float(camb[level]["baseline"]["spectra"]["pp_deflection"][ell] / (ell * (ell + 1)))
         tt_ratio = zero_tt / baseline_tt
@@ -189,7 +189,8 @@ max_camb_pp_internal = max(
 primary_pk = [row for row in pk_records if 0.01 <= row["k_h_per_Mpc"] <= 0.1]
 max_primary_pk_cross = max(abs(row["camb_levels"]["ultra"]["camb_over_class_ratio_minus_1"]) for row in primary_pk)
 summary = {
-    "status": "computed_crosscode_fixed_inputs_not_observational_fit",
+    "status": "computed_crosscode_fixed_inputs_corrected_tt_not_observational_fit",
+    "tt_convention": "CAMB unlensed_scalar compared with CLASS cl.dat；CAMB lensed_scalar 只能与 CLASS cl_lensed.dat 比较。旧混合口径由 amendment-04 修正。",
     "camb_version": "2.0.5",
     "camb_source_commit": "72b5a4ca5df1335674e2eacad9b9a887194f9677",
     "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
@@ -207,7 +208,7 @@ summary = {
         },
         "camb_levels": {
             level: {
-                model: camb_peaks(camb[level][model]["spectra"]["tt"]) for model in ["zero", "baseline"]
+                model: camb_peaks(camb[level][model]["spectra"]["tt_unlensed"]) for model in ["zero", "baseline"]
             }
             for level in LEVELS
         },

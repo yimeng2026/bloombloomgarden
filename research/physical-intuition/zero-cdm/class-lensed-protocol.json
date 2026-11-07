@@ -1,0 +1,44 @@
+{
+  "status": "frozen_before_explicit_class_lensed_run",
+  "frozen_at_local": "2026-11-07T17:57:48.479781+08:00",
+  "purpose": "修正 CLASS 非透镜 cl.dat 与 CAMB lensed_scalar 的口径混比，并用显式 cl_lensed.dat 复核。",
+  "root_cause_evidence": {
+    "class_source": "source/output.c 将 cl.dat 与 cl_lensed.dat 分开写出；input.c 只有显式 lensing=yes 才启用 has_lensed_cls。",
+    "original_inputs": "原 zero-cdm.ini 与 baseline-lcdm.ini 未显式设置 lensing=yes。",
+    "lensing_no_control": "lensing=no 的 cl.dat 与原 cl.dat 在 ell=1000 完全相同，E/A-1=0。",
+    "camb_comparison": "此前使用 CAMB lensed_scalar，口径不一致。"
+  },
+  "new_inputs": {
+    "zero-cdm": {
+      "file": "zero-cdm-lensed.ini",
+      "sha256": "1a88ecf69f2c49cdc6d29b9d6e00edee70756c1d59a55788114b509bab37a70d",
+      "lensing": "yes"
+    },
+    "baseline-lcdm": {
+      "file": "baseline-lcdm-lensed.ini",
+      "sha256": "c9cb8fefd7ebc6b96d0113d20270fa03f5aef6bbedfc6fa09746d93b5d249559",
+      "lensing": "yes"
+    }
+  },
+  "precision_file_sha256": "670f9e9425508a498cd126436eecdb4197977ce8e84489944cf366ba22f96565",
+  "references": {
+    "D_camb_no_late_rad_zero_sha256": "829d1a3824303011f621c01c768e271fa83ba68cf417220206f54f04973192aa",
+    "D_camb_no_late_rad_baseline_sha256": "292236d688264cbce28162fdd5e6f97aad887de747aa7fa78844e34e8d055069",
+    "class_unlensed_protocol_sha256": "2b3ce3c287095889668178605b2ecb1cb478833f119e217ce1690fca053385d0",
+    "historical_crosscode_summary_sha256": "6f0ac9d17ba18a75f6199507025d405a5d04916d736a5f57f4423eb80bfcf9e8",
+    "historical_recfast_summary_sha256": "f7826598e1ef24c85ae6d85e9a8a4643e654bac026a8fe4cacc5773b1eefacd6"
+  },
+  "run_commands": [
+    "./class baseline-lcdm-lensed.ini convergence-integral.pre",
+    "./class zero-cdm-lensed.ini convergence-integral.pre"
+  ],
+  "acceptance": {
+    "unlensed_result_already_observed": "CAMB unlensed/CLASS unlensed - 1 = +0.002476320134231713 at ell=1000，小于 0.5% 阈值。",
+    "lensed_confirmation": "比较 CLASS cl_lensed.dat 与 CAMB lensed_scalar；若同口径差异也在 0.5% 内，则原 TT 残差判定为口径错误。",
+    "reporting": "保留旧分析和旧哈希作为错误历史，另写修正摘要；不把旧残差继续作物理解释。"
+  },
+  "boundaries": [
+    "不改变物理输入、RECfast/HyRec 选择或精度文件。",
+    "不引入微量 CDM，不接入观测似然，不做参数搜索或非线性计算。"
+  ]
+}

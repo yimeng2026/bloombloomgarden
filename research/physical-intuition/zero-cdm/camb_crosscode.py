@@ -197,12 +197,13 @@ def run(model, level):
         results = camb.get_results(pars)
         spectra = results.get_cmb_power_spectra(
             lmax=config["lmax"],
-            spectra=("lensed_scalar", "lens_potential"),
+            spectra=("lensed_scalar", "unlensed_scalar", "lens_potential"),
             CMB_unit=None,
             raw_cl=False,
         )
         ell = np.arange(config["lmax"] + 1, dtype=int)
-        tt = spectra["lensed_scalar"][:, 0]
+        tt_lensed = spectra["lensed_scalar"][:, 0]
+        tt_unlensed = spectra["unlensed_scalar"][:, 0]
         pp_deflection = spectra["lens_potential"][:, 0]
         pk_interpolator, z_grid, k_grid = results.get_matter_power_interpolator(
             nonlinear=False,
@@ -223,7 +224,8 @@ def run(model, level):
         np.savez_compressed(
             run_dir / "spectra.npz",
             ell=ell,
-            tt=tt,
+            tt=tt_lensed,
+            tt_unlensed=tt_unlensed,
             pp_deflection=pp_deflection,
             pk_k_h_per_Mpc=k_output,
             pk_p_Mpc_over_h_cubed=pk_output,
@@ -257,17 +259,19 @@ def run(model, level):
             },
             "derived": derived,
             "output_conventions": {
-                "tt": "lensed scalar ell(ell+1)C_lTT/(2pi), dimensionless",
+                "tt": "lensed scalar ell(ell+1)C_lTT/(2pi), dimensionless; compare only with CLASS cl_lensed.dat",
+                "tt_unlensed": "unlensed scalar ell(ell+1)C_lTT/(2pi), dimensionless; compare with CLASS cl.dat",
                 "pp_deflection": "[ell(ell+1)]^2 C_lphiphi/(2pi); divide by ell(ell+1) for CLASS comparison",
                 "pk": "linear delta_tot at z=0, k in h/Mpc, P in (Mpc/h)^3; density variables are synchronous gauge in CAMB",
             },
             "spectra_shapes": {
-                "tt": list(tt.shape),
+                "tt_lensed": list(tt_lensed.shape),
+                "tt_unlensed": list(tt_unlensed.shape),
                 "pp_deflection": list(pp_deflection.shape),
                 "pk": list(pk_output.shape),
             },
             "validation": {
-                "all_output_finite": bool(np.isfinite(tt).all() and np.isfinite(pp_deflection).all() and np.isfinite(pk_output).all()),
+                "all_output_finite": bool(np.isfinite(tt_lensed).all() and np.isfinite(tt_unlensed).all() and np.isfinite(pp_deflection).all() and np.isfinite(pk_output).all()),
                 "omch2_exactly_zero": float(pars.omch2) == 0.0,
                 "nonlinear_disabled": str(pars.NonLinear) == camb.model.NonLinear_none,
             },
