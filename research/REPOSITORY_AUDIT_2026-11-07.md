@@ -135,3 +135,5 @@
 - 2026-11-08 补充：默认隔离研究 API 自检成功，临时服务与数据库均清理。`PhysicalChemistry/ReactionNetwork.lean` 已由原生 Windows Lean v4.29.0 实际编译，退出码 0；`Sylva.ReactionNetwork.MM_deficiency_zero_computed` 的 `#print axioms` 仅为 `propext、Classical.choice、Quot.sound`，无 `sorryAx`。
 - 新增可复现 `scripts/verify-reaction-lean.ps1`、`research/formalization/reaction-network-lean-audit.json` 和 `REACTION_NETWORK_LEAN_AUDIT_2026-11-08.md`，记录源码哈希、编译产物哈希、实际命令与退出码。WSL Lake 构建因 `p9_client_rpc` 等待未完成，不能宣称全库 Lake 成功；源码警告与 `BerryCurvature_GaugeInvariance` 的 `True := by trivial` 占位仍明确保留为未解决项。
 - 原生 Windows Lake 随后成功构建 `PhysicalChemistry.ReactionNetwork`，退出码 0，3288 个任务完成。完整 `--with-lean-build` 自检、声明级公理审计和验证回读全部通过，临时资源均清理。两份历史快照比较为 0 变化、评审队列为空；新增 `reaction-lake-self-check.json` 与 `reaction-lean-history-diff.json`。该结果只覆盖选定目标，不排除源树 dirty 状态、既有警告、占位定理或其他未审计声明。
+- 同次 CAMB 功率对照已实际完成：原生重建与同次直接功率高度一致，既往冻结插值在深谷产生巨大局部误差。公共 2603 点网格和三种口径重算表明，旧插值只解释部分偏差；最高带同次功率／CLASS 对数差仍为 −2.283065，不能宣称极端跨代码问题已解决。
+- 新增 `same_run_power.py`、`camb_transfer_same_run.py`、`analyze_same_run_power.py`、`verify_same_run_power.py`、协议与三份修订、完整摘要和可复核图。独立校验覆盖 4 个来源、3 种方法及最高带；零模型 14 项 Python 测试通过，主文档升级为 2.4。既往插值构造、规范变换、复合实现和观测检验仍是开放方向。

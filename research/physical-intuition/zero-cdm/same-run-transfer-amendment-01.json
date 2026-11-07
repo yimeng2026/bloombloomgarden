@@ -1,0 +1,10 @@
+{
+  "status": "interpolation_boundary_fix_before_same_run_output",
+  "amended_on": "2026-11-08",
+  "previous_protocol_sha256": "33184998f9be8d32c25308b254025038f5497042cd1eb8fec53848625a7878a9",
+  "failure": "The first ultra-zero run stopped before writing outputs because the native k maximum exceeded the interpolation maximum by about 8.7e-9 due to floating-point representation.",
+  "fix": "Request return_z_k=True, restrict evaluation to the actual interpolator k range and the previous frozen overlap, and validate finite positive power only in that aligned range. No extrapolation is used.",
+  "old_analysis_runner_sha256": "9bac31338c6706740cc9bbcbc98817c7c02e7f3a0620879c81da31aa163bd779",
+  "updated_analysis_runner_sha256": "d9621e0c8823950cc20521b065525bb43aa2f67ed462bc55d7202ec28939b627",
+  "unchanged": "All physical inputs, native transfer extraction, power normalization, comparison definitions, and previous artifacts."
+}

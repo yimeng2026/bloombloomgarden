@@ -1,0 +1,44 @@
+{
+  "status": "frozen_before_same_run_power_comparison",
+  "frozen_on": "2026-11-08",
+  "purpose": "Separate native-transfer quantization, power interpolation, and run-to-run differences without changing physical inputs.",
+  "camb_source_commit": "72b5a4ca5df1335674e2eacad9b9a887194f9677",
+  "levels": [
+    "ultra"
+  ],
+  "models": [
+    "zero",
+    "baseline"
+  ],
+  "comparisons": {
+    "native_reconstruction_vs_same_run": "unit-curvature power reconstructed from float32 native delta_tot/k^2 versus get_matter_power_interpolator on the same get_results object",
+    "same_run_vs_previous_frozen": "same get_results power versus log-log interpolation of the previously frozen spectra.npz",
+    "native_reconstruction_vs_previous_frozen": "native reconstruction versus the same previously frozen interpolated power"
+  },
+  "ranges": {
+    "full_overlap": "native k values within the existing frozen k grid",
+    "common_band": "0.01 <= k <= 1.28 h/Mpc"
+  },
+  "statistics": "median, p95 and maximum absolute fractional differences; no outlier suppression and no observational confidence interpretation",
+  "unchanged": [
+    "all physical and accuracy inputs from build_params",
+    "all previously frozen spectra, transfer outputs, protocols, and analyses",
+    "zero CDM exactly; no nonzero placeholder component"
+  ],
+  "amendments": [
+    "same-run-transfer-amendment-01.json",
+    "same-run-transfer-amendment-02.json",
+    "same-run-transfer-amendment-03.json"
+  ],
+  "input_sha256": {
+    "camb_transfer_same_run.py": "d9621e0c8823950cc20521b065525bb43aa2f67ed462bc55d7202ec28939b627",
+    "same_run_power.py": "f4586235da8c2d356f7d324999f9b340d06a0a093ec0a6c25e0f280c40ff0d90",
+    "analyze_same_run_power.py": "f1eebcc573b60d283ad36182f8f5f5091826271cc4198941501a6f916a262690"
+  },
+  "output_rule": "Write new transfer-same-run.npz and transfer-same-run-summary.json files; never overwrite earlier native-transfer artifacts.",
+  "boundaries": [
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "Small same-run/frozen differences only support reproducibility and interpolation checks.",
+    "Large native-reconstruction differences are not automatically assigned to quantization, interpolation, or the solver."
+  ]
+}

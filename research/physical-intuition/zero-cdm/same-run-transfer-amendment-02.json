@@ -1,0 +1,9 @@
+{
+  "status": "aligned_array_packaging_fix",
+  "amended_on": "2026-11-08",
+  "previous_protocol_sha256": "681abc92037db2ef247ea52f1106aeece83e2fe519bcf44f9e757762361f77ff",
+  "reason": "frozen_p_interpolated was saved only on the aligned grid, while the first band analysis incorrectly paired it with the full native k array and later with NaN values outside the interpolator range.",
+  "fix": "Use the exact overlap mask for native reconstruction, same-run power and previous frozen power. No physical rerun is required and no invalid point is silently discarded.",
+  "verification": "All aligned arrays were explicitly checked to be finite before recomputation.",
+  "unchanged": "All physical inputs, CAMB outputs, CLASS outputs, and comparison definitions."
+}

@@ -1,0 +1,10 @@
+{
+  "status": "common_grid_and_smoothing_alignment",
+  "amended_on": "2026-11-08",
+  "previous_protocol_sha256": "681abc92037db2ef247ea52f1106aeece83e2fe519bcf44f9e757762361f77ff",
+  "reason": "Source-specific native grids were not valid for direct cross-code band-power comparisons, and the previous frozen interpolated array was already aligned.",
+  "fix": "Resample every source onto the same 2603-point log10(k) grid and compute raw, 0.05 dex and 0.10 dex Gaussian-smoothed band powers. The actual grid maximum is the intersection of source ranges, 1.9985652306116815 h/Mpc, with no extrapolation to 2.0.",
+  "analysis_runner_sha256": "f1eebcc573b60d283ad36182f8f5f5091826271cc4198941501a6f916a262690",
+  "verification": "An independent verifier recomputes every source and all three methods for the 0.64-1.28 band and checks raw hashes. All 14 Python tests pass.",
+  "boundaries": "This changes numerical analysis alignment only. It does not change physical inputs, prove convergence, or remove the extreme cross-code discrepancy."
+}
