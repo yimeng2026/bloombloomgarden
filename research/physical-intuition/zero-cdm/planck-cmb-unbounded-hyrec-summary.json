@@ -1,0 +1,194 @@
+{
+  "status": "computed_unbounded_gaussian_calibration_nuisance_profile_fixed_cosmology_not_model_fit",
+  "case": "hyrec",
+  "records": {
+    "zero": {
+      "spectrum": ".tmp/class_public/convergence/lensed/zero-cdm-lensed00_cl_lensed.dat",
+      "spectrum_sha256": "9212f281a4b05de0b31a72b838173ffdeb007980b8f8572626a95d87e6f683b5",
+      "profiled_nuisance_posterior": {
+        "logpost": -133940.47903881688,
+        "logprior": -39106.1740594204,
+        "loglike": -94834.30497939646,
+        "loglikes": {
+          "planck_2018_highl_CamSpec2021.TTTEEE": -90670.60055517899,
+          "planck_2018_lowl.TT": -73.41857593840314,
+          "planck_2018_lowl.EE": -201.76056432050896,
+          "planck_2018_lensing.native": -3888.5252839585733
+        },
+        "chi_squared_by_likelihood": {
+          "planck_2018_highl_CamSpec2021.TTTEEE": 181341.20111035797,
+          "planck_2018_lowl.TT": 146.83715187680627,
+          "planck_2018_lowl.EE": 403.5211286410179,
+          "planck_2018_lensing.native": 7777.0505679171465
+        },
+        "parameters": {
+          "A_planck": 1.670471804080222,
+          "amp_143": 38.44470065193005,
+          "amp_217": 11.121560515465736,
+          "amp_143x217": 0.0,
+          "n_143": 0.8638034130612091,
+          "n_217": 0.0,
+          "n_143x217": 0.0,
+          "calTE": 1.746040342957166,
+          "calEE": 1.2670499930953156
+        }
+      },
+      "optimizer": {
+        "sampler": "Cobaya Minimize / scipy L-BFGS-B",
+        "target": "full nuisance posterior with original priors; Gaussian calibrations have no finite optimizer cutoff",
+        "success": true,
+        "status": 0,
+        "message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+        "iterations": 24,
+        "evaluations": 320,
+        "elapsed_seconds": 4.274819700047374,
+        "starts": [
+          {
+            "A_planck": 1.0125657820900746,
+            "amp_143": 0.0,
+            "amp_217": 0.0,
+            "amp_143x217": 0.0,
+            "n_143": 5.0,
+            "n_217": 0.0,
+            "n_143x217": 0.0,
+            "calTE": 1.0502631283602986,
+            "calEE": 1.0502631283602986
+          },
+          {
+            "A_planck": 1.0,
+            "amp_143": 10.0,
+            "amp_217": 20.0,
+            "amp_143x217": 10.0,
+            "n_143": 1.0,
+            "n_217": 1.0,
+            "n_143x217": 1.0,
+            "calTE": 1.0,
+            "calEE": 1.0
+          }
+        ],
+        "all_minima_minus_logpost_and_success": {
+          "0": [
+            133940.47903881688,
+            true
+          ],
+          "1": [
+            133998.15239371837,
+            true
+          ]
+        },
+        "at_finite_prior_bounds": [
+          "amp_143x217",
+          "n_217",
+          "n_143x217"
+        ],
+        "gaussian_calibration_bounds": "infinite optimizer bounds; original Gaussian priors still applied"
+      },
+      "previous_5sigma_logpost": -1754336.9395983121,
+      "logpost_improvement_over_5sigma": 1620396.4605594953
+    },
+    "baseline": {
+      "spectrum": ".tmp/class_public/convergence/lensed/baseline-lcdm-lensed00_cl_lensed.dat",
+      "spectrum_sha256": "0233fb0bd2e05122f9b6e29749f0f9f06003ef20b3354788b3ed5a6119cbf81d",
+      "profiled_nuisance_posterior": {
+        "logpost": -5275.941423639381,
+        "logprior": -4.119963264997251,
+        "loglike": -5271.8214603743845,
+        "loglikes": {
+          "planck_2018_highl_CamSpec2021.TTTEEE": -5057.618311093036,
+          "planck_2018_lowl.TT": -11.497728083292287,
+          "planck_2018_lowl.EE": -198.22621926826645,
+          "planck_2018_lensing.native": -4.479201929789041
+        },
+        "chi_squared_by_likelihood": {
+          "planck_2018_highl_CamSpec2021.TTTEEE": 10115.236622186072,
+          "planck_2018_lowl.TT": 22.995456166584574,
+          "planck_2018_lowl.EE": 396.4524385365329,
+          "planck_2018_lensing.native": 8.958403859578082
+        },
+        "parameters": {
+          "A_planck": 0.9999307471694061,
+          "amp_143": 17.46916302310414,
+          "amp_217": 13.097840132691845,
+          "amp_143x217": 8.251795999561764,
+          "n_143": 1.122552349204111,
+          "n_217": 1.3801400891933184,
+          "n_143x217": 1.4093944829496456,
+          "calTE": 1.00005663893064,
+          "calEE": 1.000184453069759
+        }
+      },
+      "optimizer": {
+        "sampler": "Cobaya Minimize / scipy L-BFGS-B",
+        "target": "full nuisance posterior with original priors; Gaussian calibrations have no finite optimizer cutoff",
+        "success": true,
+        "status": 0,
+        "message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+        "iterations": 1,
+        "evaluations": 30,
+        "elapsed_seconds": 2.2851246999343857,
+        "starts": [
+          {
+            "A_planck": 0.9999307474181713,
+            "amp_143": 17.46916263613608,
+            "amp_217": 13.09783790916109,
+            "amp_143x217": 8.251799298003796,
+            "n_143": 1.122552546987786,
+            "n_217": 1.3801399675747854,
+            "n_143x217": 1.4093946672201503,
+            "calTE": 1.0000566313755492,
+            "calEE": 1.0001844353797906
+          },
+          {
+            "A_planck": 1.0,
+            "amp_143": 10.0,
+            "amp_217": 20.0,
+            "amp_143x217": 10.0,
+            "n_143": 1.0,
+            "n_217": 1.0,
+            "n_143x217": 1.0,
+            "calTE": 1.0,
+            "calEE": 1.0
+          }
+        ],
+        "all_minima_minus_logpost_and_success": {
+          "0": [
+            5275.941423639381,
+            true
+          ],
+          "1": [
+            5275.941423640402,
+            true
+          ]
+        },
+        "at_finite_prior_bounds": [],
+        "gaussian_calibration_bounds": "infinite optimizer bounds; original Gaussian priors still applied"
+      },
+      "previous_5sigma_logpost": -5275.941423639525,
+      "logpost_improvement_over_5sigma": 1.4370016288012266e-10
+    }
+  },
+  "comparison": {
+    "delta_logpost_zero_minus_baseline": -128664.5376151775,
+    "delta_loglike_zero_minus_baseline": -89562.48351902208,
+    "delta_chi_squared_total": 179124.96703804415,
+    "delta_chi_squared_by_likelihood": {
+      "planck_2018_highl_CamSpec2021.TTTEEE": 171225.9644881719,
+      "planck_2018_lowl.TT": 123.8416957102217,
+      "planck_2018_lowl.EE": 7.068690104485029,
+      "planck_2018_lensing.native": 7768.092164057569
+    }
+  },
+  "protocol_sha256": "86f72d048c1b2621ca7a74d4b5de905ceda91a885a3b5661d98c75a1ceda9872",
+  "analysis_runner_sha256": "22284658f37a3f8aa89838813e009dc0ad52b834cd8ce3f5f1cc28aa9e419fbe",
+  "validation": {
+    "both_optimizers_converged": true,
+    "finite_delta_chi_squared": true,
+    "gaussian_calibrations_artificially_truncated": false,
+    "posterior_sampling_performed": false
+  },
+  "boundaries": [
+    "This is a nuisance-optimizer sensitivity analysis, not a change to data, physical spectra or calibration priors.",
+    "The default 5-sigma-bound results remain preserved in planck-cmb-{case}-summary.json.",
+    "No cosmological fit, posterior model probability or no-CDM model-family exclusion is claimed."
+  ]
+}

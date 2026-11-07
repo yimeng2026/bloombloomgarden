@@ -1,0 +1,13 @@
+{
+  "status": "interface_only_amendment_before_any_case_result",
+  "amends": "planck-cmb-protocol.json",
+  "frozen_at_local": "2026-11-08T05:10:22.368690+08:00",
+  "reason": "Cobaya 3.6.2 Minimize requires OutputDummy rather than None for no-file operation; use official get_output() and let runner and verifier honor this amendment.",
+  "numerical_or_physical_changes": false,
+  "optimization_rule_changes": false,
+  "input_sha256_updates": {
+    "research/physical-intuition/zero-cdm/analyze_planck_cmb.py": "b4fae51084d3ee7c0d147fcdc903e1906f12a024b67a0f1df04333387d861f50",
+    "research/physical-intuition/zero-cdm/verify_planck_cmb.py": "71687069e68718eb1c1acb9a5d8a961223b9c9766c16e94e6984baa5f59e3af9",
+    ".tmp/cobaya-python/cobaya/output.py": "c6956f89ca9eab2fd6918f51bab4fcf73f77648020e43d782cb4264385e2a05a"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "status": "verification_protocol_correction_for_lensing_internal_lmax",
+  "amends": "planck-cmb-protocol.json spectrum_rule.RECFAST and planck-cmb-amendment-03.json",
+  "frozen_at_local": "2026-11-08T05:18:07.993921+08:00",
+  "reason": "Enabling CLASS lensing extends internal unlensed output to ell=3499 versus 2500 in the original run, so bitwise identity was the wrong requirement. Input equality and measured shared-ell numerical consistency are the relevant controls.",
+  "replacement_rule": "Require identical inputs except lensing/root, identical shared ell coordinates, absolute differences below 2e-14 and spectrum-scaled differences below 1e-3 for TT/EE/TE/phiphi; report bitwise status honestly.",
+  "numerical_likelihood_results_changed": false,
+  "input_sha256_updates": {
+    "research/physical-intuition/zero-cdm/verify_planck_cmb.py": "3cd619d45f40c7aeeb52d063aba6da5077820e1b09f794a09226864822b867c5"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "status": "verification_only_blas_operation_amendment",
+  "amends": "planck-cmb-amendment-02.json",
+  "frozen_at_local": "2026-11-08T05:15:29.742453+08:00",
+  "reason": "Cobaya chi_squared switches to scipy dsymv above 1500 points; match that symmetric BLAS operation for exact large-vector cross-checking and retain all amendment hashes generically.",
+  "numerical_results_changed": false,
+  "input_sha256_updates": {
+    "research/physical-intuition/zero-cdm/verify_planck_cmb.py": "e4e74386fababcda06c581974a2e47a2951ab9f74156c59523d15a4d92ccc733",
+    ".tmp/cobaya-python/cobaya/functions.py": "fc7271c28079ba4b0827754efcbb72c56ca1cc0ce74c3197585d7ac0d199d7ae"
+  }
+}

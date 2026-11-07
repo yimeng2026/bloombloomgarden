@@ -1,0 +1,89 @@
+{
+  "verification": "passed",
+  "cases": {
+    "hyrec": {
+      "zero": {
+        "official_recalculation_matches": true,
+        "independent_camspec_chi_squared": 3506323.4221124104,
+        "official_camspec_chi_squared": 3506323.4221124104,
+        "absolute_camspec_difference": 0.0,
+        "lowl_and_native_direct_calls_match": true,
+        "optimizer_success_recorded": true
+      },
+      "baseline": {
+        "official_recalculation_matches": true,
+        "independent_camspec_chi_squared": 10115.236622318454,
+        "official_camspec_chi_squared": 10115.236622318454,
+        "absolute_camspec_difference": 0.0,
+        "lowl_and_native_direct_calls_match": true,
+        "optimizer_success_recorded": true
+      }
+    },
+    "recfast": {
+      "zero": {
+        "official_recalculation_matches": true,
+        "independent_camspec_chi_squared": 3519265.817627048,
+        "official_camspec_chi_squared": 3519265.817627048,
+        "absolute_camspec_difference": 0.0,
+        "lowl_and_native_direct_calls_match": true,
+        "optimizer_success_recorded": true
+      },
+      "baseline": {
+        "official_recalculation_matches": true,
+        "independent_camspec_chi_squared": 10115.109070924722,
+        "official_camspec_chi_squared": 10115.109070924722,
+        "absolute_camspec_difference": 0.0,
+        "lowl_and_native_direct_calls_match": true,
+        "optimizer_success_recorded": true
+      }
+    },
+    "recfast_input_and_unlensed_consistency": {
+      "zero": {
+        "only_lensing_and_root_changed_in_input": true,
+        "original_rows": 2499,
+        "lensing_enabled_internal_rows": 3499,
+        "shared_outputs_bitwise_identical": false,
+        "shared_max_abs_difference": {
+          "tt": 6.5928822500057464e-15,
+          "ee": 5.169606139998754e-16,
+          "te": 2.320102359996362e-16,
+          "phiphi": 1.0492200012771162e-16
+        },
+        "shared_max_scaled_difference": {
+          "tt": 0.00013480940868750357,
+          "ee": 0.00023934938448757245,
+          "te": 0.0005009918995213999,
+          "phiphi": 3.359318233919372e-05
+        },
+        "scaled_difference_threshold": 0.001,
+        "absolute_difference_threshold": 2e-14
+      },
+      "baseline": {
+        "only_lensing_and_root_changed_in_input": true,
+        "original_rows": 2499,
+        "lensing_enabled_internal_rows": 3499,
+        "shared_outputs_bitwise_identical": false,
+        "shared_max_abs_difference": {
+          "tt": 1.896890999983776e-16,
+          "ee": 2.0058863900041524e-17,
+          "te": 4.5627917399992054e-17,
+          "phiphi": 1.5356826000017166e-14
+        },
+        "shared_max_scaled_difference": {
+          "tt": 1.2691085829963089e-05,
+          "ee": 5.580247390119259e-05,
+          "te": 0.00021681704143811084,
+          "phiphi": 0.0007988898605818993
+        },
+        "scaled_difference_threshold": 0.001,
+        "absolute_difference_threshold": 2e-14
+      }
+    }
+  },
+  "verification_runner_sha256": "3cd619d45f40c7aeeb52d063aba6da5077820e1b09f794a09226864822b867c5",
+  "boundaries": [
+    "The independent CamSpec residual assembly is cross-checked against Cobaya, not substituted for it.",
+    "Low-multipole and native lensing checks are direct second evaluations of the official implementations.",
+    "Optimization is not repeated here; recorded optimizer convergence and independently recomputed optima are checked."
+  ]
+}

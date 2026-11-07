@@ -1,12 +1,12 @@
 # 数学—物理观与数学层级观：证据、边界和 AI 时代的制度设计
 
-**版本**：3.3（2026-11-08；初稿 2026-10-26）
+**版本**：3.4（2026-11-08；初稿 2026-10-26）
 **性质**：批判性综述、方法论框架与仓库整改依据；不是新的物理统一理论
 **配套文档**：`TOE_RESEARCH_ATLAS_2026.md`、`CNF_RESTRUCTURING_2026.md`、`62_mathematical_hierarchy_emergence.md`
 
 > 本文把“内部数学真理”“物理模型的适用性”“研究组织的资源分配”分开。文中使用“已核实”只表示已读取所指来源的相关部分，不表示独立证明了来源中的全部定理，更不表示独立复现了其实验。
 
-## 摘要与三十四项结论
+## 摘要与三十五项结论
 
 1. 知乎文章《唱唱反调……解决了一个寂寞》对王虹—Zahl 定理的转述有误：满 Hausdorff/Minkowski 维数不是正 Lebesgue 测度，也不是覆盖整个空间；单个零测度对象的并集不必仍为零测度。文章没有据此推翻挂谷定理。
 2. “数学规则不再全域有效”必须拆成两句：定理可以在公理系统内全域有效；物理映射只在声明的对象、尺度、近似和测量协议内有效。越界失败首先否定映射，不是否定定理。
@@ -42,6 +42,7 @@
 32. 单变量 `k800` 与 ultra 的全部 5878 个共享 q 节点和共动密度逐位一致，最高带对数变化为 0，证明增加输出节点并不能改善当前求解精度。`AccuracyBoost=8` 在三种执行路径共四次尝试中均触及 300 秒前台时限，没有数值结果；内部精度和相位仍未闭合，不能把超时或输出节点数当成收敛证据。
 33. Planck 2018 CMB 边缘化透镜似然已经实际接入并经 CosmoMC 官方实现交叉验证：基线 χ² 为 8.9105–8.9166，固定零模型为 1247.62–1247.69，Δχ² 约 1238.7，九个残差全部为负。这个特定零模型被强烈排除，但固定输入诊断不是后验，也不是对整个无 CDM 模型族的排除。
 34. PRIMAT 核合成给出零模型与基线几乎相同的 \(Y_p\simeq0.246895\) 和 D/H \(\simeq2.4792\times10^{-5}\)，三组观测 χ² 差均小于 0.005，BBN 不能挽救固定零模型。PDG、BAO 常用和 EMPRESS 敏感性的 χ² 分别约 5.86、2.78 和 13.93，数据选择需与模型差异分开；Planck 透镜排除结论不变。
+35. CamSpec 2021 高多极 TT／TE／EE、低多极 TT／EE 与 native 透镜已联合接入。默认 5σ 校准搜索使零模型总 Δχ² 达 \(3.50\times10^6\)，但触及搜索边界；取消人工截断并保留原高斯先验后，HyRec／RECFAST 的总 Δχ² 分别为 179124.97／179038.14，其中 CamSpec 贡献约 \(1.71\times10^5\)。固定零模型因此被完整 CMB 数据强烈排除，但多峰 nuisance 优化不是全局最优证明，也不是宇宙学后验或对整个无 CDM 模型族的排除。
 
 ---
 
@@ -1662,6 +1663,52 @@ CLASS 此前使用 sBBN_2025 映射的 \(Y_{\rm He}=0.2451883657\)，比本次 P
 
 ---
 
+## 34. 完整 CMB 温度／偏振似然：前景优化不能挽救固定零模型
+
+### 34.1 数据链、单位与 nuisance 协议
+
+本研究使用 Cobaya 3.6.2 的 Python 实现，联合 CamSpec 2021 高多极 TT／TE／EE、Planck 2018 低多极 TT／EE（\(\ell=2\ldots29\)）和 native lensing 的 9 个带功率。CamSpec 使用 9915 个数据点及完整协方差；高多极范围为 143×143 的 \(\ell=30\ldots2000\)、217×217 与 143×217 的 \(\ell=500\ldots2500\)，TE／EE 为 \(\ell=30\ldots2000\)。这是 Planck 数据的 CamSpec 路线，不把 Python-native 代码误称为 Planck Collaboration 的 clik 产品。[R34][R35]
+
+所有 TT／EE／TE 输入都来自 CLASS 显式 `cl_lensed.dat`，以 \((2.7255\times10^6)^2\) 转为 FIRAS \(\mu{\rm K}^2\) 的 \(D_\ell\)；`phiphi` 乘 \(\ell(\ell+1)\) 转为 deflection。RECFAST 另外以相同物理参数和精度文件执行 `lensing=yes`，没有把非透镜谱冒充透镜谱。联合计算只加入一次 native lensing，§32 的 CMB 边缘化 lensing-only χ² 不再重复相加。
+
+冻结协议列出 9 个前景／校准参数：`A_planck`、三个功率残差振幅、三个谱指数、`calTE`、`calEE`，保持官方前景边界和高斯校准先验。零模型和基线分别进行双起点 nuisance posterior 优化，宇宙学参数始终固定；因此这里的 profile 不是宇宙学最佳拟合、参数后验或模型族搜索。输入、代码和数据哈希见[冻结协议](zero-cdm/planck-cmb-protocol.json)。
+
+### 34.2 默认搜索边界：巨大差异，但不能把边界点当最优点
+
+下表均为零模型减基线的 Δχ²，前景已分别优化。默认 Cobaya 设置把高斯校准限制在有限 5σ 搜索区间：
+
+| CLASS 实现 | CamSpec | 低多极 TT | 低多极 EE | native 透镜 | 总 Δχ² |
+|---|---:|---:|---:|---:|---:|
+| HyRec | 3496208.19 | 81.37 | 0.820 | 1755.83 | 3498046.21 |
+| RECFAST | 3509150.71 | 81.34 | 0.830 | 1749.13 | 3510982.01 |
+
+两个零模型都把 `A_planck=1.012566`、`calTE=calEE=1.050263` 推到上限，并有若干前景参数触及官方边界。优化器虽然报告收敛，但这些是**边界受限点**，不是已证明的无约束 nuisance posterior mode。基线两次优化都稳定且不触校准边界。默认结果完整保留，不用于掩盖后续敏感性检验。
+
+### 34.3 不截断高斯校准：差异缩小，但仍然极强
+
+第二轮只取消优化器对高斯校准的有限截断，原始高斯先验仍完整进入目标函数，数据和物理谱不变。结果如下：
+
+| CLASS 实现 | CamSpec Δχ² | 低多极 TT Δχ² | 低多极 EE Δχ² | native 透镜 Δχ² | 总 Δχ² |
+|---|---:|---:|---:|---:|---:|
+| HyRec | 171225.96 | 123.84 | 7.069 | 7768.09 | **179124.97** |
+| RECFAST | 171140.40 | 124.47 | 7.084 | 7766.19 | **179038.14** |
+
+零模型选择 `A_planck=1.67047／1.67152`、`calTE=1.74604／1.74537`、`calEE=1.26705／1.26486`，远离校准先验中心，并付出约 39106／39208 的 \(-\log{\rm prior}\) 代价。这里报告的 χ² 来自似然分项，参数位置则由包含先验的 nuisance posterior 决定，二者没有混写。基线总 χ² 仍为 10543.64／10543.53，前景优化结果几乎不变。
+
+因此，**温度／偏振本身就足以强烈排除这个固定零模型，结论不是由透镜单项或默认校准截断制造的。** 两个零模型双起点还找到相隔约 57.7／56.6 个 \(-\log{\rm post}\) 的不同局部极小点，所以本轮只报告已找到并复验的局部 profile，不声称证明全局 nuisance 最优。即使采用本轮较优点，巨大差异也没有被消除；仍不能把结论外推为整个无 CDM 模型族的后验排除。
+
+### 34.4 独立复验、实现差异与证据边界
+
+新增适配器以 5 项测试覆盖 CLASS 单位、deflection 和 CamSpec 分块校准。独立残差实现使用与 Cobaya 相同的对称 BLAS 运算，四种谱／模型组合的 CamSpec χ² 差均为 0；低多极和 native lensing 的直接第二次官方调用也全部一致。详见[默认复验](zero-cdm/planck-cmb-verification.json)和[校准敏感性复验](zero-cdm/planck-cmb-unbounded-verification.json)。
+
+RECFAST 开启透镜后，CLASS 内部未透镜输出由 2499 行扩展到 3499 行，因此原先设想的“逐位相同”不是正确验收条件。共享 \(\ell\leq2500\) 的 TT／EE／TE／phiphi 最大绝对差小于 \(2\times10^{-14}\)，谱尺度化差小于 0.001，但并非逐位一致；这一纠错和接口、BLAS 复验过程均保留在[第一](zero-cdm/planck-cmb-amendment-01.json)、[第二](zero-cdm/planck-cmb-amendment-02.json)、[第三](zero-cdm/planck-cmb-amendment-03.json)和[第四修订](zero-cdm/planck-cmb-amendment-04.json)。
+
+![完整 CMB 似然分项与校准搜索敏感性](zero-cdm/planck-cmb-comparison.svg)
+
+完整数值见[HyRec 默认结果](zero-cdm/planck-cmb-hyrec-summary.json)、[RECFAST 默认结果](zero-cdm/planck-cmb-recfast-summary.json)、[HyRec 扩展搜索](zero-cdm/planck-cmb-unbounded-hyrec-summary.json)和[RECFAST 扩展搜索](zero-cdm/planck-cmb-unbounded-recfast-summary.json)。主文档升级为 3.4。固定零模型的观测问题已经闭合到当前 CMB 数据链；极端物质谱的内部精度、非线性、宇宙学参数扫描和其他无 CDM 机制仍是独立研究问题，不能借本节提前宣称完成。
+
+---
+
 ## 参考来源
 
 - **[R1]** Hong Wang & Joshua Zahl, *Volume estimates for unions of convex sets, and the Kakeya set conjecture in three dimensions*, arXiv:2502.17655，重点为摘要、定理 1.1、定理 1.2 及其后限定说明。<https://arxiv.org/abs/2502.17655>
@@ -1697,3 +1744,5 @@ CLASS 此前使用 sBBN_2025 映射的 \(Y_{\rm He}=0.2451883657\)，比本次 P
 - **[R31]** Julien Lesgourgues，CLASS Boltzmann 计算框架及其 CMB 和大尺度结构参数约束方法。<https://arxiv.org/abs/1104.2933>
 - **[R32]** CLASS 官方仓库 `lesgourg/class_public`，提交 `2d88c3f650b691d2b13165e826697f43ef2530c4`。重点核查 `source/background.c:991` 的 `has_cdm`、`source/perturbations.c:772-774` 的无 CDM 规范拒绝、`source/input.c:2569-2588` 的 CDM 输入和 `3297-3333` 的预算闭合；另核查 `source/fourier.c:2358-2360` 的 `mPk→delta_m` 选择及 `source/perturbations.c:7364-7366` 的默认共动密度转换。<https://github.com/lesgourg/class_public/tree/2d88c3f650b691d2b13165e826697f43ef2530c4>
 - **[R33]** CAMB 官方仓库 `cmbant/CAMB` v2.0.5，提交 `72b5a4ca5df1335674e2eacad9b9a887194f9677`。重点核查 `fortran/model.f90:454` 的零 CDM 校验、`camb/recombination.py` 的可选 HyRec 编译要求、`camb/results.py:1298-1315` 的透镜势单位，以及 `docs/source/transfer_variables.rst` 的同步规范密度定义。<https://github.com/cmbant/CAMB/tree/72b5a4ca5df1335674e2eacad9b9a887194f9677>
+- **[R34]** Cobaya 3.6.2 及 `CobayaSampler/planck_native_data`、`planck_supp_data_and_covmats` 数据包；本文实际读取并调用 CamSpec、低多极、native lensing、先验和 Minimize 实现。<https://github.com/CobayaSampler/cobaya>
+- **[R35]** George Efstathiou & Steven Gratton, *A Detailed Description of the CamSpec Likelihood Pipeline and a Reanalysis of the Planck High Frequency Maps*, arXiv:1910.00483；CamSpec 12.6HMcl 数据与前景模型依据。<https://arxiv.org/abs/1910.00483>

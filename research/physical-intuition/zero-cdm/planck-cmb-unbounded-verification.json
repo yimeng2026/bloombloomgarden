@@ -1,0 +1,62 @@
+{
+  "verification": "passed",
+  "cases": {
+    "hyrec": {
+      "zero": {
+        "official_recalculation_matches": true,
+        "independent_camspec_chi_squared": 181341.20111035797,
+        "official_camspec_chi_squared": 181341.20111035797,
+        "absolute_camspec_difference": 0.0,
+        "lowl_and_native_direct_calls_match": true,
+        "optimizer_success": true,
+        "logpost_improvement_over_5sigma": 1620396.4605594953,
+        "at_finite_prior_bounds": [
+          "amp_143x217",
+          "n_217",
+          "n_143x217"
+        ]
+      },
+      "baseline": {
+        "official_recalculation_matches": true,
+        "independent_camspec_chi_squared": 10115.236622186072,
+        "official_camspec_chi_squared": 10115.236622186072,
+        "absolute_camspec_difference": 0.0,
+        "lowl_and_native_direct_calls_match": true,
+        "optimizer_success": true,
+        "logpost_improvement_over_5sigma": 1.4370016288012266e-10,
+        "at_finite_prior_bounds": []
+      }
+    },
+    "recfast": {
+      "zero": {
+        "official_recalculation_matches": true,
+        "independent_camspec_chi_squared": 181255.50667089742,
+        "official_camspec_chi_squared": 181255.50667089742,
+        "absolute_camspec_difference": 0.0,
+        "lowl_and_native_direct_calls_match": true,
+        "optimizer_success": true,
+        "logpost_improvement_over_5sigma": 1626806.212976391,
+        "at_finite_prior_bounds": [
+          "amp_143x217",
+          "n_217",
+          "n_143x217"
+        ]
+      },
+      "baseline": {
+        "official_recalculation_matches": true,
+        "independent_camspec_chi_squared": 10115.109071105438,
+        "official_camspec_chi_squared": 10115.109071105438,
+        "absolute_camspec_difference": 0.0,
+        "lowl_and_native_direct_calls_match": true,
+        "optimizer_success": true,
+        "logpost_improvement_over_5sigma": 5.784386303275824e-10,
+        "at_finite_prior_bounds": []
+      }
+    }
+  },
+  "verification_runner_sha256": "e9be274deee3dea2da244f559ac51d5ab6bd7dec96fea074d1535c2aca65926e",
+  "boundaries": [
+    "Original Gaussian calibration priors remain in the target; only finite optimizer cutoffs are removed.",
+    "No cosmological posterior, model-family fit or double-counted CMB-marginalized lensing term is included."
+  ]
+}
