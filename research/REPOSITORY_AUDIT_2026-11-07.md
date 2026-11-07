@@ -248,3 +248,18 @@
 - 恒等单独审计已重新生成，退出码为 0，不再引用旧局部实例哈希。
 - 根平台 113 项、后端 12 项、零模型 33 项测试全部通过；两端 lint 均为 0 错误、0 警告，Next standalone 与 Express 构建通过。
 - 常见密钥模式扫描无命中。外部源树未修改，一般规范变换律、时间反演和其他占位仍开放。
+
+
+## 17. 一般规范变换律的 Hilbert 证明
+
+- 原 `NormalizedBlochState` 只有未约束 `Prop`，无法支撑一般规范律。新增明确的 `InnerProductSpace ℂ H` 与实际 `berryConnection=I·inner(u,fderiv u)`，在归一化和可微性前提下，以复指数求导、标量乘积求导及内积双线性证明 `A′=A−dθ`。
+- 独立物理定理和原文件补丁均编译成功，公理输出均只有 `propext、Classical.choice、Quot.sound`，没有 `sorryAx` 或新增公理。相关旧 `A+dθ` 注释已同步改为减号，避免约定冲突。
+- 新增 `BerryConnectionGaugeLaw.lean`、149 行补丁、生成与验证脚本及 `berry-connection-gauge-law-lean-audit.json`。最终复现退出码 0，补丁同步与实际应用一致性均为 `true`。
+- 外部源树未修改；旧 Bloch L² 映射、归一化证明、其他占位和完整外微分仍开放。加法实值联络定义与本物理符号约定明确区分，不混写结论。
+
+
+## 18. 一般规范律提交前回归
+
+- 一般规范律复现脚本退出码为 0；独立物理定理、原文件补丁、补丁同步、实际应用和两条公理审计全部通过。
+- 根平台 113 项、后端 12 项、零模型 33 项测试全部通过；两端 lint 均为 0 错误、0 警告，Next standalone 与 Express 构建通过。
+- 常见密钥模式扫描无命中。外部源树未修改；完整 Bloch L² 映射和其他占位仍明确开放。

@@ -1,0 +1,48 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "Physical Hilbert-space Berry gauge law and a narrow patch for the original vacuous axiom; not a full Bloch L2 mapping proof",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "originalFile":  "BerryConnection.lean",
+                   "originalSha256":  "2e0066e9063e3639ba16ce6105aaf965685e54a7a7c12f6ebef55ae6c5fc0ee8",
+                   "proofFile":  "research/formalization/BerryConnectionGaugeLaw.lean",
+                   "proofSha256":  "59f5111e6cfcb05248a51aa9d41a5e55b37923fcb83f5800a555d54db8528f2a",
+                   "patchFile":  "research/formalization/berry-connection-gauge-law.patch",
+                   "patchSha256":  "f399c3c7b2fb2fc9c033fde66b107012453a13975d1fa7ed9f8ebf604f9042c0",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "stages":  {
+                                 "bloch":  0,
+                                 "proof":  0,
+                                 "standaloneAudit":  0,
+                                 "patched":  0,
+                                 "patchedAudit":  0
+                             },
+                  "standaloneOutputSha256":  "ffeb47e8926fbf6d7c53e58de9e27b4142b5f9c7dfccbcb2d2fa1d4318e1e964",
+                  "patchedOutputSha256":  "0490461ff3161b46580adf737169cd6c4acbd4ec457de03af117fa120984a13d",
+                  "warningsPreserved":  true
+              },
+    "axiomAudit":  {
+                       "standalone":  "\u0027BerryConnection.BerryConnection_GaugeTransformationLaw_physical\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "patched":  "\u0027BerryConnection.BerryConnection_GaugeTransformationLaw\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]"
+                   },
+    "validation":  {
+                       "patchSynchronized":  true,
+                       "patchApplicationMatchesGenerated":  true,
+                       "forbiddenPlaceholderOrNewAxiom":  false,
+                       "externalSourceModified":  false,
+                       "oldNormalizedBlochStateUsed":  false,
+                       "fullBlochL2MappingProved":  false,
+                       "signConvention":  "A=I*inner(u,du), hence A_prime=A-dtheta"
+                   },
+    "boundaries":  [
+                       "The proof uses a generic InnerProductSpace and explicit normalization, not the unconstrained old NormalizedBlochState Props.",
+                       "The sign convention A=I*inner(u,du) implies A_prime=A-dtheta; relevant old A+dtheta comments are corrected by the patch.",
+                       "Other placeholders and warnings remain visible; no full-project or complete L2 Bloch mapping proof is claimed.",
+                       "The external TOE-SYLVA source tree is only read; all patched sources and build products stay in OutputDirectory."
+                   ]
+}

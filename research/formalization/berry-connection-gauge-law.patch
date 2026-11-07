@@ -1,0 +1,149 @@
+--- a/BerryConnection.lean
++++ b/BerryConnection.lean
+@@ -8,7 +8,7 @@
+ - 对固定能带 n，|u_nk⟩ 作为 k ∈ BZ 的函数，在 Hilbert 空间中定义了一条曲线
+ - Berry 联络 A_n(k) = ⟨u_nk| i∇_k |u_nk⟩ 描述这条曲线的 "平行移动"
+ - A_n(k) 是 U(1) 主丛上的联络，规范变换 |u_nk⟩ → e^{iθ(k)} |u_nk⟩ 下
+-  A_n 变换为 A_n + ∇_k θ
++  A_n 变换为 A_n - ∇_k θ
+ 
+ 数学结构：
+ - A_n 是布里渊区 T² 上的 1-形式（联络）
+@@ -121,11 +121,11 @@
+                  = e^{-iθ} e^{iθ} [-∂_μ θ ⟨u_nk|u_nk⟩ + ⟨u_nk| i ∂_μ |u_nk⟩]
+                  = -∂_μ θ + A_{n,μ}(k)
+     
+-    因此：A' = A + dθ（作为 1-形式）。
++    因此：A' = A - dθ（作为 1-形式）。
+     
+     这是 U(1) 主丛上联络的标准规范变换！
+     - 规范变换参数 θ(k) 是 U(1) 的群参数
+-    - A 变换为 A + dθ，即 "联络在规范变换下加恰当形式" -/
++    - A 变换为 A - dθ，即 "联络在规范变换下加恰当形式" -/
+ structure GaugeTransformation (L : BlochTheorem.Lattice2D) where
+   /-- 规范变换函数：θ : BZ → ℝ -/
+   theta : BlochTheorem.CrystalMomentum2D → ℝ
+@@ -196,56 +196,73 @@
+     -- 在 Lean 中，以命题形式标注，需要波函数的复共轭性质
+     True := by trivial
+ 
+-/-- **Berry Connection Gauge Transformation Law.**
+-
+-    **Standard name:** Gauge transformation of Berry connection: A'_μ = A_μ + ∂_μ θ.
+-
+-    **Physical statement:** Under a gauge transformation |u_nk⟩ → e^{iθ(k)} |u_nk⟩,
+-    the Berry connection transforms as A'_μ(k) = A_μ(k) - ∂_μ θ(k).
+-    This is the standard U(1) gauge transformation law for a connection 1-form.
+-
+-    **Proof path:**
+-    1. A_μ(k) = ⟨u_nk| i ∂_μ |u_nk⟩ (definition of Berry connection).
+-    2. Under |u'_nk⟩ = e^{iθ(k)} |u_nk⟩, the derivative is:
+-       ∂_μ |u'_nk⟩ = i (∂_μ θ) e^{iθ} |u_nk⟩ + e^{iθ} ∂_μ |u_nk⟩.
+-    3. The inner product gives: A'_μ = ⟨u_nk| e^{-iθ} · i · [i (∂_μ θ) e^{iθ} |u_nk⟩ + e^{iθ} ∂_μ |u_nk⟩].
+-    4. Simplifying: A'_μ = -∂_μ θ + ⟨u_nk| i ∂_μ |u_nk⟩ = -∂_μ θ + A_μ.
+-    5. In differential form notation: A' = A + dθ (standard U(1) gauge transformation).
+-    See Berry (1984); Xiao et al. (2010) §II.A; Nakahara (2003) Ch. 10.
+-
+-    **Mathlib status:** Not formalized. The proof requires:
+-    - Fréchet derivatives in Hilbert spaces (partially available in Mathlib as `fderiv`)
+-    - Complex inner products and bra-ket notation (not formalized)
+-    - Product rule for derivatives of products of functions (available in Mathlib)
+-    - Normalization condition ⟨u|u⟩ = 1 and its derivative (0 = ∂_μ ⟨u|u⟩ = ⟨∂_μ u|u⟩ + ⟨u|∂_μ u⟩)
+-    The calculation is elementary but the bra-ket notation and Hilbert space structure are missing.
+-
+-    **Why axiom is reasonable:** The gauge transformation law is an elementary consequence of the
+-    product rule and normalization. The proof is straightforward but requires the bra-ket formalism
+-    (Hilbert space inner products, adjoint operators) which is not in Mathlib. The formal statement
+-    is `True` (placeholder), indicating the proof is deferred.
+-
+-    **References:**
+-    - Berry, M. V. (1984). "Quantal phase factors accompanying adiabatic changes."
+-      *Proc. R. Soc. Lond. A* 392(1802), 45–57.
+-    - Xiao, D., Chang, M.-C., & Niu, Q. (2010). "Berry phase effects on electronic properties."
+-      *Rev. Mod. Phys.* 82(3), 1959.
+-    - Nakahara, M. (2003). *Geometry, Topology and Physics*, 2nd ed., Ch. 10.
+-
+-    **Difficulty to theorem:** Easy (~20–30h, elementary product rule + normalization).
+-    
+-    -- 待证明：需要 Hilbert 空间内积结构、Fréchet 导数、乘积法则。
+-    -- 当前 Mathlib 缺少 bra-ket 记号与自伴算子框架，预计工作量 20-30 小时。
+-    -/
+-axiom BerryConnection_GaugeTransformationLaw
+-    (L : BlochTheorem.Lattice2D) (A : BerryConnection L)
+-    (gauge : GaugeTransformation L) (k : BlochTheorem.CrystalMomentum2D)
+-    (μ : Fin 2) :
+-    -- 规范变换后的联络
+-    let A'μ : ℂ := A.connection k μ
+-      -- 减去 ∂_μ θ(k)。这里需要形式化 ∂_μ θ。
+-      -- 暂以命题形式标注
+-    True
++variable {M : Type*} [NormedAddCommGroup M] [NormedSpace ℝ M]
++variable {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
++  [NormedSpace ℝ H] [IsScalarTower ℝ ℂ H]
++
++/-- **定义**：态曲线 `u` 在方向 `v` 上的实际 Berry 联络 `I·inner(u, ∂v u)`。
++
++**证明思路**：定义直接包含态及其 Fréchet 导数，不把联络留作无约束字段。
++
++**物理意义**：描述归一化量子态沿参数方向变化时的 Berry 几何联络。 -/
++noncomputable def berryConnection (u : M → H) (k : M) (v : M) : ℂ :=
++  Complex.I * inner ℂ (u k) (fderiv ℝ u k v)
++
++/-- **定义**：实相位 `θ` 的 U(1) 因子 `exp(iθ)`。
++
++**证明思路**：先将实相位 coercion 到复数，再乘虚数单位并取复指数。
++
++**物理意义**：表示量子态的局部 Abel 相位旋转。 -/
++noncomputable def phaseFactor (θ : M → ℝ) (k : M) : ℂ :=
++  Complex.exp (Complex.I * (θ k : ℂ))
++
++/-- **定理**：若 `θ`、`u` 在 `k` 点可微且 `inner(u(k),u(k))=1`，则
++`u↦exp(iθ)•u` 使实际 Berry 联络变为 `A−dθ`。
++
++**证明思路**：用 `HasFDerivAt.cexp` 得到相位导数，以 `fderiv_smul` 展开态导数；
++再展开内积并代入归一化、相位模和 `I²=-1`。
++
++**物理意义**：局部相位选择只给联络增加一个恰当形式，不改变其外微分。
++本定理使用 `A=I·inner(u,du)` 的符号约定，因此右端为 `A−dθ`。 -/
++theorem BerryConnection_GaugeTransformationLaw
++    (u : M → H) (θ : M → ℝ) (k v : M)
++    (hθ : DifferentiableAt ℝ θ k) (hu : DifferentiableAt ℝ u k)
++    (hnorm : inner ℂ (u k) (u k) = 1) :
++    berryConnection (fun k' => phaseFactor θ k' • u k') k v
++    = berryConnection u k v - fderiv ℝ (fun k' => (θ k' : ℂ)) k v := by
++  have hθC : DifferentiableAt ℝ (fun k' => (θ k' : ℂ)) k :=
++    Complex.ofRealCLM.differentiableAt.comp k hθ
++  have hIθ : DifferentiableAt ℝ (fun k' => Complex.I * (θ k' : ℂ)) k := by
++    exact (differentiableAt_const Complex.I).mul hθC
++  have hIθ' : HasFDerivAt (fun k' => Complex.I * (θ k' : ℂ))
++      (Complex.I • fderiv ℝ (fun k' => (θ k' : ℂ)) k) k := by
++    convert hIθ.hasFDerivAt using 1
++    exact (fderiv_const_mul hθC Complex.I).symm
++  have hphase : HasFDerivAt (fun k' => phaseFactor θ k')
++      (phaseFactor θ k • (Complex.I • fderiv ℝ (fun k' => (θ k' : ℂ)) k)) k := by
++    exact hIθ'.cexp
++  have huv : fderiv ℝ (fun k' => phaseFactor θ k' • u k') k v
++      = phaseFactor θ k • fderiv ℝ u k v
++        + (phaseFactor θ k * (Complex.I * (fderiv ℝ (fun k' => (θ k' : ℂ)) k v))) • u k := by
++    have h := (hphase.smul hu.hasFDerivAt).fderiv
++    simpa [ContinuousLinearMap.smulRight_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
++      using congrArg (fun D => D v) h
++  have hphase_norm : (starRingEnd ℂ) (phaseFactor θ k) * phaseFactor θ k = 1 := by
++    simp only [phaseFactor, ← Complex.exp_conj, ← Complex.exp_add]
++    simp
++  have hnorm' : (‖u k‖ : ℂ) ^ 2 = 1 := by
++    exact (inner_self_eq_norm_sq_to_K (u k)).symm.trans hnorm
++  have hphase_norm' : phaseFactor θ k * (starRingEnd ℂ) (phaseFactor θ k) = 1 := by
++    rw [mul_comm]
++    exact hphase_norm
++  unfold berryConnection
++  rw [huv]
++  simp [inner_add_right, inner_smul_left, inner_smul_right, hnorm', hphase_norm, pow_two, Complex.I_mul_I]
++  ring_nf
++  linear_combination (Complex.I * inner ℂ (u k) (fderiv ℝ u k v)) * hphase_norm'
++    + (fderiv ℝ (fun k' => (θ k' : ℂ)) k v) * Complex.I_sq
++    + (Complex.I ^ 2 * (fderiv ℝ (fun k' => (θ k' : ℂ)) k v)) * hphase_norm'
++
+ 
+ -- ============================================
+ -- Section 4: 联络的几何结构

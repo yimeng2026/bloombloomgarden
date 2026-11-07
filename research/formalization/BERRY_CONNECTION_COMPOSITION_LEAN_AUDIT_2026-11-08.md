@@ -60,3 +60,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-berry-connect
 - 原一般规范变换律没有被使用，也没有被清偿；时间反演和其他占位仍开放。
 - 原文件其他公理和警告继续保留，未关闭或隐藏。
 - 外部 TOE-SYLVA 项目尚需由维护者按顺序应用补丁并更新登记；本仓库不宣称外部项目已合入、全库已构建或物理语义已证明。
+
+
+## 6. 一般规范变换律补充
+
+后续 `BERRY_CONNECTION_LAW_LEAN_AUDIT_2026-11-08.md` 已在明确的 Hilbert 内积模型中证明一般规范变换律，并给出原公理补丁。该证明使用 `A=I·inner(u,du)` 的符号约定得到 `A′=A−dθ`，与此前加法实值联络定义属于不同约定；两套结果不再被表述为同一符号体系。旧 Bloch L² 映射仍未完成。
