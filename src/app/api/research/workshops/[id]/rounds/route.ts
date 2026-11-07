@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateCollaborationResponses, PromptContext } from "@/lib/research-prompts";
+import { formatWorkshopStatement } from "@/lib/workshop-content";
 
 export const runtime = "nodejs";
 
@@ -186,12 +187,7 @@ function buildPreviousContent(
         parsed = r.content;
       }
       const summaries = Array.isArray(parsed)
-        ? parsed
-            .map(
-              (s: any) =>
-                `[${s.role || "member"}${s.specialty ? ` / ${s.specialty}` : ""}]: ${(s.content || "").slice(0, 300)}`
-            )
-            .join("\n")
+        ? parsed.map((statement) => formatWorkshopStatement(statement, 300)).join("\n")
         : String(parsed).slice(0, 500);
       return `--- Round ${r.roundNumber} (${r.phase}) ---\n${summaries}`;
     })

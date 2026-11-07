@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateCollaborationResponse } from "@/lib/research-prompts";
+import { formatWorkshopStatement } from "@/lib/workshop-content";
 
 export const runtime = "nodejs";
 
@@ -144,14 +145,7 @@ function buildAllRoundsContent(
         parsed = r.content;
       }
       const summaries = Array.isArray(parsed)
-        ? parsed
-            .map((s: any) => {
-              const role = s.role || "member";
-              const specialty = s.specialty || "";
-              const content = (s.content || "").slice(0, 400);
-              return `[${role}${specialty ? ` / ${specialty}` : ""}]: ${content}`;
-            })
-            .join("\n")
+        ? parsed.map((statement) => formatWorkshopStatement(statement, 400)).join("\n")
         : String(parsed).slice(0, 800);
       return `=== Round ${r.roundNumber} (${r.phase}, consensus: ${(r.consensusLevel * 100).toFixed(1)}%) ===\n${summaries}`;
     })

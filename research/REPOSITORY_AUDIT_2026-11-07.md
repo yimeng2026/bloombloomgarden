@@ -73,7 +73,7 @@
 2. 清理可证实的死代码和未使用导入，保留并标注有意的接口预留；
 3. 保存同次 CAMB 功率与高精度原生传输，分离量化、插值和求解器影响，并研究显式规范变换；
 4. 在数值系统误差进一步闭合后，再评估公开似然、联合 BBN 与非线性工作；
-5. 每次修改后重跑根平台 110 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
+5. 每次修改后重跑根平台 113 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
 
 本记录是下一轮工作的基线，不是“全部问题已经解决”的声明。
 
@@ -124,3 +124,5 @@
 - `validations/route.ts`、`validations/[id]/route.ts`、`validations/[id]/results/route.ts` 与 `validations/[id]/validators/route.ts` 各移除 1 个显式 `any`，共 4 处。验证组、验证结果和验证成员的筛选与更新改由 `research-validations.ts` 返回明确 Prisma 类型；更新请求使用 `unknown` 类型守卫。
 - 新增 `tests/unit/research-validations.test.js`，覆盖验证组筛选与更新、空更新、策略序列化、非法字段、结果筛选和成员专长检索。根平台测试总数从 105 增至 110，110 项通过、0 失败，共 434 个断言、38 个文件；TypeScript、定向 ESLint 和 Next standalone 构建通过。
 - 经全 `src` 引用核查，确认 `VALID_STATUS` 与 `generateMockValidation` 只有定义、没有运行时引用，已删除这两处死代码，不影响真实 Kimi 验证路径。全库 `lint:all` 现为 3 错误、12 警告，剩余错误在工作坊两个路由与 `tools.ts`。
+- `workshops/[id]/conclude/route.ts` 与 `workshops/[id]/rounds/route.ts` 的发言解析回调改用 `workshop-content.ts` 的 `unknown` 类型守卫，保留角色、专长和截断行为；`tools.ts` 中未导出且无调用的 `execSync` 包装已删除，实际代码执行路径未改。最后 3 个显式 `any` 已全部清除。
+- 新增 `tests/unit/workshop-content.test.js`，覆盖正常发言、默认值、内容截断和非记录输入。根平台测试总数从 110 增至 113，113 项通过、0 失败，共 440 个断言、39 个文件；TypeScript、定向 ESLint 和 Next standalone 构建通过。全库 `lint:all` 现为 0 错误、11 警告，显式 `any` 已清零，但警告尚待逐项处理。

@@ -4,12 +4,6 @@
 
 import { search } from "duck-duck-scrape";
 import yahooFinance from "yahoo-finance2";
-// child_process 在客户端不可用，动态导入
-const execSync = async (cmd: string, opts: any) => {
-  const cp = await import("child_process");
-  return cp.execSync(cmd, opts);
-};
-
 // ===================== 工具类型定义 =====================
 
 export type ToolName =
