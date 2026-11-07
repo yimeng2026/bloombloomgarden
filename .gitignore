@@ -102,3 +102,4 @@ prisma/dev.db-journal
 
 # 可复核研究图：仅允许物理直觉架构说明图
 !research/physical-intuition/assets/physical-intuition-architecture.svg
+!research/physical-intuition/zero-cdm/spectrum-comparison.svg

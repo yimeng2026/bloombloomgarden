@@ -1,0 +1,114 @@
+{
+  "status": "computed_fixed_inputs_not_observational_fit",
+  "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
+  "class_version": "3.4.2",
+  "gauge": "newtonian",
+  "baseline_input": "baseline-lcdm.ini",
+  "zero_input": "zero-cdm.ini",
+  "baseline_tt_peaks": [
+    {
+      "ell": 221,
+      "value": 7.664394527946e-10
+    },
+    {
+      "ell": 536,
+      "value": 3.505283889197e-10
+    },
+    {
+      "ell": 814,
+      "value": 3.469588202936e-10
+    },
+    {
+      "ell": 1129,
+      "value": 1.699500873075e-10
+    }
+  ],
+  "zero_tt_peaks": [
+    {
+      "ell": 297,
+      "value": 1.88783575707e-09
+    },
+    {
+      "ell": 778,
+      "value": 7.378216828673e-10
+    },
+    {
+      "ell": 1223,
+      "value": 3.89145817359e-10
+    }
+  ],
+  "ell_comparisons": [
+    {
+      "ell": 100,
+      "zero_over_baseline_tt": 2.1533147829152535,
+      "zero_over_baseline_phiphi": 0.09063288090192544
+    },
+    {
+      "ell": 200,
+      "zero_over_baseline_tt": 2.041748508634643,
+      "zero_over_baseline_phiphi": 0.02053947629382169
+    },
+    {
+      "ell": 500,
+      "zero_over_baseline_tt": 2.3394690441573287,
+      "zero_over_baseline_phiphi": 0.007261997857501887
+    },
+    {
+      "ell": 1000,
+      "zero_over_baseline_tt": 2.266196846213087,
+      "zero_over_baseline_phiphi": 0.0028254591388916913
+    },
+    {
+      "ell": 2000,
+      "zero_over_baseline_tt": 2.944481320949673,
+      "zero_over_baseline_phiphi": 0.00044663545234726655
+    }
+  ],
+  "pk_comparisons": [
+    {
+      "k_h_per_Mpc": 0.001,
+      "zero_over_baseline_pk": 11.779562307668199
+    },
+    {
+      "k_h_per_Mpc": 0.01,
+      "zero_over_baseline_pk": 1.4452427382235598
+    },
+    {
+      "k_h_per_Mpc": 0.05,
+      "zero_over_baseline_pk": 0.038589078633081995
+    },
+    {
+      "k_h_per_Mpc": 0.1,
+      "zero_over_baseline_pk": 0.01761020378875935
+    },
+    {
+      "k_h_per_Mpc": 0.5,
+      "zero_over_baseline_pk": 7.420012810306085e-11
+    },
+    {
+      "k_h_per_Mpc": 1.0,
+      "zero_over_baseline_pk": 3.647039509438676e-12
+    }
+  ],
+  "zero_background": {
+    "z": 0.0,
+    "H": 0.0002256894668111,
+    "rho_lambda_over_rho_total": 0.9514582138024857,
+    "Omega_m": 0.04845042097693,
+    "growth_D": 1.0,
+    "growth_f": 0.1781588564313
+  },
+  "baseline_background": {
+    "z": 0.0,
+    "H": 0.0002256894668111,
+    "rho_lambda_over_rho_total": 0.6890930678381708,
+    "Omega_m": 0.3108155669411,
+    "growth_D": 1.0,
+    "growth_f": 0.5231244243752
+  },
+  "boundaries": [
+    "仅改变 omega_cdm，其余草案参数相同；不是参数空间搜索或最佳拟合。",
+    "当前比较不能独立证明或排除整个无 CDM 模型族。",
+    "背景、BBN、真实数据似然、系统误差和非线性检验仍需另行完成。"
+  ]
+}
