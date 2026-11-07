@@ -202,3 +202,18 @@
 - 根平台 113 项、后端 12 项、零模型 33 项测试全部通过；Next standalone 与 Express 构建通过。
 - `git apply --check` 通过，随后实际应用补丁；应用结果与已编译的 `BerryCurvaturePatched.lean` 逐字一致。
 - 新证明的禁止新增公理／占位扫描通过，结构化审计为 `status=success`。没有修改外部 TOE-SYLVA 源树，也没有把局部二维证明扩大为全库或物理语义证明。
+
+
+## 11. 三维旋度线性公理清偿
+
+- 原 `curl_linear_subtraction` 缺少可微性前提，不能仅改关键字。现为 A、B 显式加入 `DifferentiableAt`，以 `differentiableAt_pi` 转为分量前提，再用 `fderiv_sub` 完成逐分量证明；三维主定理也补齐联络可微性。
+- `curl_linear_subtraction`、`curl_of_gradient_zero`、`BerryCurvature_gauge_invariance` 均实际编译成功，公理输出全部只有 `propext、Classical.choice、Quot.sound`，没有自定义旋度公理或 `sorryAx`。
+- 新增 `BerryCurvatureGaugeInvariance3D.lean`、87 行精确补丁、生成与验证脚本及 `berry-curvature-3d-lean-audit.json`。最终复现脚本退出码 0，补丁应用结果与编译证明逐字一致。
+- 现役调用方检索没有发现其他模块使用该三维定理，新增参数的已见影响范围限于原参考文件和历史 archive。外部源树未修改，其他占位、完整外微分、全库 Lake 和物理语义仍未宣称完成。
+
+
+## 12. 三维证明提交前回归
+
+- 最终 `verify-berry-curvature-3d-lean.ps1` 退出码为 0；补丁同步、实际应用结果一致、禁止占位／新增公理检查均通过。
+- 根平台 113 项、后端 12 项、零模型 33 项测试全部通过；两端 lint 均为 0 错误、0 警告，Next standalone 和 Express 构建通过。
+- 常见密钥模式扫描无命中。外部源树和 main 均未修改；研究开放项继续按证据边界登记。

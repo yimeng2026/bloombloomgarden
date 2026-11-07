@@ -1,0 +1,42 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "3D curl linearity and Berry gauge invariance with explicit differentiability; not a full-project proof",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "originalFile":  "TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean",
+                   "originalSha256":  "902c7e400e061bbac6d9c2955b463ba6adca4b3e12bd98e3b117524432df62c8",
+                   "proofFile":  "research/formalization/BerryCurvatureGaugeInvariance3D.lean",
+                   "proofSha256":  "ac521197cdf7e618d0fb6c11f8dff7d6635218b355b252830acb788717273531",
+                   "patchFile":  "research/formalization/berry-curvature-gauge-invariance-3d.patch",
+                   "patchSha256":  "4bab16a2570081b491bd13a580611a36108581d945a03a63dea985fd22afb237",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "exitCode":  0,
+                  "outputSha256":  "e6306acc6ffc5a2e46fcdc621c0b86961ea58cb10c458f1f9636a5c358e5ebac",
+                  "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\berry-3d-verification-v3\\gauge3d-build.log"
+              },
+    "axiomAudit":  {
+                       "exitCode":  0,
+                       "output":  "\u0027curl_linear_subtraction\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]\r\n\u0027curl_of_gradient_zero\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]\r\n\u0027BerryCurvature_gauge_invariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\berry-3d-verification-v3\\gauge3d-axioms.log",
+                       "customCurlAxiomPresent":  false
+                   },
+    "validation":  {
+                       "patchSynchronized":  true,
+                       "patchApplicationMatchesProof":  true,
+                       "forbiddenPlaceholderOrNewAxiom":  false,
+                       "externalSourceModified":  false,
+                       "fullProjectBuilt":  false,
+                       "physicalSemanticProof":  false
+                   },
+    "boundaries":  [
+                       "DifferentiableAt assumptions are required by fderiv_sub and are now explicit for A and B.",
+                       "The main theorem adds the necessary DifferentiableAt assumption for the connection A.",
+                       "No custom axiom is used by curl_linear_subtraction, curl_of_gradient_zero, or BerryCurvature_gauge_invariance.",
+                       "The external TOE-SYLVA source tree is only read; the patch and build products stay in the current repository or OutputDirectory."
+                   ]
+}

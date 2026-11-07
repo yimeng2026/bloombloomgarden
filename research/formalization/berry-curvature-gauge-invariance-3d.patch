@@ -1,0 +1,87 @@
+--- a/TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean
++++ b/TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean
+@@ -24,9 +24,9 @@
+      + fderiv_clm_apply（CLM 求值的链式法则，FDeriv/CompCLM.lean）桥接。
+      原公理陈述中 `(i j : ℕ)` 与 `Pi.single j 1` 类型不配
+      （索引应为 Fin 3），已修正为 `(i j : Fin 3)`。
+-  3. 保留 curl_linear_subtraction（旋度线性性）为 axiom —— 属 T2a 之外的
+-     独立公理，见 framework/axiom_reduction_sweep8_report.md 剩余清单。
+-  原两条公理行存档于该报告。
++  3. curl_linear_subtraction（旋度线性性）已于 2026-11-08 清偿为 theorem：
++     原公理缺少可微性前提，现已为 A、B 及主定理的联络 A 补齐。
++  原两条 Clairaut 公理行存档于该历史报告；当前文件不再含自定义 axiom。
+ -/
+ 
+ import Mathlib
+@@ -127,15 +127,23 @@
+     = fderiv ℝ (fun k' => fderiv ℝ φ k' (Pi.single i 1)) k (Pi.single j 1) :=
+   mixed_partials_commute_of_contDiff2 hφ k (Pi.single j 1) (Pi.single i 1)
+ 
+-/-
+-  辅助公理 2: 旋度算子的线性性
+-  curl(A - B) = curl(A) - curl(B)
+-  这是旋度算子的基本性质，Mathlib 当前缺失向量值函数的线性微分算子框架
+-  预计形式化工作量: ~10h
+-  sweep8 注：此公理不在 T2a 清偿范围（非 Clairaut 型），保留待后续 sweep。
+--/
+-axiom curl_linear_subtraction (A B : ℝ³ → ℝ³) (k : ℝ³) :
+-    curl (fun k' => A k' - B k') k = curl A k - curl B k
++/-- **定理**：若向量场 `A`、`B` 在 `k` 点可微，则
++`curl(A - B) = curl A - curl B`。
++
++**证明思路**：由 `differentiableAt_pi` 将向量可微性严格转为各分量可微性，
++再使用 `fderiv_sub` 和环代数逐分量证明。
++
++**物理意义**：规范变换前后 Berry 曲率可以分解为原曲率与梯度曲率之差。
++原公理缺少可微性前提，不能直接保留；本定理同时修正命题和证明。 -/
++theorem curl_linear_subtraction (A B : ℝ³ → ℝ³) (k : ℝ³)
++    (hA : DifferentiableAt ℝ A k) (hB : DifferentiableAt ℝ B k) :
++    curl (fun k' => A k' - B k') k = curl A k - curl B k := by
++  have hA' : ∀ i, DifferentiableAt ℝ (fun k' => A k' i) k := differentiableAt_pi.mp hA
++  have hB' : ∀ i, DifferentiableAt ℝ (fun k' => B k' i) k := differentiableAt_pi.mp hB
++  have hsub (i : Fin 3) : (fun k' => A k' i - B k' i)
++      = (fun k' => A k' i) - (fun k' => B k' i) := rfl
++  ext i
++  fin_cases i <;> simp [curl, hsub, fderiv_sub (hA' _) (hB' _)] <;> ring
+ 
+ /-
+   核心定理: 梯度的旋度为零
+@@ -179,21 +187,29 @@
+   核心定理: Berry 曲率在规范变换下不变
+   F' = F
+ -/
++/-- **定理**：若 `φ∈C²` 且向量联络 `A` 在 `k` 点可微，则三维 Berry 曲率在
++`A ↦ A - ∇φ` 下不变。
++
++**证明思路**：由 `C²` 推出梯度各分量可微，以 `curl_linear_subtraction` 分解旋度，
++再用混合偏导交换证明 `curl(∇φ)=0`。
++
++**物理意义**：三维 Abel 规范相位不改变 Berry 曲率；本定理不依赖自定义公理。 -/
+ theorem BerryCurvature_gauge_invariance
+     (A : ℝ³ → ℝ³) (φ : ℝ³ → ℝ)
+-    (hφ : ContDiff ℝ 2 φ) (k : ℝ³) :
++    (hφ : ContDiff ℝ 2 φ) (k : ℝ³)
++    (hA : DifferentiableAt ℝ A k) :
+     BerryCurvature (gaugeTransform3D A φ) k = BerryCurvature A k := by
+-  /- 展开定义 -/
++  have hdφ : DifferentiableAt ℝ (fderiv ℝ φ) k :=
++    ((hφ.fderiv_right (m := 1) le_rfl).contDiffAt (x := k)).differentiableAt one_ne_zero
++  have hgrad : DifferentiableAt ℝ (gradient3D φ) k := by
++    apply differentiableAt_pi.mpr
++    intro i
++    fin_cases i <;> simp [gradient3D] <;> exact hdφ.clm_apply (differentiableAt_const _)
+   unfold BerryCurvature gaugeTransform3D
+-  /- F' = curl(A - ∇φ) = curl(A) - curl(∇φ) -/
+   have h_curl_diff : curl (fun k' => A k' - gradient3D φ k') k
+       = curl A k - curl (gradient3D φ) k := by
+-    /- 使用旋度线性性公理 -/
+-    exact curl_linear_subtraction A (gradient3D φ) k
+-  rw [h_curl_diff]
+-  /- curl(∇φ) = 0 -/
+-  rw [curl_of_gradient_zero φ k hφ]
+-  /- F - 0 = F -/
++    exact curl_linear_subtraction A (gradient3D φ) k hA hgrad
++  rw [h_curl_diff, curl_of_gradient_zero φ k hφ]
+   simp
+ 
+ /-

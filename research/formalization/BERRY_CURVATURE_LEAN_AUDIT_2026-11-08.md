@@ -68,3 +68,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-berry-curvatu
 - 其他 `True` 占位和既有公理仍存在，不因本定理通过而自动核销。
 - 这是局部二维实值微积分定理，不是完整外微分、任意复值结构、陈数拓扑或物理语义证明。
 - 外部 TOE-SYLVA 项目尚需由维护者应用补丁并更新其 `proof_status.md`／公理登记；本仓库没有伪称外部项目已合入。
+
+
+## 6. 补充：三维旋度线性公理已另行清偿
+
+后续 `BERRY_CURVATURE_3D_LEAN_AUDIT_2026-11-08.md` 已将 `curl_linear_subtraction` 从自定义公理清偿为具有可微性前提的真实定理。三维 `BerryCurvature_gauge_invariance` 同步补齐联络可微性前提，三项公理审计均只依赖 Lean 标准三公理。二维与三维交付使用各自独立补丁，不相互借用“已清偿”结论。
