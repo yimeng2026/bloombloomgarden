@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateCollaborationResponse, PromptContext } from "@/lib/research-prompts";
+import { generateCollaborationResponse } from "@/lib/research-prompts";
+import { buildReviewFilter, buildReviewPromptContext, ReviewBoardWithReviewers } from "@/lib/review-board";
 
 export const runtime = "nodejs";
 
@@ -16,10 +17,7 @@ export async function GET(
     const decision = searchParams.get("decision");
     const round = searchParams.get("round");
 
-    const where: any = { boardId: id };
-    if (targetId) where.targetId = targetId;
-    if (decision) where.decision = decision;
-    if (round) where.round = parseInt(round, 10);
+    const where = buildReviewFilter(id, targetId, decision, round);
 
     const reviews = await prisma.academicReview.findMany({
       where,
@@ -302,7 +300,7 @@ async function resolveTargetContent(
         break;
       }
     }
-  } catch (e) {
+  } catch {
     // 忽略查找失败
   }
   return null;
@@ -310,7 +308,7 @@ async function resolveTargetContent(
 
 /** 使用 LLM 生成评审内容 */
 async function generateReviewContentWithLLM(
-  board: any, // AcademicReviewBoard with reviewers
+  board: ReviewBoardWithReviewers,
   targetType: string,
   targetId: string,
   title: string,
@@ -319,22 +317,8 @@ async function generateReviewContentWithLLM(
   // 1. 尝试获取 target 内容
   const targetInfo = await resolveTargetContent(targetType, targetId);
 
-  // 2. 选择 reviewer 的 specialty
-  const reviewers = board.reviewers || [];
-  const reviewer = reviewers[0] || { specialty: "general", role: "reviewer" };
-
-  // 3. 构建 prompt context
-  const context: PromptContext = {
-    topic: title,
-    domain: board.domain || "general",
-    mode: board.reviewMode || "single_blind",
-    role: reviewer.role,
-    specialty: reviewer.specialty || "general",
-    targetType,
-    content: targetInfo?.content || `评审对象：${targetType} (ID: ${targetId})`,
-    roundNumber,
-    title: targetInfo?.title || title,
-  };
+  // 2. 构建 prompt context
+  const context = buildReviewPromptContext(board, targetType, targetId, title, roundNumber, targetInfo);
 
   // 4. 调用 LLM
   const response = await generateCollaborationResponse("review_board", context);
