@@ -1,0 +1,47 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "L2 refinement with old-state coherence and normalization, plus the Hilbert gauge law; no normalization from old Props",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "oldStateType":  "BerryConnection.NormalizedBlochState",
+                   "proofFile":  "research/formalization/BlochL2State.lean",
+                   "proofSha256":  "94a25ce38b427254e8b3c31031260ba498d16c920f50d5dd8961a38c681237a9",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "stages":  {
+                                 "bloch":  0,
+                                 "connection":  0,
+                                 "identity":  0,
+                                 "law":  0,
+                                 "proof":  0,
+                                 "audit":  0
+                             },
+                  "outputSha256":  "fa9a3d515493871a931d95cc6036a885327c72a70d4b296f5841625ca4df92f4",
+                  "warningsPreserved":  true
+              },
+    "axiomAudit":  {
+                       "exitCode":  0,
+                       "output":  "\u0027BerryConnection.BlochL2State_normalization_integral\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.BlochL2State_gauge_transformation_law\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\bloch-l2-verification-v3\\bloch-l2-axioms.log"
+                   },
+    "validation":  {
+                       "coherentFieldPresent":  true,
+                       "normalizationIntegralProved":  true,
+                       "oldPropUsedAsProof":  false,
+                       "fullOldStateNormalizationFromProp":  false,
+                       "forbiddenPlaceholderOrNewAxiom":  false,
+                       "externalSourceModified":  false,
+                       "fullProjectBuilt":  false
+                   },
+    "boundaries":  [
+                       "BlochL2State requires an actual L2 vector, ae coherence and pointwise normalization as explicit evidence.",
+                       "The result does not construct these objects from the old unconstrained NormalizedBlochState Props.",
+                       "The scalar tower is proved through Subtype.ext and the underlying AEEqFun smul_assoc.",
+                       "Other placeholders and the full Bloch L2 construction from old sources remain open.",
+                       "The external TOE-SYLVA source tree is only read; all build products stay in OutputDirectory."
+                   ]
+}

@@ -61,3 +61,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-berry-connect
 - 旧 Bloch 态到实际 L² Hilbert 空间的映射、归一化证明和周期性仍需另行形式化。
 - 其他 `True` 占位和既有警告未自动清偿；本定理不覆盖陈数、Kubo 公式或完整外微分。
 - 外部 TOE-SYLVA 项目尚需由维护者应用补丁并更新登记；本仓库不宣称外部项目已合入或全库物理语义已证明。
+
+
+## 7. L2 精炼映射补充
+
+后续 `BLOCH_L2_STATE_LEAN_AUDIT_2026-11-08.md` 已建立包含旧态、实际 L2 向量、几乎处处一致性和归一化等式的 `BlochL2State`，并证明积分归一化及 L2 规范律。该结构需要显式证据，不把旧 `Prop` 当成归一化证明；从旧源码完整构造这些对象仍是后续任务。
