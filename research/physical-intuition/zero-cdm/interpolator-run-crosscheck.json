@@ -1,0 +1,424 @@
+{
+  "status": "computed_crosscheck_of_old_same_run_and_new_construction_outputs",
+  "records": {
+    "zero": {
+      "aligned_points": 3888,
+      "new_log_over_old_same_run": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.00010008060022911658,
+          "reference": 6519.655285780213,
+          "candidate": 6519.655285780213,
+          "candidate_over_reference_minus_1": 0.0
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        }
+      },
+      "new_native_over_old_native": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.00010008060022911658,
+          "reference": 6519.65542412163,
+          "candidate": 6519.65542412163,
+          "candidate_over_reference_minus_1": 0.0
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        }
+      },
+      "new_frozen_over_old_frozen": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.00010008060022911658,
+          "reference": 6519.655444292695,
+          "candidate": 6519.655444292695,
+          "candidate_over_reference_minus_1": 0.0
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        }
+      },
+      "old_same_run_over_old_native": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 5.9449626665930566e-08,
+          "p95_abs_fraction": 3.107462647037317e-05,
+          "max_abs_fraction": 0.0007449874824316804
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 1.1581318870841404,
+          "reference": 8.898610857120875e-12,
+          "candidate": 8.89198150342129e-12,
+          "candidate_over_reference_minus_1": -0.0007449874824316804
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 5.944962666214179e-08,
+          "p95_abs_fraction": 3.107477156855189e-05,
+          "max_abs_fraction": 0.0007452651235074852
+        }
+      },
+      "new_log_over_new_native": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 5.9449626665930566e-08,
+          "p95_abs_fraction": 3.107462647037317e-05,
+          "max_abs_fraction": 0.0007449874824316804
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 1.1581318870841404,
+          "reference": 8.898610857120875e-12,
+          "candidate": 8.89198150342129e-12,
+          "candidate_over_reference_minus_1": -0.0007449874824316804
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 5.944962666214179e-08,
+          "p95_abs_fraction": 3.107477156855189e-05,
+          "max_abs_fraction": 0.0007452651235074852
+        }
+      },
+      "old_frozen_over_old_same_run": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 8.200593262897016e-06,
+          "p95_abs_fraction": 0.9567645108702671,
+          "max_abs_fraction": 194000799.17837888
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 1.1591292073587665,
+          "reference": 1.3065846803518264e-19,
+          "candidate": 2.5347847348906572e-11,
+          "candidate_over_reference_minus_1": 194000799.17837888
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 8.200626888591267e-06,
+          "p95_abs_fraction": 1.3482160665481504,
+          "max_abs_fraction": 19.083372841649915
+        }
+      },
+      "old_same_run_over_old_frozen": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 8.200660514434688e-06,
+          "p95_abs_fraction": 1.1626863275748314,
+          "max_abs_fraction": 507.03446019301856
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.8389893992037918,
+          "reference": 3.957614549710473e-14,
+          "candidate": 2.0106045714141965e-11,
+          "candidate_over_reference_minus_1": 507.03446019301856
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 8.200626888556595e-06,
+          "p95_abs_fraction": 1.3482160665481502,
+          "max_abs_fraction": 19.083372841649915
+        }
+      },
+      "new_frozen_over_new_log": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 8.200593262897016e-06,
+          "p95_abs_fraction": 0.9567645108702671,
+          "max_abs_fraction": 194000799.17837888
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 1.1591292073587665,
+          "reference": 1.3065846803518264e-19,
+          "candidate": 2.5347847348906572e-11,
+          "candidate_over_reference_minus_1": 194000799.17837888
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 8.200626888591267e-06,
+          "p95_abs_fraction": 1.3482160665481504,
+          "max_abs_fraction": 19.083372841649915
+        }
+      },
+      "new_log_over_new_frozen": {
+        "points": 3888,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 3888,
+          "median_abs_fraction": 8.200660514434688e-06,
+          "p95_abs_fraction": 1.1626863275748314,
+          "max_abs_fraction": 507.03446019301856
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.8389893992037918,
+          "reference": 3.957614549710473e-14,
+          "candidate": 2.0106045714141965e-11,
+          "candidate_over_reference_minus_1": 507.03446019301856
+        },
+        "positive_candidate_log_ratio": {
+          "points": 3888,
+          "median_abs_fraction": 8.200626888556595e-06,
+          "p95_abs_fraction": 1.3482160665481502,
+          "max_abs_fraction": 19.083372841649915
+        }
+      }
+    },
+    "baseline": {
+      "aligned_points": 4132,
+      "new_log_over_old_same_run": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.00010006403190287029,
+          "reference": 426.39120590161986,
+          "candidate": 426.39120590161986,
+          "candidate_over_reference_minus_1": 0.0
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        }
+      },
+      "new_native_over_old_native": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.00010006403190287029,
+          "reference": 426.3911998573895,
+          "candidate": 426.3911998573895,
+          "candidate_over_reference_minus_1": 0.0
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        }
+      },
+      "new_frozen_over_old_frozen": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.00010006403190287029,
+          "reference": 426.3911934430939,
+          "candidate": 426.3911934430939,
+          "candidate_over_reference_minus_1": 0.0
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 0.0,
+          "p95_abs_fraction": 0.0,
+          "max_abs_fraction": 0.0
+        }
+      },
+      "old_same_run_over_old_native": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 3.0976187614939477e-08,
+          "p95_abs_fraction": 1.2031069092088838e-07,
+          "max_abs_fraction": 2.0824529989305063e-07
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 1.0441880845085971,
+          "reference": 63.48952344069191,
+          "candidate": 63.489536662086756,
+          "candidate_over_reference_minus_1": 2.0824529989305063e-07
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 3.0976188094701585e-08,
+          "p95_abs_fraction": 1.2031068368354933e-07,
+          "max_abs_fraction": 2.0824527821000117e-07
+        }
+      },
+      "new_log_over_new_native": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 3.0976187614939477e-08,
+          "p95_abs_fraction": 1.2031069092088838e-07,
+          "max_abs_fraction": 2.0824529989305063e-07
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 1.0441880845085971,
+          "reference": 63.48952344069191,
+          "candidate": 63.489536662086756,
+          "candidate_over_reference_minus_1": 2.0824529989305063e-07
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 3.0976188094701585e-08,
+          "p95_abs_fraction": 1.2031068368354933e-07,
+          "max_abs_fraction": 2.0824527821000117e-07
+        }
+      },
+      "old_frozen_over_old_same_run": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 2.412101740567607e-07,
+          "p95_abs_fraction": 4.795501821974745e-06,
+          "max_abs_fraction": 2.2618228491366743e-05
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.1987389406555773,
+          "reference": 2043.2964343934489,
+          "candidate": 2043.2502186478202,
+          "candidate_over_reference_minus_1": -2.2618228491366743e-05
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 2.412101740724178e-07,
+          "p95_abs_fraction": 4.795513320433592e-06,
+          "max_abs_fraction": 2.2618484287353894e-05
+        }
+      },
+      "old_same_run_over_old_frozen": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 2.412101740567607e-07,
+          "p95_abs_fraction": 4.7955248189124325e-06,
+          "max_abs_fraction": 2.2618740087132494e-05
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.1987389406555773,
+          "reference": 2043.2502186478202,
+          "candidate": 2043.2964343934489,
+          "candidate_over_reference_minus_1": 2.2618740087132494e-05
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 2.4121017404109896e-07,
+          "p95_abs_fraction": 4.795513320416825e-06,
+          "max_abs_fraction": 2.2618484287288168e-05
+        }
+      },
+      "new_frozen_over_new_log": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 2.412101740567607e-07,
+          "p95_abs_fraction": 4.795501821974745e-06,
+          "max_abs_fraction": 2.2618228491366743e-05
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.1987389406555773,
+          "reference": 2043.2964343934489,
+          "candidate": 2043.2502186478202,
+          "candidate_over_reference_minus_1": -2.2618228491366743e-05
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 2.412101740724178e-07,
+          "p95_abs_fraction": 4.795513320433592e-06,
+          "max_abs_fraction": 2.2618484287353894e-05
+        }
+      },
+      "new_log_over_new_frozen": {
+        "points": 4132,
+        "nonpositive_candidate_points": 0,
+        "fractional": {
+          "points": 4132,
+          "median_abs_fraction": 2.412101740567607e-07,
+          "p95_abs_fraction": 4.7955248189124325e-06,
+          "max_abs_fraction": 2.2618740087132494e-05
+        },
+        "max_fraction_location": {
+          "k_h_per_Mpc": 0.1987389406555773,
+          "reference": 2043.2502186478202,
+          "candidate": 2043.2964343934489,
+          "candidate_over_reference_minus_1": 2.2618740087132494e-05
+        },
+        "positive_candidate_log_ratio": {
+          "points": 4132,
+          "median_abs_fraction": 2.4121017404109896e-07,
+          "p95_abs_fraction": 4.795513320416825e-06,
+          "max_abs_fraction": 2.2618484287288168e-05
+        }
+      }
+    }
+  },
+  "raw_output_sha256": {
+    "zero": {
+      "old_same_run": "376691b72632e83455db9a1067b3e958472222e705f5ca2de931c98c415ca606",
+      "new_construction": "91b0364978c36d15890bcd3826150996798369996679ead6da758b9dffb5f6b0",
+      "frozen_spectra": "c7b08a3478a2e9c14b633d2f115fc67938a14f22c4dd7a9c91f8883ec660e91d"
+    },
+    "baseline": {
+      "old_same_run": "1cdc9ae1d4ba99384238de2fc1897fcba0d2ce120e9304f5f5b27f8ef3ae807b",
+      "new_construction": "e2a8215501452e7c0d63f8cd770b52374f1f6aa1756ffa7d26268444ae8694e4",
+      "frozen_spectra": "fc480c5b2efa95833858d96a37f5f7c0ba789d8e681b7c9ea91ba4a76bec450a"
+    }
+  },
+  "analysis_runner_sha256": "03d8e929da95c4b1bffad558aed58601d68d4d1cb17805417026702aee266bb6",
+  "boundaries": [
+    "This cross-check does not overwrite or reinterpret raw files; it compares their actual aligned values.",
+    "Agreement of native transfer reconstruction alone does not prove equality of later power-spline outputs near deep zeros."
+  ]
+}

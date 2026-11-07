@@ -1,0 +1,58 @@
+{
+  "status": "interpolator_construction_ab_completed_and_verified",
+  "amended_on": "2026-11-08",
+  "protocol_sha256": "7359568f2abb61cc9c08d6182d2a1324cdc0eb8b6f6a21db9fa58c25f6557ff0",
+  "runner_sha256": "3bf8805b6ca291d3e849d7590f977fa1da5ce4453410cccfad0ad6fd0bae9961",
+  "analysis_runner_sha256": "996c5ce06acd4d4fb3410874fce29e63dfca269e45e2a0422ea69f8fc48a2ce0",
+  "verification_runner_sha256": "1ac41eb8093efcdbe5895f52619ceb67d4a09b783823a6f0440713a9ac9cb771",
+  "crosscheck_runner_sha256": "03d8e929da95c4b1bffad558aed58601d68d4d1cb17805417026702aee266bb6",
+  "execution": {
+    "zero_elapsed_seconds": 74.986377967,
+    "zero_maximum_rss_kib": 11599452,
+    "baseline_completed": true,
+    "same_physical_and_accuracy_inputs": true,
+    "new_output_files_only": true
+  },
+  "main_findings": {
+    "zero_log_cubic_over_native_max_abs_fraction": 0.0007449874824316804,
+    "zero_linear_cubic_over_native_max_abs_fraction": 158.8871134645428,
+    "zero_linear_cubic_over_log_cubic_max_abs_fraction": 158.8834694007285,
+    "aligned_nonpositive_spline_points": 0,
+    "highest_band_smooth_0.05dex_zero_over_baseline": {
+      "native_reconstruction": 6.266324761060439e-13,
+      "camb_power_nodes": 6.266316461227224e-13,
+      "log_cubic": 6.266308096008022e-13,
+      "linear_cubic": 6.266193603261224e-13,
+      "power_nodes_log_linear": 6.266308403181018e-13,
+      "previous_frozen_log_linear": 5.940486444885981e-13,
+      "class_integral": 6.14517700201632e-12
+    },
+    "highest_band_previous_frozen_over_native_ln": -0.05339899717417984,
+    "highest_band_native_over_class_ln": -2.2830626195568215,
+    "highest_band_linear_over_log_ln": -1.8271331542257998e-05
+  },
+  "directional_deep_valley_diagnostics": {
+    "same_run_over_previous_frozen_max_abs_fraction": 507.03446019301856,
+    "same_run_over_previous_frozen_max_location_k": 0.8389893992037918,
+    "previous_frozen_over_same_run_max_abs_fraction": 194000799.17837888,
+    "previous_frozen_over_same_run_max_location_k": 1.1591292073587665,
+    "direction_independent_max_abs_ln_ratio": 19.083372841649915,
+    "meaning": "The two fractional maxima occur at different near-zero points and use opposite ratio directions. Neither is a band-power uncertainty."
+  },
+  "crosscheck": "New aligned native reconstruction, log-cubic output and previous-frozen arrays are exactly equal to the corresponding arrays from the preceding same-run calculation for both models.",
+  "range_clarification": {
+    "zero_direct_node_max_k": 7.553167343139648,
+    "baseline_direct_node_max_k": 15.024090766906738,
+    "legacy_requested_max_k": 2.0,
+    "legacy_points_above_direct_node_max": 0,
+    "common_grid_max_k": 1.9985652306116815,
+    "meaning": "The old 2500-point output did not exceed CAMB's direct-node range. The common-grid upper endpoint comes from the aligned native-data intersection, not from a CAMB node maximum near 2.0."
+  },
+  "interpretation": "Disabling log interpolation is not a fix: it is much worse at the deepest zero-model minima. The old second log-linear resampling stage explains the dominant local old-frozen distortion and 0.0533990 of the highest-band log-ratio difference, but not the remaining 2.28306 cross-code log difference.",
+  "verification": "Independent highest-band recomputation passed for 7 sources and 3 methods; all 16 zero-model Python tests passed.",
+  "unchanged_boundaries": [
+    "No explicit CLASS/CAMB gauge transformation or recombination-implementation closure is claimed.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "Old raw evidence and summaries remain unchanged; this amendment records new evidence rather than rewriting history."
+  ]
+}

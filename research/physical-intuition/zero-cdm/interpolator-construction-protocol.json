@@ -1,0 +1,48 @@
+{
+  "status": "frozen_before_interpolator_construction_camb_runs",
+  "frozen_at_local": "2026-11-08T01:18:43.839017+08:00",
+  "purpose": "Separate direct CAMB power nodes, log versus linear cubic splines, and the old second log-linear resampling stage.",
+  "camb_source_commit": "72b5a4ca5df1335674e2eacad9b9a887194f9677",
+  "models": [
+    "zero",
+    "baseline"
+  ],
+  "level": "ultra",
+  "single_result_object_per_model": true,
+  "operations": {
+    "direct_nodes": "get_linear_matter_power_spectrum on CAMB internal matter-transfer k nodes",
+    "log_cubic": "get_matter_power_interpolator(log_interp=True), logsign recorded, cubic in ln(k)",
+    "linear_cubic": "get_matter_power_interpolator(log_interp=False), cubic P in ln(k)",
+    "node_reproduction": "evaluate both spline variants at the direct nodes and compare with direct node power",
+    "old_second_stage": "log-log linear resampling of the old 2500-point frozen output onto aligned native k",
+    "common_bands": "2603-point common log grid, raw and 0.05/0.10 dex smoothing, band integration before model ratios"
+  },
+  "range_rule": "No new extrapolation. Exclude native k outside direct-node or old-frozen ranges. Record old output points above the actual last CAMB node.",
+  "comparison_rule": "Retain signed fractional errors and negative spline overshoot. Report median, p95, maximum and maximum location; do not suppress deep minima.",
+  "output_rule": "Write new interpolator-construction artifacts; never overwrite prior spectra, transfer, or same-run evidence.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_interpolator_construction.py": "fc2fafb3ad1b049f60209e08e3076db17aa1b985bc07658e7db161e1047a1841",
+    "research/physical-intuition/zero-cdm/camb_interpolator_construction.py": "3bf8805b6ca291d3e849d7590f977fa1da5ce4453410cccfad0ad6fd0bae9961",
+    "research/physical-intuition/zero-cdm/analyze_interpolator_construction.py": "996c5ce06acd4d4fb3410874fce29e63dfca269e45e2a0422ea69f8fc48a2ce0",
+    "research/physical-intuition/zero-cdm/verify_interpolator_construction.py": "1ac41eb8093efcdbe5895f52619ceb67d4a09b783823a6f0440713a9ac9cb771",
+    "research/physical-intuition/zero-cdm/interpolator_construction.py": "7b316c0732640cde1b7d8740fa54a86a787b0bc6f7ad4a5f12ab33bcb836ddd0",
+    "research/physical-intuition/zero-cdm/tests/test_interpolator_construction.py": "f28011e0744a4ca703f961c250872f1ce06882daab54924d9abf72c81ca03974",
+    "research/physical-intuition/zero-cdm/camb_crosscode.py": "894582eeba01532ef5d0217be226ad4660c4711c8a96ff91575a28b5dfe949f5",
+    "research/physical-intuition/zero-cdm/same_run_power.py": "f4586235da8c2d356f7d324999f9b340d06a0a093ec0a6c25e0f280c40ff0d90",
+    "research/physical-intuition/zero-cdm/pk_band_statistics.py": "05e9c5b9bfc09e91d4e0edcf8cf74790b27dfc09603e3e587e52907684d48c98",
+    "research/physical-intuition/zero-cdm/signed_transfer_statistics.py": "16886b26f7f5deb4a84a53f49afd42ce7eb4a1ca288c1b2b3c1b7b269b4aefdd",
+    ".tmp/camb-wsl-site/camb/results.py": "f7241cf90c9490b8789a7c2bbecd3c3d65066f52f2266a8924f76bd5e01127d0",
+    ".tmp/camb-runs/ultra/zero/spectra.npz": "c7b08a3478a2e9c14b633d2f115fc67938a14f22c4dd7a9c91f8883ec660e91d",
+    ".tmp/camb-runs/ultra/baseline/spectra.npz": "fc480c5b2efa95833858d96a37f5f7c0ba789d8e681b7c9ea91ba4a76bec450a",
+    ".tmp/camb-runs/ultra/zero/parameters.ini": "1254abd04b0ca4acf303649038a937be17155ca7a7dbfbce4b4920d047173400",
+    ".tmp/camb-runs/ultra/baseline/parameters.ini": "911f9bd1312cb7282f6bed71d78b31bcbdad5efbc791679c091de1ef6fc61def",
+    ".tmp/class_public/convergence/integral/zero-cdm-integral00_pk.dat": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    ".tmp/class_public/convergence/integral/baseline-lcdm-integral00_pk.dat": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea"
+  },
+  "boundaries": [
+    "Zero CDM remains exactly zero; all physical and accuracy parameters are unchanged.",
+    "This is a numerical output-construction diagnostic, not an observational likelihood or model-family exclusion.",
+    "No CLASS/CAMB gauge transformation is introduced by this experiment.",
+    "Attribution to log interpolation requires an observed A/B improvement; otherwise sampling and spline/resampling effects remain separate possibilities."
+  ]
+}

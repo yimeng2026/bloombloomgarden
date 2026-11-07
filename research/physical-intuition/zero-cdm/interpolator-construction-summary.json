@@ -1,0 +1,1703 @@
+{
+  "status": "computed_interpolator_construction_common_grid_bandpower_diagnostics_not_observational_fit",
+  "sources": {
+    "native_reconstruction": "same-run float32 native CAMB transfer rescaled and squared using the frozen adiabatic formula",
+    "camb_power_nodes": "direct get_linear_matter_power_spectrum internal CAMB power nodes",
+    "log_cubic": "same-result cubic spline of ln(P) versus ln(k), evaluated at aligned native k",
+    "linear_cubic": "same-result cubic spline of P versus ln(k), evaluated at aligned native k",
+    "power_nodes_log_linear": "log-log linear resampling of direct CAMB nodes",
+    "previous_frozen_log_linear": "log-log linear resampling of the old 2500-point log-cubic output",
+    "class_integral": "CLASS integral pk.dat with default gauge-invariant comoving delta_m"
+  },
+  "common_grid": {
+    "minimum_k_h_per_Mpc": 0.005,
+    "requested_maximum_k_h_per_Mpc": 2.0,
+    "actual_maximum_k_h_per_Mpc": 1.9985652306116815,
+    "point_count": 2603,
+    "log10_step_dex": 0.00099990327567534,
+    "source_specific_native_grids_used_for_crosscode": false
+  },
+  "methods": {
+    "raw": "log-log interpolation to the common grid, no smoothing",
+    "smooth_0.05dex": "Gaussian smoothing of ln(P) with sigma=0.05 dex before band integration",
+    "smooth_0.10dex": "Gaussian smoothing of ln(P) with sigma=0.10 dex before band integration"
+  },
+  "band_edges_h_per_Mpc": [
+    0.01,
+    0.02,
+    0.04,
+    0.08,
+    0.16,
+    0.32,
+    0.64,
+    1.28
+  ],
+  "band_statistics": [
+    {
+      "lower_k_h_per_Mpc": 0.01,
+      "upper_k_h_per_Mpc": 0.02,
+      "geometric_center_k_h_per_Mpc": 0.01414213562373095,
+      "sources": {
+        "native_reconstruction": {
+          "raw": {
+            "zero_bandpower": 0.001564472341523586,
+            "baseline_bandpower": 0.004198593332532857,
+            "zero_over_baseline": 0.372618212247719
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091019982438065,
+            "baseline_bandpower": 0.004171434653952775,
+            "zero_over_baseline": 0.3377979316800678
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011471298766310403,
+            "baseline_bandpower": 0.004091170850958807,
+            "zero_over_baseline": 0.28039158432168604
+          }
+        },
+        "camb_power_nodes": {
+          "raw": {
+            "zero_bandpower": 0.001564472335663395,
+            "baseline_bandpower": 0.0041985933589328865,
+            "zero_over_baseline": 0.37261820850900906
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091019832700876,
+            "baseline_bandpower": 0.004171434675332799,
+            "zero_over_baseline": 0.33779792635915334
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011471298420718697,
+            "baseline_bandpower": 0.004091170869677575,
+            "zero_over_baseline": 0.280391574591524
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0015644723356788679,
+            "baseline_bandpower": 0.004198593358935743,
+            "zero_over_baseline": 0.3726182085124408
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091019788569049,
+            "baseline_bandpower": 0.004171434675336638,
+            "zero_over_baseline": 0.33779792530088926
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011471298280915066,
+            "baseline_bandpower": 0.004091170869680228,
+            "zero_over_baseline": 0.2803915711741387
+          }
+        },
+        "linear_cubic": {
+          "raw": {
+            "zero_bandpower": 0.001564472335678825,
+            "baseline_bandpower": 0.004198593358935743,
+            "zero_over_baseline": 0.3726182085124306
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091019737079574,
+            "baseline_bandpower": 0.004171434675336638,
+            "zero_over_baseline": 0.33779792406655434
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011471298114129353,
+            "baseline_bandpower": 0.004091170869680227,
+            "zero_over_baseline": 0.28039156709741553
+          }
+        },
+        "power_nodes_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.001564472334996168,
+            "baseline_bandpower": 0.004198593358809959,
+            "zero_over_baseline": 0.3726182083610019
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091019793653595,
+            "baseline_bandpower": 0.004171434675216701,
+            "zero_over_baseline": 0.33779792543249126
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011471298315594034,
+            "baseline_bandpower": 0.004091170869567421,
+            "zero_over_baseline": 0.28039157202952386
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.0015644414877734718,
+            "baseline_bandpower": 0.004198587838563023,
+            "zero_over_baseline": 0.37261135122729877
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091142190109155,
+            "baseline_bandpower": 0.004171429189762438,
+            "zero_over_baseline": 0.3378013037999487
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011472541146610655,
+            "baseline_bandpower": 0.004091165522067905,
+            "zero_over_baseline": 0.2804223169345587
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.001563110853375117,
+            "baseline_bandpower": 0.0041986126774566,
+            "zero_over_baseline": 0.37229222446925136
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014076804530134992,
+            "baseline_bandpower": 0.004171453939260264,
+            "zero_over_baseline": 0.33745559066705827
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.001145676719836918,
+            "baseline_bandpower": 0.004091189805499528,
+            "zero_over_baseline": 0.28003509353119166
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "camb_power_nodes_over_native": -1.0033621095461395e-08,
+          "camb_power_nodes_over_class": 0.0008752302186553811,
+          "log_cubic_over_native": -1.0024411351290555e-08,
+          "log_cubic_over_class": 0.0008752302278652765,
+          "linear_cubic_over_native": -1.0024438662777235e-08,
+          "linear_cubic_over_class": 0.000875230227837767,
+          "power_nodes_log_linear_over_native": -1.0430829698871057e-08,
+          "power_nodes_log_linear_over_class": 0.00087522982144675,
+          "previous_frozen_log_linear_over_native": -1.8413172951513044e-05,
+          "previous_frozen_log_linear_over_class": 0.0008568270793248595,
+          "native_over_class": 0.0008752402522764423,
+          "linear_cubic_over_log_cubic": -2.7422508708241742e-14
+        },
+        "smooth_0.05dex": {
+          "camb_power_nodes_over_native": -1.5751767458985204e-08,
+          "camb_power_nodes_over_class": 0.0010139472443831178,
+          "log_cubic_over_native": -1.8884599285019524e-08,
+          "log_cubic_over_class": 0.0010139441115513538,
+          "linear_cubic_over_native": -2.2538662301817492e-08,
+          "linear_cubic_over_class": 0.001013940457488377,
+          "power_nodes_log_linear_over_native": -1.8495011360256197e-08,
+          "power_nodes_log_linear_over_class": 0.00101394450113929,
+          "previous_frozen_log_linear_over_native": 9.982604194608933e-06,
+          "previous_frozen_log_linear_over_class": 0.0010239456003450448,
+          "native_over_class": 0.0010139629961505405,
+          "linear_cubic_over_log_cubic": -3.6540630588147557e-09
+        },
+        "smooth_0.10dex": {
+          "camb_power_nodes_over_native": -3.470204805992909e-08,
+          "camb_power_nodes_over_class": 0.0012721775343236088,
+          "log_cubic_over_native": -4.6889950911168425e-08,
+          "log_cubic_over_class": 0.0012721653464207456,
+          "linear_cubic_over_native": -6.142934383331048e-08,
+          "linear_cubic_over_class": 0.0012721508070278151,
+          "power_nodes_log_linear_over_native": -4.383927028677017e-08,
+          "power_nodes_log_linear_over_class": 0.0012721683971014582,
+          "previous_frozen_log_linear_over_native": 0.00010960003963735149,
+          "previous_frozen_log_linear_over_class": 0.001381812276009155,
+          "native_over_class": 0.0012722122363716445,
+          "linear_cubic_over_log_cubic": -1.4539392906524473e-08
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.02,
+      "upper_k_h_per_Mpc": 0.04,
+      "geometric_center_k_h_per_Mpc": 0.0282842712474619,
+      "sources": {
+        "native_reconstruction": {
+          "raw": {
+            "zero_bandpower": 0.0016096368605851188,
+            "baseline_bandpower": 0.02605448733130159,
+            "zero_over_baseline": 0.0617796404940702
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001030343140027682,
+            "baseline_bandpower": 0.025904103720099502,
+            "zero_over_baseline": 0.03977528623112401
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007355996737307626,
+            "baseline_bandpower": 0.025513090725015675,
+            "zero_over_baseline": 0.02883224465664227
+          }
+        },
+        "camb_power_nodes": {
+          "raw": {
+            "zero_bandpower": 0.0016096368634182408,
+            "baseline_bandpower": 0.026054487395390603,
+            "zero_over_baseline": 0.061779640450842555
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010303431746781968,
+            "baseline_bandpower": 0.025904103810952924,
+            "zero_over_baseline": 0.039775287429265976
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007355996941510524,
+            "baseline_bandpower": 0.0255130908174634,
+            "zero_over_baseline": 0.02883224535255224
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0016096368633735187,
+            "baseline_bandpower": 0.026054487395400252,
+            "zero_over_baseline": 0.061779640449103196
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00103034314104029,
+            "baseline_bandpower": 0.025904103810961244,
+            "zero_over_baseline": 0.039775286130698084
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007355996422268849,
+            "baseline_bandpower": 0.025513090817470607,
+            "zero_over_baseline": 0.028832243317347035
+          }
+        },
+        "linear_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0016096368633724994,
+            "baseline_bandpower": 0.026054487395400217,
+            "zero_over_baseline": 0.06177964044906415
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010303431062810512,
+            "baseline_bandpower": 0.025904103810961216,
+            "zero_over_baseline": 0.039775284788855184
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007355996000642075,
+            "baseline_bandpower": 0.025513090817470583,
+            "zero_over_baseline": 0.028832241664757115
+          }
+        },
+        "power_nodes_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.0016096368596333125,
+            "baseline_bandpower": 0.02605448739472267,
+            "zero_over_baseline": 0.06177964030715661
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00103034314748058,
+            "baseline_bandpower": 0.025904103810348217,
+            "zero_over_baseline": 0.039775286380259824
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007355996547420006,
+            "baseline_bandpower": 0.02551309081695194,
+            "zero_over_baseline": 0.028832243808470204
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.0016094662714492476,
+            "baseline_bandpower": 0.02605445548855696,
+            "zero_over_baseline": 0.06177316859130372
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010303387649643026,
+            "baseline_bandpower": 0.02590407483073597,
+            "zero_over_baseline": 0.03977516169547868
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007357633743945501,
+            "baseline_bandpower": 0.02551306626919693,
+            "zero_over_baseline": 0.02883868864021532
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.0016077029298363196,
+            "baseline_bandpower": 0.026054652589007382,
+            "zero_over_baseline": 0.06170502271500712
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001030169469145596,
+            "baseline_bandpower": 0.025904256849538447,
+            "zero_over_baseline": 0.03976834676745228
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007346329368029746,
+            "baseline_bandpower": 0.025513216475205616,
+            "zero_over_baseline": 0.028794210934435075
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "camb_power_nodes_over_native": -6.997069592845536e-10,
+          "camb_power_nodes_over_class": 0.0012085346148155392,
+          "log_cubic_over_native": -7.278612160084214e-10,
+          "log_cubic_over_class": 0.0012085345866612446,
+          "linear_cubic_over_native": -7.284931549544983e-10,
+          "linear_cubic_over_class": 0.0012085345860291818,
+          "power_nodes_log_linear_over_native": -3.02548841993034e-09,
+          "power_nodes_log_linear_over_class": 0.0012085322890340387,
+          "previous_frozen_log_linear_over_native": -0.00010476334484510989,
+          "previous_frozen_log_linear_over_class": 0.0011037719696772007,
+          "native_over_class": 0.0012085353145223567,
+          "linear_cubic_over_log_cubic": -6.320499679193013e-13
+        },
+        "smooth_0.05dex": {
+          "camb_power_nodes_over_native": 3.0122773821252495e-08,
+          "camb_power_nodes_over_class": 0.00017451206250260158,
+          "log_cubic_over_native": -2.5248322353631997e-09,
+          "log_cubic_over_class": 0.00017447941489657224,
+          "linear_cubic_over_native": -3.6260426763569807e-08,
+          "linear_cubic_over_class": 0.0001744456793021849,
+          "power_nodes_log_linear_over_native": 3.749459180544967e-09,
+          "power_nodes_log_linear_over_class": 0.00017448568918815505,
+          "previous_frozen_log_linear_over_native": -3.130985395511297e-06,
+          "previous_frozen_log_linear_over_class": 0.00017135095433339035,
+          "native_over_class": 0.00017448193972887906,
+          "linear_cubic_over_log_cubic": -3.3735594443029884e-08
+        },
+        "smooth_0.10dex": {
+          "camb_power_nodes_over_native": 2.4136516938037136e-08,
+          "camb_power_nodes_over_class": 0.0013200334044705187,
+          "log_cubic_over_native": -4.645130066344392e-08,
+          "log_cubic_over_class": 0.0013199628166528188,
+          "linear_cubic_over_native": -1.0376872644430075e-07,
+          "linear_cubic_over_class": 0.0013199054992270843,
+          "power_nodes_log_linear_over_native": -2.941748332678379e-08,
+          "power_nodes_log_linear_over_class": 0.0013199798504701817,
+          "previous_frozen_log_linear_over_native": 0.0002234742263212654,
+          "previous_frozen_log_linear_over_class": 0.0015434834942747613,
+          "native_over_class": 0.0013200092679534362,
+          "linear_cubic_over_log_cubic": -5.731742578292324e-08
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.04,
+      "upper_k_h_per_Mpc": 0.08,
+      "geometric_center_k_h_per_Mpc": 0.0565685424949238,
+      "sources": {
+        "native_reconstruction": {
+          "raw": {
+            "zero_bandpower": 0.002488098190929167,
+            "baseline_bandpower": 0.11673073322195653,
+            "zero_over_baseline": 0.02131485104439631
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012408652082809017,
+            "baseline_bandpower": 0.1156137692729848,
+            "zero_over_baseline": 0.010732849695013376
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0012403886436829037,
+            "baseline_bandpower": 0.11329629940414754,
+            "zero_over_baseline": 0.010948183216984188
+          }
+        },
+        "camb_power_nodes": {
+          "raw": {
+            "zero_bandpower": 0.0024880980095307076,
+            "baseline_bandpower": 0.11673073323220856,
+            "zero_over_baseline": 0.021314849488533728
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012408653660686785,
+            "baseline_bandpower": 0.11561376935209489,
+            "zero_over_baseline": 0.0107328510524529
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0012403888525345486,
+            "baseline_bandpower": 0.11329629978913347,
+            "zero_over_baseline": 0.010948185023192765
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0024880980133838624,
+            "baseline_bandpower": 0.11673073323303845,
+            "zero_over_baseline": 0.021314849521391104
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012408651237785573,
+            "baseline_bandpower": 0.1156137693527307,
+            "zero_over_baseline": 0.010732848956708193
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.001240388648311971,
+            "baseline_bandpower": 0.11329629978978134,
+            "zero_over_baseline": 0.010948183220577225
+          }
+        },
+        "linear_cubic": {
+          "raw": {
+            "zero_bandpower": 0.002488098013691741,
+            "baseline_bandpower": 0.11673073323303834,
+            "zero_over_baseline": 0.021314849524028637
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001240865916529743,
+            "baseline_bandpower": 0.11561376935273057,
+            "zero_over_baseline": 0.010732855813600685
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0012403893049897207,
+            "baseline_bandpower": 0.11329629978978129,
+            "zero_over_baseline": 0.010948189016686644
+          }
+        },
+        "power_nodes_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.002488097951055918,
+            "baseline_bandpower": 0.11673073322711143,
+            "zero_over_baseline": 0.02131484898852706
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012408651752452628,
+            "baseline_bandpower": 0.11561376934826663,
+            "zero_over_baseline": 0.0107328494022833
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0012403886907381252,
+            "baseline_bandpower": 0.11329629978897536,
+            "zero_over_baseline": 0.010948183595125893
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.002487115686060012,
+            "baseline_bandpower": 0.11673048419125832,
+            "zero_over_baseline": 0.021306479650893682
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012423272952002717,
+            "baseline_bandpower": 0.11561356762791027,
+            "zero_over_baseline": 0.010745514740956419
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.001241605496862819,
+            "baseline_bandpower": 0.11329617289500919,
+            "zero_over_baseline": 0.010958935903451976
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.0024840984590287943,
+            "baseline_bandpower": 0.11672885808387291,
+            "zero_over_baseline": 0.021280928296616257
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0011484590909216332,
+            "baseline_bandpower": 0.11561212221891425,
+            "zero_over_baseline": 0.009933725537422444
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011658677595495258,
+            "baseline_bandpower": 0.11329480568893018,
+            "zero_over_baseline": 0.010290566742756156
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "camb_power_nodes_over_native": -7.299430027040524e-08,
+          "camb_power_nodes_over_class": 0.001592702415682031,
+          "log_cubic_over_native": -7.145277514032635e-08,
+          "log_cubic_over_class": 0.0015927039572071582,
+          "linear_cubic_over_native": -7.132903355894819e-08,
+          "linear_cubic_over_class": 0.0015927040809487767,
+          "power_nodes_log_linear_over_native": -9.645243802506463e-08,
+          "power_nodes_log_linear_over_class": 0.0015926789575442793,
+          "previous_frozen_log_linear_over_native": -0.0003928264779026091,
+          "previous_frozen_log_linear_over_class": 0.00119994893207965,
+          "native_over_class": 0.001592775409982286,
+          "linear_cubic_over_log_cubic": 1.2374146151417533e-10
+        },
+        "smooth_0.05dex": {
+          "camb_power_nodes_over_native": 1.2647521185466093e-07,
+          "camb_power_nodes_over_class": 0.07737364217452974,
+          "log_cubic_over_native": -6.878929906927038e-08,
+          "log_cubic_over_class": 0.07737344691001895,
+          "linear_cubic_over_native": 5.700802432748949e-07,
+          "linear_cubic_over_class": 0.07737408577956126,
+          "power_nodes_log_linear_over_native": -2.7274217812028986e-08,
+          "power_nodes_log_linear_over_class": 0.07737348842510018,
+          "previous_frozen_log_linear_over_native": 0.0011793307119544432,
+          "previous_frozen_log_linear_over_class": 0.07855284641127239,
+          "native_over_class": 0.07737351569931808,
+          "linear_cubic_over_log_cubic": 6.388695423615964e-07
+        },
+        "smooth_0.10dex": {
+          "camb_power_nodes_over_native": 1.6497791393258636e-07,
+          "camb_power_nodes_over_class": 0.06194606584695874,
+          "log_cubic_over_native": 3.281857007836271e-10,
+          "log_cubic_over_class": 0.0619459011972307,
+          "linear_cubic_over_native": 5.297409446852776e-07,
+          "linear_cubic_over_class": 0.06194643060998951,
+          "power_nodes_log_linear_over_native": 3.453921911005201e-08,
+          "power_nodes_log_linear_over_class": 0.06194593540826401,
+          "previous_frozen_log_linear_over_native": 0.000981661465587414,
+          "previous_frozen_log_linear_over_class": 0.06292756233463216,
+          "native_over_class": 0.06194590086904486,
+          "linear_cubic_over_log_cubic": 5.294127589361951e-07
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.08,
+      "upper_k_h_per_Mpc": 0.16,
+      "geometric_center_k_h_per_Mpc": 0.1131370849898476,
+      "sources": {
+        "native_reconstruction": {
+          "raw": {
+            "zero_bandpower": 0.0019676735812690824,
+            "baseline_bandpower": 0.37687795888027387,
+            "zero_over_baseline": 0.005220983437490359
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010479246472236052,
+            "baseline_bandpower": 0.37477823351535394,
+            "zero_over_baseline": 0.0027961192873829843
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524095999821358,
+            "baseline_bandpower": 0.37086868398046213,
+            "zero_over_baseline": 0.002568050744430905
+          }
+        },
+        "camb_power_nodes": {
+          "raw": {
+            "zero_bandpower": 0.001967673772360165,
+            "baseline_bandpower": 0.37687796205113794,
+            "zero_over_baseline": 0.005220983900600626
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001047925008993469,
+            "baseline_bandpower": 0.3747782361328858,
+            "zero_over_baseline": 0.0027961202331447665
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524098773090273,
+            "baseline_bandpower": 0.3708686863856995,
+            "zero_over_baseline": 0.0025680514755525388
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.001967673769162777,
+            "baseline_bandpower": 0.3768779620682872,
+            "zero_over_baseline": 0.005220983891879171
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010479249483719916,
+            "baseline_bandpower": 0.3747782361478363,
+            "zero_over_baseline": 0.002796120071280296
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524097914738288,
+            "baseline_bandpower": 0.37086868639825465,
+            "zero_over_baseline": 0.0025680512440219624
+          }
+        },
+        "linear_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0019676737845273078,
+            "baseline_bandpower": 0.37687796206828733,
+            "zero_over_baseline": 0.005220983932647091
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001047926046569073,
+            "baseline_bandpower": 0.3747782361478363,
+            "zero_over_baseline": 0.0027961230015387142
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524108906839861,
+            "baseline_bandpower": 0.37086868639825443,
+            "zero_over_baseline": 0.0025680542079016266
+          }
+        },
+        "power_nodes_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.0019676736097601994,
+            "baseline_bandpower": 0.3768779620008349,
+            "zero_over_baseline": 0.005220983469858183
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010479249479610725,
+            "baseline_bandpower": 0.37477823611388483,
+            "zero_over_baseline": 0.002796120070437166
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524098010428733,
+            "baseline_bandpower": 0.37086868637976517,
+            "zero_over_baseline": 0.0025680512699516964
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.001965826255229283,
+            "baseline_bandpower": 0.3768773093515944,
+            "zero_over_baseline": 0.005216090771321376
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010494031646353995,
+            "baseline_bandpower": 0.3747778330694881,
+            "zero_over_baseline": 0.0028000673253287854
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009536822210576808,
+            "baseline_bandpower": 0.3708683309025061,
+            "zero_over_baseline": 0.0025714846526175483
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.0019657750265688685,
+            "baseline_bandpower": 0.37687667786729956,
+            "zero_over_baseline": 0.005215963581755593
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001035133891627326,
+            "baseline_bandpower": 0.3747754689135701,
+            "zero_over_baseline": 0.002762010797099546
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009309134298036686,
+            "baseline_bandpower": 0.37086545572271173,
+            "zero_over_baseline": 0.0025101109187685923
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "camb_power_nodes_over_native": 8.870172691529604e-08,
+          "camb_power_nodes_over_class": 0.0009620282636683159,
+          "log_cubic_over_native": 8.703126484907443e-08,
+          "log_cubic_over_class": 0.0009620265932065253,
+          "linear_cubic_over_native": 9.48397393387733e-08,
+          "linear_cubic_over_class": 0.0009620344016809976,
+          "power_nodes_log_linear_over_native": 6.199564398168928e-09,
+          "power_nodes_log_linear_over_class": 0.0009619457615060372,
+          "previous_frozen_log_linear_over_native": -0.0009375551863460689,
+          "previous_frozen_log_linear_over_class": 2.438437559559019e-05,
+          "native_over_class": 0.0009619395619415541,
+          "linear_cubic_over_log_cubic": 7.808474503146511e-09
+        },
+        "smooth_0.05dex": {
+          "camb_power_nodes_over_native": 3.3824079923109846e-07,
+          "camb_power_nodes_over_class": 0.012273861147732252,
+          "log_cubic_over_native": 2.803518452976038e-07,
+          "log_cubic_over_class": 0.012273803258778302,
+          "linear_cubic_over_native": 1.3283243242723607e-06,
+          "linear_cubic_over_class": 0.012274851231257348,
+          "power_nodes_log_linear_over_native": 2.800503096967847e-07,
+          "power_nodes_log_linear_over_class": 0.012273802957242723,
+          "previous_frozen_log_linear_over_native": 0.0014109746061107401,
+          "previous_frozen_log_linear_over_class": 0.013684497513043813,
+          "native_over_class": 0.012273522906933019,
+          "linear_cubic_over_log_cubic": 1.0479724790109578e-06
+        },
+        "smooth_0.10dex": {
+          "camb_power_nodes_over_native": 2.846990197999177e-07,
+          "camb_power_nodes_over_class": 0.022820487712141513,
+          "log_cubic_over_native": 1.945409410848372e-07,
+          "log_cubic_over_class": 0.0228203975540629,
+          "linear_cubic_over_native": 1.3486759922496e-06,
+          "linear_cubic_over_class": 0.02282155168911418,
+          "power_nodes_log_linear_over_native": 2.0463798804427268e-07,
+          "power_nodes_log_linear_over_class": 0.02282040765110997,
+          "previous_frozen_log_linear_over_native": 0.0013362720294084782,
+          "previous_frozen_log_linear_over_class": 0.024156475042530382,
+          "native_over_class": 0.022820203013121865,
+          "linear_cubic_over_log_cubic": 1.1541350512043375e-06
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.16,
+      "upper_k_h_per_Mpc": 0.32,
+      "geometric_center_k_h_per_Mpc": 0.2262741699796952,
+      "sources": {
+        "native_reconstruction": {
+          "raw": {
+            "zero_bandpower": 0.00028100068519543734,
+            "baseline_bandpower": 0.9357483986358643,
+            "zero_over_baseline": 0.00030029512805480684
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.000128836149198789,
+            "baseline_bandpower": 0.9345924339959233,
+            "zero_over_baseline": 0.00013785276288610633
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010877953453190215,
+            "baseline_bandpower": 0.9273314015048785,
+            "zero_over_baseline": 0.00011730384019712276
+          }
+        },
+        "camb_power_nodes": {
+          "raw": {
+            "zero_bandpower": 0.00028100066663927926,
+            "baseline_bandpower": 0.9357483983753185,
+            "zero_over_baseline": 0.00030029510830813406
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012883616639238643,
+            "baseline_bandpower": 0.9345924344906967,
+            "zero_over_baseline": 0.0001378527812100205
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010877956116671649,
+            "baseline_bandpower": 0.9273314020625344,
+            "zero_over_baseline": 0.00011730386884858338
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.00028100066644546533,
+            "baseline_bandpower": 0.9357483983795695,
+            "zero_over_baseline": 0.00030029510809964806
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012883615987544633,
+            "baseline_bandpower": 0.9345924344982768,
+            "zero_over_baseline": 0.0001378527742358735
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010877955483884583,
+            "baseline_bandpower": 0.9273314020734087,
+            "zero_over_baseline": 0.00011730386202346538
+          }
+        },
+        "linear_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0002810006653051671,
+            "baseline_bandpower": 0.9357483983795655,
+            "zero_over_baseline": 0.00030029510688105436
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012883624972334577,
+            "baseline_bandpower": 0.9345924344982732,
+            "zero_over_baseline": 0.00013785287037178966
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010877953405091917,
+            "baseline_bandpower": 0.9273314020734055,
+            "zero_over_baseline": 0.00011730383960653198
+          }
+        },
+        "power_nodes_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.00028100062928079723,
+            "baseline_bandpower": 0.9357483983793646,
+            "zero_over_baseline": 0.00030029506838319576
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012883616006282322,
+            "baseline_bandpower": 0.934592434458442,
+            "zero_over_baseline": 0.00013785277444223963
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010877954809616601,
+            "baseline_bandpower": 0.9273314020215074,
+            "zero_over_baseline": 0.00011730385475897333
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.00028006999316705443,
+            "baseline_bandpower": 0.9357484982818689,
+            "zero_over_baseline": 0.0002993004997403597
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012871736938071187,
+            "baseline_bandpower": 0.934591915414152,
+            "zero_over_baseline": 0.000137725746668451
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010874205095944043,
+            "baseline_bandpower": 0.9273307921855399,
+            "zero_over_baseline": 0.00011726349634433725
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.0002800372091485318,
+            "baseline_bandpower": 0.9357498951706271,
+            "zero_over_baseline": 0.00029926501792176965
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0001321886203212352,
+            "baseline_bandpower": 0.9345946665632087,
+            "zero_over_baseline": 0.00014143951923814557
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00011087021441439385,
+            "baseline_bandpower": 0.9273323563132745,
+            "zero_over_baseline": 0.00011955822921479006
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "camb_power_nodes_over_native": -6.575755512037339e-08,
+          "camb_power_nodes_over_class": 0.0034361571253236985,
+          "log_cubic_over_native": -6.645182547417838e-08,
+          "log_cubic_over_class": 0.003436156431053139,
+          "linear_cubic_over_native": -7.050981269854341e-08,
+          "linear_cubic_over_class": 0.0034361523730659983,
+          "power_nodes_log_linear_over_native": -1.9870990717623597e-07,
+          "power_nodes_log_linear_over_class": 0.0034360241729716186,
+          "previous_frozen_log_linear_over_native": -0.0033176667095456136,
+          "previous_frozen_log_linear_over_class": 0.00011855617333317357,
+          "native_over_class": 0.003436222882878599,
+          "linear_cubic_over_log_cubic": -4.0579871767489835e-09
+        },
+        "smooth_0.05dex": {
+          "camb_power_nodes_over_native": 1.329237989041812e-07,
+          "camb_power_nodes_over_class": -0.025685886939874638,
+          "log_cubic_over_native": 8.233252962416217e-08,
+          "log_cubic_over_class": -0.025685937531143958,
+          "linear_cubic_over_native": 7.797133636547551e-07,
+          "linear_cubic_over_class": -0.025685240150310044,
+          "power_nodes_log_linear_over_native": 8.382953357604583e-08,
+          "power_nodes_log_linear_over_class": -0.025685936034140093,
+          "previous_frozen_log_linear_over_native": -0.0009218151796735331,
+          "previous_frozen_log_linear_over_class": -0.02660783504334715,
+          "native_over_class": -0.02568601986367362,
+          "linear_cubic_over_log_cubic": 6.973808339381909e-07
+        },
+        "smooth_0.10dex": {
+          "camb_power_nodes_over_native": 2.442499501902406e-07,
+          "camb_power_nodes_over_class": -0.01903578882930369,
+          "log_cubic_over_native": 1.860667182642286e-07,
+          "log_cubic_over_class": -0.019035847012535557,
+          "linear_cubic_over_native": -5.034709661861769e-09,
+          "linear_cubic_over_class": -0.019036038113963687,
+          "power_nodes_log_linear_over_native": 1.2413787693328014e-07,
+          "power_nodes_log_linear_over_class": -0.01903590894137712,
+          "previous_frozen_log_linear_over_native": -0.0003439852605069847,
+          "previous_frozen_log_linear_over_class": -0.0193800183397609,
+          "native_over_class": -0.019036033079253972,
+          "linear_cubic_over_log_cubic": -1.9110142806759135e-07
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.32,
+      "upper_k_h_per_Mpc": 0.64,
+      "geometric_center_k_h_per_Mpc": 0.4525483399593904,
+      "sources": {
+        "native_reconstruction": {
+          "raw": {
+            "zero_bandpower": 8.827335303101761e-07,
+            "baseline_bandpower": 1.9049268004225812,
+            "zero_over_baseline": 4.6339498720599344e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.259994134237293e-07,
+            "baseline_bandpower": 1.9005660025081597,
+            "zero_over_baseline": 2.2414344614264474e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.983864405908993e-07,
+            "baseline_bandpower": 1.8890338032343104,
+            "zero_over_baseline": 1.5795717370436505e-07
+          }
+        },
+        "camb_power_nodes": {
+          "raw": {
+            "zero_bandpower": 8.827336405445093e-07,
+            "baseline_bandpower": 1.9049268017514798,
+            "zero_over_baseline": 4.633950447507391e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.259994741744006e-07,
+            "baseline_bandpower": 1.9005660048835793,
+            "zero_over_baseline": 2.2414347782701479e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.9838648725819934e-07,
+            "baseline_bandpower": 1.8890338056642821,
+            "zero_over_baseline": 1.5795719820549807e-07
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 8.827336626792239e-07,
+            "baseline_bandpower": 1.9049268017559913,
+            "zero_over_baseline": 4.633950563693609e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.2599944097425625e-07,
+            "baseline_bandpower": 1.9005660048867834,
+            "zero_over_baseline": 2.2414346035808053e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.98386472765425e-07,
+            "baseline_bandpower": 1.889033805666928,
+            "zero_over_baseline": 1.579571905332202e-07
+          }
+        },
+        "linear_cubic": {
+          "raw": {
+            "zero_bandpower": 8.827336029780484e-07,
+            "baseline_bandpower": 1.9049268017559824,
+            "zero_over_baseline": 4.6339502502895904e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.2599745302174815e-07,
+            "baseline_bandpower": 1.9005660048867747,
+            "zero_over_baseline": 2.2414241437888222e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.9838485852571295e-07,
+            "baseline_bandpower": 1.8890338056669194,
+            "zero_over_baseline": 1.5795633600128655e-07
+          }
+        },
+        "power_nodes_log_linear": {
+          "raw": {
+            "zero_bandpower": 8.827334228017377e-07,
+            "baseline_bandpower": 1.904926801715214,
+            "zero_over_baseline": 4.633949304545016e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.259993507518041e-07,
+            "baseline_bandpower": 1.9005660048660535,
+            "zero_over_baseline": 2.2414341288916578e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.983864268754132e-07,
+            "baseline_bandpower": 1.889033805640813,
+            "zero_over_baseline": 1.5795716624255552e-07
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 8.744463847125239e-07,
+            "baseline_bandpower": 1.9049255246731944,
+            "zero_over_baseline": 4.590449198073202e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.232240543231237e-07,
+            "baseline_bandpower": 1.9005652729035907,
+            "zero_over_baseline": 2.2268325132371942e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.9716387334922175e-07,
+            "baseline_bandpower": 1.8890330643265452,
+            "zero_over_baseline": 1.5731004340845826e-07
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 8.663536165601234e-07,
+            "baseline_bandpower": 1.9048752045224313,
+            "zero_over_baseline": 4.548085955989572e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.0909320552073235e-07,
+            "baseline_bandpower": 1.9005126225937037,
+            "zero_over_baseline": 2.1525413757180256e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.5809983404804016e-07,
+            "baseline_bandpower": 1.888959755872572,
+            "zero_over_baseline": 1.3663596233092614e-07
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "camb_power_nodes_over_native": 1.241807608465941e-07,
+          "camb_power_nodes_over_class": 0.018703257265483383,
+          "log_cubic_over_native": 1.4925358323425042e-07,
+          "log_cubic_over_class": 0.018703282338305715,
+          "linear_cubic_over_native": 8.16214353878968e-08,
+          "linear_cubic_over_class": 0.01870321470615808,
+          "power_nodes_log_linear_over_native": -1.2246894526811472e-07,
+          "power_nodes_log_linear_over_class": 0.018703010615777303,
+          "previous_frozen_log_linear_over_native": -0.009431724740268026,
+          "previous_frozen_log_linear_over_class": 0.009271408344454373,
+          "native_over_class": 0.018703133084722587,
+          "linear_cubic_over_log_cubic": -6.76321477266426e-08
+        },
+        "smooth_0.05dex": {
+          "camb_power_nodes_over_native": 1.4135754744618203e-07,
+          "camb_power_nodes_over_class": 0.040467007527516946,
+          "log_cubic_over_native": 6.342115098483595e-08,
+          "log_cubic_over_class": 0.040466929591120575,
+          "linear_cubic_over_native": -4.603151039963984e-06,
+          "linear_cubic_over_class": 0.04046226301892964,
+          "power_nodes_log_linear_over_native": -1.4835803587017792e-07,
+          "power_nodes_log_linear_over_class": 0.0404667178119338,
+          "previous_frozen_log_linear_over_native": -0.0065358673740773055,
+          "previous_frozen_log_linear_over_class": 0.033930998795892446,
+          "native_over_class": 0.04046686616996954,
+          "linear_cubic_over_log_cubic": -4.666572190922059e-06
+        },
+        "smooth_0.10dex": {
+          "camb_power_nodes_over_native": 1.5511249369869496e-07,
+          "camb_power_nodes_over_class": 0.1450039189762584,
+          "log_cubic_over_native": 1.0654061398441585e-07,
+          "log_cubic_over_class": 0.14500387040437845,
+          "linear_cubic_over_native": -5.303369768983858e-06,
+          "linear_cubic_over_class": 0.1449984604939956,
+          "power_nodes_log_linear_over_native": -4.7239448136568685e-08,
+          "power_nodes_log_linear_over_class": 0.14500371662431655,
+          "previous_frozen_log_linear_over_native": -0.004105287005062036,
+          "previous_frozen_log_linear_over_class": 0.1408984768587025,
+          "native_over_class": 0.1450037638637647,
+          "linear_cubic_over_log_cubic": -5.409910382914124e-06
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.64,
+      "upper_k_h_per_Mpc": 1.28,
+      "geometric_center_k_h_per_Mpc": 0.9050966799187808,
+      "sources": {
+        "native_reconstruction": {
+          "raw": {
+            "zero_bandpower": 4.12472638623433e-12,
+            "baseline_bandpower": 3.329124439233357,
+            "zero_over_baseline": 1.238982339507918e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.083097966728698e-12,
+            "baseline_bandpower": 3.324273870504246,
+            "zero_over_baseline": 6.266324761060439e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.608883481049836e-12,
+            "baseline_bandpower": 3.324954910346531,
+            "zero_over_baseline": 1.3861491675294605e-12
+          }
+        },
+        "camb_power_nodes": {
+          "raw": {
+            "zero_bandpower": 4.124724442754845e-12,
+            "baseline_bandpower": 3.3291244437219993,
+            "zero_over_baseline": 1.2389817540564376e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.083095209205818e-12,
+            "baseline_bandpower": 3.3242738730080914,
+            "zero_over_baseline": 6.266316461227224e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.608878507990003e-12,
+            "baseline_bandpower": 3.3249549124599174,
+            "zero_over_baseline": 1.386147670971031e-12
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 4.124726520948205e-12,
+            "baseline_bandpower": 3.3291244437232965,
+            "zero_over_baseline": 1.238982378302178e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.0830924283785275e-12,
+            "baseline_bandpower": 3.324273873009165,
+            "zero_over_baseline": 6.266308096008022e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.6088746496429154e-12,
+            "baseline_bandpower": 3.324954912460975,
+            "zero_over_baseline": 1.3861465105497154e-12
+          }
+        },
+        "linear_cubic": {
+          "raw": {
+            "zero_bandpower": 4.124724615010049e-12,
+            "baseline_bandpower": 3.329124443723285,
+            "zero_over_baseline": 1.2389818057978532e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.0830543678538374e-12,
+            "baseline_bandpower": 3.3242738730091537,
+            "zero_over_baseline": 6.266193603261224e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.608941960503234e-12,
+            "baseline_bandpower": 3.3249549124609636,
+            "zero_over_baseline": 1.3861667546919991e-12
+          }
+        },
+        "power_nodes_log_linear": {
+          "raw": {
+            "zero_bandpower": 4.1247040141654e-12,
+            "baseline_bandpower": 3.329124443710452,
+            "zero_over_baseline": 1.2389756177357672e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.083092530483402e-12,
+            "baseline_bandpower": 3.324273872996651,
+            "zero_over_baseline": 6.266308403181018e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.60887395486944e-12,
+            "baseline_bandpower": 3.3249549124476534,
+            "zero_over_baseline": 1.3861463015980071e-12
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 3.157397467254749e-12,
+            "baseline_bandpower": 3.3291234274165964,
+            "zero_over_baseline": 9.484170641594063e-13
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 1.97477980182984e-12,
+            "baseline_bandpower": 3.324272885985422,
+            "zero_over_baseline": 5.940486444885981e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.364917126782616e-12,
+            "baseline_bandpower": 3.3249539214514705,
+            "zero_over_baseline": 1.3127752233261512e-12
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 2.1188570696364986e-11,
+            "baseline_bandpower": 3.3277430937240062,
+            "zero_over_baseline": 6.367249544090649e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.0419318314018575e-11,
+            "baseline_bandpower": 3.3228202063697605,
+            "zero_over_baseline": 6.14517700201632e-12
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.2579228128418945e-11,
+            "baseline_bandpower": 3.323503349448403,
+            "zero_over_baseline": 6.7938033317061e-12
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "camb_power_nodes_over_native": -4.725262014524523e-07,
+          "camb_power_nodes_over_class": -1.6368777174298783,
+          "log_cubic_over_native": 3.1311390101224825e-08,
+          "log_cubic_over_class": -1.6368772135922864,
+          "linear_cubic_over_native": -4.307649614433257e-07,
+          "linear_cubic_over_class": -1.636877675668638,
+          "power_nodes_log_linear_over_native": -5.4252511678438066e-06,
+          "power_nodes_log_linear_over_class": -1.6368826701548445,
+          "previous_frozen_log_linear_over_native": -0.26725128109447766,
+          "previous_frozen_log_linear_over_class": -1.9041285259981542,
+          "native_over_class": -1.6368772449036766,
+          "linear_cubic_over_log_cubic": -4.62076351579901e-07
+        },
+        "smooth_0.05dex": {
+          "camb_power_nodes_over_native": -1.3245146123038498e-06,
+          "camb_power_nodes_over_class": -2.283063944071434,
+          "log_cubic_over_native": -2.6594655101282617e-06,
+          "log_cubic_over_class": -2.2830652790223316,
+          "linear_cubic_over_native": -2.0930797052389602e-05,
+          "linear_cubic_over_class": -2.283083550353874,
+          "power_nodes_log_linear_over_native": -2.610445739062328e-06,
+          "power_nodes_log_linear_over_class": -2.2830652300025607,
+          "previous_frozen_log_linear_over_native": -0.05339899717417984,
+          "previous_frozen_log_linear_over_class": -2.3364616167310017,
+          "native_over_class": -2.2830626195568215,
+          "linear_cubic_over_log_cubic": -1.8271331542257998e-05
+        },
+        "smooth_0.10dex": {
+          "camb_power_nodes_over_native": -1.0796523724616167e-06,
+          "camb_power_nodes_over_class": -1.5894824821653337,
+          "log_cubic_over_native": -1.916808344816118e-06,
+          "log_cubic_over_class": -1.589483319321306,
+          "linear_cubic_over_native": 1.2687704455191416e-05,
+          "linear_cubic_over_class": -1.5894687148085058,
+          "power_nodes_log_linear_over_native": -2.0675512298707566e-06,
+          "power_nodes_log_linear_over_class": -1.589483470064191,
+          "previous_frozen_log_linear_over_native": -0.05438613199302518,
+          "previous_frozen_log_linear_over_class": -1.6438675345059863,
+          "native_over_class": -1.589481402512961,
+          "linear_cubic_over_log_cubic": 1.46045128000515e-05
+        }
+      }
+    }
+  ],
+  "robustness": {
+    "camb_power_nodes_over_native": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 4.725262014524523e-07,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 4.725262014524523e-07,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 1.3245146123038498e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.3245146123038498e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.0796523724616167e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.0796523724616167e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "camb_power_nodes_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.6368777174298783,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6368777174298783,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.283063944071434,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.283063944071434,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.5894824821653337,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.5894824821653337,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "log_cubic_over_native": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.4925358323425042e-07,
+        "max_abs_ln_difference_band": [
+          0.32,
+          0.64
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.4925358323425042e-07,
+        "max_abs_ln_difference_extreme_band": [
+          0.32,
+          0.64
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.6594655101282617e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.6594655101282617e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.916808344816118e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.916808344816118e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "log_cubic_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.6368772135922864,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6368772135922864,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.2830652790223316,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.2830652790223316,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.589483319321306,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.589483319321306,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "linear_cubic_over_native": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 4.307649614433257e-07,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 4.307649614433257e-07,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.0930797052389602e-05,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.0930797052389602e-05,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.2687704455191416e-05,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.2687704455191416e-05,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "linear_cubic_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.636877675668638,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.636877675668638,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.283083550353874,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.283083550353874,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.5894687148085058,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.5894687148085058,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "power_nodes_log_linear_over_native": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 5.4252511678438066e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 5.4252511678438066e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.610445739062328e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.610445739062328e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 2.0675512298707566e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.0675512298707566e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "power_nodes_log_linear_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.6368826701548445,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6368826701548445,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.2830652300025607,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.2830652300025607,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.589483470064191,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.589483470064191,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "previous_frozen_log_linear_over_native": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 0.26725128109447766,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 0.26725128109447766,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 0.05339899717417984,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 0.05339899717417984,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 0.05438613199302518,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 0.05438613199302518,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "previous_frozen_log_linear_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.9041285259981542,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.9041285259981542,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.3364616167310017,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.3364616167310017,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.6438675345059863,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6438675345059863,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "native_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.6368772449036766,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6368772449036766,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.2830626195568215,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.2830626195568215,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.589481402512961,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.589481402512961,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "linear_cubic_over_log_cubic": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 4.62076351579901e-07,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 4.62076351579901e-07,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 1.8271331542257998e-05,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.8271331542257998e-05,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.46045128000515e-05,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.46045128000515e-05,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    }
+  },
+  "validation": {
+    "all_bandpowers_finite_and_positive": true,
+    "zero_cdm_exactly_zero": true,
+    "observational_likelihood_or_covariance_included": false
+  },
+  "raw_output_sha256": {
+    "camb_zero": "91b0364978c36d15890bcd3826150996798369996679ead6da758b9dffb5f6b0",
+    "camb_baseline": "e2a8215501452e7c0d63f8cd770b52374f1f6aa1756ffa7d26268444ae8694e4",
+    "class_zero": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    "class_baseline": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea"
+  },
+  "analysis_runner_sha256": "996c5ce06acd4d4fb3410874fce29e63dfca269e45e2a0422ea69f8fc48a2ce0",
+  "boundaries": [
+    "The A/B comparison separates log versus linear cubic output construction on one result object.",
+    "The old second log-linear resampling stage remains a separate candidate; neither is silently called the solver answer.",
+    "CLASS and CAMB output gauges differ at low k; no explicit gauge transformation or gauge-invariant cross-code proof is added.",
+    "No likelihood, parameter search, joint BBN, nonlinear calculation, or model-family exclusion."
+  ]
+}
