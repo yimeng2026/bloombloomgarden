@@ -134,3 +134,4 @@
 - 根平台 `lint:all` 与后端 `npm run lint` 均零输出通过，113＋12 项测试及 Next standalone、Express 构建通过。实时 API 集成脚本未在本轮执行，研究开放项与端到端验收不因静态检查和单元测试而自动核销。
 - 2026-11-08 补充：默认隔离研究 API 自检成功，临时服务与数据库均清理。`PhysicalChemistry/ReactionNetwork.lean` 已由原生 Windows Lean v4.29.0 实际编译，退出码 0；`Sylva.ReactionNetwork.MM_deficiency_zero_computed` 的 `#print axioms` 仅为 `propext、Classical.choice、Quot.sound`，无 `sorryAx`。
 - 新增可复现 `scripts/verify-reaction-lean.ps1`、`research/formalization/reaction-network-lean-audit.json` 和 `REACTION_NETWORK_LEAN_AUDIT_2026-11-08.md`，记录源码哈希、编译产物哈希、实际命令与退出码。WSL Lake 构建因 `p9_client_rpc` 等待未完成，不能宣称全库 Lake 成功；源码警告与 `BerryCurvature_GaugeInvariance` 的 `True := by trivial` 占位仍明确保留为未解决项。
+- 原生 Windows Lake 随后成功构建 `PhysicalChemistry.ReactionNetwork`，退出码 0，3288 个任务完成。完整 `--with-lean-build` 自检、声明级公理审计和验证回读全部通过，临时资源均清理。两份历史快照比较为 0 变化、评审队列为空；新增 `reaction-lake-self-check.json` 与 `reaction-lean-history-diff.json`。该结果只覆盖选定目标，不排除源树 dirty 状态、既有警告、占位定理或其他未审计声明。

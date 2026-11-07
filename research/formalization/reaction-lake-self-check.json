@@ -1,0 +1,146 @@
+{
+  "startedAt": "2026-11-07T16:17:13.543Z",
+  "scope": "isolated research API self-check; no external publication and no scientific-truth claim",
+  "withModel": false,
+  "withArxiv": false,
+  "withLean": true,
+  "withLeanBuild": true,
+  "checks": {
+    "catalog": {
+      "count": 3
+    },
+    "stats": {
+      "status": 200,
+      "fields": [
+        "totalModules",
+        "totalPapers",
+        "zeroSorryModules",
+        "moduleStatusDistribution",
+        "paperStatusDistribution",
+        "disciplineProgress"
+      ]
+    },
+    "task": {
+      "created": true,
+      "readback": true,
+      "taskId": "9fd9196b-5790-4e76-92d4-e42bf03575f4"
+    },
+    "arxiv": {
+      "status": "skipped",
+      "reason": "requires --with-arxiv"
+    },
+    "lean": {
+      "text": {
+        "status": "success",
+        "analysisMode": "text_only_not_compiled",
+        "sourceScope": "selected_files_not_full_repository",
+        "selectedFiles": [
+          "sylva_formalization/SylvaFormalization/PhysicalChemistry/ReactionNetwork.lean"
+        ],
+        "filesParsed": 1,
+        "theoremsTotal": 22,
+        "definitionsTotal": 27,
+        "sorryTotal": 0,
+        "axiomTotal": 2,
+        "readback": true
+      },
+      "build": {
+        "status": "success",
+        "analysisMode": "lake_build_selected_targets_not_full_repository",
+        "executable": "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\lean-4.29.0-windows\\lean-4.29.0-windows\\bin\\lake.exe",
+        "arguments": [
+          "build",
+          "PhysicalChemistry.ReactionNetwork"
+        ],
+        "cwd": "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+        "exitCode": 0,
+        "durationMs": 5073,
+        "stdoutTail": ".ReactionNetwork.mk'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:56:10: The namespace 'ReactionNetwork' is duplicated in the declaration 'Sylva.ReactionNetwork.ReactionNetwork'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:60:2: The namespace 'ReactionNetwork' is duplicated in the declaration 'Sylva.ReactionNetwork.ReactionNetwork.ratesPositive'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:58:2: The namespace 'ReactionNetwork' is duplicated in the declaration 'Sylva.ReactionNetwork.ReactionNetwork.reactions'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:157:28: unused variable `network`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:197:5: unused variable `h_nonneg`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:366:30: unused variable `network`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:390:5: unused variable `h`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:391:5: unused variable `h_nonneg`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:437:44: unused variable `network`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:439:8: unused variable `i`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:439:10: unused variable `j`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:456:38: unused variable `network`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:458:8: unused variable `i`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:458:10: unused variable `j`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:564:4: this tactic is never executed\n\nNote: This linter can be disabled with `set_option linter.unreachableTactic false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:564:4: 'norm_num' tactic does nothing\n\nNote: This linter can be disabled with `set_option linter.unusedTactic false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:605:101: this tactic is never executed\n\nNote: This linter can be disabled with `set_option linter.unreachableTactic false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:609:101: this tactic is never executed\n\nNote: This linter can be disabled with `set_option linter.unreachableTactic false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:613:101: this tactic is never executed\n\nNote: This linter can be disabled with `set_option linter.unreachableTactic false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:605:101: 'norm_num' tactic does nothing\n\nNote: This linter can be disabled with `set_option linter.unusedTactic false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:609:101: 'norm_num' tactic does nothing\n\nNote: This linter can be disabled with `set_option linter.unusedTactic false`\nwarning: PhysicalChemistry/ReactionNetwork.lean:613:101: 'norm_num' tactic does nothing\n\nNote: This linter can be disabled with `set_option linter.unusedTactic false`\nBuild completed successfully (3288 jobs).\n",
+        "stderrTail": ""
+      },
+      "axiomAudit": {
+        "status": "success",
+        "cases": [
+          {
+            "target": "PhysicalChemistry.ReactionNetwork",
+            "declaration": "Sylva.ReactionNetwork.MM_deficiency_zero_computed",
+            "mode": "standard_only",
+            "outputScope": "selected declaration, not module-wide axiom-free claim",
+            "classification": "standard_only",
+            "axioms": [
+              "propext",
+              "Classical.choice",
+              "Quot.sound"
+            ],
+            "customAxioms": []
+          }
+        ],
+        "exitCode": 0,
+        "durationMs": 15586,
+        "outputTail": "'Sylva.ReactionNetwork.MM_deficiency_zero_computed' depends on axioms: [propext, Classical.choice, Quot.sound]",
+        "temporaryFileRemoved": true,
+        "standardCaseCount": 1,
+        "declaredAxiomCaseCount": 0,
+        "axioms": [
+          "propext",
+          "Classical.choice",
+          "Quot.sound"
+        ]
+      },
+      "semanticReview": "not assessed; text parsing and Lean compilation do not validate physical semantics",
+      "source": {
+        "repository": "TOE-SYLVA",
+        "commit": "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+        "branch": "main",
+        "dirty": true,
+        "toolchain": "Lake version 5.0.0-src+98dc76e (Lean version 4.29.0)",
+        "fileHashScope": "selected_files",
+        "files": [
+          {
+            "path": "sylva_formalization/SylvaFormalization/PhysicalChemistry/ReactionNetwork.lean",
+            "sha256": "1fcfeb8a662e73ebb9b40239835d4c6aaaa3bc3194b03e9db07abcb5f27d160b"
+          }
+        ],
+        "manifestSha256": "f68f0aa54e2288c172d9711bebdc710b3179a6172cab6d0d089117a4a1049035"
+      },
+      "validation": {
+        "groupId": "12a26809-c323-411a-870f-f7de84b0c971",
+        "academicTaskId": "9fd9196b-5790-4e76-92d4-e42bf03575f4",
+        "resultCount": 2,
+        "readback": true,
+        "taskStatus": "completed",
+        "sourceCommit": "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+        "standardCaseCount": 1,
+        "declaredAxiomCaseCount": 0
+      }
+    },
+    "graphrag": {
+      "status": "skipped",
+      "reason": "requires --with-model"
+    }
+  },
+  "errors": [],
+  "serversStopped": true,
+  "temporaryDatabaseRemoved": true,
+  "finishedAt": "2026-11-07T16:17:40.682Z",
+  "evidenceHistory": {
+    "schemaVersion": 1,
+    "previousSnapshotId": "2026-11-07T16:16:38.255Z-06cb70e503f6",
+    "currentSnapshotId": "2026-11-07T16:17:40.682Z-06cb70e503f6",
+    "snapshotFile": "D:\\kimi-migration\\workspace\\provider-main-integration\\data\\kimi-control\\lean-history\\2026-11-07T16_17_40.682Z-06cb70e503f6.json",
+    "diffFile": "D:\\kimi-migration\\workspace\\provider-main-integration\\data\\kimi-control\\lean-history\\lean-evidence-latest-diff.json",
+    "hasChanges": false,
+    "changeCount": 0,
+    "previousCommit": "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+    "currentCommit": "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+    "summary": {
+      "sourceChanges": 0,
+      "fileChanges": 0,
+      "buildChanges": 0,
+      "declarationChanges": 0,
+      "validationChanges": 0
+    },
+    "changes": [],
+    "semanticReview": "changes in recorded execution evidence require separate mathematical or physical review"
+  }
+}

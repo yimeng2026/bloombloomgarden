@@ -1,7 +1,7 @@
 # ReactionNetwork：真实 Lean 构建与声明级公理审计
 
 **日期**：2026-11-08
-**状态**：选定模块与选定声明通过；不是全库 Lake 构建，不是物理语义证明
+**状态**：选定 Lake 目标与选定声明通过，已形成两份历史快照；不是全库构建，不是物理语义证明
 **源码**：TOE-SYLVA-pull，提交 `06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b`
 **源码文件**：`PhysicalChemistry/ReactionNetwork.lean`
 **源码 SHA-256**：`1fcfeb8a662e73ebb9b40239835d4c6aaaa3bc3194b03e9db07abcb5f27d160b`
@@ -13,6 +13,8 @@
 | 隔离研究 API 自检 | 成功；服务与临时数据库均清理 | 默认不执行模型、arXiv 或 Lean 构建 |
 | 选定 Lean 文件文本同步 | 1 个文件，22 个定理、27 个定义、0 个证明位 sorry、2 个 axiom | 只读文本统计，不等于编译 |
 | Windows Lean 直接编译 | 退出码 0 | 编译 `PhysicalChemistry/ReactionNetwork.lean`，不是全库 Lake build |
+| 原生 Windows Lake 构建 | 退出码 0，3288 个任务完成 | 选定目标 `PhysicalChemistry.ReactionNetwork`；不是全库默认目标 |
+| 完整自检与历史快照 | 成功；形成 2 份快照，比较为 0 变化 | 只说明两次执行证据一致，不排除源树既有 dirty 文件和源码警告 |
 | 编译产物 | `PhysicalChemistry/ReactionNetwork.olean` | SHA-256 `14f72a0d62e1a9dd40bd97b2746a452d9c8cc05482bbb4c4b769200828bf1d09` |
 | 声明级公理审计 | 退出码 0 | 仅 `Sylva.ReactionNetwork.MM_deficiency_zero_computed` |
 | 公理依赖 | `propext`、`Classical.choice`、`Quot.sound` | 无 `sorryAx`；没有新增公理 |
@@ -48,7 +50,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-reaction-lean
 5. 下载官方 Windows Lean v4.29.0 后，直接编译在约 22 秒内完成。第一次公理调用因 `.olean` 未按模块目录放置而未通过，将产物放到 `PhysicalChemistry/ReactionNetwork.olean` 后审计成功。
 6. 复现脚本第一次生成审计文件时，Windows PowerShell 5.1 的 `Set-Content UTF8` 引入 BOM，Lean 报 `expected token`。已改为纯 ASCII 无 BOM 写入并重新运行，最终脚本与审计均通过。
 
-因此，本报告只主张“原生 Windows Lean 的直接编译与声明审计成功”，不主张 Lake 全库构建成功。
+第 1—6 步首先证明直接 Lean 编译与声明审计可行；第 7 节进一步证明原生 Windows Lake 的选定目标构建也可行。全库默认目标仍不在这些结论范围内。
 
 ## 4. 未消除的源码警告与缺陷
 
@@ -63,7 +65,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-reaction-lean
 
 ## 5. 后续边界
 
-- 全库 Lake 构建尚未完成；需要处理 WSL 9P 性能或在原生 Windows Lake 环境中重新验证。
+- 全库默认 Lake 目标尚未完成；目前通过的是明确选择的 `PhysicalChemistry.ReactionNetwork`。
 - 当前只有一个模块和一个声明的真实证据，其他声明、其他模块和全文中的 `sorry`／TODO 不能自动核销。
 - 需要保留并处理源码警告和占位定理，不能用零退出码替代数学内容审查。
 - 物理语义、实验验证、观测拟合和模型族排除均不在本次审计范围内。
+
+## 6. 补充：原生 Windows Lake 与历史快照已接通
+
+随后使用同一官方 Windows 工具链直接执行 `lake.exe build PhysicalChemistry.ReactionNetwork`，实际退出码为 0，3288 个任务完成。源码警告仍逐条出现，没有隐藏。
+
+完整 `npm run self-check:research -- --with-lean-build` 也已通过，结果包括：
+
+- 文本同步、目标构建、声明级公理审计和验证结果回读均成功；
+- 临时服务、临时数据库和公理审计临时文件均清理；
+- 源树 `dirty=true` 如实保留，未改写成干净状态；
+- 形成 `2026-11-07T16:16:38.255Z-06cb70e503f6` 与 `2026-11-07T16:17:40.682Z-06cb70e503f6` 两份快照；
+- 历史比较为 0 个变化，评审队列为空。这里的“无变化”只表示两次执行证据一致，不表示既有警告或缺陷不存在。
+
+补充结构化证据为 `research/formalization/reaction-lake-self-check.json` 和 `research/formalization/reaction-lean-history-diff.json`。它们与前面的直接 Lean 证据共同证明：选定目标、选定声明和完整自检链路均已通过，但仍不证明整个仓库或物理语义。

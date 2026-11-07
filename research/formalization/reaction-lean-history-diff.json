@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "previousSnapshotId": "2026-11-07T16:16:38.255Z-06cb70e503f6",
+  "currentSnapshotId": "2026-11-07T16:17:40.682Z-06cb70e503f6",
+  "snapshotFile": "D:\\kimi-migration\\workspace\\provider-main-integration\\data\\kimi-control\\lean-history\\2026-11-07T16_17_40.682Z-06cb70e503f6.json",
+  "diffFile": "D:\\kimi-migration\\workspace\\provider-main-integration\\data\\kimi-control\\lean-history\\lean-evidence-latest-diff.json",
+  "hasChanges": false,
+  "changeCount": 0,
+  "previousCommit": "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+  "currentCommit": "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+  "summary": {
+    "sourceChanges": 0,
+    "fileChanges": 0,
+    "buildChanges": 0,
+    "declarationChanges": 0,
+    "validationChanges": 0
+  },
+  "changes": [],
+  "semanticReview": "changes in recorded execution evidence require separate mathematical or physical review"
+}
