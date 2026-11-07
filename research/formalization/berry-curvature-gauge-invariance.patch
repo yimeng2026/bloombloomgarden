@@ -1,0 +1,174 @@
+--- a/BerryCurvature.lean
++++ b/BerryCurvature.lean
+@@ -82,55 +82,123 @@
+ -- Section 2: Berry 曲率的规范不变性
+ -- ============================================
+ 
+-/-- **Berry Curvature Gauge Invariance (Schwarz Theorem / d² = 0).**
+-
+-    **Standard name:** Berry curvature is gauge invariant: Ω' = Ω under |u'⟩ = e^{iθ}|u⟩.
+-
+-    **Physical statement:** Under a gauge transformation A → A' = A + ∇θ, the Berry curvature
+-    is invariant: Ω'_{xy} = ∂_x(A_y + ∂_y θ) - ∂_y(A_x + ∂_x θ) = Ω_{xy} + (∂_x ∂_y θ - ∂_y ∂_x θ) = Ω_{xy}.
+-    The mixed partial derivatives cancel by Schwarz's theorem (Clairaut's theorem): ∂_x ∂_y θ = ∂_y ∂_x θ.
+-
+-    **Proof path:**
+-    1. Ω_{xy} = ∂_x A_y - ∂_y A_x (definition of Berry curvature).
+-    2. Under gauge transformation: A'_x = A_x + ∂_x θ, A'_y = A_y + ∂_y θ.
+-    3. Ω'_{xy} = ∂_x(A_y + ∂_y θ) - ∂_y(A_x + ∂_x θ) = (∂_x A_y - ∂_y A_x) + (∂_x ∂_y θ - ∂_y ∂_x θ).
+-    4. By Schwarz's theorem (Clairaut's theorem): ∂_x ∂_y θ = ∂_y ∂_x θ for smooth θ.
+-    5. Therefore Ω'_{xy} = Ω_{xy}.
+-    See Berry (1984); Xiao et al. (2010) §II.B; Nakahara (2003) Ch. 5.
+-
+-    **Mathlib status:** Provable in principle. The proof requires:
+-    - Equality of mixed partial derivatives for smooth functions (Clairaut's theorem / Schwarz theorem)
+-    - Mathlib has `deriv` and `fderiv` but the equality of mixed partials is a standard result
+-      in multivariable calculus that could be formalized.
+-    The proof is elementary calculus and should be formalizable in ~20–30h.
+-
+-    **Why axiom is reasonable:** The gauge invariance of the Berry curvature is a direct
+-    consequence of the equality of mixed partial derivatives (Schwarz theorem). This is
+-    elementary calculus but the formal statement is `True` (placeholder) because the full
+-    differential form calculus is not in Mathlib. However, the specific equality of mixed
+-    partials could be formalized independently.
+-
+-    **References:**
+-    - Berry, M. V. (1984). "Quantal phase factors accompanying adiabatic changes."
+-      *Proc. R. Soc. Lond. A* 392(1802), 45–57.
+-    - Xiao, D., Chang, M.-C., & Niu, Q. (2010). "Berry phase effects on electronic properties."
+-      *Rev. Mod. Phys.* 82(3), 1959.
+-    - Nakahara, M. (2003). *Geometry, Topology and Physics*, 2nd ed., Ch. 5.
+-    - Clairaut, A. C. (1740). "Sur l'integration ou la construction des equations differentielles
+-      du premier ordre." *Mém. Acad. Sci. Paris*.
+-
+-    **Difficulty to theorem:** Easy (~20–30h, Schwarz theorem for mixed partials).
+-    
+-    -- 保留为 axiom 原因：完整的规范不变性证明需要外微分算子 d、楔积 ∧
+-    -- 和混合偏导数相等（Schwarz 定理）的形式化。Mathlib 中虽有 `fderiv` 和
+-    -- `deriv`，但缺少复值函数的混合偏导数相等的一般性定理框架。
+-    -- 预计工作量：~20–30h（需要建立复值函数外微分的基础理论）。
+-    -/
++/-- **定义**：`CrystalMomentum2D` 在定义上等于 `ℝ×ℝ`，局部恢复其范数结构。
++
++**证明思路**：由定义相等直接委托积空间的现有实例，不新建数学假设。
++
++**物理意义**：允许在晶体动量空间使用距离、极限和导数。 -/
++noncomputable local instance : NormedAddCommGroup BlochTheorem.CrystalMomentum2D :=
++  inferInstanceAs (NormedAddCommGroup (ℝ × ℝ))
++
++/-- **定义**：恢复 `CrystalMomentum2D` 的实向量空间结构。
++
++**证明思路**：同样委托 `ℝ×ℝ` 的现有 `NormedSpace` 实例。
++
++**物理意义**：使 Fréchet 导数可以作用于联络和规范相位。 -/
++noncomputable local instance : NormedSpace ℝ BlochTheorem.CrystalMomentum2D :=
++  inferInstanceAs (NormedSpace ℝ (ℝ × ℝ))
++
++/-- **定义**：二维晶体动量空间的 x 单位方向 `(1, 0)`。
++
++**证明思路**：直接使用积空间的坐标表示。
++
++**物理意义**：指定 Berry 曲率公式中的 `∂x`。 -/
++noncomputable def directionX : BlochTheorem.CrystalMomentum2D := (1, 0)
++
++/-- **定义**：二维晶体动量空间的 y 单位方向 `(0, 1)`。
++
++**证明思路**：直接使用积空间的坐标表示。
++
++**物理意义**：指定 Berry 曲率公式中的 `∂y`。 -/
++noncomputable def directionY : BlochTheorem.CrystalMomentum2D := (0, 1)
++
++/-- **定义**：实值 Berry 曲率分量 `∂xAy − ∂yAx`。
++
++**证明思路**：分别对 `Ay` 沿 x、`Ax` 沿 y 取 Fréchet 导数并相减。
++
++**物理意义**：表示 Abel Berry 联络在二维动量空间中的唯一独立曲率分量。 -/
++noncomputable def curvatureXYFromConnection
++    (connectionX connectionY : BlochTheorem.CrystalMomentum2D → ℝ)
++    (k : BlochTheorem.CrystalMomentum2D) : ℝ :=
++  fderiv ℝ connectionY k directionX - fderiv ℝ connectionX k directionY
++
++/-- **定理**：二阶连续可微实函数的混合偏导数可交换。
++
++**证明思路**：由 `ContDiffAt.isSymmSndFDerivAt` 得到二阶导数对称性，再用
++`fderiv_clm_apply` 把固定方向求值改写为二阶连续线性映射的 `flip`。
++
++**物理意义**：这是 `d²θ=0`，也是规范相位不改变 Berry 曲率的微积分核心。 -/
++private theorem mixed_partials_commute_of_contDiff2 {E : Type*} [NormedAddCommGroup E]
++    [NormedSpace ℝ E] {φ : E → ℝ} (hφ : ContDiff ℝ 2 φ) (k : E) (v w : E) :
++    fderiv ℝ (fun k' => fderiv ℝ φ k' v) k w
++    = fderiv ℝ (fun k' => fderiv ℝ φ k' w) k v := by
++  have hsymm : IsSymmSndFDerivAt ℝ φ k :=
++    ContDiffAt.isSymmSndFDerivAt hφ.contDiffAt
++      (le_of_eq minSmoothness_of_isRCLikeNormedField)
++  have hd : DifferentiableAt ℝ (fderiv ℝ φ) k :=
++    ((hφ.fderiv_right (m := 1) le_rfl).contDiffAt (x := k)).differentiableAt one_ne_zero
++  have h1 : fderiv ℝ (fun k' => fderiv ℝ φ k' v) k
++      = (fderiv ℝ (fderiv ℝ φ) k).flip v := by
++    have h := fderiv_clm_apply (c := fderiv ℝ φ) (u := fun _ : E => v) hd
++      (differentiableAt_const v)
++    simpa using h
++  have h2 : fderiv ℝ (fun k' => fderiv ℝ φ k' w) k
++      = (fderiv ℝ (fderiv ℝ φ) k).flip w := by
++    have h := fderiv_clm_apply (c := fderiv ℝ φ) (u := fun _ : E => w) hd
++      (differentiableAt_const w)
++    simpa using h
++  rw [h1, h2, ContinuousLinearMap.flip_apply, ContinuousLinearMap.flip_apply]
++  exact hsymm.eq w v
++
++/-- **定理**：若 `θ∈C²`，且两个实联络分量在 `k` 点可微，则
++`Aμ ↦ Aμ + ∂μθ` 不改变 `∂xAy − ∂yAx`。
++
++**证明思路**：分别以 `fderiv_add` 展开两个联络分量，再调用混合偏导交换定理，
++最后用环代数完成相消。可微性假设是减法／加法求导规则成立所必需，不能省略。
++
++**物理意义**： Berry 曲率在局部 Abel 规范变换下不变。这是二维实值分量命题，
++不断言原任意复值结构、外微分形式或三维旋度已经获得同样的形式化。 -/
+ theorem BerryCurvature_GaugeInvariance
+-    (L : BlochTheorem.Lattice2D) (Ω : BerryCurvature L)
+-    (gauge : BerryConnection.GaugeTransformation L) :
+-    -- 在规范变换下，Berry 曲率不变
+-    True := by trivial
++    (L : BlochTheorem.Lattice2D)
++    (connectionX connectionY : BlochTheorem.CrystalMomentum2D → ℝ)
++    (gauge : BerryConnection.GaugeTransformation L)
++    (hgauge : ContDiff ℝ 2 gauge.theta)
++    (k : BlochTheorem.CrystalMomentum2D)
++    (hX : DifferentiableAt ℝ connectionX k)
++    (hY : DifferentiableAt ℝ connectionY k) :
++    curvatureXYFromConnection
++      (fun k' => connectionX k' + fderiv ℝ gauge.theta k' directionX)
++      (fun k' => connectionY k' + fderiv ℝ gauge.theta k' directionY) k
++    = curvatureXYFromConnection connectionX connectionY k := by
++  have hdθ : DifferentiableAt ℝ (fderiv ℝ gauge.theta) k :=
++    ((hgauge.fderiv_right (m := 1) le_rfl).contDiffAt (x := k)).differentiableAt one_ne_zero
++  have hθx : DifferentiableAt ℝ (fun k' => fderiv ℝ gauge.theta k' directionX) k :=
++    hdθ.clm_apply (differentiableAt_const _)
++  have hθy : DifferentiableAt ℝ (fun k' => fderiv ℝ gauge.theta k' directionY) k :=
++    hdθ.clm_apply (differentiableAt_const _)
++  have hcomm : fderiv ℝ (fun k' => fderiv ℝ gauge.theta k' directionY) k directionX
++      = fderiv ℝ (fun k' => fderiv ℝ gauge.theta k' directionX) k directionY :=
++    mixed_partials_commute_of_contDiff2 hgauge k directionY directionX
++  have hderivX : fderiv ℝ
++      (fun k' => connectionX k' + fderiv ℝ gauge.theta k' directionX) k directionY
++      = fderiv ℝ connectionX k directionY
++        + fderiv ℝ (fun k' => fderiv ℝ gauge.theta k' directionX) k directionY := by
++    rw [show (fun k' => connectionX k' + fderiv ℝ gauge.theta k' directionX)
++        = connectionX + fun k' => fderiv ℝ gauge.theta k' directionX from rfl]
++    rw [fderiv_add hX hθx]
++    rfl
++  have hderivY : fderiv ℝ
++      (fun k' => connectionY k' + fderiv ℝ gauge.theta k' directionY) k directionX
++      = fderiv ℝ connectionY k directionX
++        + fderiv ℝ (fun k' => fderiv ℝ gauge.theta k' directionY) k directionX := by
++    rw [show (fun k' => connectionY k' + fderiv ℝ gauge.theta k' directionY)
++        = connectionY + fun k' => fderiv ℝ gauge.theta k' directionY from rfl]
++    rw [fderiv_add hY hθy]
++    rfl
++  unfold curvatureXYFromConnection
++  rw [hderivY, hderivX, hcomm]
++  ring
++
+ 
+ -- ============================================
+ -- Section 3: Berry 曲率的替代表达式

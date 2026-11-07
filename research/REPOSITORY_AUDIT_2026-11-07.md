@@ -186,3 +186,19 @@
 - 零模型：33 项 Python 单元测试全部通过，其中新增 5 项 CMB 适配器测试。
 - Next 16.2.9 standalone 构建、TypeScript 和 42 个静态页面生成通过。
 - `git diff --check` 无空白错误；本轮 Planck 相关文件的常见令牌／密钥模式扫描无命中。忽略目录中的 Cobaya、CLASS、数据与运行缓存未进入提交。
+
+
+## 9. Berry 曲率占位清偿与边界
+
+- 根因不是缺少一个 `trivial`  tactic，而是原 `BerryCurvature` 结构没有给出曲率与导数反对称差的等式，且没有可微性／`C²` 前提。新增二维实值 `curvatureXYFromConnection` 和带明确前提的 `BerryCurvature_GaugeInvariance`，以 `fderiv_add` 与 mathlib 二阶导数对称定理完成真实证明。
+- 新增独立 Lean 文件、174 行最小区替补丁、补丁生成脚本和可复现验证脚本。独立证明与修补后原文件均实际编译通过，目标定理的公理依赖均只有 `propext、Classical.choice、Quot.sound`，无 `sorryAx`、无 `curl_linear_subtraction`、无新增公理。
+- 最终复现脚本退出码为 0；依赖、独立证明、修补文件及两条公理审计各阶段均为 0。证据见 `research/formalization/BERRY_CURVATURE_LEAN_AUDIT_2026-11-08.md` 与 `berry-curvature-lean-audit.json`。
+- 外部 TOE-SYLVA 源树未被修改，原文件哈希保持不变；本仓库交付的是可审查证明和补丁，不宣称外部项目已合入。原任意复值结构、完整外微分、其他 `True` 占位、既有警告和三维 `curl_linear_subtraction` 公理仍未清偿。
+
+
+## 10. Berry 证明提交前回归
+
+- `npm run lint:all` 与后端 lint：均为 0 错误、0 警告。
+- 根平台 113 项、后端 12 项、零模型 33 项测试全部通过；Next standalone 与 Express 构建通过。
+- `git apply --check` 通过，随后实际应用补丁；应用结果与已编译的 `BerryCurvaturePatched.lean` 逐字一致。
+- 新证明的禁止新增公理／占位扫描通过，结构化审计为 `status=success`。没有修改外部 TOE-SYLVA 源树，也没有把局部二维证明扩大为全库或物理语义证明。

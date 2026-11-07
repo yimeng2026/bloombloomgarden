@@ -83,3 +83,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-reaction-lean
 - 历史比较为 0 个变化，评审队列为空。这里的“无变化”只表示两次执行证据一致，不表示既有警告或缺陷不存在。
 
 补充结构化证据为 `research/formalization/reaction-lake-self-check.json` 和 `research/formalization/reaction-lean-history-diff.json`。它们与前面的直接 Lean 证据共同证明：选定目标、选定声明和完整自检链路均已通过，但仍不证明整个仓库或物理语义。
+
+
+## 7. 补充：Berry 曲率占位的隔离清偿
+
+`BerryCurvature_GaugeInvariance` 已在当前仓库形成二维实值真实证明和原文件最小区替补丁。独立证明与修补后原文件均编译成功，公理审计均只有 `propext、Classical.choice、Quot.sound`，没有 `sorryAx` 或 `curl_linear_subtraction`。
+
+详见 `BERRY_CURVATURE_LEAN_AUDIT_2026-11-08.md` 和 `berry-curvature-lean-audit.json`。外部 TOE-SYLVA 源树仍未修改，其他 `True` 占位和公理不在本报告的已完成范围内。

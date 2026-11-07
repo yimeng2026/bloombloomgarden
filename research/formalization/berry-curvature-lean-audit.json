@@ -1,0 +1,53 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "Concrete 2D real Berry-curvature gauge invariance and a narrow patch for the original placeholder; not a full-project or differential-forms proof",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "originalFile":  "BerryCurvature.lean",
+                   "originalSha256":  "de9bcbd15cecc346b2a9135b8b44cb21cc3db4422775506d08928b94a8f5958d",
+                   "proofFile":  "research/formalization/BerryCurvatureGaugeInvariance.lean",
+                   "proofSha256":  "d69cd7d5a7fafd0f663f9fef0cce98b7899f462fdeb7304a43ea742fc2c6197b",
+                   "patchFile":  "research/formalization/berry-curvature-gauge-invariance.patch",
+                   "patchSha256":  "74ec2425b8a5b5d01d5d6041a7d3a13ba9ff0b1a73dca82f5cf96aa97ad4aafb",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "stages":  {
+                                 "bloch":  0,
+                                 "connection":  0,
+                                 "proof":  0,
+                                 "patched":  0
+                             },
+                  "standaloneOutputSha256":  "7c42626cb9c3264a80c09ae611bff74c283d2f86abc82e249b210ac1c25e452c",
+                  "patchedOutputSha256":  "7d7788fd19ab652d52730982bbbe76066dc9fc45a8e90b78d52dc46a62a7c6cb",
+                  "warningsPreserved":  true
+              },
+    "axiomAudit":  {
+                       "standalone":  {
+                                          "exitCode":  0,
+                                          "output":  "\u0027BerryCurvature.BerryCurvature_GaugeInvariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                                          "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\berry-lean-verification\\standalone-axioms.log"
+                                      },
+                       "patched":  {
+                                       "exitCode":  0,
+                                       "output":  "\u0027BerryCurvature.BerryCurvature_GaugeInvariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                                       "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\berry-lean-verification\\patched-axioms.log"
+                                   }
+                   },
+    "validation":  {
+                       "patchSynchronized":  true,
+                       "forbiddenPlaceholderOrNewAxiom":  false,
+                       "externalSourceModified":  false,
+                       "fullProjectBuilt":  false,
+                       "physicalSemanticProof":  false
+                   },
+    "boundaries":  [
+                       "The theorem is narrowed to real 2D connection components with explicit C2 and differentiability assumptions.",
+                       "The original arbitrary complex structure and the 3D curl_linear_subtraction axiom are not cleared.",
+                       "Other True placeholders and existing warnings in BerryCurvature.lean remain visible.",
+                       "The external TOE-SYLVA source tree is only read; all patched sources and build products stay in OutputDirectory."
+                   ]
+}
