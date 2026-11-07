@@ -1,0 +1,29 @@
+{
+  "status": "restrict_valid_analysis_to_cmb_marginalized_lensing_only",
+  "amended_on": "2026-11-08",
+  "protocol_v2_sha256": "39d2d5f272767010f764e0c371d76ab8d407ebd9fd9613de0254f2383779c089",
+  "non_marginalized_version_invalid_for_current_inputs": {
+    "reason": "The non-CMB-marginalized dataset requires TT, EE, TE and PP theory. PP-only theory cannot evaluate its CMB-dependent correction and produced an invalid large baseline chi-squared.",
+    "result_use": "not used for any physical conclusion and not presented as a valid likelihood",
+    "fixed_covariance_values_retained_only_as_misuse_evidence": true
+  },
+  "official_crosscheck_initial_format_failure": {
+    "reason": "CosmoMC readWithHeader requires a commented theory header; the initial 'L PP' header lacked '#'.",
+    "resolution": "v3 writes '# L PP' in a separate theory directory"
+  },
+  "v3": {
+    "protocol": "planck-likelihood-protocol-v3.json",
+    "analysis_runner": "analyze_planck_likelihood_v3.py",
+    "analysis_runner_sha256": "79ea4541dad2437c0f958bd243c19f6cf0385096793c7c3c469af28869bec985",
+    "verification_runner": "verify_planck_likelihood_v3.py",
+    "verification_runner_sha256": "c9800135b24e11e6c08a7f4a70f68a2d89e788b4b59d9e8fefe208bf059d46d6",
+    "scope": "Only the official CMB-marginalized lensing-only dataset, which requires PP and has no calibration parameter",
+    "summary": "planck-lensing-cmbmarged-summary.json",
+    "verification": "planck-lensing-cmbmarged-verification.json"
+  },
+  "boundaries": [
+    "No parameter fitting, posterior, or model-family exclusion.",
+    "Earlier invalid non-marginalized outputs are not deleted or used as valid evidence.",
+    "The valid v3 analysis still requires independent CosmoMC cross-verification before any physical interpretation."
+  ]
+}

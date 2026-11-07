@@ -1,0 +1,23 @@
+{
+  "status": "fiducial_correction_column_read_fixed_before_results",
+  "amended_on": "2026-11-08",
+  "original_protocol_sha256": "0c45bee70aa257e95650ea77e7f83095c1629af2de8231358a792657614b37d4",
+  "original_failure": {
+    "error": "ValueError: fiducial_correction must have shape (9,)",
+    "cause": "The correction files contain bin and PP columns; the initial reader retained both instead of selecting PP.",
+    "results_written": false
+  },
+  "original_protocol_and_runner_preserved": true,
+  "v2": {
+    "analysis_runner": "analyze_planck_likelihood_v2.py",
+    "analysis_runner_sha256": "ba3332760de8f6bc9418ffd14e31f50aff47467ff5e0bdf8b455355d99714e56",
+    "verification_runner": "verify_planck_likelihood_v2.py",
+    "verification_runner_sha256": "947dbbd0f41542c155932bb7345cc170c7bd13329eaa8cff7afc471ca310abd4",
+    "protocol": "planck-likelihood-protocol-v2.json",
+    "rule": "Select the final PP column from both fiducial-correction files before applying the tested formula"
+  },
+  "boundaries": [
+    "No chi-squared result was produced by the failed run.",
+    "No data, theory spectrum, covariance, or statistical rule was changed."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "verification": "passed",
+  "official_implementation": "CosmoMC python/CMBlikes.py DatasetLikelihood.chi_squared",
+  "cosmomc_commit": "83f00ac4742c7b48563204a22d7a7d3bb597a3e1",
+  "getdist_version": "1.3.0",
+  "compatibility_aliases": [
+    "np.object=object",
+    "np.int=int"
+  ],
+  "records": {
+    "cmb_marginalized": {
+      "class_hyrec": {
+        "zero": {
+          "official_chi_squared": 1247.6902389896288,
+          "direct_chi_squared": 1247.6902390337664,
+          "max_abs_band_difference": 6.611542139573043e-18
+        },
+        "baseline": {
+          "official_chi_squared": 8.916477117384746,
+          "direct_chi_squared": 8.916477109000503,
+          "max_abs_band_difference": 6.876075822956481e-17
+        }
+      },
+      "class_recfast": {
+        "zero": {
+          "official_chi_squared": 1247.6219392816608,
+          "direct_chi_squared": 1247.6219392789783,
+          "max_abs_band_difference": 2.950103258723421e-18
+        },
+        "baseline": {
+          "official_chi_squared": 8.916647866474896,
+          "direct_chi_squared": 8.916647861897536,
+          "max_abs_band_difference": 1.0883431048063939e-16
+        }
+      },
+      "camb_recfast": {
+        "zero": {
+          "official_chi_squared": 1247.6681833495065,
+          "direct_chi_squared": 1247.668183402592,
+          "max_abs_band_difference": 7.12627347370764e-18
+        },
+        "baseline": {
+          "official_chi_squared": 8.91049745660861,
+          "direct_chi_squared": 8.91049744056654,
+          "max_abs_band_difference": 4.993216872416738e-17
+        }
+      }
+    }
+  },
+  "verification_runner_sha256": "c9800135b24e11e6c08a7f4a70f68a2d89e788b4b59d9e8fefe208bf059d46d6"
+}

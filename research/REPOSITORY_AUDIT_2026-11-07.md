@@ -158,3 +158,6 @@
 - 单变量 `k800` 已在零模型和基线上完成，最大内存分别约 15.16 GB 和 15.58 GB。网格审计显示，k800 每隔一个节点与 ultra 相同，全部 5878 个共享 q 节点和共动密度逐位一致；最高带对数变化为 0，说明增加输出节点并不提高当前求解精度。
 - 仅传输 accuracy4 参考与完整 ultra 的 q 网格及原始传输数组逐位一致，路径检验通过。`AccuracyBoost=8` 在完整 `get_results` 两次、仅传输一次、限定波数一次均在 300 秒前台时限终止，未产生数值结果；没有后台遗留进程，也没有把超时解释为物理结论。
 - 新增 `camb_single_variable.py`、`camb_transfer_only_case.py`、`camb_kmax_limited_case.py`、对应协议、`analyze_k800_path.py`、`verify_k800_path_v2.py`、`audit_k800_grid.py` 与 `single-variable-amendment-01.json`。成功案例独立复验通过，主文档升级为 3.1；极端谱的内部精度与相位仍未闭合，后续转向观测和其他实现检验。
+- Planck 2018 透镜观测闭环已完成：使用官方 9 个带功率、9×9 CMB 边缘化协方差及线性修正矩阵，计算 CLASS HyRec、CLASS RECFAST、CAMB Recfast 的固定输入 χ²。非边缘化版本因需要 TT／EE／TE 全谱而排除，不作为结果。
+- 有效结果：基线 χ² 为 8.9105–8.9166，固定零模型为 1247.62–1247.69，Δχ² 约 1238.7；九个零模型残差全部为负。这个特定零模型被透镜数据强烈排除，但不是对整个无 CDM 模型族的排除或后验。
+- CosmoMC `DatasetLikelihood.chi_squared` 独立交叉验证通过，修正带功率最大差约 \(1.09\times10^{-16}\)。新增 `planck_likelihood.py`、分析／验证脚本、协议与三份修订、摘要和单面板图；零模型测试增至 26 项，主文档升级为 3.2。下一步是联合 BBN 和更完整观测检验，不宣称全部研究完成。
