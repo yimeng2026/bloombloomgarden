@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildResearchPaperFilter, groupResearchPapersByType } from "@/lib/research-papers";
 
 export const runtime = "nodejs";
 
@@ -10,15 +11,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
 
-    const where: any = {};
-    if (field) where.field = field;
-    if (status) where.status = status;
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { abstract: { contains: search, mode: "insensitive" } },
-      ];
-    }
+    const where = buildResearchPaperFilter({ field, status, search });
 
     const papers = await prisma.researchPaper.findMany({
       where,
@@ -26,12 +19,7 @@ export async function GET(request: NextRequest) {
     });
 
     // 按 type 分组（Hilbert / Millennium）
-    const grouped = papers.reduce((acc: Record<string, any[]>, paper) => {
-      const type = paper.type || "Unknown";
-      if (!acc[type]) acc[type] = [];
-      acc[type].push(paper);
-      return acc;
-    }, {});
+    const grouped = groupResearchPapersByType(papers);
 
     return NextResponse.json({ success: true, data: grouped });
   } catch (error) {
