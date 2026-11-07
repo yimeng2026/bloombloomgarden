@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateManuscriptInSegments } from "@/lib/manuscript-generation";
+import { buildStageUpdateData } from "@/lib/pipeline-stage-update";
 
 export const runtime = "nodejs";
 
@@ -27,24 +28,6 @@ function extractScore(content: string): number {
   if (lower.includes("major_revision") || lower.includes("大修") || lower.includes("一般")) return 5.0;
   if (lower.includes("reject") || lower.includes("拒绝") || lower.includes("差")) return 3.0;
   return 6.0;
-}
-
-/** 生成 fallback 模拟阶段产出 */
-function generateMockStageContent(stage: string, topic: string): { content: string; score: number } {
-  const stageDescriptions: Record<string, string> = {
-    idea: `【模拟产出 — 选题构思】\n\n主题：${topic}\n\n研究问题：探索 ${topic} 的核心性质与推广。\n动机：该主题在现有文献中尚缺乏系统性研究。\n预期贡献：建立新的理论框架或证明新的定理。\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    outline: `【模拟产出 — 详细大纲】\n\n主题：${topic}\n\n1. 引言与背景\n2. 核心定义与符号\n3. 主要定理及其证明策略\n4. 辅助引理与推论\n5. 应用与例子\n6. 结论与未来方向\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    draft: `【模拟产出 — 初稿】\n\n主题：${topic}\n\n[此处为模拟初稿内容，包含引言、定义、定理陈述、证明、例子和结论的框架]\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    review: `【模拟产出 — 同行评审】\n\n主题：${topic}\n\n1. 创新性/原创性：7/10\n2. 技术正确性：8/10\n3. 表述清晰度：7/10\n4. 文献覆盖度：6/10\n5. 形式化质量：7/10\n\n总体推荐：minor_revision\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    revision: `【模拟产出 — 修改稿】\n\n主题：${topic}\n\n[此处为模拟修改内容，逐条回应评审意见]\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    final: `【模拟产出 — 最终润色】\n\n主题：${topic}\n\n[已进行术语一致性检查、引用完整性校验、证明可验证性确认]\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-    publish: `【模拟产出 — 发表准备】\n\n主题：${topic}\n\n摘要：本文研究了 ${topic} 的核心性质，建立了新的理论框架...\n关键词：${topic}, 形式化验证, Lean 4\n\n（注：当前处于模拟模式，未调用真实 LLM）`,
-  };
-
-  return {
-    content: stageDescriptions[stage] || stageDescriptions.draft,
-    score: 6.0,
-  };
 }
 
 export async function GET(
@@ -106,7 +89,6 @@ export async function PUT(
 
     let finalContent = content;
     let finalScore = score;
-    let statusOverride: string | undefined;
 
     // ── LLM 自动生成阶段产出 ──
     if (autoGenerate === true) {
@@ -134,35 +116,12 @@ export async function PUT(
       }
     }
 
-    const updateData: any = {};
-    if (finalContent !== undefined) updateData.content = finalContent;
-    if (feedback !== undefined) updateData.feedback = feedback;
-
-    if (finalScore !== undefined) {
-      updateData.score = finalScore;
-      if (finalScore >= 7.0) {
-        updateData.status = "completed";
-        updateData.completedAt = new Date();
-        statusOverride = "completed";
-      } else if (finalScore < 4.0) {
-        updateData.status = "rejected";
-        updateData.completedAt = null;
-        statusOverride = "rejected";
-      }
-    }
-
-    if (body.status !== undefined && !statusOverride) {
-      updateData.status = body.status;
-      if (body.status === "completed") {
-        updateData.completedAt = new Date();
-      } else if (
-        body.status === "pending" ||
-        body.status === "active" ||
-        body.status === "rejected"
-      ) {
-        updateData.completedAt = null;
-      }
-    }
+    const { updateData } = buildStageUpdateData({
+      finalContent,
+      feedback,
+      finalScore,
+      bodyStatus: body.status,
+    });
 
     const updatedStage = await prisma.pipelineStage.update({
       where: { id: stageId },

@@ -73,7 +73,7 @@
 2. 清理可证实的死代码和未使用导入，保留并标注有意的接口预留；
 3. 对极端物质谱实现平滑化和带功率对照，同时记录低波数规范边界；
 4. 在数值系统误差进一步闭合后，再评估公开似然、联合 BBN 与非线性工作；
-5. 每次修改后重跑根平台 88 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
+5. 每次修改后重跑根平台 91 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
 
 本记录是下一轮工作的基线，不是“全部问题已经解决”的声明。
 
@@ -106,3 +106,5 @@
 - 新增 `tests/unit/panel-filter.test.js`，验证领域存在与空筛选。根平台测试总数从 84 增至 86，全部通过。全库 `no-explicit-any` 进一步降至 18，`lint:all` 为 18 错误、15 警告；TypeScript 与 Next standalone 构建已复验通过。
 - `research/papers/route.ts` 的 2 个 `any` 已移除，论文筛选和按类型分组改由 `src/lib/research-papers.ts` 提供明确类型；同时按 Prisma 7 移除不支持的 `mode: "insensitive"` 字段。
 - 新增 `tests/unit/research-papers.test.js`，覆盖多条件检索和 `Unknown` 分组。根平台测试总数从 86 增至 88，全部通过。全库 `no-explicit-any` 进一步降至 16，`lint:all` 为 16 错误、15 警告；TypeScript 与 Next standalone 构建已复验通过。
+- `pipelines/[id]/stages/[stageId]/route.ts` 的 1 个 `any` 已移除，阶段更新对象改由 `src/lib/pipeline-stage-update.ts` 返回 `Prisma.PipelineStageUpdateInput`；确认未使用的模拟阶段内容函数和冗余 `statusOverride` 已删除。
+- 新增 `tests/unit/pipeline-stage-update.test.js`，覆盖高分完成、低分拒绝和显式状态回退。根平台测试总数从 88 增至 91，全部通过。全库 `no-explicit-any` 进一步降至 15，`lint:all` 为 15 错误、14 警告；TypeScript 与 Next standalone 构建已复验通过。
