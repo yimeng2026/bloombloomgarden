@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildPanelFilter } from "@/lib/panel-filter";
 
 export const runtime = "nodejs";
 
@@ -9,8 +10,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const domain = searchParams.get("domain");
 
-    const where: any = {};
-    if (domain) where.domain = domain;
+    const where = buildPanelFilter(domain);
 
     const panels = await prisma.academicPanel.findMany({
       where,

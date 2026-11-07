@@ -73,7 +73,7 @@
 2. 清理可证实的死代码和未使用导入，保留并标注有意的接口预留；
 3. 对极端物质谱实现平滑化和带功率对照，同时记录低波数规范边界；
 4. 在数值系统误差进一步闭合后，再评估公开似然、联合 BBN 与非线性工作；
-5. 每次修改后重跑根平台 84 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
+5. 每次修改后重跑根平台 86 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
 
 本记录是下一轮工作的基线，不是“全部问题已经解决”的声明。
 
@@ -102,3 +102,5 @@
 - 新增 `tests/unit/research-notes.test.js`，验证标签存在与未提供时的筛选结果。根平台测试总数从 80 增至 82，全部通过。全库 `no-explicit-any` 进一步降至 20，`lint:all` 为 20 错误、15 警告；TypeScript 与 Next standalone 构建已复验通过。
 - `panels/[id]/members/route.ts` 的 1 个 `any` 已移除，专家组成员筛选改由 `src/lib/panel-member-filter.ts` 返回 `Prisma.AcademicPanelMemberWhereInput`。
 - 新增 `tests/unit/panel-member-filter.test.js`，验证专长、角色和空筛选。根平台测试总数从 82 增至 84，全部通过。全库 `no-explicit-any` 进一步降至 19，`lint:all` 为 19 错误、15 警告；TypeScript 与 Next standalone 构建已复验通过。
+- `panels/route.ts` 的 1 个 `any` 已移除，专家组领域筛选改由 `src/lib/panel-filter.ts` 返回 `Prisma.AcademicPanelWhereInput`。
+- 新增 `tests/unit/panel-filter.test.js`，验证领域存在与空筛选。根平台测试总数从 84 增至 86，全部通过。全库 `no-explicit-any` 进一步降至 18，`lint:all` 为 18 错误、15 警告；TypeScript 与 Next standalone 构建已复验通过。
