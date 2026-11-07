@@ -4,6 +4,7 @@
 // ================================================================
 
 import type { AdapterStreamEvent } from "./platform-adapter";
+import { parseSSEChunks } from "./platform-sse";
 
 // ===================== 类型定义 =====================
 
@@ -33,49 +34,6 @@ export interface DifyUploadResponse {
   extension: string;
   mime_type: string;
   created_at: number;
-}
-
-// ===================== SSE 解析工具 =====================
-
-/**
- * 逐行解析 SSE 数据块，提取 JSON 对象。
- * 返回当前已解析的完整 data 行数组，以及未完成的缓冲区。
- */
-function parseSSEChunks(buffer: string): {
-  parsed: unknown[];
-  remaining: string;
-} {
-  const lines = buffer.split("\n");
-  const parsed: unknown[] = [];
-  let currentData = "";
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.startsWith("data: ")) {
-      currentData = line.slice(6).trim();
-    } else if (line === "" && currentData !== "") {
-      // 空行表示一个 SSE 事件结束
-      if (currentData !== "[DONE]") {
-        try {
-          parsed.push(JSON.parse(currentData));
-        } catch {
-          // 忽略不可解析的 JSON
-        }
-      }
-      currentData = "";
-    }
-  }
-
-  // 如果最后一行不是空行，保留未完成的 data 作为 remaining
-  const lastLine = lines[lines.length - 1];
-  if (lastLine !== "" && lastLine.startsWith("data: ")) {
-    return { parsed, remaining: lastLine };
-  }
-  if (currentData !== "" && lastLine === "") {
-    // 上一个 data 已结束（空行已处理），remaining 为空
-    return { parsed, remaining: "" };
-  }
-  return { parsed, remaining: "" };
 }
 
 // ===================== Dify API Client =====================
@@ -200,7 +158,7 @@ export class DifyApiClient {
         buffer = remaining;
 
         for (const data of parsed) {
-          const event = data as Record<string, any>;
+          const event = data as Record<string, unknown>;
 
           if (event.event === "message") {
             const msgObj = event.message as Record<string, unknown> | undefined;
@@ -429,9 +387,9 @@ export class CozeApiClient {
         buffer = remaining;
 
         for (const data of parsed) {
-          const event = data as Record<string, any>;
+          const event = data as Record<string, unknown>;
           const eventName = (event.event as string) || "";
-          const payload = (event.data as Record<string, any>) || event;
+          const payload = (event.data as Record<string, unknown>) || event;
 
           if (eventName === "conversation.message.delta") {
             const nestedData = payload.data as Record<string, unknown> | undefined;
