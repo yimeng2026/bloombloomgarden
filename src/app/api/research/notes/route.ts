@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildResearchNoteFilter } from "@/lib/research-notes";
 
 export const runtime = "nodejs";
 
@@ -8,11 +9,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const tag = searchParams.get("tag");
 
-    const where: any = {};
-    if (tag) {
-      // SQLite 中 JSON 数组搜索，简单使用 LIKE
-      where.tags = { contains: tag };
-    }
+    const where = buildResearchNoteFilter(tag);
 
     const notes = await prisma.researchNote.findMany({
       where,
