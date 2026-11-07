@@ -119,3 +119,5 @@
 - 原生 CLASS／CAMB 传输函数已实际提取。CLASS 同次 `d_m` 功率重建最大相对差低于 \(2.1\times10^{-12}\)；CAMB 零模型深谷重建差异仍大，且对照是既往冻结插值功率，不能据此隔离原因。共同网格零交叉数在 CLASS、CAMB fiducial／high／ultra 分别为 41、27、31、107，基线均为 0；前几个位置接近，但完整相位序列未收敛。
 - 修正 CLASS 输出规范语义：`mPk` 使用默认共动规范不变 `delta_m`，不是简单的 Newtonian 输出密度。跨代码摘要重新生成后，`pk_comparisons`、`cl_comparisons`、背景、robustness 和原始哈希均与修改前逐项相同。新增原生协议、四份修订、跨代码第五修订、带功率第三修订及独立校验；主文档升级为 2.3。
 - 提交前复验：零模型 11 项 Python 测试通过，原生摘要的 8 个来源与 5 组比较独立重算通过，根平台 100 项测试和 Next standalone 构建通过。全库 `lint:all` 仍有 10 错误、14 警告；同次 CAMB 功率、高精度传输、规范变换和观测检验仍是后续任务。
+- `tasks/route.ts`、`tasks/[id]/route.ts` 与 `sync/route.ts` 各移除 1 个显式 `any`，共 3 处。任务筛选、任务更新及执行错误载荷改由 `research-tasks.ts`、`process-error.ts` 提供明确类型和 `unknown` 类型守卫；完成时间以注入日期测试。
+- 新增 `tests/unit/research-tasks.test.js`，覆盖组合筛选、完成与重开日期、非法字段类型及错误输出回退。根平台测试总数从 100 增至 105，105 项通过、0 失败，共 424 个断言、37 个文件；TypeScript、定向 ESLint 和 Next standalone 构建通过。全库 `lint:all` 现为 7 错误、14 警告，尚未清零。

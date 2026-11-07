@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildTaskUpdate } from "@/lib/research-tasks";
 
 export const runtime = "nodejs";
 
@@ -41,25 +42,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
-    const { status, result, leanCode, score } = body;
-
-    const updateData: any = {};
-    if (status !== undefined) {
-      updateData.status = status;
-      if (status === "completed") {
-        updateData.completedAt = new Date();
-      } else if (
-        status === "pending" ||
-        status === "assigned" ||
-        status === "in-progress"
-      ) {
-        updateData.completedAt = null;
-      }
-    }
-    if (result !== undefined) updateData.result = result;
-    if (leanCode !== undefined) updateData.leanCode = leanCode;
-    if (score !== undefined) updateData.score = score;
+    const body: unknown = await request.json();
+    const updateData = buildTaskUpdate(body);
 
     const task = await prisma.academicTask.update({
       where: { id },

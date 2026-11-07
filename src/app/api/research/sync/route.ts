@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { execErrorOutput } from "@/lib/process-error";
 import { exec } from "child_process";
 import { promisify } from "util";
 
@@ -29,8 +30,8 @@ export async function POST(request: NextRequest) {
     try {
       const { stdout, stderr } = await execAsync(`git -C "${repoPath}" pull --stat`);
       pullResult = stdout || stderr;
-    } catch (e: any) {
-      pullResult = e.stdout || e.stderr || e.message || "Git pull failed";
+    } catch (error: unknown) {
+      pullResult = execErrorOutput(error);
     }
 
     // 获取最新 commit hash

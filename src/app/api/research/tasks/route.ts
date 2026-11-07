@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildTaskFilter } from "@/lib/research-tasks";
 
 export const runtime = "nodejs";
 
@@ -20,10 +21,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type");
     const targetModule = searchParams.get("targetModule");
 
-    const where: any = {};
-    if (status) where.status = status;
-    if (type) where.type = type;
-    if (targetModule) where.targetModule = targetModule;
+    const where = buildTaskFilter(status, type, targetModule);
 
     const tasks = await prisma.academicTask.findMany({
       where,
