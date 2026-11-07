@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildReviewerFilter } from "@/lib/reviewer-filter";
 
 export const runtime = "nodejs";
 
@@ -33,9 +34,7 @@ export async function GET(
     const role = searchParams.get("role");
     const specialty = searchParams.get("specialty");
 
-    const where: any = { boardId: id };
-    if (role) where.role = role;
-    if (specialty) where.specialty = specialty;
+    const where = buildReviewerFilter(id, role, specialty);
 
     const members = await prisma.reviewBoardMember.findMany({
       where,

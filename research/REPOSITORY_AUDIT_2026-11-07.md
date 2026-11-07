@@ -110,3 +110,5 @@
 - 新增 `tests/unit/pipeline-stage-update.test.js`，覆盖高分完成、低分拒绝和显式状态回退。根平台测试总数从 88 增至 91，全部通过。全库 `no-explicit-any` 进一步降至 15，`lint:all` 为 15 错误、14 警告；TypeScript 与 Next standalone 构建已复验通过。
 - `pipelines/route.ts` 的 1 个 `any` 已移除，流水线状态筛选改由 `src/lib/pipeline-filter.ts` 返回 `Prisma.ManuscriptPipelineWhereInput`。
 - 新增 `tests/unit/pipeline-filter.test.js`，验证状态存在与空筛选。根平台测试总数从 91 增至 93，全部通过。全库 `no-explicit-any` 进一步降至 14，`lint:all` 为 14 错误、14 警告；TypeScript 与 Next standalone 构建已复验通过。
+- `review-boards/[id]/reviewers/route.ts` 的 1 个 `any` 已移除，评审员角色与专长筛选改由 `src/lib/reviewer-filter.ts` 返回 `Prisma.ReviewBoardMemberWhereInput`。
+- 新增 `tests/unit/reviewer-filter.test.js`，验证组合筛选与空筛选。根平台测试总数从 93 增至 95，95 项通过、0 失败，共 404 个断言、35 个文件。全库 `no-explicit-any` 进一步降至 13，`lint:all` 为 13 错误、14 警告；TypeScript、定向 ESLint 与 Next standalone 构建已复验通过。剩余问题包括 13 个具名 `any` 错误及 14 个警告（`tools.ts` 同时有 1 个未使用导入警告），仍不能宣称全库 lint 通过。
