@@ -1,0 +1,59 @@
+{
+  "status": "frozen_before_single_variable_accuracy_runs",
+  "frozen_at_local": "2026-11-08T02:53:54.794567+08:00",
+  "base": "ultra for both models, with unchanged physical inputs",
+  "cases": {
+    "k800": {
+      "changed": "k_per_logint from 400 to 800",
+      "unchanged": "AccuracyBoost=4, lSampleBoost=4, lAccuracyBoost=4, kmax=2, lens_potential_accuracy=8 and all physical inputs"
+    },
+    "accuracy8": {
+      "changed": "AccuracyBoost from 4 to 8",
+      "unchanged": "k_per_logint=400, lSampleBoost=4, lAccuracyBoost=4, kmax=2, lens_potential_accuracy=8 and all physical inputs"
+    }
+  },
+  "execution": {
+    "parallel_solver_runs": false,
+    "order": [
+      "k800 zero",
+      "k800 baseline if resources permit",
+      "accuracy8 zero",
+      "accuracy8 baseline"
+    ],
+    "memory": "record elapsed time and maximum RSS; resource failure is evidence and must not be replaced by a lower-fidelity physical approximation",
+    "outputs": "new .tmp/camb-runs/single-variable/<case>/<model> directories only"
+  },
+  "analysis": {
+    "phase": "4096 signed points from 0.01 to 1.28 h/Mpc, exact zeros and sign changes, nearest distances without unique oscillation labels",
+    "bands": "2603 points from 0.005 to 1.9985652306116815 h/Mpc, seven fixed bands, raw and 0.05/0.10 dex smoothing",
+    "comparisons": "case versus ultra, CLASS HyRec and CLASS RECFAST, plus k800 versus accuracy8",
+    "acceptance": "report actual changes; no convergence claim without an explicit stable sequence"
+  },
+  "output_rule": "Preserve all earlier outputs and any failure log; do not overwrite a completed case.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_single_variable.py": "db9185327eb826ff242712e6d697b2087bba3d896104dacff7bea3443b54848e",
+    "research/physical-intuition/zero-cdm/camb_single_variable.py": "c301c583304a1d4a6eb9e89950c565229c86d0fcd5c19c0f5069d4b143e0b9f3",
+    "research/physical-intuition/zero-cdm/analyze_single_variable.py": "51991e9d2ceaaac9910a73dcc53c30efdb925cac3237603965fd793c842ab25b",
+    "research/physical-intuition/zero-cdm/verify_single_variable.py": "1a38a72492f62445e87d9d1a4f748b65bbe7a3a686317876bfe8c595c129fe55",
+    "research/physical-intuition/zero-cdm/camb_crosscode.py": "894582eeba01532ef5d0217be226ad4660c4711c8a96ff91575a28b5dfe949f5",
+    "research/physical-intuition/zero-cdm/gauge_transform.py": "06ee7ef1b29ab9882d76e2ccbcc9dc50bc1662175039c153d753ce31464b98ba",
+    "research/physical-intuition/zero-cdm/signed_transfer_statistics.py": "16886b26f7f5deb4a84a53f49afd42ce7eb4a1ca288c1b2b3c1b7b269b4aefdd",
+    "research/physical-intuition/zero-cdm/pk_band_statistics.py": "05e9c5b9bfc09e91d4e0edcf8cf74790b27dfc09603e3e587e52907684d48c98",
+    ".tmp/camb-wsl-site/camb/model.py": "d7d689d56b4832df965d81c85a31bb43c38e4708bcf9d6bd1a58d58d27da2aab",
+    ".tmp/camb-runs/ultra/zero/phase-comoving.npz": "6ce404aea69f84aa2b93c4d672f1854049fa97a53d573d764d733e268662ab1c",
+    ".tmp/camb-runs/ultra/baseline/phase-comoving.npz": "858c44b7125438dc32b13e431cc23656fb6eba0f7397298cfd8ec712e9989978",
+    ".tmp/camb-runs/ultra/zero/summary.json": "92a80164739f62fdd5e8722220c2d8b0333c14615adc16234e1a193c9776b31b",
+    ".tmp/camb-runs/ultra/baseline/summary.json": "f8fe8e6992a9543e5049b4faf9cc525f5b49a47c5a966b16556614fa6e952ee6",
+    ".tmp/class_public/convergence/transfer/zero-cdm-transfer-dense00_00_tk.dat": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+    ".tmp/class_public/convergence/transfer/baseline-lcdm-transfer-dense00_00_tk.dat": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+    ".tmp/class_public/convergence/integral/zero-cdm-integral00_pk.dat": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    ".tmp/class_public/convergence/integral/baseline-lcdm-integral00_pk.dat": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea",
+    ".tmp/class_public/convergence/recfast/zero-cdm-recfast00_pk.dat": "98414a096d6b28be245e8c73193aaf3e2f4140464a95b67b2b069eef9977bfa9",
+    ".tmp/class_public/convergence/recfast/baseline-lcdm-recfast00_pk.dat": "f7cbc92a08101e24c481b0ed4bfad5b0fb9f4708eba1a67c95256a858542a43f"
+  },
+  "boundaries": [
+    "Only the named numerical setting may change in each case; zero CDM remains exactly zero.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "Higher cost and additional crossings do not by themselves prove convergence or numerical noise."
+  ]
+}

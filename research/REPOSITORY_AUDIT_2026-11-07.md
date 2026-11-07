@@ -155,3 +155,6 @@
 - 三档共动转换和相位／带功率分析已完成。CLASS、fiducial、high、ultra 的零模型公共网格零交叉数分别为 41、27、31、107；CLASS 的 41 个位置在 ultra 中均有近邻，最大对数距离 0.010844，但 ultra 额外的 66 个交叉意味着完整序列不能称为一致。
 - 最高带比值从 fiducial 的 \(4.73386\times10^{-12}\)、high 的 \(2.35246\times10^{-12}\) 到 ultra 的 \(6.26631\times10^{-13}\)，相邻档位对数变化为 −0.699279 和 −1.322859，精度未收敛，不能把 ultra 当作最佳收敛答案。六个转换输出、交叉位置和五个来源的最高带均独立复验通过。
 - 新增 `phase_comoving.py`、`analyze_phase_sampling.py`、`verify_phase_sampling.py`、协议、修订、摘要和 SVG。主文档升级为 3.0；下一步是单变量精度实验，分离 `k_per_logint` 与积分／时间精度设置，观测检验仍未完成。
+- 单变量 `k800` 已在零模型和基线上完成，最大内存分别约 15.16 GB 和 15.58 GB。网格审计显示，k800 每隔一个节点与 ultra 相同，全部 5878 个共享 q 节点和共动密度逐位一致；最高带对数变化为 0，说明增加输出节点并不提高当前求解精度。
+- 仅传输 accuracy4 参考与完整 ultra 的 q 网格及原始传输数组逐位一致，路径检验通过。`AccuracyBoost=8` 在完整 `get_results` 两次、仅传输一次、限定波数一次均在 300 秒前台时限终止，未产生数值结果；没有后台遗留进程，也没有把超时解释为物理结论。
+- 新增 `camb_single_variable.py`、`camb_transfer_only_case.py`、`camb_kmax_limited_case.py`、对应协议、`analyze_k800_path.py`、`verify_k800_path_v2.py`、`audit_k800_grid.py` 与 `single-variable-amendment-01.json`。成功案例独立复验通过，主文档升级为 3.1；极端谱的内部精度与相位仍未闭合，后续转向观测和其他实现检验。

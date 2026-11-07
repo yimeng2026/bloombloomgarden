@@ -1,0 +1,60 @@
+{
+  "status": "frozen_before_kmax_limited_accuracy_pair",
+  "frozen_at_local": "2026-11-08T03:28:11.201967+08:00",
+  "reason": "AccuracyBoost=8 exceeded the 300 s foreground limit in both full get_results and transfer-only forms. Restrict the paired calculation to the target k<=1.28 range instead of repeated unbounded retries.",
+  "execution_path": "camb.get_transfer_functions(only_time_sources=True) with kmax=1.28 for both cases",
+  "cases": {
+    "reference4": "AccuracyBoost=4, k_per_logint=400, kmax=1.28, all other ultra and physical settings unchanged",
+    "accuracy8": "AccuracyBoost=8, k_per_logint=400, kmax=1.28, all other ultra and physical settings unchanged"
+  },
+  "execution": {
+    "parallel_solver_runs": false,
+    "order": [
+      "reference4 zero",
+      "reference4 baseline",
+      "accuracy8 zero",
+      "accuracy8 baseline"
+    ],
+    "maximum_foreground_seconds_per_process": 300,
+    "outputs": "new .tmp/camb-runs/kmax-limited/<case>/<model> directories only"
+  },
+  "analysis": {
+    "phase": "same signed 4096-point grid from 0.01 to 1.28 h/Mpc",
+    "bands": "a separate 2603-point grid from 0.005 to exactly 1.28 h/Mpc for every source, with the same seven bands and smoothing definitions",
+    "path_check": "reference4 versus full ultra on this identical truncated grid",
+    "main_effect": "accuracy8_over_reference4",
+    "acceptance": "report actual results and do not compare absolute band values to the previous 1.998565 grid without recording the grid change"
+  },
+  "output_rule": "Preserve all timeout evidence and previous outputs; do not overwrite completed cases.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_kmax_limited.py": "17ff1d9c744301f1394fa907052c23a27ccfb64bec2c7219b627b46699a7cf0c",
+    "research/physical-intuition/zero-cdm/camb_kmax_limited_case.py": "914558b7ec84aae8a48363a21538d53222f0b5b6b99267e92fbef938351c83fd",
+    "research/physical-intuition/zero-cdm/analyze_kmax_limited.py": "e080a32ee70ceab74738f9e60d7048b1bb47dcc1eea25580ad4d3934fde2bee9",
+    "research/physical-intuition/zero-cdm/verify_kmax_limited.py": "d0c9e50baccbd03fcff614aef3f6faf4bcd53e5fe65dbe91bff02233375e8c36",
+    "research/physical-intuition/zero-cdm/camb_crosscode.py": "894582eeba01532ef5d0217be226ad4660c4711c8a96ff91575a28b5dfe949f5",
+    "research/physical-intuition/zero-cdm/gauge_transform.py": "06ee7ef1b29ab9882d76e2ccbcc9dc50bc1662175039c153d753ce31464b98ba",
+    "research/physical-intuition/zero-cdm/signed_transfer_statistics.py": "16886b26f7f5deb4a84a53f49afd42ce7eb4a1ca288c1b2b3c1b7b269b4aefdd",
+    "research/physical-intuition/zero-cdm/pk_band_statistics.py": "05e9c5b9bfc09e91d4e0edcf8cf74790b27dfc09603e3e587e52907684d48c98",
+    ".tmp/camb-wsl-site/camb/camb.py": "762c29d784bb1e082430bc595931806752808dcd001b7162bd4fe19f8e8c0e89",
+    ".tmp/camb-wsl-site/camb/results.py": "f7241cf90c9490b8789a7c2bbecd3c3d65066f52f2266a8924f76bd5e01127d0",
+    ".tmp/camb-wsl-site/camb/model.py": "d7d689d56b4832df965d81c85a31bb43c38e4708bcf9d6bd1a58d58d27da2aab",
+    ".tmp/camb-runs/ultra/zero/phase-comoving.npz": "6ce404aea69f84aa2b93c4d672f1854049fa97a53d573d764d733e268662ab1c",
+    ".tmp/camb-runs/ultra/baseline/phase-comoving.npz": "858c44b7125438dc32b13e431cc23656fb6eba0f7397298cfd8ec712e9989978",
+    ".tmp/camb-runs/single-variable/k800/zero/single-variable.npz": "60d66890880e5c187bd01d8ab30e0d664f9bfcfb24503f4f6b90a87d441fa06c",
+    ".tmp/camb-runs/single-variable/k800/baseline/single-variable.npz": "137dac791bc4098a9603aa60221752fd3b63cbbe21397e9612853f51c55c4d22",
+    ".tmp/camb-runs/transfer-only/reference4/zero/transfer-only.npz": "09fff02576f9b0d0807fb7c68b878306de64d789a1055bd19ad5c27a748e80c3",
+    ".tmp/camb-runs/transfer-only/reference4/baseline/transfer-only.npz": "14892fc905927c09ded6f6d5b6f7ec85f6fd0b134bfe62299809059cee16e537",
+    ".tmp/camb-runs/transfer-only/accuracy8/zero/run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".tmp/class_public/convergence/transfer/zero-cdm-transfer-dense00_00_tk.dat": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+    ".tmp/class_public/convergence/transfer/baseline-lcdm-transfer-dense00_00_tk.dat": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+    ".tmp/class_public/convergence/integral/zero-cdm-integral00_pk.dat": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    ".tmp/class_public/convergence/integral/baseline-lcdm-integral00_pk.dat": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea",
+    ".tmp/class_public/convergence/recfast/zero-cdm-recfast00_pk.dat": "98414a096d6b28be245e8c73193aaf3e2f4140464a95b67b2b069eef9977bfa9",
+    ".tmp/class_public/convergence/recfast/baseline-lcdm-recfast00_pk.dat": "f7cbc92a08101e24c481b0ed4bfad5b0fb9f4708eba1a67c95256a858542a43f"
+  },
+  "boundaries": [
+    "Only AccuracyBoost differs within the limited pair; zero CDM remains exactly zero.",
+    "This is not a completed full-k AccuracyBoost=8 run and no background process is left behind.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion."
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "status": "frozen_k800_analysis_with_float_tolerant_verifier_v2",
+  "frozen_at_local": "2026-11-08T03:43:17.469723+08:00",
+  "supersedes": "k800-path-protocol.json only for verifier tolerance, not for data or analysis choices",
+  "reason": "Original bitwise verification failed on 5/5878 reference power values with maximum relative difference 4.30674107e-16; original verifier and protocol are preserved.",
+  "verifier": "verify_k800_path_v2.py with rtol=1e-14 and atol=0 for reconstructed power",
+  "unchanged": {
+    "camb_ultra": "existing full ultra reference",
+    "camb_k800": "completed full get_results k_per_logint=800 for zero and baseline",
+    "camb_reference4": "completed get_transfer_functions AccuracyBoost=4 for zero and baseline",
+    "class_hyrec": "existing CLASS native d_m and integral power",
+    "class_recfast": "existing CLASS RECFAST power"
+  },
+  "excluded_accuracy8": {
+    "reason": "Full get_results twice, transfer-only once, and kmax-limited once all reached the host's 300 s foreground timeout without numerical output; no baseline attempts are counted.",
+    "rule": "No accuracy8 values are inferred, interpolated, or included as completed results."
+  },
+  "analysis": {
+    "phase": "4096-point signed grid, zero-crossing counts and nearest distances",
+    "highest_band": "0.64 to 1.28 h/Mpc on the established 2603-point grid, raw and 0.05/0.10 dex smoothing",
+    "main_effect": "k800_over_full_ultra",
+    "path_check": "reference4_over_full_ultra",
+    "acceptance": "report actual successful outputs; no accuracy8 or convergence claim is fabricated"
+  },
+  "output_rule": "Write only new k800-path analysis artifacts and preserve all run logs and previous outputs.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_k800_path.py": "aeca45cacfee31c5147c01ba0834f1c7143228f96e2b388374a69eb00baea3a8",
+    "research/physical-intuition/zero-cdm/analyze_k800_path.py": "3cec8f69bb6068c56f8d55ccb7b58a60321f5c711200b0da082d21587f9d34e9",
+    "research/physical-intuition/zero-cdm/verify_k800_path.py": "e91099f465a55378a96913ba614b2ca847c184f41cf6517ea226e242abedd4a0",
+    "research/physical-intuition/zero-cdm/gauge_transform.py": "06ee7ef1b29ab9882d76e2ccbcc9dc50bc1662175039c153d753ce31464b98ba",
+    "research/physical-intuition/zero-cdm/signed_transfer_statistics.py": "16886b26f7f5deb4a84a53f49afd42ce7eb4a1ca288c1b2b3c1b7b269b4aefdd",
+    "research/physical-intuition/zero-cdm/pk_band_statistics.py": "05e9c5b9bfc09e91d4e0edcf8cf74790b27dfc09603e3e587e52907684d48c98",
+    ".tmp/camb-runs/ultra/zero/phase-comoving.npz": "6ce404aea69f84aa2b93c4d672f1854049fa97a53d573d764d733e268662ab1c",
+    ".tmp/camb-runs/ultra/baseline/phase-comoving.npz": "858c44b7125438dc32b13e431cc23656fb6eba0f7397298cfd8ec712e9989978",
+    ".tmp/camb-runs/single-variable/k800/zero/single-variable.npz": "60d66890880e5c187bd01d8ab30e0d664f9bfcfb24503f4f6b90a87d441fa06c",
+    ".tmp/camb-runs/single-variable/k800/baseline/single-variable.npz": "137dac791bc4098a9603aa60221752fd3b63cbbe21397e9612853f51c55c4d22",
+    ".tmp/camb-runs/single-variable/k800/zero/summary.json": "5590b265d177e773b7a560fa4ac69c0ef6ea1dcb57a6d09c2d37ab935d19c5dd",
+    ".tmp/camb-runs/single-variable/k800/baseline/summary.json": "2d20995f226428031f89588f69a05ccf6046e9f9ba4e42a4ccc80fd6d9d2e04e",
+    ".tmp/camb-runs/transfer-only/reference4/zero/transfer-only.npz": "09fff02576f9b0d0807fb7c68b878306de64d789a1055bd19ad5c27a748e80c3",
+    ".tmp/camb-runs/transfer-only/reference4/baseline/transfer-only.npz": "14892fc905927c09ded6f6d5b6f7ec85f6fd0b134bfe62299809059cee16e537",
+    ".tmp/camb-runs/transfer-only/reference4/zero/summary.json": "ea9653210cccda4c122601591dd483cbf37117ba9899f6e64693ec07108fe18f",
+    ".tmp/camb-runs/transfer-only/reference4/baseline/summary.json": "d2326562cefb93322b1fa7c6191e929b2f1723d37e7394c0dc60bff81cb5857d",
+    ".tmp/camb-runs/single-variable/accuracy8/zero/run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".tmp/camb-runs/transfer-only/accuracy8/zero/run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".tmp/camb-runs/kmax-limited/accuracy8/zero/run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".tmp/class_public/convergence/transfer/zero-cdm-transfer-dense00_00_tk.dat": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+    ".tmp/class_public/convergence/transfer/baseline-lcdm-transfer-dense00_00_tk.dat": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+    ".tmp/class_public/convergence/integral/zero-cdm-integral00_pk.dat": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    ".tmp/class_public/convergence/integral/baseline-lcdm-integral00_pk.dat": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea",
+    ".tmp/class_public/convergence/recfast/zero-cdm-recfast00_pk.dat": "98414a096d6b28be245e8c73193aaf3e2f4140464a95b67b2b069eef9977bfa9",
+    ".tmp/class_public/convergence/recfast/baseline-lcdm-recfast00_pk.dat": "f7cbc92a08101e24c481b0ed4bfad5b0fb9f4708eba1a67c95256a858542a43f",
+    "research/physical-intuition/zero-cdm/verify_k800_path_v2.py": "ab669ae528ba6a3fe925a8819a6ede6c331cd8a509e4fbc2a622f0f3d32b8df7",
+    "research/physical-intuition/zero-cdm/k800-path-protocol.json": "3eeae5db877a7a95dcdc1df0c17fd7375fac27c5e4c9c3d24d27ff0d03d54313",
+    "research/physical-intuition/zero-cdm/k800-path-verification-amendment-01.json": "238090659d069b43cd4011b00cb884bbab63caab69dd6913fc602a85dab99170"
+  },
+  "boundaries": [
+    "No new solver run, physical parameter change, or nonzero CDM placeholder.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "The failed accuracy8 attempts are computation boundaries, not evidence for or against a physical model."
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "status": "frozen_before_paired_transfer_only_accuracy_runs",
+  "frozen_at_local": "2026-11-08T03:15:47.238837+08:00",
+  "reason": "The full get_results AccuracyBoost=8 case twice reached the host's 300 s foreground limit without numerical outputs. Use a bounded transfer-only path with a matched reference instead of leaving a background process or reducing accuracy.",
+  "execution_path": "camb.get_transfer_functions(params, only_time_sources=True) for both cases; no CMB l,k power outputs",
+  "cases": {
+    "reference4": "AccuracyBoost=4, k_per_logint=400, all other ultra and physical settings unchanged",
+    "accuracy8": "AccuracyBoost=8, k_per_logint=400, all other ultra and physical settings unchanged"
+  },
+  "required_path_check": "reference4 versus existing full ultra comoving transfers and power; discrepancies must be reported before interpreting accuracy8/reference4",
+  "previous_k800": "existing full k800 zero and baseline outputs remain the separate wave-sampling case",
+  "execution": {
+    "parallel_solver_runs": false,
+    "order": [
+      "reference4 zero",
+      "reference4 baseline",
+      "accuracy8 zero",
+      "accuracy8 baseline"
+    ],
+    "maximum_foreground_seconds_per_process": 300,
+    "outputs": "new .tmp/camb-runs/transfer-only/<case>/<model> directories only"
+  },
+  "analysis": {
+    "phase": "same 4096-point signed grid and nearest-distance diagnostics",
+    "bands": "same 2603-point grid, seven bands, raw and 0.05/0.10 dex smoothing",
+    "main_effect": "accuracy8_over_reference4",
+    "path_effect": "reference4_over_full_ultra",
+    "acceptance": "report actual results; no convergence claim without a stable sequence"
+  },
+  "output_rule": "Preserve full-run timeout evidence and all previous outputs; do not overwrite completed cases.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_transfer_only.py": "b81d535f2e576246fb6de106985a84120924c9b315d5d08cbf06841a9579f3e0",
+    "research/physical-intuition/zero-cdm/camb_transfer_only_case.py": "f2648e19aff4410961fd16612f69cf4df1230507d24bac1fd6c65ce8ffeff43b",
+    "research/physical-intuition/zero-cdm/analyze_transfer_only.py": "bf5d9a4d1139dc73142e5c9c1668bf665a3ad35582dedca5b8ac0bf782aa0da2",
+    "research/physical-intuition/zero-cdm/verify_transfer_only.py": "e6cba536528c87bc69674acb3540109b6aa85cdf64ff26d3b4431d724918298e",
+    "research/physical-intuition/zero-cdm/camb_crosscode.py": "894582eeba01532ef5d0217be226ad4660c4711c8a96ff91575a28b5dfe949f5",
+    "research/physical-intuition/zero-cdm/gauge_transform.py": "06ee7ef1b29ab9882d76e2ccbcc9dc50bc1662175039c153d753ce31464b98ba",
+    "research/physical-intuition/zero-cdm/signed_transfer_statistics.py": "16886b26f7f5deb4a84a53f49afd42ce7eb4a1ca288c1b2b3c1b7b269b4aefdd",
+    "research/physical-intuition/zero-cdm/pk_band_statistics.py": "05e9c5b9bfc09e91d4e0edcf8cf74790b27dfc09603e3e587e52907684d48c98",
+    "research/physical-intuition/zero-cdm/single-variable-protocol.json": "6c760e052c654d17e0b29c95b99c8bc2c12f004f8c2c38e655c0a08f8f8aca58",
+    ".tmp/camb-wsl-site/camb/camb.py": "762c29d784bb1e082430bc595931806752808dcd001b7162bd4fe19f8e8c0e89",
+    ".tmp/camb-wsl-site/camb/results.py": "f7241cf90c9490b8789a7c2bbecd3c3d65066f52f2266a8924f76bd5e01127d0",
+    ".tmp/camb-wsl-site/camb/model.py": "d7d689d56b4832df965d81c85a31bb43c38e4708bcf9d6bd1a58d58d27da2aab",
+    ".tmp/camb-runs/ultra/zero/phase-comoving.npz": "6ce404aea69f84aa2b93c4d672f1854049fa97a53d573d764d733e268662ab1c",
+    ".tmp/camb-runs/ultra/baseline/phase-comoving.npz": "858c44b7125438dc32b13e431cc23656fb6eba0f7397298cfd8ec712e9989978",
+    ".tmp/camb-runs/single-variable/k800/zero/single-variable.npz": "60d66890880e5c187bd01d8ab30e0d664f9bfcfb24503f4f6b90a87d441fa06c",
+    ".tmp/camb-runs/single-variable/k800/baseline/single-variable.npz": "137dac791bc4098a9603aa60221752fd3b63cbbe21397e9612853f51c55c4d22",
+    ".tmp/camb-runs/single-variable/accuracy8/zero/run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".tmp/class_public/convergence/transfer/zero-cdm-transfer-dense00_00_tk.dat": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+    ".tmp/class_public/convergence/transfer/baseline-lcdm-transfer-dense00_00_tk.dat": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+    ".tmp/class_public/convergence/integral/zero-cdm-integral00_pk.dat": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    ".tmp/class_public/convergence/integral/baseline-lcdm-integral00_pk.dat": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea",
+    ".tmp/class_public/convergence/recfast/zero-cdm-recfast00_pk.dat": "98414a096d6b28be245e8c73193aaf3e2f4140464a95b67b2b069eef9977bfa9",
+    ".tmp/class_public/convergence/recfast/baseline-lcdm-recfast00_pk.dat": "f7cbc92a08101e24c481b0ed4bfad5b0fb9f4708eba1a67c95256a858542a43f"
+  },
+  "boundaries": [
+    "Only AccuracyBoost differs within the transfer-only pair; zero CDM remains exactly zero.",
+    "No background process, observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "The transfer-only path is not described as a completed full-CMB AccuracyBoost=8 run."
+  ]
+}

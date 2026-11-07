@@ -1,0 +1,74 @@
+{
+  "status": "k800_output_sampling_no_effect_and_accuracy8_compute_boundary",
+  "amended_on": "2026-11-08",
+  "protocols": {
+    "single_variable_sha256": "6c760e052c654d17e0b29c95b99c8bc2c12f004f8c2c38e655c0a08f8f8aca58",
+    "transfer_only_sha256": "2fd9cd51753f7ae9410fef4bf0736158ba102ac1a401040190200efec978fa92",
+    "kmax_limited_sha256": "01f0f816b369b5158c48e7ef72fdf01009d680f6b1c242d03a4f8481b8dd7fd7",
+    "k800_path_v2_sha256": "76991272e9657df55ce3423d3b0eabe4b6e2a90ffd97b5b0f611c98effd6e6bc"
+  },
+  "successful_cases": {
+    "k800_zero": {
+      "native_points": 10215,
+      "elapsed_seconds": 105.81521165100001,
+      "maximum_rss_kib": 15155836
+    },
+    "k800_baseline": {
+      "native_points": 10492,
+      "elapsed_seconds": 130.267627708,
+      "maximum_rss_kib": 15576068
+    },
+    "reference4_zero": {
+      "native_points": 5878,
+      "elapsed_seconds": 47.34284945899999,
+      "maximum_rss_kib": 2508636
+    },
+    "reference4_baseline": {
+      "native_points": 6307,
+      "elapsed_seconds": 57.423115248,
+      "maximum_rss_kib": 2764316
+    }
+  },
+  "grid_audit": {
+    "reference4_q_identical_to_full_ultra": true,
+    "reference4_transfer_identical_to_full_ultra": true,
+    "k800_every_second_node_matches_ultra": true,
+    "k800_shared_q_points": 5878,
+    "k800_nearest_q_max_abs_fraction": 0.0,
+    "k800_shared_comoving_values_identical": true,
+    "runner_sha256": "3cdc5eef36ea8b0c2ab28bb2b95ff8465684fc19d52127107f2d587b73889786"
+  },
+  "highest_band": {
+    "reference4_over_full_ultra_ln": 0.0,
+    "k800_over_full_ultra_ln": 0.0,
+    "k800_over_class_hyrec_ln": -2.283065092225988,
+    "k800_over_class_recfast_ln": -1.5276482987583502,
+    "zero_crossings": {
+      "class_hyrec": 41,
+      "camb_ultra": 107,
+      "camb_reference4": 107,
+      "camb_k800": 107
+    }
+  },
+  "accuracy8_boundary": {
+    "full_get_results_attempts": 2,
+    "transfer_only_attempts": 1,
+    "kmax_limited_attempts": 1,
+    "foreground_timeout_seconds": 300,
+    "numerical_outputs": false,
+    "baseline_accuracy8_attempted": false,
+    "interpretation": "No AccuracyBoost=8 result is available; timeouts are computation boundaries, not physical evidence or convergence failures."
+  },
+  "verifier": {
+    "original_bitwise_failure": "5/5878 reference power values differed only at floating-point last bits, maximum relative difference 4.30674107e-16",
+    "original_verifier_restored": true,
+    "v2_verifier_sha256": "ab669ae528ba6a3fe925a8819a6ede6c331cd8a509e4fbc2a622f0f3d32b8df7",
+    "v2_verification": "passed"
+  },
+  "interpretation": "k_per_logint increases output density only and does not tighten the current perturbation solution. AccuracyBoost also scales internal sampling and step sizes, but its higher-cost case could not be completed within the current foreground limit. The extreme-spectrum numerical question remains open.",
+  "boundaries": [
+    "No accuracy8 value is inferred or used.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "All timeout evidence, successful outputs, and floating-point verification history are preserved."
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "status": "computed_native_grid_audit_for_k800_and_reference4",
+  "records": {
+    "full_ultra": {
+      "points": 5878,
+      "q_min": 8.872349077918151e-07,
+      "q_max": 5.110473068880855,
+      "first_10_q": [
+        8.872349077918151e-07,
+        8.894557424567534e-07,
+        8.916821360853502e-07,
+        8.939141025922283e-07,
+        8.96151655926841e-07,
+        8.983948100735564e-07,
+        9.006435790517493e-07,
+        9.028979769158847e-07,
+        9.051580177556078e-07,
+        9.074237156958316e-07
+      ],
+      "effective_points_per_ln_k_min": 67.74247115126151,
+      "effective_points_per_ln_k_median": 400.00495150810866,
+      "effective_points_per_ln_k_max": 1261.7436352498548,
+      "transfer_shape": [
+        13,
+        5878,
+        1
+      ],
+      "transfer_dtype": "float32",
+      "sha256": "36ad4566557c473e9afb86b2fddc6b4822988af5b65c80a6e414388496e6da95"
+    },
+    "reference4": {
+      "points": 5878,
+      "q_min": 8.872349077918151e-07,
+      "q_max": 5.110473068880855,
+      "first_10_q": [
+        8.872349077918151e-07,
+        8.894557424567534e-07,
+        8.916821360853502e-07,
+        8.939141025922283e-07,
+        8.96151655926841e-07,
+        8.983948100735564e-07,
+        9.006435790517493e-07,
+        9.028979769158847e-07,
+        9.051580177556078e-07,
+        9.074237156958316e-07
+      ],
+      "effective_points_per_ln_k_min": 67.74247115126151,
+      "effective_points_per_ln_k_median": 400.00495150810866,
+      "effective_points_per_ln_k_max": 1261.7436352498548,
+      "transfer_shape": [
+        13,
+        5878,
+        1
+      ],
+      "transfer_dtype": "float32",
+      "sha256": "09fff02576f9b0d0807fb7c68b878306de64d789a1055bd19ad5c27a748e80c3"
+    },
+    "k800": {
+      "points": 10215,
+      "q_min": 8.872349077918151e-07,
+      "q_max": 5.110473068880855,
+      "first_10_q": [
+        8.872349077918151e-07,
+        8.883446311221327e-07,
+        8.894557424567534e-07,
+        8.905682435317457e-07,
+        8.916821360853502e-07,
+        8.927974218579809e-07,
+        8.939141025922283e-07,
+        8.950321800328642e-07,
+        8.96151655926841e-07,
+        8.972725320232964e-07
+      ],
+      "effective_points_per_ln_k_min": 67.74247115126151,
+      "effective_points_per_ln_k_median": 800.009903016245,
+      "effective_points_per_ln_k_max": 1261.7436352498548,
+      "transfer_shape": [
+        13,
+        10215,
+        1
+      ],
+      "transfer_dtype": "float32",
+      "sha256": "60d66890880e5c187bd01d8ab30e0d664f9bfcfb24503f4f6b90a87d441fa06c"
+    }
+  },
+  "comparison": {
+    "reference4_q_identical_to_full_ultra": true,
+    "reference4_transfer_identical_to_full_ultra": true,
+    "k800_nearest_q_max_abs_fraction": 0.0,
+    "k800_nearest_comoving_max_abs_difference": 0.0,
+    "k800_nearest_comoving_identical": true,
+    "k800_first_10_indices_for_full_ultra": [
+      0,
+      2,
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18
+    ],
+    "k800_first_10_nearest_q": [
+      8.872349077918151e-07,
+      8.894557424567534e-07,
+      8.916821360853502e-07,
+      8.939141025922283e-07,
+      8.96151655926841e-07,
+      8.983948100735564e-07,
+      9.006435790517493e-07,
+      9.028979769158847e-07,
+      9.051580177556078e-07,
+      9.074237156958316e-07
+    ]
+  },
+  "source_interpretation": {
+    "k_per_logint": "Controls fixed output q nodes in CAMB InitTransfer; more output nodes do not by themselves tighten the perturbation integration tolerance.",
+    "AccuracyBoost": "Also scales internal k sampling and integration step sizes, so output-node doubling cannot substitute for this accuracy setting.",
+    "needs_good_pk_sampling": "Declared false and not currently used in the checked CAMB source; fixed k_per_logint uses the fixed-spacing branch."
+  },
+  "analysis_runner_sha256": "3cdc5eef36ea8b0c2ab28bb2b95ff8465684fc19d52127107f2d587b73889786",
+  "boundaries": [
+    "Nearest-q comparison is a grid diagnostic, not an independent physical accuracy proof.",
+    "Exact transfer equality is checked only where reported; no claim is inferred solely from equal band powers."
+  ]
+}
