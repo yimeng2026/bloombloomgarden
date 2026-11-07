@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildPanelMemberFilter } from "@/lib/panel-member-filter";
 
 export const runtime = "nodejs";
 
@@ -78,9 +79,7 @@ export async function GET(
     const specialty = searchParams.get("specialty");
     const role = searchParams.get("role");
 
-    const where: any = { panelId: id };
-    if (specialty) where.specialty = specialty;
-    if (role) where.role = role;
+    const where = buildPanelMemberFilter(id, specialty, role);
 
     const members = await prisma.academicPanelMember.findMany({
       where,
