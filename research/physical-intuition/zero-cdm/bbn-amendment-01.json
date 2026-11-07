@@ -1,0 +1,52 @@
+{
+  "status": "primat_bbn_abundances_and_observation_diagnostics_verified",
+  "amended_on": "2026-11-08",
+  "protocol_sha256": "25d913291463791273f75723b8f54ae1e8ba96c8ec4cbbe3cc8c602cab010394",
+  "analysis_runner_sha256": "45909ba95e067061e7cc06d4b699bb4820a4195e8661c7e4b2b9f429d3c8c48c",
+  "verification_runner_sha256": "627f02ef2096d42448279fc02ec9d0f11c88f7440161963e3444e36c21620561",
+  "zero_cdm_method": "PRIMATConfig validation followed by explicit cfg.Omegach2=0 before StandardBackground; no nonzero placeholder or source edit",
+  "results": {
+    "zero_python": {
+      "YPBBN": 0.24689496731738123,
+      "DoH": 2.4792137885902114e-05,
+      "YPCMB": 0.2455690354353337
+    },
+    "baseline_python": {
+      "YPBBN": 0.24689522074576278,
+      "DoH": 2.479241848408842e-05,
+      "YPCMB": 0.24556928794649144
+    }
+  },
+  "observational_chi_squared_zero": {
+    "PDG_Aug2023": 5.862687537228016,
+    "BAO_BBN_papers": 2.7859900800064925,
+    "EMPRESS_sensitivity": 13.933454423041209
+  },
+  "observational_chi_squared_baseline": {
+    "PDG_Aug2023": 5.858271849949894,
+    "BAO_BBN_papers": 2.783074440024625,
+    "EMPRESS_sensitivity": 13.92936586668777
+  },
+  "maximum_abs_delta_chi_squared_zero_minus_baseline": 0.004415687278122249,
+  "backend_comparison": {
+    "YPBBN_c_over_python_minus_1": 9.486058671903663e-08,
+    "DoH_c_over_python_minus_1": 8.179391534302027e-06,
+    "Li7oH_c_over_python_minus_1": -9.071774605184935e-06,
+    "Neff_c_over_python_minus_1": 0.0
+  },
+  "class_comparison": {
+    "class_over_primat_YPCMB_minus_1": -0.0015501534602994083,
+    "meaning": "CLASS sBBN_2025 is about 0.155% below PRIMAT's recombination-convention helium value; this is a convention/implementation systematic, not a BBN exclusion."
+  },
+  "early_failures_preserved": {
+    "zero_input_guard": "run_bbn initially rejected Omegach2=0 as outside its positive-value range; the exact-zero custom background was used instead",
+    "windows_cache_encoding": "initial Plasma cache read failed under GBK; rerun used PYTHONUTF8=1"
+  },
+  "interpretation": "BBN does not rescue the fixed zero-CDM model: its abundances are almost identical to baseline. Dataset choice changes total chi-squared substantially, especially EMPRESS, but zero-minus-baseline differences remain below 0.005.",
+  "verification": "Independent rerun of zero and both baseline backends passed; 28 zero-model Python tests passed.",
+  "boundaries": [
+    "No parameter fitting, joint CMB+BBN posterior, or model-family exclusion is claimed.",
+    "No favorable observational subset is selected; EMPRESS sensitivity is retained.",
+    "Planck lensing exclusion and BBN consistency are distinct lines of evidence."
+  ]
+}

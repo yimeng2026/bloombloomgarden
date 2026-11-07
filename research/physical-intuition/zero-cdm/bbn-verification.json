@@ -1,0 +1,47 @@
+{
+  "verification": "passed",
+  "zero_Omegach2_exactly_zero": true,
+  "zero_YPBBN": 0.24689496731738123,
+  "baseline_YPBBN": 0.24689522074576278,
+  "zero_DoH": 2.4792137885902114e-05,
+  "baseline_DoH": 2.479241848408842e-05,
+  "backend_comparison": {
+    "YPCMB": {
+      "c": 0.24556931128235163,
+      "python": 0.24556928794649144,
+      "c_over_python_minus_1": 9.502760045521086e-08
+    },
+    "YPBBN": {
+      "c": 0.24689524416638828,
+      "python": 0.24689522074576278,
+      "c_over_python_minus_1": 9.486058671903663e-08
+    },
+    "DoH": {
+      "c": 2.479262127098628e-05,
+      "python": 2.479241848408842e-05,
+      "c_over_python_minus_1": 8.179391534302027e-06
+    },
+    "He4oH": {
+      "c": 0.08196576780013312,
+      "python": 0.08196575743489687,
+      "c_over_python_minus_1": 1.2645812819123137e-07
+    },
+    "He3oH": {
+      "c": 1.0464245979402034e-05,
+      "python": 1.0464214887868296e-05,
+      "c_over_python_minus_1": 2.9712246996105307e-06
+    },
+    "Li7oH": {
+      "c": 5.434455717450074e-10,
+      "python": 5.434505018054689e-10,
+      "c_over_python_minus_1": -9.071774605184935e-06
+    },
+    "Neff": {
+      "c": 3.0439772985579183,
+      "python": 3.0439772985579183,
+      "c_over_python_minus_1": 0.0
+    }
+  },
+  "class_over_primat_minus_1": -0.0015501534602994083,
+  "verification_runner_sha256": "627f02ef2096d42448279fc02ec9d0f11c88f7440161963e3444e36c21620561"
+}

@@ -1,0 +1,230 @@
+{
+  "status": "computed_primat_bbn_abundances_and_observational_diagnostics_not_joint_posterior",
+  "engine": {
+    "name": "PRIMAT",
+    "version": "0.3.3",
+    "source": "https://github.com/CyrilPitrou/primat and official PyPI primat 0.3.3",
+    "zero_cdm_method": "Validate all other parameters, then explicitly set cfg.Omegach2=0 before StandardBackground; no nonzero placeholder and no source-code edit",
+    "baseline_backends": [
+      "c",
+      "python"
+    ],
+    "zero_backend": "python custom background because run_bbn validates Omegach2>0",
+    "physical_inputs": {
+      "Omegabh2": 0.02218,
+      "Omegach2": 0.1201075,
+      "h": 0.6766,
+      "DeltaNeff": 0.0,
+      "Neff_SM": 3.044,
+      "T0CMB": 2.7255,
+      "show_progress": false,
+      "use_numba": false,
+      "zero_Omegach2": 0.0
+    }
+  },
+  "results": {
+    "zero_python": {
+      "YPCMB": 0.2455690354353337,
+      "YPBBN": 0.24689496731738123,
+      "He4oH": 0.08196564566506252,
+      "DoH": 2.4792137885902114e-05,
+      "He3oH": 1.0464187274340943e-05,
+      "He3oHe4": 0.00012766552608029115,
+      "Li7oH": 5.434574839499236e-10,
+      "Neff": 3.0439772985579183,
+      "Omeganurel": 5.698637952393702,
+      "OneOverOmeganunr": 93.04302365135274
+    },
+    "baseline_python": {
+      "YPCMB": 0.24556928794649144,
+      "YPBBN": 0.24689522074576278,
+      "He4oH": 0.08196575743489687,
+      "DoH": 2.479241848408842e-05,
+      "He3oH": 1.0464214887868296e-05,
+      "He3oHe4": 0.0001276656888845288,
+      "Li7oH": 5.434505018054689e-10,
+      "Neff": 3.0439772985579183,
+      "Omeganurel": 5.698637952393702,
+      "OneOverOmeganunr": 93.04302365135274,
+      "Y_final": {
+        "n": 4.0983958543183005e-16,
+        "p": 0.7530437968009532,
+        "H2": 1.8669776947136077e-05,
+        "H3": 5.960335827186919e-08,
+        "He3": 7.820408751429534e-06,
+        "He4": 0.061723805186440696,
+        "Li7": 2.208967251170634e-11,
+        "Be7": 3.871523567412673e-10
+      },
+      "elapsed_seconds": 1.0766347999451682
+    },
+    "baseline_c": {
+      "YPCMB": 0.24556931128235163,
+      "YPBBN": 0.24689524416638828,
+      "DoH": 2.479262127098628e-05,
+      "He4oH": 0.08196576780013312,
+      "He3oH": 1.0464245979402034e-05,
+      "He3oHe4": 0.00012766605206356694,
+      "Li7oH": 5.434455717450074e-10,
+      "Neff": 3.0439772985579183,
+      "Omeganurel": 5.698637952393702,
+      "OneOverOmeganunr": 93.04302365135274,
+      "Y_final": {
+        "n": 4.098468743978116e-16,
+        "p": 0.7530437730066236,
+        "H2": 1.8669929064627782e-05,
+        "H3": 5.960389952626968e-08,
+        "He3": 7.82043137447203e-06,
+        "He4": 0.06172381104159707,
+        "Li7": 2.2089837074213347e-11,
+        "Be7": 3.871484666963888e-10
+      },
+      "elapsed_seconds": 0.0742359000723809
+    }
+  },
+  "elapsed_seconds": {
+    "zero_python": 0.9479057000717148,
+    "baseline_python": 1.0766347999451682,
+    "baseline_c": 0.0742359000723809,
+    "total": 2.2017743999604136
+  },
+  "observational": {
+    "PDG_Aug2023": {
+      "zero": {
+        "YPBBN": 0.24689496731738123,
+        "DoH": 2.4792137885902114e-05,
+        "chi_squared": 5.862687537228016,
+        "yp_residual_over_sigma": 0.6316557724604099,
+        "doh_residual_over_sigma": -2.3374555658547735
+      },
+      "baseline": {
+        "YPBBN": 0.24689522074576278,
+        "DoH": 2.479241848408842e-05,
+        "chi_squared": 5.858271849949894,
+        "yp_residual_over_sigma": 0.6317402485875959,
+        "doh_residual_over_sigma": -2.3364879859019982
+      },
+      "delta_chi_squared_zero_minus_baseline": 0.004415687278122249
+    },
+    "BAO_BBN_papers": {
+      "zero": {
+        "YPBBN": 0.24689496731738123,
+        "DoH": 2.4792137885902114e-05,
+        "chi_squared": 2.7859900800064925,
+        "yp_residual_over_sigma": 0.4987418293453047,
+        "doh_residual_over_sigma": -1.5928737136596207
+      },
+      "baseline": {
+        "YPBBN": 0.24689522074576278,
+        "DoH": 2.479241848408842e-05,
+        "chi_squared": 2.783074440024625,
+        "yp_residual_over_sigma": 0.4988051864406942,
+        "doh_residual_over_sigma": -1.5919383863719379
+      },
+      "delta_chi_squared_zero_minus_baseline": 0.0029156399818677237
+    },
+    "EMPRESS_sensitivity": {
+      "zero": {
+        "YPBBN": 0.24689496731738123,
+        "DoH": 2.4792137885902114e-05,
+        "chi_squared": 13.933454423041209,
+        "yp_residual_over_sigma": 2.910284505112129,
+        "doh_residual_over_sigma": -2.3374555658547735
+      },
+      "baseline": {
+        "YPBBN": 0.24689522074576278,
+        "DoH": 2.479241848408842e-05,
+        "chi_squared": 13.92936586668777,
+        "yp_residual_over_sigma": 2.9103590428714106,
+        "doh_residual_over_sigma": -2.3364879859019982
+      },
+      "delta_chi_squared_zero_minus_baseline": 0.004088556353439188
+    }
+  },
+  "backend_comparison": {
+    "YPCMB": {
+      "c": 0.24556931128235163,
+      "python": 0.24556928794649144,
+      "c_over_python_minus_1": 9.502760045521086e-08
+    },
+    "YPBBN": {
+      "c": 0.24689524416638828,
+      "python": 0.24689522074576278,
+      "c_over_python_minus_1": 9.486058671903663e-08
+    },
+    "DoH": {
+      "c": 2.479262127098628e-05,
+      "python": 2.479241848408842e-05,
+      "c_over_python_minus_1": 8.179391534302027e-06
+    },
+    "He4oH": {
+      "c": 0.08196576780013312,
+      "python": 0.08196575743489687,
+      "c_over_python_minus_1": 1.2645812819123137e-07
+    },
+    "He3oH": {
+      "c": 1.0464245979402034e-05,
+      "python": 1.0464214887868296e-05,
+      "c_over_python_minus_1": 2.9712246996105307e-06
+    },
+    "Li7oH": {
+      "c": 5.434455717450074e-10,
+      "python": 5.434505018054689e-10,
+      "c_over_python_minus_1": -9.071774605184935e-06
+    },
+    "Neff": {
+      "c": 3.0439772985579183,
+      "python": 3.0439772985579183,
+      "c_over_python_minus_1": 0.0
+    }
+  },
+  "class_comparison": {
+    "class_YHe": 0.24518836574531122,
+    "zero_YPCMB": 0.2455690354353337,
+    "baseline_YPCMB": 0.24556928794649144,
+    "class_over_primat_minus_1": -0.0015501534602994083,
+    "note": "YPCMB is the recombination convention, not the raw BBN YPBBN; CLASS uses its own sBBN_2025 mapping rather than this PRIMAT run."
+  },
+  "datasets": {
+    "PDG_Aug2023": {
+      "yp_observed": 0.245,
+      "yp_sigma": 0.003,
+      "doh_observed": 2.547e-05,
+      "doh_sigma": 2.9e-07,
+      "source": "PDG Aug 2023 recommendation, summarized in Schöneberg 2024 Table 1 and PDG 2025 review"
+    },
+    "BAO_BBN_papers": {
+      "yp_observed": 0.2449,
+      "yp_sigma": 0.004,
+      "doh_observed": 2.527e-05,
+      "doh_sigma": 3e-07,
+      "source": "Cooke+2017 and Aver+2015, summarized in Schöneberg 2024 Table 1"
+    },
+    "EMPRESS_sensitivity": {
+      "yp_observed": 0.237,
+      "yp_sigma": 0.0034,
+      "doh_observed": 2.547e-05,
+      "doh_sigma": 2.9e-07,
+      "source": "EMPRESS Subaru result discussed in Schöneberg 2024 §4.3; D/H held at PDG values for sensitivity"
+    }
+  },
+  "source_module_sha256": {
+    "backend.py": "52a51a708bdba4e382a813198e088063804bccf4012fa3a1337b82e4e0defb91",
+    "config.py": "8c3bde078de0111dab3fdf0c6f1d8961a041c6c0afde8a118cd93dcfa089d7f7",
+    "background.py": "2a0f3994e50567d333078ea6955f96be30e0067a40d880932f42ecd3eb203605",
+    "main.py": "62d140be3f4b75fb92be27e4d04daaf1e1fe94ac1db75998d7c1ced0c3aed6c8"
+  },
+  "analysis_runner_sha256": "45909ba95e067061e7cc06d4b699bb4820a4195e8661c7e4b2b9f429d3c8c48c",
+  "validation": {
+    "zero_Omegach2_exactly_zero": true,
+    "baseline_backend_outputs_finite": true,
+    "parameter_fitting_performed": false,
+    "joint_cmb_bbn_posterior_performed": false
+  },
+  "boundaries": [
+    "BBN abundances are almost identical for zero and baseline because CDM is negligible during nucleosynthesis; BBN is not an independent rescue for the zero model.",
+    "Dataset choices are shown separately, including the lower EMPRESS helium value; no favorable subset is selected.",
+    "CLASS sBBN_2025 and PRIMAT conventions are distinguished; no recombination rerun is performed here.",
+    "No parameter fitting, joint CMB+BBN posterior, or model-family exclusion is claimed."
+  ]
+}
