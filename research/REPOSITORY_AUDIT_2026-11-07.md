@@ -73,6 +73,12 @@
 2. 清理可证实的死代码和未使用导入，保留并标注有意的接口预留；
 3. 对极端物质谱实现平滑化和带功率对照，同时记录低波数规范边界；
 4. 在数值系统误差进一步闭合后，再评估公开似然、联合 BBN 与非线性工作；
-5. 每次修改后重跑根平台 58 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
+5. 每次修改后重跑根平台 61 项测试、后端 12 项测试、TypeScript、构建与 `lint:all`，不以局部通过代替全库结论。
 
 本记录是下一轮工作的基线，不是“全部问题已经解决”的声明。
+
+## 6. 首轮后续进展
+
+- `competitions/[id]/rounds/route.ts` 的 10 个 `no-explicit-any` 已全部移除，另有的第 11 项是独立的未使用变量警告，不能计为 `any`。LLM 合并逻辑已迁移到 `src/lib/competition-round-content.ts`，使用明确的参赛者、内容、评分和轮次条目类型。
+- 新增 `tests/unit/competition-round-content.test.js`，覆盖双方参赛者合并、空结果回退、失败分数不冒充有效评分及源对象不被修改。根平台测试总数因此从 58 增至 61，全部通过。
+- 全库 `no-explicit-any` 从 52 降至 42；`lint:all` 当前为 42 错误、17 警告。TypeScript 与 Next standalone 构建已复验通过。

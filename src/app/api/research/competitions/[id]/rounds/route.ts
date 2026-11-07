@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateCollaborationResponses, PromptContext } from "@/lib/research-prompts";
 import { MathTournamentInputError, runMathTournament } from "@/lib/math-tournament";
+import { enrichRoundContentWithLLM } from "@/lib/competition-round-content";
 
 export const runtime = "nodejs";
 
@@ -405,82 +406,6 @@ async function generateCompetitionLLMScores(
   }
 
   return { contents, scores };
-}
-
-/** 将 LLM 内容合并到 roundContent 中 */
-function enrichRoundContentWithLLM(
-  roundContent: Array<Record<string, unknown>>,
-  llmContents: Array<{ competitorId: string; content: string }> | null,
-  llmScores: Array<{ competitorId: string; name: string; score: number }> | null
-): Array<Record<string, unknown>> {
-  if (!llmContents || llmContents.length === 0) {
-    return roundContent;
-  }
-
-  const enriched = roundContent.map((item) => {
-    const newItem = { ...item };
-
-    // 处理 competitorId 类型的条目（elimination, default, round_robin 的 reviewer）
-    const cid = (item as any).competitorId || (item as any).reviewerId;
-    if (cid) {
-      const llm = llmContents.find((lc) => lc.competitorId === cid);
-      if (llm?.content) {
-        (newItem as any).llmContent = llm.content;
-        const scoreEntry = llmScores?.find((s) => s.competitorId === cid);
-        if (scoreEntry && scoreEntry.score >= 0) {
-          (newItem as any).llmScore = scoreEntry.score;
-        }
-      }
-    }
-
-    // 处理 tournament / bracket 的 competitorA / competitorB
-    const compA = (item as any).competitorA;
-    const compB = (item as any).competitorB;
-    if (compA?.id) {
-      const llmA = llmContents.find((lc) => lc.competitorId === compA.id);
-      if (llmA?.content) {
-        (newItem as any).llmContentA = llmA.content;
-        const scoreA = llmScores?.find((s) => s.competitorId === compA.id);
-        if (scoreA && scoreA.score >= 0) {
-          (newItem as any).llmScoreA = scoreA.score;
-        }
-      }
-    }
-    if (compB?.id) {
-      const llmB = llmContents.find((lc) => lc.competitorId === compB.id);
-      if (llmB?.content) {
-        (newItem as any).llmContentB = llmB.content;
-        const scoreB = llmScores?.find((s) => s.competitorId === compB.id);
-        if (scoreB && scoreB.score >= 0) {
-          (newItem as any).llmScoreB = scoreB.score;
-        }
-      }
-    }
-
-    return newItem;
-  });
-
-  // 追加一个 competitorResponses 汇总条目
-  const competitorResponses = llmContents
-    .filter((lc) => lc.content)
-    .map((lc) => {
-      const scoreEntry = llmScores?.find((s) => s.competitorId === lc.competitorId);
-      return {
-        competitorId: lc.competitorId,
-        content: lc.content,
-        score: scoreEntry && scoreEntry.score >= 0 ? scoreEntry.score : null,
-      };
-    });
-
-  if (competitorResponses.length > 0) {
-    enriched.push({
-      type: "llm_competitor_responses",
-      competitorResponses,
-      timestamp: new Date().toISOString(),
-    });
-  }
-
-  return enriched;
 }
 
 // 根据 format 生成轮次内容（模拟结构，作为 fallback 基础）
