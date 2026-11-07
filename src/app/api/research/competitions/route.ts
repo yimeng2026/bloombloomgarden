@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildCompetitionFilter } from "@/lib/competition-filter";
 
 export const runtime = "nodejs";
 
@@ -11,10 +12,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const format = searchParams.get("format");
 
-    const where: any = {};
-    if (domain) where.domain = domain;
-    if (status) where.status = status;
-    if (format) where.format = format;
+    const where = buildCompetitionFilter({ domain, status, format });
 
     const competitions = await prisma.academicCompetition.findMany({
       where,
