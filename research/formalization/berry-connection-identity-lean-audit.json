@@ -1,0 +1,50 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "Concrete 2D real Berry-connection identity gauge transformation; not a full-project proof",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "originalFile":  "BerryConnection.lean",
+                   "originalSha256":  "2e0066e9063e3639ba16ce6105aaf965685e54a7a7c12f6ebef55ae6c5fc0ee8",
+                   "proofFile":  "research/formalization/BerryConnectionGaugeIdentity.lean",
+                   "proofSha256":  "38e32eeb73aeb7ff12d229291d7ca8405632a3f6618b650ff8811196845f8a54",
+                   "patchFile":  "research/formalization/berry-connection-gauge-identity.patch",
+                   "patchSha256":  "c35af137ab660e12ac89563e4e14d261fd7bd2d19809776558367a3478964233",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "stages":  {
+                                 "bloch":  0,
+                                 "originalConnection":  0,
+                                 "proof":  0,
+                                 "standaloneAudit":  0,
+                                 "patched":  0,
+                                 "patchedAudit":  0
+                             },
+                  "standaloneOutputSha256":  "976407bc4f688fb1e12c32f0bec4c4b8760a1e3d17b28a06403edbd6311a0353",
+                  "patchedOutputSha256":  "40d283500bf5a0adb85480b8aa34557e02463f09e97f1f0c2efd19b8467bf0b2",
+                  "warningsPreserved":  true
+              },
+    "axiomAudit":  {
+                       "standalone":  "\u0027BerryConnection.BerryConnection_GaugeTransformationIdentity_concrete\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "patched":  "\u0027BerryConnection.BerryConnection_GaugeTransformationIdentity\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "separateEnvironments":  true
+                   },
+    "validation":  {
+                       "patchSynchronized":  true,
+                       "patchApplicationMatchesGenerated":  true,
+                       "forbiddenPlaceholderOrNewAxiom":  false,
+                       "externalSourceModified":  false,
+                       "fullProjectBuilt":  false,
+                       "physicalSemanticProof":  false
+                   },
+    "boundaries":  [
+                       "The theorem is narrowed to real 2D connection components and proves the identity transformation only.",
+                       "The original BerryConnection_GaugeTransformationLaw axiom is not used or cleared.",
+                       "Other placeholders and warnings in BerryConnection.lean remain visible.",
+                       "Standalone and patched audits run in separate dependency environments to avoid duplicate helper declarations.",
+                       "The external TOE-SYLVA source tree is only read; all patched sources and build products stay in OutputDirectory."
+                   ]
+}
