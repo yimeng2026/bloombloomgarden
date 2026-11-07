@@ -1,0 +1,47 @@
+{
+  "status": "frozen_before_class_recfast_run",
+  "frozen_at_local": "2026-11-07T17:02:52.987174+08:00",
+  "purpose": "检验 ell=1000 的 TT 跨代码差异是否随复合模型统一而缩小。",
+  "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
+  "precision_file": "convergence-integral.pre",
+  "precision_file_sha256": "670f9e9425508a498cd126436eecdb4197977ce8e84489944cf366ba22f96565",
+  "new_inputs": {
+    "zero-cdm": {
+      "file": "zero-cdm-recfast.ini",
+      "sha256": "a32e378492567597dc7fd53ec8862b9840f98ed8467c701ec0acdbd072d4f32a",
+      "recombination": "RECFAST"
+    },
+    "baseline-lcdm": {
+      "file": "baseline-lcdm-recfast.ini",
+      "sha256": "ff13684e2a820178d9521d862659f81467c9d28807f418a5cbbb6c5fbc6d1573",
+      "recombination": "RECFAST"
+    }
+  },
+  "references": {
+    "class_hyrec_integral": {
+      "summary": "convergence-summary.json",
+      "sha256": "1d9a213659080604663a25d598f7bd5ffae35efad7d760962b05724c2b5db431"
+    },
+    "camb_recfast_ultra": {
+      "summary": "camb-crosscode-summary.json",
+      "sha256": "6f0ac9d17ba18a75f6199507025d405a5d04916d736a5f57f4423eb80bfcf9e8"
+    }
+  },
+  "run_commands": [
+    "./class baseline-lcdm-recfast.ini convergence-integral.pre",
+    "./class zero-cdm-recfast.ini convergence-integral.pre"
+  ],
+  "decision_rule": {
+    "primary_quantity": "zero/baseline TT ratio at ell=1000",
+    "C_over_B": "CLASS_RECFAST TT ratio divided by CAMB_RECFAST ultra TT ratio minus one",
+    "C_over_A": "CLASS_RECFAST TT ratio divided by CLASS_HYREC integral TT ratio minus one",
+    "supports_recombination_dominated_residual": "abs(C_over_B) < 0.005 at ell=1000, given the previous CLASS_HYREC/CAMB_RECFAST difference exceeded 2%",
+    "otherwise": "标记为未能分离；不能据此断言复合模型无关或其他机制已被证明。",
+    "secondary_metrics": "其余四个 CMB 多极矩、透镜、六个物质谱点、背景与峰位只作辅助诊断。"
+  },
+  "boundaries": [
+    "RecFastCLASS 是 CLASS 的增强实现，CAMB Recfast 也不是同一逐行代码；相似不证明唯一因果。",
+    "只改变 recombination，其他物理输入与 convergence-integral.pre 保持不变。",
+    "不接入观测似然，不搜索参数，不引入微量 CDM，不做非线性计算。"
+  ]
+}
