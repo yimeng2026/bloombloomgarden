@@ -1,0 +1,1349 @@
+{
+  "status": "computed_comoving_native_common_grid_bandpowers_not_observational_fit",
+  "sources": {
+    "comoving_direct": "power reconstructed from full native CLASS-compatible comoving density using direct synchronous v_b",
+    "comoving_recovered": "same transformation using Newtonian-subtracted velocity, retained as a diagnostic",
+    "synchronous_native": "power reconstructed from full native synchronous delta_tot",
+    "log_cubic": "previous same-run CAMB log-cubic power on aligned native k",
+    "previous_frozen_log_linear": "old 2500-point output after its second log-linear resampling",
+    "class_integral": "CLASS integral pk.dat with default gauge-invariant comoving delta_m"
+  },
+  "common_grid": {
+    "minimum_k_h_per_Mpc": 0.005,
+    "requested_maximum_k_h_per_Mpc": 2.0,
+    "actual_maximum_k_h_per_Mpc": 1.9985652306116815,
+    "point_count": 2603,
+    "log10_step_dex": 0.00099990327567534,
+    "source_specific_native_grids_used_for_crosscode": false
+  },
+  "methods": {
+    "raw": "log-log interpolation to the common grid, no smoothing",
+    "smooth_0.05dex": "Gaussian smoothing of ln(P) with sigma=0.05 dex before band integration",
+    "smooth_0.10dex": "Gaussian smoothing of ln(P) with sigma=0.10 dex before band integration"
+  },
+  "band_edges_h_per_Mpc": [
+    0.01,
+    0.02,
+    0.04,
+    0.08,
+    0.16,
+    0.32,
+    0.64,
+    1.28
+  ],
+  "band_statistics": [
+    {
+      "lower_k_h_per_Mpc": 0.01,
+      "upper_k_h_per_Mpc": 0.02,
+      "geometric_center_k_h_per_Mpc": 0.01414213562373095,
+      "sources": {
+        "comoving_direct": {
+          "raw": {
+            "zero_bandpower": 0.0015644726666780217,
+            "baseline_bandpower": 0.004198593397174596,
+            "zero_over_baseline": 0.37261828395453084
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091022952790915,
+            "baseline_bandpower": 0.004171434722958719,
+            "zero_over_baseline": 0.33779799729903054
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011471301019783818,
+            "baseline_bandpower": 0.004091170923823116,
+            "zero_over_baseline": 0.2803916344092542
+          }
+        },
+        "comoving_recovered": {
+          "raw": {
+            "zero_bandpower": 0.0015644726666788928,
+            "baseline_bandpower": 0.004198593397174671,
+            "zero_over_baseline": 0.37261828395473157
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091022952786116,
+            "baseline_bandpower": 0.004171434722959499,
+            "zero_over_baseline": 0.33779799729885235
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.001147130101977978,
+            "baseline_bandpower": 0.004091170923824414,
+            "zero_over_baseline": 0.2803916344090665
+          }
+        },
+        "synchronous_native": {
+          "raw": {
+            "zero_bandpower": 0.001564472341523586,
+            "baseline_bandpower": 0.004198593332532857,
+            "zero_over_baseline": 0.372618212247719
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091019982438065,
+            "baseline_bandpower": 0.004171434653952775,
+            "zero_over_baseline": 0.3377979316800678
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011471298766310403,
+            "baseline_bandpower": 0.004091170850958807,
+            "zero_over_baseline": 0.28039158432168604
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0015644723356788679,
+            "baseline_bandpower": 0.004198593358935743,
+            "zero_over_baseline": 0.3726182085124408
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091019788569049,
+            "baseline_bandpower": 0.004171434675336638,
+            "zero_over_baseline": 0.33779792530088926
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011471298280915066,
+            "baseline_bandpower": 0.004091170869680228,
+            "zero_over_baseline": 0.2803915711741387
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.0015644414877734718,
+            "baseline_bandpower": 0.004198587838563023,
+            "zero_over_baseline": 0.37261135122729877
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014091142190109155,
+            "baseline_bandpower": 0.004171429189762438,
+            "zero_over_baseline": 0.3378013037999487
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011472541146610655,
+            "baseline_bandpower": 0.004091165522067905,
+            "zero_over_baseline": 0.2804223169345587
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.001563110853375117,
+            "baseline_bandpower": 0.0041986126774566,
+            "zero_over_baseline": 0.37229222446925136
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0014076804530134992,
+            "baseline_bandpower": 0.004171453939260264,
+            "zero_over_baseline": 0.33745559066705827
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.001145676719836918,
+            "baseline_bandpower": 0.004091189805499528,
+            "zero_over_baseline": 0.28003509353119166
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "comoving_direct_over_synchronous_native": 1.924404190686031e-07,
+          "comoving_recovered_over_comoving_direct": 5.386802115479809e-13,
+          "comoving_direct_over_log_cubic": 2.0246483038870419e-07,
+          "comoving_direct_over_class": 0.0008754326926955949,
+          "comoving_recovered_over_class": 0.0008754326932342474,
+          "synchronous_native_over_class": 0.0008752402522764423,
+          "log_cubic_over_class": 0.0008752302278652765,
+          "previous_frozen_log_linear_over_class": 0.0008568270793248595
+        },
+        "smooth_0.05dex": {
+          "comoving_direct_over_synchronous_native": 1.9425505671317014e-07,
+          "comoving_recovered_over_comoving_direct": -5.27466958999551e-13,
+          "comoving_direct_over_log_cubic": 2.1313965608095746e-07,
+          "comoving_direct_over_class": 0.001014157251207376,
+          "comoving_recovered_over_class": 0.001014157250679889,
+          "synchronous_native_over_class": 0.0010139629961505405,
+          "log_cubic_over_class": 0.0010139441115513538,
+          "previous_frozen_log_linear_over_class": 0.0010239456003450448
+        },
+        "smooth_0.10dex": {
+          "comoving_direct_over_synchronous_native": 1.7863433313548718e-07,
+          "comoving_recovered_over_comoving_direct": -6.693534615467309e-13,
+          "comoving_direct_over_log_cubic": 2.2552428401895077e-07,
+          "comoving_direct_over_class": 0.0012723908707047797,
+          "comoving_recovered_over_class": 0.0012723908700355013,
+          "synchronous_native_over_class": 0.0012722122363716445,
+          "log_cubic_over_class": 0.0012721653464207456,
+          "previous_frozen_log_linear_over_class": 0.001381812276009155
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.02,
+      "upper_k_h_per_Mpc": 0.04,
+      "geometric_center_k_h_per_Mpc": 0.0282842712474619,
+      "sources": {
+        "comoving_direct": {
+          "raw": {
+            "zero_bandpower": 0.0016096367221622274,
+            "baseline_bandpower": 0.02605448760713066,
+            "zero_over_baseline": 0.061779634527208964
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010303430077065277,
+            "baseline_bandpower": 0.02590410398133802,
+            "zero_over_baseline": 0.03977528072188149
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007355995859153899,
+            "baseline_bandpower": 0.025513090992589842,
+            "zero_over_baseline": 0.02883224091228465
+          }
+        },
+        "comoving_recovered": {
+          "raw": {
+            "zero_bandpower": 0.0016096367221622183,
+            "baseline_bandpower": 0.026054487607129088,
+            "zero_over_baseline": 0.06177963452721234
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010303430077063034,
+            "baseline_bandpower": 0.025904103981336937,
+            "zero_over_baseline": 0.039775280721874494
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.000735599585914986,
+            "baseline_bandpower": 0.025513090992589856,
+            "zero_over_baseline": 0.028832240912268804
+          }
+        },
+        "synchronous_native": {
+          "raw": {
+            "zero_bandpower": 0.0016096368605851188,
+            "baseline_bandpower": 0.02605448733130159,
+            "zero_over_baseline": 0.0617796404940702
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001030343140027682,
+            "baseline_bandpower": 0.025904103720099502,
+            "zero_over_baseline": 0.03977528623112401
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007355996737307626,
+            "baseline_bandpower": 0.025513090725015675,
+            "zero_over_baseline": 0.02883224465664227
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0016096368633735187,
+            "baseline_bandpower": 0.026054487395400252,
+            "zero_over_baseline": 0.061779640449103196
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00103034314104029,
+            "baseline_bandpower": 0.025904103810961244,
+            "zero_over_baseline": 0.039775286130698084
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007355996422268849,
+            "baseline_bandpower": 0.025513090817470607,
+            "zero_over_baseline": 0.028832243317347035
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.0016094662714492476,
+            "baseline_bandpower": 0.02605445548855696,
+            "zero_over_baseline": 0.06177316859130372
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010303387649643026,
+            "baseline_bandpower": 0.02590407483073597,
+            "zero_over_baseline": 0.03977516169547868
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007357633743945501,
+            "baseline_bandpower": 0.02551306626919693,
+            "zero_over_baseline": 0.02883868864021532
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.0016077029298363196,
+            "baseline_bandpower": 0.026054652589007382,
+            "zero_over_baseline": 0.06170502271500712
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001030169469145596,
+            "baseline_bandpower": 0.025904256849538447,
+            "zero_over_baseline": 0.03976834676745228
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0007346329368029746,
+            "baseline_bandpower": 0.025513216475205616,
+            "zero_over_baseline": 0.028794210934435075
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "comoving_direct_over_synchronous_native": -9.658297584045322e-08,
+          "comoving_recovered_over_comoving_direct": 5.462297281155621e-14,
+          "comoving_direct_over_log_cubic": -9.585511455467557e-08,
+          "comoving_direct_over_class": 0.0012084387315466566,
+          "comoving_recovered_over_class": 0.0012084387316014353,
+          "synchronous_native_over_class": 0.0012085353145223567,
+          "log_cubic_over_class": 0.0012085345866612446,
+          "previous_frozen_log_linear_over_class": 0.0011037719696772007
+        },
+        "smooth_0.05dex": {
+          "comoving_direct_over_synchronous_native": -1.3850919560194818e-07,
+          "comoving_recovered_over_comoving_direct": -1.7585932710064027e-13,
+          "comoving_direct_over_log_cubic": -1.359843633563142e-07,
+          "comoving_direct_over_class": 0.00017434343053329284,
+          "comoving_recovered_over_class": 0.00017434343035746416,
+          "synchronous_native_over_class": 0.00017448193972887906,
+          "log_cubic_over_class": 0.00017447941489657224,
+          "previous_frozen_log_linear_over_class": 0.00017135095433339035
+        },
+        "smooth_0.10dex": {
+          "comoving_direct_over_synchronous_native": -1.2986702590591713e-07,
+          "comoving_recovered_over_comoving_direct": -5.495603971896035e-13,
+          "comoving_direct_over_log_cubic": -8.341572525348511e-08,
+          "comoving_direct_over_class": 0.0013198794009277159,
+          "comoving_recovered_over_class": 0.001319879400378215,
+          "synchronous_native_over_class": 0.0013200092679534362,
+          "log_cubic_over_class": 0.0013199628166528188,
+          "previous_frozen_log_linear_over_class": 0.0015434834942747613
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.04,
+      "upper_k_h_per_Mpc": 0.08,
+      "geometric_center_k_h_per_Mpc": 0.0565685424949238,
+      "sources": {
+        "comoving_direct": {
+          "raw": {
+            "zero_bandpower": 0.002488098171973485,
+            "baseline_bandpower": 0.1167307327633972,
+            "zero_over_baseline": 0.021314850965740432
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012408651893836846,
+            "baseline_bandpower": 0.11561376906922212,
+            "zero_over_baseline": 0.010732849550478145
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0012403886164470345,
+            "baseline_bandpower": 0.11329629949407907,
+            "zero_over_baseline": 0.01094818296789877
+          }
+        },
+        "comoving_recovered": {
+          "raw": {
+            "zero_bandpower": 0.0024880981719735216,
+            "baseline_bandpower": 0.116730732763405,
+            "zero_over_baseline": 0.02131485096573932
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012408651893837028,
+            "baseline_bandpower": 0.11561376906922932,
+            "zero_over_baseline": 0.010732849550477633
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0012403886164470566,
+            "baseline_bandpower": 0.11329629949408415,
+            "zero_over_baseline": 0.010948182967898474
+          }
+        },
+        "synchronous_native": {
+          "raw": {
+            "zero_bandpower": 0.002488098190929167,
+            "baseline_bandpower": 0.11673073322195653,
+            "zero_over_baseline": 0.02131485104439631
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012408652082809017,
+            "baseline_bandpower": 0.1156137692729848,
+            "zero_over_baseline": 0.010732849695013376
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0012403886436829037,
+            "baseline_bandpower": 0.11329629940414754,
+            "zero_over_baseline": 0.010948183216984188
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.0024880980133838624,
+            "baseline_bandpower": 0.11673073323303845,
+            "zero_over_baseline": 0.021314849521391104
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012408651237785573,
+            "baseline_bandpower": 0.1156137693527307,
+            "zero_over_baseline": 0.010732848956708193
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.001240388648311971,
+            "baseline_bandpower": 0.11329629978978134,
+            "zero_over_baseline": 0.010948183220577225
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.002487115686060012,
+            "baseline_bandpower": 0.11673048419125832,
+            "zero_over_baseline": 0.021306479650893682
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0012423272952002717,
+            "baseline_bandpower": 0.11561356762791027,
+            "zero_over_baseline": 0.010745514740956419
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.001241605496862819,
+            "baseline_bandpower": 0.11329617289500919,
+            "zero_over_baseline": 0.010958935903451976
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.0024840984590287943,
+            "baseline_bandpower": 0.11672885808387291,
+            "zero_over_baseline": 0.021280928296616257
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0011484590909216332,
+            "baseline_bandpower": 0.11561212221891425,
+            "zero_over_baseline": 0.009933725537422444
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0011658677595495258,
+            "baseline_bandpower": 0.11329480568893018,
+            "zero_over_baseline": 0.010290566742756156
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "comoving_direct_over_synchronous_native": -3.69019127048096e-09,
+          "comoving_recovered_over_comoving_direct": -5.20694598549212e-14,
+          "comoving_direct_over_log_cubic": 6.776258391300204e-08,
+          "comoving_direct_over_class": 0.0015927717197909393,
+          "comoving_recovered_over_class": 0.0015927717197388419,
+          "synchronous_native_over_class": 0.001592775409982286,
+          "log_cubic_over_class": 0.0015927039572071582,
+          "previous_frozen_log_linear_over_class": 0.00119994893207965
+        },
+        "smooth_0.05dex": {
+          "comoving_direct_over_synchronous_native": -1.3466622241412307e-08,
+          "comoving_recovered_over_comoving_direct": -4.762856775642035e-14,
+          "comoving_direct_over_log_cubic": 5.532267690803051e-08,
+          "comoving_direct_over_class": 0.07737350223269587,
+          "comoving_recovered_over_class": 0.0773735022326482,
+          "synchronous_native_over_class": 0.07737351569931808,
+          "log_cubic_over_class": 0.07737344691001895,
+          "previous_frozen_log_linear_over_class": 0.07855284641127239
+        },
+        "smooth_0.10dex": {
+          "comoving_direct_over_synchronous_native": -2.275130176822693e-08,
+          "comoving_recovered_over_comoving_direct": -2.7089441800854186e-14,
+          "comoving_direct_over_log_cubic": -2.3079487476584915e-08,
+          "comoving_direct_over_class": 0.06194587811774318,
+          "comoving_recovered_over_class": 0.06194587811771605,
+          "synchronous_native_over_class": 0.06194590086904486,
+          "log_cubic_over_class": 0.0619459011972307,
+          "previous_frozen_log_linear_over_class": 0.06292756233463216
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.08,
+      "upper_k_h_per_Mpc": 0.16,
+      "geometric_center_k_h_per_Mpc": 0.1131370849898476,
+      "sources": {
+        "comoving_direct": {
+          "raw": {
+            "zero_bandpower": 0.0019676735752320296,
+            "baseline_bandpower": 0.3768779643108056,
+            "zero_over_baseline": 0.005220983346241275
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001047924641660586,
+            "baseline_bandpower": 0.37477823736381854,
+            "zero_over_baseline": 0.0027961192438271327
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524095938501881,
+            "baseline_bandpower": 0.37086868661963035,
+            "zero_over_baseline": 0.0025680507096221814
+          }
+        },
+        "comoving_recovered": {
+          "raw": {
+            "zero_bandpower": 0.0019676735752320444,
+            "baseline_bandpower": 0.37687796431080844,
+            "zero_over_baseline": 0.005220983346241275
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010479246416606196,
+            "baseline_bandpower": 0.37477823736381916,
+            "zero_over_baseline": 0.002796119243827218
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524095938502113,
+            "baseline_bandpower": 0.3708686866196323,
+            "zero_over_baseline": 0.0025680507096222304
+          }
+        },
+        "synchronous_native": {
+          "raw": {
+            "zero_bandpower": 0.0019676735812690824,
+            "baseline_bandpower": 0.37687795888027387,
+            "zero_over_baseline": 0.005220983437490359
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010479246472236052,
+            "baseline_bandpower": 0.37477823351535394,
+            "zero_over_baseline": 0.0027961192873829843
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524095999821358,
+            "baseline_bandpower": 0.37086868398046213,
+            "zero_over_baseline": 0.002568050744430905
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.001967673769162777,
+            "baseline_bandpower": 0.3768779620682872,
+            "zero_over_baseline": 0.005220983891879171
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010479249483719916,
+            "baseline_bandpower": 0.3747782361478363,
+            "zero_over_baseline": 0.002796120071280296
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009524097914738288,
+            "baseline_bandpower": 0.37086868639825465,
+            "zero_over_baseline": 0.0025680512440219624
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.001965826255229283,
+            "baseline_bandpower": 0.3768773093515944,
+            "zero_over_baseline": 0.005216090771321376
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0010494031646353995,
+            "baseline_bandpower": 0.3747778330694881,
+            "zero_over_baseline": 0.0028000673253287854
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009536822210576808,
+            "baseline_bandpower": 0.3708683309025061,
+            "zero_over_baseline": 0.0025714846526175483
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.0019657750265688685,
+            "baseline_bandpower": 0.37687667786729956,
+            "zero_over_baseline": 0.005215963581755593
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.001035133891627326,
+            "baseline_bandpower": 0.3747754689135701,
+            "zero_over_baseline": 0.002762010797099546
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0009309134298036686,
+            "baseline_bandpower": 0.37086545572271173,
+            "zero_over_baseline": 0.0025101109187685923
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "comoving_direct_over_synchronous_native": -1.7477375033399345e-08,
+          "comoving_recovered_over_comoving_direct": 0.0,
+          "comoving_direct_over_log_cubic": -1.0450863987416401e-07,
+          "comoving_direct_over_class": 0.0009619220845666867,
+          "comoving_recovered_over_class": 0.0009619220845666867,
+          "synchronous_native_over_class": 0.0009619395619415541,
+          "log_cubic_over_class": 0.0009620265932065253,
+          "previous_frozen_log_linear_over_class": 2.438437559559019e-05
+        },
+        "smooth_0.05dex": {
+          "comoving_direct_over_synchronous_native": -1.557725105492145e-08,
+          "comoving_recovered_over_comoving_direct": 3.0642155479653854e-14,
+          "comoving_direct_over_log_cubic": -2.9592909627211064e-07,
+          "comoving_direct_over_class": 0.012273507329682007,
+          "comoving_recovered_over_class": 0.012273507329712495,
+          "synchronous_native_over_class": 0.012273522906933019,
+          "log_cubic_over_class": 0.012273803258778302,
+          "previous_frozen_log_linear_over_class": 0.013684497513043813
+        },
+        "smooth_0.10dex": {
+          "comoving_direct_over_synchronous_native": -1.355453114497976e-08,
+          "comoving_recovered_over_comoving_direct": 1.909583602355251e-14,
+          "comoving_direct_over_log_cubic": -2.0809547230078762e-07,
+          "comoving_direct_over_class": 0.022820189458590708,
+          "comoving_recovered_over_class": 0.022820189458609808,
+          "synchronous_native_over_class": 0.022820203013121865,
+          "log_cubic_over_class": 0.0228203975540629,
+          "previous_frozen_log_linear_over_class": 0.024156475042530382
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.16,
+      "upper_k_h_per_Mpc": 0.32,
+      "geometric_center_k_h_per_Mpc": 0.2262741699796952,
+      "sources": {
+        "comoving_direct": {
+          "raw": {
+            "zero_bandpower": 0.00028100068464543534,
+            "baseline_bandpower": 0.9357483948601745,
+            "zero_over_baseline": 0.0003002951286787131
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012883614912384116,
+            "baseline_bandpower": 0.9345924280921427,
+            "zero_over_baseline": 0.0001378527636767233
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.0001087795342176332,
+            "baseline_bandpower": 0.927331397528564,
+            "zero_over_baseline": 0.00011730384036121513
+          }
+        },
+        "comoving_recovered": {
+          "raw": {
+            "zero_bandpower": 0.0002810006846454311,
+            "baseline_bandpower": 0.9357483948601625,
+            "zero_over_baseline": 0.00030029512867871244
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012883614912384398,
+            "baseline_bandpower": 0.9345924280921333,
+            "zero_over_baseline": 0.0001378527636767277
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010877953421763627,
+            "baseline_bandpower": 0.9273313975285552,
+            "zero_over_baseline": 0.00011730384036121956
+          }
+        },
+        "synchronous_native": {
+          "raw": {
+            "zero_bandpower": 0.00028100068519543734,
+            "baseline_bandpower": 0.9357483986358643,
+            "zero_over_baseline": 0.00030029512805480684
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.000128836149198789,
+            "baseline_bandpower": 0.9345924339959233,
+            "zero_over_baseline": 0.00013785276288610633
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010877953453190215,
+            "baseline_bandpower": 0.9273314015048785,
+            "zero_over_baseline": 0.00011730384019712276
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 0.00028100066644546533,
+            "baseline_bandpower": 0.9357483983795695,
+            "zero_over_baseline": 0.00030029510809964806
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012883615987544633,
+            "baseline_bandpower": 0.9345924344982768,
+            "zero_over_baseline": 0.0001378527742358735
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010877955483884583,
+            "baseline_bandpower": 0.9273314020734087,
+            "zero_over_baseline": 0.00011730386202346538
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 0.00028006999316705443,
+            "baseline_bandpower": 0.9357484982818689,
+            "zero_over_baseline": 0.0002993004997403597
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.00012871736938071187,
+            "baseline_bandpower": 0.934591915414152,
+            "zero_over_baseline": 0.000137725746668451
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00010874205095944043,
+            "baseline_bandpower": 0.9273307921855399,
+            "zero_over_baseline": 0.00011726349634433725
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 0.0002800372091485318,
+            "baseline_bandpower": 0.9357498951706271,
+            "zero_over_baseline": 0.00029926501792176965
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 0.0001321886203212352,
+            "baseline_bandpower": 0.9345946665632087,
+            "zero_over_baseline": 0.00014143951923814557
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 0.00011087021441439385,
+            "baseline_bandpower": 0.9273323563132745,
+            "zero_over_baseline": 0.00011955822921479006
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "comoving_direct_over_synchronous_native": 2.0776436105496007e-09,
+          "comoving_recovered_over_comoving_direct": -2.2204460492503154e-15,
+          "comoving_direct_over_log_cubic": 6.852946908273406e-08,
+          "comoving_direct_over_class": 0.0034362249605222953,
+          "comoving_recovered_over_class": 0.003436224960520082,
+          "synchronous_native_over_class": 0.003436222882878599,
+          "log_cubic_over_class": 0.003436156431053139,
+          "previous_frozen_log_linear_over_class": 0.00011855617333317357
+        },
+        "smooth_0.05dex": {
+          "comoving_direct_over_synchronous_native": 5.735227609700448e-09,
+          "comoving_recovered_over_comoving_direct": 3.175237850427897e-14,
+          "comoving_direct_over_log_cubic": -7.659730199264014e-08,
+          "comoving_direct_over_class": -0.025686014128446042,
+          "comoving_recovered_over_class": -0.025686014128414147,
+          "synchronous_native_over_class": -0.02568601986367362,
+          "log_cubic_over_class": -0.025685937531143958,
+          "previous_frozen_log_linear_over_class": -0.02660783504334715
+        },
+        "smooth_0.10dex": {
+          "comoving_direct_over_synchronous_native": 1.398866133060754e-09,
+          "comoving_recovered_over_comoving_direct": 3.774758283725461e-14,
+          "comoving_direct_over_log_cubic": -1.8466785218581763e-07,
+          "comoving_direct_over_class": -0.01903603168038773,
+          "comoving_recovered_over_class": -0.01903603168035005,
+          "synchronous_native_over_class": -0.019036033079253972,
+          "log_cubic_over_class": -0.019035847012535557,
+          "previous_frozen_log_linear_over_class": -0.0193800183397609
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.32,
+      "upper_k_h_per_Mpc": 0.64,
+      "geometric_center_k_h_per_Mpc": 0.4525483399593904,
+      "sources": {
+        "comoving_direct": {
+          "raw": {
+            "zero_bandpower": 8.827335302796725e-07,
+            "baseline_bandpower": 1.904926807563066,
+            "zero_over_baseline": 4.6339498545297676e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.25999408448901e-07,
+            "baseline_bandpower": 1.9005660141058478,
+            "zero_over_baseline": 2.241434421573193e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.9838642913541355e-07,
+            "baseline_bandpower": 1.8890338142235563,
+            "zero_over_baseline": 1.5795716672126294e-07
+          }
+        },
+        "comoving_recovered": {
+          "raw": {
+            "zero_bandpower": 8.827335302796688e-07,
+            "baseline_bandpower": 1.9049268075630643,
+            "zero_over_baseline": 4.6339498545297527e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.259994084488999e-07,
+            "baseline_bandpower": 1.9005660141058454,
+            "zero_over_baseline": 2.24143442157319e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.983864291354131e-07,
+            "baseline_bandpower": 1.8890338142235534,
+            "zero_over_baseline": 1.5795716672126296e-07
+          }
+        },
+        "synchronous_native": {
+          "raw": {
+            "zero_bandpower": 8.827335303101761e-07,
+            "baseline_bandpower": 1.9049268004225812,
+            "zero_over_baseline": 4.6339498720599344e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.259994134237293e-07,
+            "baseline_bandpower": 1.9005660025081597,
+            "zero_over_baseline": 2.2414344614264474e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.983864405908993e-07,
+            "baseline_bandpower": 1.8890338032343104,
+            "zero_over_baseline": 1.5795717370436505e-07
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 8.827336626792239e-07,
+            "baseline_bandpower": 1.9049268017559913,
+            "zero_over_baseline": 4.633950563693609e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.2599944097425625e-07,
+            "baseline_bandpower": 1.9005660048867834,
+            "zero_over_baseline": 2.2414346035808053e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.98386472765425e-07,
+            "baseline_bandpower": 1.889033805666928,
+            "zero_over_baseline": 1.579571905332202e-07
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 8.744463847125239e-07,
+            "baseline_bandpower": 1.9049255246731944,
+            "zero_over_baseline": 4.590449198073202e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.232240543231237e-07,
+            "baseline_bandpower": 1.9005652729035907,
+            "zero_over_baseline": 2.2268325132371942e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.9716387334922175e-07,
+            "baseline_bandpower": 1.8890330643265452,
+            "zero_over_baseline": 1.5731004340845826e-07
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 8.663536165601234e-07,
+            "baseline_bandpower": 1.9048752045224313,
+            "zero_over_baseline": 4.548085955989572e-07
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 4.0909320552073235e-07,
+            "baseline_bandpower": 1.9005126225937037,
+            "zero_over_baseline": 2.1525413757180256e-07
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.5809983404804016e-07,
+            "baseline_bandpower": 1.888959755872572,
+            "zero_over_baseline": 1.3663596233092614e-07
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "comoving_direct_over_synchronous_native": -3.782985820649613e-09,
+          "comoving_recovered_over_comoving_direct": -3.219646771412959e-15,
+          "comoving_direct_over_log_cubic": -1.530365691365843e-07,
+          "comoving_direct_over_class": 0.01870312930173661,
+          "comoving_recovered_over_class": 0.01870312930173334,
+          "synchronous_native_over_class": 0.018703133084722587,
+          "log_cubic_over_class": 0.018703282338305715,
+          "previous_frozen_log_linear_over_class": 0.009271408344454373
+        },
+        "smooth_0.05dex": {
+          "comoving_direct_over_synchronous_native": -1.7780245323146262e-08,
+          "comoving_recovered_over_comoving_direct": -1.4432899320127045e-15,
+          "comoving_direct_over_log_cubic": -8.120139635084227e-08,
+          "comoving_direct_over_class": 0.040466848389724364,
+          "comoving_recovered_over_class": 0.040466848389722865,
+          "synchronous_native_over_class": 0.04046686616996954,
+          "log_cubic_over_class": 0.040466929591120575,
+          "previous_frozen_log_linear_over_class": 0.033930998795892446
+        },
+        "smooth_0.10dex": {
+          "comoving_direct_over_synchronous_native": -4.420883268373744e-08,
+          "comoving_recovered_over_comoving_direct": 2.2204460492503128e-16,
+          "comoving_direct_over_log_cubic": -1.507494466308577e-07,
+          "comoving_direct_over_class": 0.14500371965493197,
+          "comoving_recovered_over_class": 0.14500371965493217,
+          "synchronous_native_over_class": 0.1450037638637647,
+          "log_cubic_over_class": 0.14500387040437845,
+          "previous_frozen_log_linear_over_class": 0.1408984768587025
+        }
+      }
+    },
+    {
+      "lower_k_h_per_Mpc": 0.64,
+      "upper_k_h_per_Mpc": 1.28,
+      "geometric_center_k_h_per_Mpc": 0.9050966799187808,
+      "sources": {
+        "comoving_direct": {
+          "raw": {
+            "zero_bandpower": 4.124724689369926e-12,
+            "baseline_bandpower": 3.3291244649256915,
+            "zero_over_baseline": 1.238981820243237e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.0830928347139808e-12,
+            "baseline_bandpower": 3.324273900491638,
+            "zero_over_baseline": 6.266309266531573e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.608873109719215e-12,
+            "baseline_bandpower": 3.3249549412235826,
+            "zero_over_baseline": 1.386146035417596e-12
+          }
+        },
+        "comoving_recovered": {
+          "raw": {
+            "zero_bandpower": 4.124724689369895e-12,
+            "baseline_bandpower": 3.3291244649256906,
+            "zero_over_baseline": 1.238981820243228e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.083092834713821e-12,
+            "baseline_bandpower": 3.324273900491638,
+            "zero_over_baseline": 6.266309266531092e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.608873109718985e-12,
+            "baseline_bandpower": 3.3249549412235826,
+            "zero_over_baseline": 1.3861460354175268e-12
+          }
+        },
+        "synchronous_native": {
+          "raw": {
+            "zero_bandpower": 4.12472638623433e-12,
+            "baseline_bandpower": 3.329124439233357,
+            "zero_over_baseline": 1.238982339507918e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.083097966728698e-12,
+            "baseline_bandpower": 3.324273870504246,
+            "zero_over_baseline": 6.266324761060439e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.608883481049836e-12,
+            "baseline_bandpower": 3.324954910346531,
+            "zero_over_baseline": 1.3861491675294605e-12
+          }
+        },
+        "log_cubic": {
+          "raw": {
+            "zero_bandpower": 4.124726520948205e-12,
+            "baseline_bandpower": 3.3291244437232965,
+            "zero_over_baseline": 1.238982378302178e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.0830924283785275e-12,
+            "baseline_bandpower": 3.324273873009165,
+            "zero_over_baseline": 6.266308096008022e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.6088746496429154e-12,
+            "baseline_bandpower": 3.324954912460975,
+            "zero_over_baseline": 1.3861465105497154e-12
+          }
+        },
+        "previous_frozen_log_linear": {
+          "raw": {
+            "zero_bandpower": 3.157397467254749e-12,
+            "baseline_bandpower": 3.3291234274165964,
+            "zero_over_baseline": 9.484170641594063e-13
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 1.97477980182984e-12,
+            "baseline_bandpower": 3.324272885985422,
+            "zero_over_baseline": 5.940486444885981e-13
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 4.364917126782616e-12,
+            "baseline_bandpower": 3.3249539214514705,
+            "zero_over_baseline": 1.3127752233261512e-12
+          }
+        },
+        "class_integral": {
+          "raw": {
+            "zero_bandpower": 2.1188570696364986e-11,
+            "baseline_bandpower": 3.3277430937240062,
+            "zero_over_baseline": 6.367249544090649e-12
+          },
+          "smooth_0.05dex": {
+            "zero_bandpower": 2.0419318314018575e-11,
+            "baseline_bandpower": 3.3228202063697605,
+            "zero_over_baseline": 6.14517700201632e-12
+          },
+          "smooth_0.10dex": {
+            "zero_bandpower": 2.2579228128418945e-11,
+            "baseline_bandpower": 3.323503349448403,
+            "zero_over_baseline": 6.7938033317061e-12
+          }
+        }
+      },
+      "signed_log_comparisons": {
+        "raw": {
+          "comoving_direct_over_synchronous_native": -4.191058848919133e-07,
+          "comoving_recovered_over_comoving_direct": -7.216449660063544e-15,
+          "comoving_direct_over_log_cubic": -4.5041727499649375e-07,
+          "comoving_direct_over_class": -1.6368776640095615,
+          "comoving_recovered_over_class": -1.6368776640095686,
+          "synchronous_native_over_class": -1.6368772449036766,
+          "log_cubic_over_class": -1.6368772135922864,
+          "previous_frozen_log_linear_over_class": -1.9041285259981542
+        },
+        "smooth_0.05dex": {
+          "comoving_direct_over_synchronous_native": -2.4726691663538457e-06,
+          "comoving_recovered_over_comoving_direct": -7.671641100160126e-14,
+          "comoving_direct_over_log_cubic": 1.8679634382139993e-07,
+          "comoving_direct_over_class": -2.283065092225988,
+          "comoving_recovered_over_class": -2.2830650922260647,
+          "synchronous_native_over_class": -2.2830626195568215,
+          "log_cubic_over_class": -2.2830652790223316,
+          "previous_frozen_log_linear_over_class": -2.3364616167310017
+        },
+        "smooth_0.10dex": {
+          "comoving_direct_over_synchronous_native": -2.259580336952522e-06,
+          "comoving_recovered_over_comoving_direct": -4.9960036108133294e-14,
+          "comoving_direct_over_log_cubic": -3.427719921389175e-07,
+          "comoving_direct_over_class": -1.5894836620932982,
+          "comoving_recovered_over_class": -1.589483662093348,
+          "synchronous_native_over_class": -1.589481402512961,
+          "log_cubic_over_class": -1.589483319321306,
+          "previous_frozen_log_linear_over_class": -1.6438675345059863
+        }
+      }
+    }
+  ],
+  "robustness": {
+    "comoving_direct_over_synchronous_native": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 4.191058848919133e-07,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 4.191058848919133e-07,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.4726691663538457e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.4726691663538457e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 2.259580336952522e-06,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.259580336952522e-06,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "comoving_recovered_over_comoving_direct": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 5.386802115479809e-13,
+        "max_abs_ln_difference_band": [
+          0.01,
+          0.02
+        ],
+        "max_abs_ln_difference_extreme_bands": 7.216449660063544e-15,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 5.27466958999551e-13,
+        "max_abs_ln_difference_band": [
+          0.01,
+          0.02
+        ],
+        "max_abs_ln_difference_extreme_bands": 7.671641100160126e-14,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 6.693534615467309e-13,
+        "max_abs_ln_difference_band": [
+          0.01,
+          0.02
+        ],
+        "max_abs_ln_difference_extreme_bands": 4.9960036108133294e-14,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "comoving_direct_over_log_cubic": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 4.5041727499649375e-07,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 4.5041727499649375e-07,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.9592909627211064e-07,
+        "max_abs_ln_difference_band": [
+          0.08,
+          0.16
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.8679634382139993e-07,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 3.427719921389175e-07,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 3.427719921389175e-07,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "comoving_direct_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.6368776640095615,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6368776640095615,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.283065092225988,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.283065092225988,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.5894836620932982,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.5894836620932982,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "comoving_recovered_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.6368776640095686,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6368776640095686,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.2830650922260647,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.2830650922260647,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.589483662093348,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.589483662093348,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "synchronous_native_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.6368772449036766,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6368772449036766,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.2830626195568215,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.2830626195568215,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.589481402512961,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.589481402512961,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "log_cubic_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.6368772135922864,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6368772135922864,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.2830652790223316,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.2830652790223316,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.589483319321306,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.589483319321306,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    },
+    "previous_frozen_log_linear_over_class": {
+      "raw": {
+        "max_abs_ln_difference_all_bands": 1.9041285259981542,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.9041285259981542,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.05dex": {
+        "max_abs_ln_difference_all_bands": 2.3364616167310017,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 2.3364616167310017,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      },
+      "smooth_0.10dex": {
+        "max_abs_ln_difference_all_bands": 1.6438675345059863,
+        "max_abs_ln_difference_band": [
+          0.64,
+          1.28
+        ],
+        "max_abs_ln_difference_extreme_bands": 1.6438675345059863,
+        "max_abs_ln_difference_extreme_band": [
+          0.64,
+          1.28
+        ]
+      }
+    }
+  },
+  "validation": {
+    "all_bandpowers_finite_and_positive": true,
+    "zero_cdm_exactly_zero": true,
+    "observational_likelihood_or_covariance_included": false
+  },
+  "raw_output_sha256": {
+    "camb_zero": "d16dd765136c4ca0184cb8f8efb40b46fdaf6c8436329e9dc97a1123f68996a7",
+    "camb_baseline": "67b1908de6c8454a1e089c04d0da5f4ad5b977ac5f7f3d66c280e72298b67ac8",
+    "camb_interpolator_zero": "91b0364978c36d15890bcd3826150996798369996679ead6da758b9dffb5f6b0",
+    "camb_interpolator_baseline": "e2a8215501452e7c0d63f8cd770b52374f1f6aa1756ffa7d26268444ae8694e4",
+    "class_zero": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    "class_baseline": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea"
+  },
+  "analysis_runner_sha256": "ca4241c7a67cae622e3bdfadba5636d6c4355f608c692717fcece4cf3b17a038",
+  "boundaries": [
+    "The explicit gauge mapping is now included in both model spectra before integration and model ratios.",
+    "Differences between direct and recovered velocities are numerical diagnostics, not observational errors.",
+    "CLASS/CAMB recombination, perturbation implementation, sampling and smoothing systematics remain independent.",
+    "No likelihood, parameter search, joint BBN, nonlinear calculation, or model-family exclusion."
+  ]
+}

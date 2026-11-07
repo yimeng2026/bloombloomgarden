@@ -1,0 +1,37 @@
+{
+  "status": "comoving_native_bandpowers_completed_and_verified",
+  "amended_on": "2026-11-08",
+  "protocol_sha256": "05040ce4c9bb8649fe4650b8e4b5eed280f713fd1eb119c573038d20dc4f42d8",
+  "power_runner_sha256": "d744458c9b1626bb506c29e832cb7ee1f43099e568e3c315cbd64e23459e6d50",
+  "analysis_runner_sha256": "ca4241c7a67cae622e3bdfadba5636d6c4355f608c692717fcece4cf3b17a038",
+  "verification_runner_sha256": "59b130eeb3cac590c641e6fa5cfde2603cc87e8bb5ab43fc896a26666021e5c8",
+  "highest_band_smooth_0.05dex_zero_over_baseline": {
+    "comoving_direct": 6.266309266531573e-13,
+    "comoving_recovered": 6.266309266531092e-13,
+    "synchronous_native": 6.266324761060439e-13,
+    "log_cubic": 6.266308096008022e-13,
+    "previous_frozen_log_linear": 5.940486444885981e-13,
+    "class_integral": 6.14517700201632e-12
+  },
+  "highest_band_signed_logs": {
+    "comoving_direct_over_synchronous_native": -2.4726691663538457e-06,
+    "comoving_recovered_over_comoving_direct": -7.671641100160126e-14,
+    "comoving_direct_over_log_cubic": 1.8679634382139993e-07,
+    "comoving_direct_over_class": -2.283065092225988,
+    "synchronous_native_over_class": -2.2830626195568215,
+    "previous_frozen_log_linear_over_class": -2.3364616167310017
+  },
+  "all_bands": {
+    "max_abs_comoving_direct_over_synchronous_ln": 2.4726691663538457e-06,
+    "max_band": [0.64, 1.28],
+    "max_abs_comoving_recovered_over_direct_ln": 5.386802115479809e-13,
+    "meaning": "The explicit comoving correction has negligible effect on all seven band ratios; the direct/recovered velocity choice is further erased by band integration."
+  },
+  "interpretation": "The remaining extreme cross-code discrepancy cannot be assigned to the former direct comparison of CLASS comoving d_m with CAMB synchronous delta_tot. Recombination, perturbation implementation, phase sampling and other systematics must be investigated separately.",
+  "verification": "Independent reconstruction and highest-band recomputation passed for 6 sources and 3 methods; all 24 zero-model Python tests and the full platform test/build suite passed.",
+  "boundaries": [
+    "This is a fixed-input numerical comparison, not an observational fit or model-family exclusion.",
+    "No joint BBN, nonlinear calculation, parameter search, or likelihood covariance is included.",
+    "All previous gauge, interpolation and frozen-power evidence remains unchanged."
+  ]
+}
