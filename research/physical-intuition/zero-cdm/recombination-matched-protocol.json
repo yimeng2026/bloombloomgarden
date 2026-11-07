@@ -1,0 +1,51 @@
+{
+  "status": "frozen_before_exact_previous_grid_recombination_analysis",
+  "frozen_at_local": "2026-11-08T02:26:31.798872+08:00",
+  "reason": "The first recombination comparison selected kmax=2.0 because all its sources cover that endpoint; the established grid ends at 1.9985652306116815 and must be matched before attribution.",
+  "preserved_sensitivity_result": "recombination-bandpower-summary.json remains the independent 2.0-endpoint result and is not overwritten.",
+  "common_grid": {
+    "minimum_k_h_per_Mpc": 0.005,
+    "actual_maximum_k_h_per_Mpc": 1.9985652306116815,
+    "point_count": 2603,
+    "reference": "comoving-bandpower-summary.json and earlier same-run analyses",
+    "extrapolation": false
+  },
+  "band_edges_h_per_Mpc": [
+    0.01,
+    0.02,
+    0.04,
+    0.08,
+    0.16,
+    0.32,
+    0.64,
+    1.28
+  ],
+  "methods": [
+    "raw",
+    "smooth_0.05dex",
+    "smooth_0.10dex"
+  ],
+  "integration": "same tested log_bandpower implementation, integrate before zero/baseline ratios",
+  "endpoint_sensitivity": "report matched/endpoint highest-band ratios and signed log differences for all four sources",
+  "output_rule": "Write new recombination-matched artifacts and retain the 2.0-endpoint summary as a separate sensitivity record.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_recombination_matched.py": "7aaee954a0563fd275b96b6bf638876f4a9f4c2ff07f92838f8166c5bf25901b",
+    "research/physical-intuition/zero-cdm/analyze_recombination_matched.py": "56de77c82e278e93fbc33bcdf3107e492a3186344f8e6a9ebf235ba010a3fba0",
+    "research/physical-intuition/zero-cdm/verify_recombination_matched.py": "4a1ee7930fadf7d4ab562259d86cb60aa03c20ee60b355b924bcaa913f03e7a4",
+    "research/physical-intuition/zero-cdm/pk_band_statistics.py": "05e9c5b9bfc09e91d4e0edcf8cf74790b27dfc09603e3e587e52907684d48c98",
+    "research/physical-intuition/zero-cdm/recombination-bandpower-protocol.json": "dd8f434253b001720a7bb8ab3832f0bb2cbc5b65cb3a5d4be0029b73f3b391d9",
+    "research/physical-intuition/zero-cdm/recombination-bandpower-summary.json": "6ba8c583211ed796f2cc046761d4f8de6d3ce398037873880eb134dc346c913f",
+    "research/physical-intuition/zero-cdm/comoving-bandpower-summary.json": "7a12699c9ca28636aed9a6145b6641232ce1a0c3f0c38d35bcffc80a8771686f",
+    ".tmp/class_public/convergence/integral/zero-cdm-integral00_pk.dat": "fc80cb761ea50bba13dce131ff1c4f789499b1cdd585d98fd0efe6a351f54cb0",
+    ".tmp/class_public/convergence/integral/baseline-lcdm-integral00_pk.dat": "878e73437d88366807d10bb69ba19bb1c90865f791ee539429e0ff6f850749ea",
+    ".tmp/class_public/convergence/recfast/zero-cdm-recfast00_pk.dat": "98414a096d6b28be245e8c73193aaf3e2f4140464a95b67b2b069eef9977bfa9",
+    ".tmp/class_public/convergence/recfast/baseline-lcdm-recfast00_pk.dat": "f7cbc92a08101e24c481b0ed4bfad5b0fb9f4708eba1a67c95256a858542a43f",
+    ".tmp/camb-runs/ultra/zero/comoving-power.npz": "d16dd765136c4ca0184cb8f8efb40b46fdaf6c8436329e9dc97a1123f68996a7",
+    ".tmp/camb-runs/ultra/baseline/comoving-power.npz": "67b1908de6c8454a1e089c04d0da5f4ad5b977ac5f7f3d66c280e72298b67ac8"
+  },
+  "boundaries": [
+    "No new solver run or physical parameter change.",
+    "CLASS RECFAST and CAMB Recfast remain distinct implementations.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion."
+  ]
+}

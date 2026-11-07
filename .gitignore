@@ -114,3 +114,5 @@ __pycache__/
 !research/physical-intuition/zero-cdm/same-run-power-comparison.svg
 !research/physical-intuition/zero-cdm/interpolator-construction-comparison.svg
 !research/physical-intuition/zero-cdm/comoving-bandpower-comparison.svg
+!research/physical-intuition/zero-cdm/recombination-bandpower-comparison.svg
+!research/physical-intuition/zero-cdm/recombination-matched-bandpower-comparison.svg

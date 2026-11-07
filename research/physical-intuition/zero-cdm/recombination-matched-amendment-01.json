@@ -1,0 +1,38 @@
+{
+  "status": "recombination_matched_grid_and_endpoint_sensitivity_verified",
+  "amended_on": "2026-11-08",
+  "endpoint_protocol_sha256": "dd8f434253b001720a7bb8ab3832f0bb2cbc5b65cb3a5d4be0029b73f3b391d9",
+  "matched_protocol_sha256": "bf533fb522b931e9b316703bfb347397e60087fc25d3295bd5a9d94b8abeb0f9",
+  "analysis_runner_sha256": "56de77c82e278e93fbc33bcdf3107e492a3186344f8e6a9ebf235ba010a3fba0",
+  "verification_runner_sha256": "4a1ee7930fadf7d4ab562259d86cb60aa03c20ee60b355b924bcaa913f03e7a4",
+  "matched_highest_band_smooth_0.05dex": {
+    "class_hyrec": 6.14517700201632e-12,
+    "class_recfast": 2.8870948472695882e-12,
+    "camb_comoving_recfast": 6.266309266531573e-13,
+    "camb_synchronous_recfast": 6.266324761060439e-13
+  },
+  "matched_signed_logs": {
+    "class_recfast_over_class_hyrec": -0.7554167934676377,
+    "camb_comoving_over_class_recfast": -1.5276482987583502,
+    "camb_comoving_over_class_hyrec": -2.283065092225988,
+    "camb_comoving_over_synchronous": -2.4726691663538457e-06
+  },
+  "endpoint_sensitivity": {
+    "endpoint_grid_max": 2.0,
+    "matched_grid_max": 1.9985652306116815,
+    "highest_band_ln_matched_over_endpoint": {
+      "class_hyrec": 4.3163121784662345e-05,
+      "class_recfast": 3.652925487745451e-05,
+      "camb_comoving_recfast": 0.04198226361906124,
+      "camb_synchronous_recfast": 0.0419934915758975
+    },
+    "interpretation": "The endpoint change has a small effect on CLASS but a visible effect on the extreme CAMB ratio; it is a grid/smoothing systematic, not a recombination effect."
+  },
+  "interpretation": "Using CLASS RECFAST instead of HyRec reduces the CAMB/CLASS highest-band log discrepancy from 2.283065 to 1.527648, a reduction of 0.755417. The remaining discrepancy is still large, so recombination implementation is an important contributor but not a complete explanation.",
+  "verification": "Both the 2.0-endpoint and exact matched-grid analyses independently passed for 4 sources and 3 methods.",
+  "boundaries": [
+        "CLASS RECFAST and CAMB Recfast are distinct implementations; same-family names do not establish line-by-line equivalence.",
+        "Phase sampling, other implementation differences, and observational systematics remain open.",
+        "No likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion."
+  ]
+}
