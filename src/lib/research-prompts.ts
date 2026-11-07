@@ -6,12 +6,13 @@
  */
 
 import { researchChat, ResearchLLMResponse, DEFAULT_MAX_TOKENS } from "./research-llm";
+import { buildCompetitionUserPrompt } from "./competition-prompt";
 
 // ─── 类型定义 ───
 
 export interface PromptTemplate {
   systemPrompt: string;
-  buildUserPrompt: (context: Record<string, any>) => string;
+  buildUserPrompt: (context: PromptContext) => string;
 }
 
 export interface PromptContext {
@@ -24,11 +25,18 @@ export interface PromptContext {
   targetModule?: string;
   targetPaper?: string;
   targetCode?: string;
+  targetFile?: string;
+  lineStart?: number;
+  lineEnd?: number;
   roundNumber?: number;
   maxRounds?: number;
+  stage?: string;
+  title?: string;
+  description?: string;
+  format?: string;
   competitors?: Array<{ name: string; specialty: string }>;
   panelMembers?: Array<{ role: string; specialty: string }>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ─── 基础学术角色 Prompt ───
@@ -233,30 +241,7 @@ const COLLABORATION_PROMPTS: Record<string, PromptTemplate> = {
 - 如果题目是证明题，请给出完整、严谨的证明
 - 如果题目是探索题，请展示你的洞察力和创造性思维
 - 如果题目是算法题，请分析时间复杂度并给出正确性证明`,
-    buildUserPrompt: (ctx) => {
-      const topic = ctx.topic || "未指定题目";
-      const format = ctx.format || "tournament";
-      const round = ctx.roundNumber || 1;
-      const specialty = ctx.specialty || "general";
-      const competitors = ctx.competitors || [];
-
-      let prompt = `【学术竞赛 第 ${round} 轮】\n`;
-      prompt += `竞赛格式：${format}\n`;
-      prompt += `你的专长：${specialty}\n`;
-      prompt += `题目：${topic}\n\n`;
-
-      if (competitors.length > 0) {
-        prompt += `其他参赛者：${competitors.map((c: any) => c.name).join(", ")}\n\n`;
-      }
-
-      prompt += `请给出你的解答。要求：\n`;
-      prompt += `1. 完整的解题思路（包含关键洞察）\n`;
-      prompt += `2. 严谨的推导/证明过程\n`;
-      prompt += `3. 如适用，给出 Lean 4 形式化代码片段\n`;
-      prompt += `4. 讨论结果的局限性和可能的推广\n`;
-
-      return prompt;
-    },
+    buildUserPrompt: buildCompetitionUserPrompt,
   },
 
   // 6. 教学辅导
