@@ -122,11 +122,11 @@ export async function POST(request: NextRequest) {
         errors: [] as string[],
       };
 
-      for (const module of parsed.modules) {
+      for (const parsedModule of parsed.modules) {
         // 同步或创建 ResearchModule
-        const moduleData = generateModuleSyncData(module);
+        const moduleData = generateModuleSyncData(parsedModule);
         let researchModule = await tx.researchModule.findFirst({
-          where: { filePath: module.filePath },
+          where: { filePath: parsedModule.filePath },
         });
 
         if (researchModule) {
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 同步 Theorems
-        for (const theorem of module.theorems) {
+        for (const theorem of parsedModule.theorems) {
           const theoremData = generateTheoremSyncData(theorem, researchModule.id);
           const existingTheorem = await tx.researchTheorem.findFirst({
             where: { name: theorem.name, moduleId: researchModule.id },
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Definitions are parsed syntax, not proved theorems or axioms.
-        for (const def of module.definitions) {
+        for (const def of parsedModule.definitions) {
           const definitionData = {
             statement: def.statement,
             status: def.hasSorry ? "research" : "parsed",
@@ -228,18 +228,18 @@ export async function POST(request: NextRequest) {
         // 创建 AcademicTask（用于跟踪 sorry）
         if (createTasks) {
           // 查找或创建 Workshop 和 Pipeline
-          let workshop = await tx.academicWorkshop.findFirst({
-            where: { topic: { contains: module.fileName.replace(/\.lean$/, "") } },
+          const workshop = await tx.academicWorkshop.findFirst({
+            where: { topic: { contains: parsedModule.fileName.replace(/\.lean$/, "") } },
           });
-          let pipeline = await tx.manuscriptPipeline.findFirst({
-            where: { title: { contains: module.fileName.replace(/\.lean$/, "") } },
+          const pipeline = await tx.manuscriptPipeline.findFirst({
+            where: { title: { contains: parsedModule.fileName.replace(/\.lean$/, "") } },
           });
 
-          for (const theorem of module.theorems) {
+          for (const theorem of parsedModule.theorems) {
             if (theorem.hasSorry) {
               const taskData = generateTaskForSorry(
                 theorem,
-                module.fileName,
+                parsedModule.fileName,
                 workshop?.id || null,
                 pipeline?.id || null
               );
@@ -261,13 +261,13 @@ export async function POST(request: NextRequest) {
 
         // LLM 分析
         if (analyzeWithLLM) {
-          for (const theorem of module.theorems) {
+          for (const theorem of parsedModule.theorems) {
             if (theorem.hasSorry && theorem.sorryCount <= 3) {
               // 只对少量 sorry 的定理进行 LLM 分析（避免 API 调用过多）
               try {
                 const analysis = await analyzeSorryWithLLM(
                   theorem,
-                  module.moduleDescription
+                  parsedModule.moduleDescription
                 );
                 const existingNote = await tx.researchNote.findFirst({
                   where: {

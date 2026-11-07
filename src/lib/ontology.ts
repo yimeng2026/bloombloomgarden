@@ -537,7 +537,7 @@ ${text}
   }
 
   private parseExtractResult(raw: string): ExtractResult {
-    let cleaned = raw
+    const cleaned = raw
       .replace(/```json\s*/g, "")
       .replace(/```\s*/g, "")
       .trim();
@@ -560,7 +560,7 @@ ${text}
       }
     }
 
-    let fixed = cleaned
+    const fixed = cleaned
       .replace(/,\s*]/g, "]")
       .replace(/,\s*}/g, "}")
       .replace(/}\s*{/g, "},{")
