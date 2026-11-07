@@ -1,0 +1,59 @@
+{
+  "status": "frozen_before_ultra_spectrum_run",
+  "frozen_at_local": "2026-11-07T15:22:17.362183+08:00",
+  "parent_amendment_sha256": "d01f55d34731a205602448512aee3373be41e1fa2712cbfeb6089e50d3e5eb46",
+  "previous_runner_sha256": "61dc97e31ac526cced7850c1ad9d945503e62809ac01dd3ea820d34b8857c9cd",
+  "updated_runner_sha256": "32e5e300c4351644426cf841278cd1957bcb43f20aecb684805eeebe042a5706",
+  "trigger": {
+    "rule": "fiducial/high discrepancies above 5% require accuracy review.",
+    "pk_changes": [
+      {
+        "k_h_per_Mpc": 0.001,
+        "fiducial": 11.777823401186449,
+        "high": 11.780746863222964,
+        "high_over_fiducial_minus_1": 0.0002482175132818565
+      },
+      {
+        "k_h_per_Mpc": 0.01,
+        "fiducial": 1.458845171830098,
+        "high": 1.4466919504664333,
+        "high_over_fiducial_minus_1": -0.008330713634551623
+      },
+      {
+        "k_h_per_Mpc": 0.05,
+        "fiducial": 0.039120154108731826,
+        "high": 0.03908547604663284,
+        "high_over_fiducial_minus_1": -0.0008864500380699747
+      },
+      {
+        "k_h_per_Mpc": 0.1,
+        "fiducial": 0.01698651954433268,
+        "high": 0.01811019017296664,
+        "high_over_fiducial_minus_1": 0.06615072768151942
+      },
+      {
+        "k_h_per_Mpc": 0.5,
+        "fiducial": 1.6686475166607907e-09,
+        "high": 3.1519217490729917e-09,
+        "high_over_fiducial_minus_1": 0.8889080633281083
+      },
+      {
+        "k_h_per_Mpc": 1.0,
+        "fiducial": 1.7119004417057096e-11,
+        "high": 2.37294161044138e-12,
+        "high_over_fiducial_minus_1": -0.8613855366450505
+      }
+    ],
+    "lens_review": "Existing fiducial and high runs used lens_potential_accuracy=0. CAMB project guidance recommends higher values for high-ell lensing."
+  },
+  "ultra_level": {
+    "AccuracyBoost": 4.0,
+    "lSampleBoost": 4.0,
+    "lAccuracyBoost": 4.0,
+    "k_per_logint": 400,
+    "lens_potential_accuracy": 8,
+    "nonlinear": false,
+    "physical_inputs_changed": false,
+    "purpose": "Test CAMB internal stability and high-ell linear lensing sensitivity; not an assumption that ultra must agree with CLASS."
+  }
+}

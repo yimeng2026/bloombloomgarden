@@ -1,0 +1,21 @@
+{
+  "status": "frozen_before_serialization_fixed_rerun",
+  "frozen_at_local": "2026-11-07T15:17:26.289490+08:00",
+  "parent_amendment_sha256": "663cc3ea20367b0775ed417f47a13f0f23671093c55e32f1f9c9e06d0527dd2b",
+  "previous_runner_sha256": "db9e57ddc899c53d1015f5441e9f3ddc4d0d96d9626b7d90bbd7022007855bc8",
+  "updated_runner_sha256": "61dc97e31ac526cced7850c1ad9d945503e62809ac01dd3ea820d34b8857c9cd",
+  "failure": {
+    "stage": "summary serialization after CAMB results and spectra.npz were produced",
+    "error": "ValueError: invalid literal for int() with base 10: 'NonLinear_none'",
+    "root_cause": "CAMB 2.0.5 returns NonLinear as a string enum name; the runner incorrectly coerced it to int.",
+    "log": ".tmp/camb-runs/fiducial/baseline/run-serialization-failure.log",
+    "log_sha256": "ed289dca121c6a07e15691acebf3a93d8c36dbcf411badb7e474e405648776f4",
+    "data_policy": "Do not analyze the partial run; rerun after the serialization fix and validate summary.json."
+  },
+  "fix": {
+    "actual_parameters": "store str(pars.NonLinear)",
+    "validation": "compare str(pars.NonLinear) with camb.model.NonLinear_none",
+    "physics_inputs_changed": false,
+    "precision_inputs_changed": false
+  }
+}

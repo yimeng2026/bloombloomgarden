@@ -1,0 +1,26 @@
+{
+  "status": "frozen_before_recfast_spectrum_run",
+  "frozen_at_local": "2026-11-07T15:14:25.892250+08:00",
+  "parent_protocol": "camb-crosscode-protocol.json",
+  "parent_protocol_sha256": "d39a3a37b3fd29a11e7516404c5c6a7a18c556736d7a9e4190ef79d3cbc7251a",
+  "original_runner_sha256": "fd443acf0276cdbb3d1b9e25f97a799a05f979cdb416db4bd0be6b2e592475d4",
+  "updated_runner_sha256": "db9e57ddc899c53d1015f5441e9f3ddc4d0d96d9626b7d90bbd7022007855bc8",
+  "failed_attempt": {
+    "stage": "parameter construction; no CAMB spectrum calculation started",
+    "error": "CAMBValueError: Class not found: hyrec",
+    "log": ".tmp/camb-runs/fiducial/baseline/run-hyrec-failure.log",
+    "log_sha256": "ce96eaf11d4b761b455b152c7ad23bd1c3a8a0897c2c2cee355b8ec8dd04051b"
+  },
+  "root_cause": {
+    "binary_evidence": "F2003Class registered names contain Recfast but no HyRec; HyRec is an optional Fortran class.",
+    "source_evidence": "camb/recombination.py states HyRec must be built with HYREC-2 and RECOMBINATION_FILES including hyrec.",
+    "local_build_boundary": "WSL has gcc and make but no gfortran; the cloned CAMB tree has no HYREC-2 source directory."
+  },
+  "approved_fallback": {
+    "recombination_model": "Recfast",
+    "physical_inputs_unchanged": true,
+    "tiny_cdm_introduced": false,
+    "systematic": "CLASS HyRec 2020 and CAMB Recfast are not the same recombination implementation. Cross-code differences must not be interpreted as pure solver error.",
+    "not_silent": "This amendment overrides the original HyRec intention; the original protocol is preserved unchanged."
+  }
+}
