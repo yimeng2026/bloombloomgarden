@@ -1,0 +1,373 @@
+{
+  "status": "computed_native_gauge_transformation_and_sparse_crosscode_comparison_not_observational_fit",
+  "records": {
+    "zero": {
+      "rows": [
+        {
+          "index": 0,
+          "k_h_per_Mpc": 0.00010008060022911658,
+          "class_d_m": -0.3555256528851051,
+          "camb_synchronous_delta_m": 0.35548299445161713,
+          "camb_comoving": 0.35552226590363306,
+          "gauge_correction": 3.9271452015932073e-05,
+          "sync_over_class_minus_1": -1.9998800130647625,
+          "comoving_over_class_minus_1": -1.9999904733134035,
+          "sync_power_over_class_power": 0.9997600405263896,
+          "comoving_power_over_class_power": 0.9999809467175648,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 1,
+          "k_h_per_Mpc": 0.00029990395641086263,
+          "class_d_m": -3.1296865212509934,
+          "camb_synchronous_delta_m": 3.1294365610834567,
+          "camb_comoving": 3.1296375025597265,
+          "gauge_correction": 0.0002009414762698114,
+          "sync_over_class_minus_1": -1.99992013252259,
+          "comoving_over_class_minus_1": -1.9999843375076276,
+          "sync_power_over_class_power": 0.9998402714239938,
+          "comoving_power_over_class_power": 0.9999686752605689,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 2,
+          "k_h_per_Mpc": 0.0010006923224305684,
+          "class_d_m": -30.8854808161581,
+          "camb_synchronous_delta_m": 30.8850146244746,
+          "camb_comoving": 30.88520318856716,
+          "gauge_correction": 0.00018856409256073903,
+          "sync_over_class_minus_1": -1.9999849057980907,
+          "comoving_over_class_minus_1": -1.9999910110646297,
+          "sync_power_over_class_power": 0.9999698118240167,
+          "comoving_power_over_class_power": 0.9999820222100602,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 3,
+          "k_h_per_Mpc": 0.002998698908278431,
+          "class_d_m": -196.43170446540182,
+          "camb_synchronous_delta_m": 196.43035139178676,
+          "camb_comoving": 196.43048723739315,
+          "gauge_correction": 0.00013584560639401388,
+          "sync_over_class_minus_1": -1.9999931117351002,
+          "comoving_over_class_minus_1": -1.9999938033017024,
+          "sync_power_over_class_power": 0.9999862235176488,
+          "comoving_power_over_class_power": 0.9999876066418036,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 4,
+          "k_h_per_Mpc": 0.010005786554826732,
+          "class_d_m": -854.4833383034338,
+          "camb_synchronous_delta_m": 854.5998309953269,
+          "camb_comoving": 854.5999206167534,
+          "gauge_correction": 8.962142646851134e-05,
+          "sync_over_class_minus_1": -2.0001363311449984,
+          "comoving_over_class_minus_1": -2.00013643602876,
+          "sync_power_over_class_power": 1.000272680876178,
+          "comoving_power_over_class_power": 1.0002728906723097,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 5,
+          "k_h_per_Mpc": 0.029983582911427536,
+          "class_d_m": 1113.4732181039606,
+          "camb_synchronous_delta_m": -1113.543001367689,
+          "camb_comoving": -1113.5429423936578,
+          "gauge_correction": 5.8974031162506435e-05,
+          "sync_over_class_minus_1": -2.0000626717038124,
+          "comoving_over_class_minus_1": -2.000062618739781,
+          "sync_power_over_class_power": 1.0001253473353675,
+          "comoving_power_over_class_power": 1.000125241400668,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 6,
+          "k_h_per_Mpc": 0.09997507570585941,
+          "class_d_m": -1563.3356138072602,
+          "camb_synchronous_delta_m": 1577.6244467227004,
+          "camb_comoving": 1577.6244457921284,
+          "gauge_correction": -9.305720141128404e-07,
+          "sync_over_class_minus_1": -2.009139965078031,
+          "comoving_over_class_minus_1": -2.0091399644827828,
+          "sync_power_over_class_power": 1.0183634691176893,
+          "comoving_power_over_class_power": 1.0183634679163125,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 7,
+          "k_h_per_Mpc": 0.3004364509057034,
+          "class_d_m": -67.96058876499144,
+          "camb_synchronous_delta_m": 72.22370360816905,
+          "camb_comoving": 72.22370383649849,
+          "gauge_correction": 2.2832944068795769e-07,
+          "sync_over_class_minus_1": -2.062729221754089,
+          "comoving_over_class_minus_1": -2.0627292251138223,
+          "sync_power_over_class_power": 1.129393398770052,
+          "comoving_power_over_class_power": 1.129393405911025,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 8,
+          "k_h_per_Mpc": 0.9995579634185923,
+          "class_d_m": 0.066798758490797,
+          "camb_synchronous_delta_m": -0.01814030258851282,
+          "camb_comoving": -0.018140281305265016,
+          "gauge_correction": 2.1283247803038918e-08,
+          "sync_over_class_minus_1": -1.2715664631852708,
+          "comoving_over_class_minus_1": -1.271566144567855,
+          "sync_power_over_class_power": 0.07374834392695703,
+          "comoving_power_over_class_power": 0.07374817087544917,
+          "class_and_comoving_same_sign": false
+        }
+      ],
+      "sync_over_class": {
+        "points": 9,
+        "reference_zero_points": 0,
+        "max_abs_difference": 3140.9600605299606,
+        "max_abs_fraction": 2.062729221754089,
+        "max_abs_fraction_location": {
+          "index": 7,
+          "reference": -67.96058876499144,
+          "candidate": 72.22370360816905,
+          "candidate_over_reference_minus_1": -2.062729221754089
+        }
+      },
+      "comoving_over_class": {
+        "points": 9,
+        "reference_zero_points": 0,
+        "max_abs_difference": 3140.960059599389,
+        "max_abs_fraction": 2.0627292251138223,
+        "max_abs_fraction_location": {
+          "index": 7,
+          "reference": -67.96058876499144,
+          "candidate": 72.22370383649849,
+          "candidate_over_reference_minus_1": -2.0627292251138223
+        }
+      },
+      "weighted_delta_m_over_native_delta_tot": {
+        "points": 5878,
+        "reference_zero_points": 0,
+        "max_abs_difference": 2.2737367544323206e-13,
+        "max_abs_fraction": 2.220446049250313e-16,
+        "max_abs_fraction_location": {
+          "index": 71,
+          "reference": 8.728151023473138e-05,
+          "candidate": 8.72815102347314e-05,
+          "candidate_over_reference_minus_1": 2.220446049250313e-16
+        }
+      },
+      "recovered_v_b_over_direct_v_baryon_cdm": {
+        "points": 5878,
+        "reference_zero_points": 0,
+        "max_abs_difference": 7.524998731105919e-07,
+        "max_abs_fraction": 38.282295253387716,
+        "max_abs_fraction_location": {
+          "index": 14,
+          "reference": 1.0558036771725829e-11,
+          "candidate": 4.147439177630585e-10,
+          "candidate_over_reference_minus_1": 38.282295253387716
+        }
+      },
+      "class_interpolation": "signed d_m linearly interpolated in ln(k), without log-abs, smoothing, or extrapolation",
+      "power_note": "Squared-transfer ratios are diagnostic only; signed values and same-sign flags are retained."
+    },
+    "baseline": {
+      "rows": [
+        {
+          "index": 0,
+          "k_h_per_Mpc": 0.00010006403190287029,
+          "class_d_m": -0.09088864617988635,
+          "camb_synchronous_delta_m": 0.09088695749641905,
+          "camb_comoving": 0.09088728846659061,
+          "gauge_correction": 3.309701715609181e-07,
+          "sync_over_class_minus_1": -1.9999814203034343,
+          "comoving_over_class_minus_1": -1.9999850617942636,
+          "sync_power_over_class_power": 0.9999628409520734,
+          "comoving_power_over_class_power": 0.9999701238116772,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 1,
+          "k_h_per_Mpc": 0.00029982164715088337,
+          "class_d_m": -0.815175554576575,
+          "camb_synchronous_delta_m": 0.815170787505781,
+          "camb_comoving": 0.815173571581109,
+          "gauge_correction": 2.7840753280550246e-06,
+          "sync_over_class_minus_1": -1.9999941520930464,
+          "comoving_over_class_minus_1": -1.9999975674007215,
+          "sync_power_over_class_power": 0.9999883042202908,
+          "comoving_power_over_class_power": 0.9999951348073604,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 2,
+          "k_h_per_Mpc": 0.0010002980420499717,
+          "class_d_m": -8.99248640463812,
+          "camb_synchronous_delta_m": 8.992358440548674,
+          "camb_comoving": 8.992370256779457,
+          "gauge_correction": 1.181623078316818e-05,
+          "sync_over_class_minus_1": -1.9999857698879167,
+          "comoving_over_class_minus_1": -1.9999870838994427,
+          "sync_power_over_class_power": 0.9999715399783294,
+          "comoving_power_over_class_power": 0.999974167965711,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 3,
+          "k_h_per_Mpc": 0.002997190907721391,
+          "class_d_m": -77.28098169413629,
+          "camb_synchronous_delta_m": 77.2805400510215,
+          "camb_comoving": 77.28055235253031,
+          "gauge_correction": 1.2301508803602701e-05,
+          "sync_over_class_minus_1": -1.9999942852289774,
+          "comoving_over_class_minus_1": -1.99999444440797,
+          "sync_power_over_class_power": 0.9999885704906134,
+          "comoving_power_over_class_power": 0.9999888888468045,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 4,
+          "k_h_per_Mpc": 0.009999558821498016,
+          "class_d_m": -710.5356728159877,
+          "camb_synchronous_delta_m": 710.5301677878209,
+          "camb_comoving": 710.5301793281155,
+          "gauge_correction": 1.1540294622136571e-05,
+          "sync_over_class_minus_1": -1.9999922522846107,
+          "comoving_over_class_minus_1": -1.999992268526293,
+          "sync_power_over_class_power": 0.9999845046292488,
+          "comoving_power_over_class_power": 0.9999845371123619,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 5,
+          "k_h_per_Mpc": 0.030036646415654063,
+          "class_d_m": -3571.8432729163846,
+          "camb_synchronous_delta_m": 3571.822626674267,
+          "camb_comoving": 3571.8223618288785,
+          "gauge_correction": -0.0002648453887559299,
+          "sync_over_class_minus_1": -1.999994219723392,
+          "comoving_over_class_minus_1": -1.9999941455752932,
+          "sync_power_over_class_power": 0.9999884394801958,
+          "comoving_power_over_class_power": 0.9999882911848604,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 6,
+          "k_h_per_Mpc": 0.09951420190755407,
+          "class_d_m": -11680.037810221167,
+          "camb_synchronous_delta_m": 11678.715074587122,
+          "camb_comoving": 11678.714970598898,
+          "gauge_correction": -0.00010398822450952139,
+          "sync_over_class_minus_1": -1.9998867524527286,
+          "comoving_over_class_minus_1": -1.9998867435496561,
+          "sync_power_over_class_power": 0.9997735177304642,
+          "comoving_power_over_class_power": 0.9997734999263356,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 7,
+          "k_h_per_Mpc": 0.2993229224001488,
+          "class_d_m": -24918.442228592492,
+          "camb_synchronous_delta_m": 24904.63712695263,
+          "camb_comoving": 24904.637823474535,
+          "gauge_correction": 0.000696521903591929,
+          "sync_over_class_minus_1": -1.9994459885769256,
+          "comoving_over_class_minus_1": -1.99944601652899,
+          "sync_power_over_class_power": 0.9988922840825081,
+          "comoving_power_over_class_power": 0.9988923399556662,
+          "class_and_comoving_same_sign": false
+        },
+        {
+          "index": 8,
+          "k_h_per_Mpc": 0.9993330656225043,
+          "class_d_m": -42956.53473864998,
+          "camb_synchronous_delta_m": 42957.99945110816,
+          "camb_comoving": 42958.00019236782,
+          "gauge_correction": 0.0007412596605718136,
+          "sync_over_class_minus_1": -2.000034097546906,
+          "comoving_over_class_minus_1": -2.0000341148029457,
+          "sync_power_over_class_power": 1.000068196256455,
+          "comoving_power_over_class_power": 1.000068230769711,
+          "class_and_comoving_same_sign": false
+        }
+      ],
+      "sync_over_class": {
+        "points": 9,
+        "reference_zero_points": 0,
+        "max_abs_difference": 85914.53418975814,
+        "max_abs_fraction": 2.000034097546906,
+        "max_abs_fraction_location": {
+          "index": 8,
+          "reference": -42956.53473864998,
+          "candidate": 42957.99945110816,
+          "candidate_over_reference_minus_1": -2.000034097546906
+        }
+      },
+      "comoving_over_class": {
+        "points": 9,
+        "reference_zero_points": 0,
+        "max_abs_difference": 85914.5349310178,
+        "max_abs_fraction": 2.0000341148029457,
+        "max_abs_fraction_location": {
+          "index": 8,
+          "reference": -42956.53473864998,
+          "candidate": 42958.00019236782,
+          "candidate_over_reference_minus_1": -2.0000341148029457
+        }
+      },
+      "weighted_delta_m_over_native_delta_tot": {
+        "points": 6307,
+        "reference_zero_points": 0,
+        "max_abs_difference": 0.01146855171828065,
+        "max_abs_fraction": 1.7142899189082073e-07,
+        "max_abs_fraction_location": {
+          "index": 4502,
+          "reference": 32961.08829503603,
+          "candidate": 32961.09394552217,
+          "candidate_over_reference_minus_1": 1.7142899189082073e-07
+        }
+      },
+      "recovered_v_b_over_direct_v_baryon_cdm": {
+        "points": 6307,
+        "reference_zero_points": 0,
+        "max_abs_difference": 3.091032599165759e-06,
+        "max_abs_fraction": 78.81460971093048,
+        "max_abs_fraction_location": {
+          "index": 39,
+          "reference": 5.5013031682508256e-12,
+          "candidate": 4.3908436527544494e-10,
+          "candidate_over_reference_minus_1": 78.81460971093048
+        }
+      },
+      "class_interpolation": "signed d_m linearly interpolated in ln(k), without log-abs, smoothing, or extrapolation",
+      "power_note": "Squared-transfer ratios are diagnostic only; signed values and same-sign flags are retained."
+    }
+  },
+  "raw_output_sha256": {
+    "zero": {
+      "camb_gauge_transform_native": "9b85d94ba355eae1c6d52ba3dfa8a425da2ca6ce6bb6b42f21e91c909b95da61",
+      "class_native_transfer": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a"
+    },
+    "baseline": {
+      "camb_gauge_transform_native": "1365ac07da64f53795ccb4e4ab04dfaa5418cd841295cdd78d0cec3e082a6b2b",
+      "class_native_transfer": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8"
+    }
+  },
+  "analysis_runner_sha256": "5b2f791b8bb3c490419c1eaaf6ba3a3df02149d850d6ddd209425df72cb09e8b",
+  "validation": {
+    "models": [
+      "zero",
+      "baseline"
+    ],
+    "sparse_points_per_model": 9,
+    "all_values_finite": true,
+    "whole_spectrum_convergence_claimed": false,
+    "observational_likelihood_or_covariance_included": false
+  },
+  "boundaries": [
+    "The full native CAMB grid is transformed; cross-code CLASS comparison here is sparse and does not prove full-spectrum convergence.",
+    "The explicit matter-comoving mapping is separate from recombination and perturbation-implementation differences.",
+    "No joint BBN, nonlinear calculation, parameter search, or model-family exclusion."
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "status": "frozen_before_direct_velocity_sign_normalized_gauge_refinement",
+  "frozen_at_local": "2026-11-08T02:02:21.456097+08:00",
+  "new_solver_execution": false,
+  "prior_evidence_preserved": [
+    "gauge-transform-amendment-01.json: missing-gfortran failure",
+    "gauge-transform-native-summary.json: native transformation with failed generic-identity and recovered-velocity thresholds",
+    "gauge-native-crosscode-summary.json: unnormalized signed comparison"
+  ],
+  "velocity_choice": {
+    "final_transform": "direct native v_baryon_cdm; in synchronous CDM gauge v_c=0 so this is v_b",
+    "reason": "avoid catastrophic cancellation from subtracting two float32 Newtonian-velocity outputs at very low k",
+    "recovered_velocity_role": "diagnostic only, with signed absolute and fractional errors reported by k range and no concealment of low-k outliers"
+  },
+  "class_sign": {
+    "class": "native CLASS files normalize adiabatic initial curvature to +1",
+    "camb": "default initial_adiabatic multiplies the chi=1 series by -1, hence chi=-1",
+    "mapping": "T_CLASS=-T_CAMB for signed cross-code transfer comparisons",
+    "power": "unchanged; no physical phase is altered",
+    "sources": [
+      "CLASS perturbations.c:670 and output.c:1162-1173",
+      "CAMB equations.f90:2000 and 2062-2070"
+    ]
+  },
+  "pressureless_algebra": {
+    "generic_frame_identity": "retain the unexpanded p_b term as a diagnostic",
+    "class_compatible_identity": "substitute p_b=0 before simplifying make_frame_invariant(delta_m, frame=v_m)-class_expression",
+    "acceptance": "pressureless difference must be exactly zero"
+  },
+  "crosscode": {
+    "sparse_points_per_model": 9,
+    "interpolation": "signed CLASS d_m linearly interpolated in ln(k), no extrapolation or smoothing",
+    "acceptance": "none; report actual residuals and do not infer full-spectrum convergence"
+  },
+  "output_rule": "Write new refined artifacts; never edit prior raw arrays, summaries, protocols or failed logs.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_gauge_refined.py": "5add5f51c5aa80d4bd72d11b6135d7f27603307655c58c8071b1a48e093ef418",
+    "research/physical-intuition/zero-cdm/refine_gauge_native.py": "638a686777ce983ada416034708151803560a442ae391b5cbd1f982f62e267fe",
+    "research/physical-intuition/zero-cdm/analyze_gauge_refined.py": "d2e9210762f1f27ab126553c752ded29f15766fde4ae04058344de4f4651654f",
+    "research/physical-intuition/zero-cdm/verify_gauge_refined.py": "8520fc71203ef08ae02da8853d6aaa6fee135fca877f61a1c2ea61b77e979a60",
+    "research/physical-intuition/zero-cdm/gauge_transform.py": "06ee7ef1b29ab9882d76e2ccbcc9dc50bc1662175039c153d753ce31464b98ba",
+    "research/physical-intuition/zero-cdm/tests/test_gauge_transform.py": "2aef8fd0d9d9211ced472de557855aeaf78bcba5acf1c0a040175758396c6a85",
+    "research/physical-intuition/zero-cdm/tests/test_signed_gauge_diagnostics.py": "72de2b7f72a162afe08b82e588a0d35d67d3a74e8674d2a2fb45e5c1756658e7",
+    "research/physical-intuition/zero-cdm/tests/test_native_gauge_velocities.py": "de505ae55ed1e24bf328d866878d4252d7b69e7d7e1c1e2d63fa70c1d3f1f306",
+    ".tmp/camb-wsl-site/camb/symbolic.py": "3d97362836e727efaebf755b59611dc66e1ce97daf291ae969cd958cec357642",
+    ".tmp/CAMB/fortran/equations.f90": "faaf4e3884c42847493e67dbe53eb881e910af338397c6e16e4b119abe2b70f1",
+    ".tmp/CAMB/docs/source/transfer_variables.rst": "15848e08cfafc24bc48a7cdf4e010ce8df3354113131b912fd3051e89d45ad32",
+    ".tmp/class_public/source/perturbations.c": "19b4f436feb4bbfb3f9480a1510bd8f061b6ea5caa871698b6515caf1acf9f12",
+    ".tmp/class_public/source/output.c": "8bba2d77541fe3b8f97c5a9d649f27b2489a26171949fde6ac8bb6915d2ad059",
+    ".tmp/class_public/convergence/transfer/zero-cdm-transfer-dense00_00_tk.dat": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+    ".tmp/class_public/convergence/transfer/baseline-lcdm-transfer-dense00_00_tk.dat": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+    ".tmp/camb-runs/ultra/zero/gauge-transform-native.npz": "9b85d94ba355eae1c6d52ba3dfa8a425da2ca6ce6bb6b42f21e91c909b95da61",
+    ".tmp/camb-runs/ultra/baseline/gauge-transform-native.npz": "1365ac07da64f53795ccb4e4ab04dfaa5418cd841295cdd78d0cec3e082a6b2b",
+    ".tmp/camb-runs/ultra/zero/gauge-transform-native-summary.json": "df085a462c2d179e13fb1144e411c37e3487b8f64f7b8ffd9913b20614aa4e03",
+    ".tmp/camb-runs/ultra/baseline/gauge-transform-native-summary.json": "284d202fa8bf309dffb7b004d02e9f6d8e1782df5fceadb65eb819108f435028"
+  },
+  "boundaries": [
+    "No new solver run, compiler installation, physical parameter change, or nonzero CDM placeholder.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "Full-grid mapping and sparse cross-code checks do not close all CLASS/CAMB implementation systematics."
+  ]
+}

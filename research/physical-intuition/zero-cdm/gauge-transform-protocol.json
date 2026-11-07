@@ -1,0 +1,69 @@
+{
+  "status": "frozen_before_sparse_matter_comoving_gauge_runs",
+  "frozen_at_local": "2026-11-08T01:47:56.456391+08:00",
+  "camb_source_commit": "72b5a4ca5df1335674e2eacad9b9a887194f9677",
+  "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
+  "models": [
+    "zero",
+    "baseline"
+  ],
+  "level": "ultra",
+  "target_k_h_per_Mpc": [
+    0.0001,
+    0.0003,
+    0.001,
+    0.003,
+    0.01,
+    0.03,
+    0.1,
+    0.3,
+    1.0
+  ],
+  "mode_selection": "nearest native CAMB q for each target, require nine distinct indices; q is in 1/Mpc and k_h=q/h",
+  "transformation": {
+    "class": "D_m=delta_m+3 a H theta_m/k^2 for stable pressureless matter",
+    "camb_manual": "delta_m=(rho_c Delta_c+rho_b Delta_b)/(rho_c+rho_b), theta_m=k(rho_c v_c+rho_b v_b)/(rho_c+rho_b)",
+    "independent_symbolic": "make_frame_invariant(delta_m, frame=v_m) on the same get_results object",
+    "excluded": "no photon, massless-neutrino or total-heat-flux velocity in the matter-comoving frame; massive neutrinos are zero in these inputs"
+  },
+  "internal_acceptance": {
+    "time_evolution_total_density_vs_float32_transfer_max_abs_fraction": 2e-05,
+    "manual_vs_symbolic_max_abs_difference": 1e-08,
+    "manual_vs_symbolic_max_abs_fraction_nonzero_reference": 1e-06,
+    "scale_factor_today_max_abs_a_minus_1": 1e-12,
+    "meaning": "These thresholds test interface normalization and the explicit mapping only, not physical cross-code accuracy."
+  },
+  "class_comparison": {
+    "variable": "native d_m column, not d_tot",
+    "interpolation": "signed linear d_m in natural log k at the nine actual CAMB k values; no extrapolation or smoothing",
+    "report": "signed values, fractional differences, squared-transfer ratios and same-sign flags",
+    "acceptance": "none; sparse cross-code outcomes are diagnostics and cannot prove whole-spectrum convergence"
+  },
+  "output_rule": "Write new gauge-transform artifacts without modifying previous spectra, transfer, interpolation or CLASS outputs.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_gauge_transform.py": "d00d676006685870bd9fa2951b4946625788403a9c2ae8b07a045378d55b7f0a",
+    "research/physical-intuition/zero-cdm/camb_gauge_transform.py": "0c6116d3a29c7c233a389979e60400fd8a8988e8aa6aa5f61d16147a7e3044b2",
+    "research/physical-intuition/zero-cdm/analyze_gauge_transform.py": "e1e3b5fdffbdee50eff95798c3053f306b0d290a27af63513f74183795fcff9c",
+    "research/physical-intuition/zero-cdm/verify_gauge_transform.py": "f950424a4528d57462f7882cddeb5f6728ad6920d69ba4a46fd0b8f037c410a9",
+    "research/physical-intuition/zero-cdm/gauge_transform.py": "3f7119580968637627008211f31f973790ef6412034dc07b0c4035bc2f18049e",
+    "research/physical-intuition/zero-cdm/tests/test_gauge_transform.py": "2aef8fd0d9d9211ced472de557855aeaf78bcba5acf1c0a040175758396c6a85",
+    "research/physical-intuition/zero-cdm/tests/test_signed_gauge_diagnostics.py": "72de2b7f72a162afe08b82e588a0d35d67d3a74e8674d2a2fb45e5c1756658e7",
+    "research/physical-intuition/zero-cdm/camb_crosscode.py": "894582eeba01532ef5d0217be226ad4660c4711c8a96ff91575a28b5dfe949f5",
+    ".tmp/camb-wsl-site/camb/results.py": "f7241cf90c9490b8789a7c2bbecd3c3d65066f52f2266a8924f76bd5e01127d0",
+    ".tmp/camb-wsl-site/camb/symbolic.py": "3d97362836e727efaebf755b59611dc66e1ce97daf291ae969cd958cec357642",
+    ".tmp/CAMB/docs/source/transfer_variables.rst": "15848e08cfafc24bc48a7cdf4e010ce8df3354113131b912fd3051e89d45ad32",
+    ".tmp/CAMB/fortran/equations.f90": "faaf4e3884c42847493e67dbe53eb881e910af338397c6e16e4b119abe2b70f1",
+    ".tmp/class_public/source/perturbations.c": "19b4f436feb4bbfb3f9480a1510bd8f061b6ea5caa871698b6515caf1acf9f12",
+    ".tmp/class_public/source/fourier.c": "17b152c02796bc7d53012c23ff011faeae1c408b4e81f5202183714fbfb7ba4f",
+    ".tmp/class_public/convergence/transfer/zero-cdm-transfer-dense00_00_tk.dat": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+    ".tmp/class_public/convergence/transfer/baseline-lcdm-transfer-dense00_00_tk.dat": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+    ".tmp/camb-runs/ultra/zero/parameters.ini": "1254abd04b0ca4acf303649038a937be17155ca7a7dbfbce4b4920d047173400",
+    ".tmp/camb-runs/ultra/baseline/parameters.ini": "911f9bd1312cb7282f6bed71d78b31bcbdad5efbc791679c091de1ef6fc61def"
+  },
+  "boundaries": [
+    "No physical parameter changes and no nonzero CDM placeholder in the zero model.",
+    "Sparse validation does not complete a full-spectrum gauge-transformed band-power analysis.",
+    "Recombination, perturbation implementation, sampling and interpolation systematics remain separate.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion."
+  ]
+}

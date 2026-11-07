@@ -1,0 +1,44 @@
+{
+  "status": "native_route_diagnostics_resolved_by_direct_velocity_refinement",
+  "amended_on": "2026-11-08",
+  "native_protocol_sha256": "b02bc4726192f790e26ed03f2dfe3b586383dde8651e18056be2c2486cbd8e01",
+  "refined_protocol_sha256": "11655fd7ae1d8a1ba40c25b1f855e90e84c9054a6461d7cf540506d169287a77",
+  "native_results_preserved": {
+    "generic_symbolic_identity_passed": false,
+    "generic_identity_difference": "a term proportional to p_b remained because the generic CAMB frame transformation includes baryon pressure while CLASS explicitly assumes stable pressureless matter",
+    "recovered_velocity_full_grid_threshold_passed": false,
+    "zero_recovered_velocity_max_abs_fraction": 38.282295253387716,
+    "baseline_recovered_velocity_max_abs_fraction": 78.81460971093048,
+    "interpretation": "The large fractions occur at very low k where direct v_b is about 1e-11 and subtracting two float32 Newtonian outputs loses significance; they are not used as evidence of a large physical gauge correction.",
+    "unnormalized_class_comparison": "CLASS d_m and CAMB transfers have opposite signs because CLASS uses initial curvature +1 and CAMB default adiabatic initialization uses chi=-1"
+  },
+  "refinement": {
+    "final_velocity": "direct native v_baryon_cdm, not Newtonian subtraction",
+    "pressureless_identity": "substitute p_b=0; symbolic difference is exactly zero for both models",
+    "signed_crosscode_mapping": "T_CLASS=-T_CAMB; power unchanged",
+    "native_points": {
+      "zero": 5878,
+      "baseline": 6307
+    },
+    "max_abs_comoving_over_class_sparse_k_le_0.01": {
+      "zero": 0.0001364360482876137,
+      "baseline": 1.4685769431199702e-05
+    },
+    "max_abs_comoving_over_class_all_sparse": {
+      "zero": 0.7284338554321612,
+      "zero_location_k": 0.9995579634185923,
+      "baseline": 0.0005539834709848979
+    },
+    "verification": "verify_gauge_refined.py passed independently"
+  },
+  "script_sha256": {
+    "refine_gauge_native.py": "638a686777ce983ada416034708151803560a442ae391b5cbd1f982f62e267fe",
+    "analyze_gauge_refined.py": "d2e9210762f1f27ab126553c752ded29f15766fde4ae04058344de4f4651654f",
+    "verify_gauge_refined.py": "8520fc71203ef08ae02da8853d6aaa6fee135fca877f61a1c2ea61b77e979a60"
+  },
+  "boundaries": [
+    "The original false validation flags remain unchanged in gauge-transform-native-summary.json.",
+    "Sparse low-k agreement validates the mapping; it does not close extreme-spectrum or implementation systematics.",
+    "Full common-grid comoving band powers are a separate next calculation."
+  ]
+}

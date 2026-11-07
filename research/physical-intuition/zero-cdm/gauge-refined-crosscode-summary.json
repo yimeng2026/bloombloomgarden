@@ -1,0 +1,616 @@
+{
+  "status": "computed_refined_gauge_map_and_sign_normalized_sparse_crosscode_comparison",
+  "records": {
+    "zero": {
+      "rows": [
+        {
+          "index": 0,
+          "k_h_per_Mpc": 0.00010008060022911658,
+          "class_d_m": -0.3555256528851051,
+          "camb_synchronous_in_class_normalization": -0.35548299445161713,
+          "camb_comoving_in_class_normalization": -0.3555222323803539,
+          "gauge_correction_in_class_normalization": -3.923792873677945e-05,
+          "sync_over_class_minus_1": -0.00011998693523751491,
+          "comoving_over_class_minus_1": -9.620978749236286e-06,
+          "sync_power_over_class_power": 0.9997600405263896,
+          "comoving_power_over_class_power": 0.9999807581350647,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 1,
+          "k_h_per_Mpc": 0.00029990395641086263,
+          "class_d_m": -3.1296865212509934,
+          "camb_synchronous_in_class_normalization": -3.1294365610834567,
+          "camb_comoving_in_class_normalization": -3.1296374856493454,
+          "gauge_correction_in_class_normalization": -0.000200924565888716,
+          "sync_over_class_minus_1": -7.986747741006717e-05,
+          "comoving_over_class_minus_1": -1.566789559115378e-05,
+          "sync_power_over_class_power": 0.9998402714239938,
+          "comoving_power_over_class_power": 0.9999686644543007,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 2,
+          "k_h_per_Mpc": 0.0010006923224305684,
+          "class_d_m": -30.8854808161581,
+          "camb_synchronous_in_class_normalization": -30.8850146244746,
+          "camb_comoving_in_class_normalization": -30.8852032526386,
+          "gauge_correction_in_class_normalization": -0.00018862816400044835,
+          "sync_over_class_minus_1": -1.509420190914934e-05,
+          "comoving_over_class_minus_1": -8.98686088623979e-06,
+          "sync_power_over_class_power": 0.9999698118240167,
+          "comoving_power_over_class_power": 0.9999820263589911,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 3,
+          "k_h_per_Mpc": 0.002998698908278431,
+          "class_d_m": -196.43170446540182,
+          "camb_synchronous_in_class_normalization": -196.43035139178676,
+          "camb_comoving_in_class_normalization": -196.4304871006071,
+          "gauge_correction_in_class_normalization": -0.0001357088203519652,
+          "sync_over_class_minus_1": -6.888264899695962e-06,
+          "comoving_over_class_minus_1": -6.197394651907828e-06,
+          "sync_power_over_class_power": 0.9999862235176488,
+          "comoving_power_over_class_power": 0.9999876052491039,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 4,
+          "k_h_per_Mpc": 0.010005786554826732,
+          "class_d_m": -854.4833383034338,
+          "camb_synchronous_in_class_normalization": -854.5998309953269,
+          "camb_comoving_in_class_normalization": -854.5999206334395,
+          "gauge_correction_in_class_normalization": -8.963811262674426e-05,
+          "sync_over_class_minus_1": 0.00013633114499844723,
+          "comoving_over_class_minus_1": 0.0001364360482876137,
+          "sync_power_over_class_power": 1.000272680876178,
+          "comoving_power_over_class_power": 1.0002728907113705,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 5,
+          "k_h_per_Mpc": 0.029983582911427536,
+          "class_d_m": 1113.4732181039606,
+          "camb_synchronous_in_class_normalization": 1113.543001367689,
+          "camb_comoving_in_class_normalization": 1113.5429424007161,
+          "gauge_correction_in_class_normalization": -5.896697280149965e-05,
+          "sync_over_class_minus_1": 6.267170381257792e-05,
+          "comoving_over_class_minus_1": 6.261874611968032e-05,
+          "sync_power_over_class_power": 1.0001253473353675,
+          "comoving_power_over_class_power": 1.0001252414133468,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 6,
+          "k_h_per_Mpc": 0.09997507570585941,
+          "class_d_m": -1563.3356138072602,
+          "camb_synchronous_in_class_normalization": -1577.6244467227004,
+          "camb_comoving_in_class_normalization": -1577.6244457918542,
+          "gauge_correction_in_class_normalization": 9.308462267654249e-07,
+          "sync_over_class_minus_1": 0.009139965078030832,
+          "comoving_over_class_minus_1": 0.009139964482607565,
+          "sync_power_over_class_power": 1.0183634691176893,
+          "comoving_power_over_class_power": 1.0183634679159586,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 7,
+          "k_h_per_Mpc": 0.3004364509057034,
+          "class_d_m": -67.96058876499144,
+          "camb_synchronous_in_class_normalization": -72.22370360816905,
+          "camb_comoving_in_class_normalization": -72.22370383649515,
+          "gauge_correction_in_class_normalization": -2.283261011370996e-07,
+          "sync_over_class_minus_1": 0.06272922175408913,
+          "comoving_over_class_minus_1": 0.06272922511377299,
+          "sync_power_over_class_power": 1.129393398770052,
+          "comoving_power_over_class_power": 1.1293934059109203,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 8,
+          "k_h_per_Mpc": 0.9995579634185923,
+          "class_d_m": 0.066798758490797,
+          "camb_synchronous_in_class_normalization": 0.01814030258851282,
+          "camb_comoving_in_class_normalization": 0.018140281305263926,
+          "gauge_correction_in_class_normalization": -2.128324889244526e-08,
+          "sync_over_class_minus_1": -0.7284335368147292,
+          "comoving_over_class_minus_1": -0.7284338554321612,
+          "sync_power_over_class_power": 0.07374834392695703,
+          "comoving_power_over_class_power": 0.07374817087544032,
+          "class_and_comoving_same_sign": true
+        }
+      ],
+      "sync_over_class": {
+        "points": 9,
+        "reference_zero_points": 0,
+        "max_abs_difference": 14.288832915440253,
+        "max_abs_fraction": 0.7284335368147292,
+        "max_abs_fraction_location": {
+          "index": 8,
+          "reference": 0.066798758490797,
+          "candidate": 0.01814030258851282,
+          "candidate_over_reference_minus_1": -0.7284335368147292
+        }
+      },
+      "comoving_over_class": {
+        "points": 9,
+        "reference_zero_points": 0,
+        "max_abs_difference": 14.288831984594026,
+        "max_abs_fraction": 0.7284338554321612,
+        "max_abs_fraction_location": {
+          "index": 8,
+          "reference": 0.066798758490797,
+          "candidate": 0.018140281305263926,
+          "candidate_over_reference_minus_1": -0.7284338554321612
+        }
+      },
+      "comoving_recovered_over_direct_full": {
+        "points": 5878,
+        "reference_zero_points": 0,
+        "max_abs_difference": 3.7729877178094284e-07,
+        "max_abs_fraction": 0.00453704957275991,
+        "max_abs_fraction_location": {
+          "index": 14,
+          "reference": 6.564496485764462e-05,
+          "candidate": 6.594279931740584e-05,
+          "candidate_over_reference_minus_1": 0.00453704957275991
+        }
+      },
+      "range_diagnostics": {
+        "below_0.0001": {
+          "points": 1734,
+          "k_range_actual": [
+            1.311313786272266e-06,
+            9.983071430937114e-05
+          ],
+          "recovered_v_b_over_direct": {
+            "points": 1734,
+            "reference_zero_points": 0,
+            "max_abs_difference": 2.118296742101439e-08,
+            "max_abs_fraction": 38.282295253387716,
+            "max_abs_fraction_location": {
+              "index": 14,
+              "reference": 1.0558036771725829e-11,
+              "candidate": 4.147439177630585e-10,
+              "candidate_over_reference_minus_1": 38.282295253387716
+            }
+          },
+          "comoving_recovered_over_direct": {
+            "points": 1734,
+            "reference_zero_points": 0,
+            "max_abs_difference": 2.9908673797665597e-07,
+            "max_abs_fraction": 0.00453704957275991,
+            "max_abs_fraction_location": {
+              "index": 14,
+              "reference": 6.564496485764462e-05,
+              "candidate": 6.594279931740584e-05,
+              "candidate_over_reference_minus_1": 0.00453704957275991
+            }
+          }
+        },
+        "0.0001_to_0.001": {
+          "points": 921,
+          "k_range_actual": [
+            0.00010008060022911658,
+            0.0009981937470743031
+          ],
+          "recovered_v_b_over_direct": {
+            "points": 921,
+            "reference_zero_points": 0,
+            "max_abs_difference": 2.101073741231287e-07,
+            "max_abs_fraction": 0.004893543091425423,
+            "max_abs_fraction_location": {
+              "index": 9,
+              "reference": 4.184050469706477e-06,
+              "candidate": 4.204525300976685e-06,
+              "candidate_over_reference_minus_1": 0.004893543091425423
+            }
+          },
+          "comoving_recovered_over_direct": {
+            "points": 921,
+            "reference_zero_points": 0,
+            "max_abs_difference": 3.7729877178094284e-07,
+            "max_abs_fraction": 5.383256509450263e-07,
+            "max_abs_fraction_location": {
+              "index": 9,
+              "reference": 0.37183854137387407,
+              "candidate": 0.3718387415440989,
+              "candidate_over_reference_minus_1": 5.383256509450263e-07
+            }
+          }
+        },
+        "0.001_to_0.01": {
+          "points": 921,
+          "k_range_actual": [
+            0.0010006923224305684,
+            0.009980803639353565
+          ],
+          "recovered_v_b_over_direct": {
+            "points": 921,
+            "reference_zero_points": 0,
+            "max_abs_difference": 7.524998731105919e-07,
+            "max_abs_fraction": 0.0015916531136079826,
+            "max_abs_fraction_location": {
+              "index": 421,
+              "reference": 0.0003955405547679422,
+              "candidate": 0.0003961701181234968,
+              "candidate_over_reference_minus_1": 0.0015916531136079826
+            }
+          },
+          "comoving_recovered_over_direct": {
+            "points": 921,
+            "reference_zero_points": 0,
+            "max_abs_difference": 2.3953394645559456e-07,
+            "max_abs_fraction": 6.014320597103051e-09,
+            "max_abs_fraction_location": {
+              "index": 6,
+              "reference": 31.7372023663137,
+              "candidate": 31.73720255719141,
+              "candidate_over_reference_minus_1": 6.014320597103051e-09
+            }
+          }
+        },
+        "0.01_and_above": {
+          "points": 2302,
+          "k_range_actual": [
+            0.010005786554826732,
+            7.5531674089282514
+          ],
+          "recovered_v_b_over_direct": {
+            "points": 2302,
+            "reference_zero_points": 0,
+            "max_abs_difference": 5.884535282569842e-07,
+            "max_abs_fraction": 0.021857342723980988,
+            "max_abs_fraction_location": {
+              "index": 798,
+              "reference": 2.4881776028073457e-06,
+              "candidate": 2.542562553430039e-06,
+              "candidate_over_reference_minus_1": 0.021857342723980988
+            }
+          },
+          "comoving_recovered_over_direct": {
+            "points": 2302,
+            "reference_zero_points": 0,
+            "max_abs_difference": 4.9983668759523425e-08,
+            "max_abs_fraction": 5.838929340029608e-11,
+            "max_abs_fraction_location": {
+              "index": 1,
+              "reference": 856.0419420181979,
+              "candidate": 856.0419420681816,
+              "candidate_over_reference_minus_1": 5.838929340029608e-11
+            }
+          }
+        }
+      },
+      "symbolic_check": {
+        "generic_frame_minus_class": "3*(rho_b(t)*v_b(t) + rho_c(t)*v_c(t))*H(t)*p_b(t)/(k*(rho_b(t)**2 + 2*rho_b(t)*rho_c(t) + rho_c(t)**2))",
+        "pressureless_substitution": "p_b=0, matching CLASS stable-pressureless-matter transformation and CAMB camb_sub",
+        "pressureless_frame_minus_class": "0"
+      },
+      "class_interpolation": "signed d_m linearly interpolated in ln(k), without log-abs, smoothing, or extrapolation",
+      "normalization": "CAMB signed transfers multiplied by -1 to match CLASS initial curvature +1; power unchanged"
+    },
+    "baseline": {
+      "rows": [
+        {
+          "index": 0,
+          "k_h_per_Mpc": 0.00010006403190287029,
+          "class_d_m": -0.09088864617988635,
+          "camb_synchronous_in_class_normalization": -0.09088695749641905,
+          "camb_comoving_in_class_normalization": -0.09088731141018463,
+          "gauge_correction_in_class_normalization": -3.539137655855784e-07,
+          "sync_over_class_minus_1": -1.857969656582359e-05,
+          "comoving_over_class_minus_1": -1.4685769431199702e-05,
+          "sync_power_over_class_power": 0.9999628409520734,
+          "comoving_power_over_class_power": 0.9999706286768094,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 1,
+          "k_h_per_Mpc": 0.00029982164715088337,
+          "class_d_m": -0.815175554576575,
+          "camb_synchronous_in_class_normalization": -0.815170787505781,
+          "camb_comoving_in_class_normalization": -0.815173583894499,
+          "gauge_correction_in_class_normalization": -2.796388718029341e-06,
+          "sync_over_class_minus_1": -5.847906953571069e-06,
+          "comoving_over_class_minus_1": -2.417494078255089e-06,
+          "sync_power_over_class_power": 0.9999883042202908,
+          "comoving_power_over_class_power": 0.9999951650176878,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 2,
+          "k_h_per_Mpc": 0.0010002980420499717,
+          "class_d_m": -8.99248640463812,
+          "camb_synchronous_in_class_normalization": -8.992358440548674,
+          "camb_comoving_in_class_normalization": -8.992370248223857,
+          "gauge_correction_in_class_normalization": -1.1807675182495814e-05,
+          "sync_over_class_minus_1": -1.4230112083346569e-05,
+          "comoving_over_class_minus_1": -1.2917051973926341e-05,
+          "sync_power_over_class_power": 0.9999715399783294,
+          "comoving_power_over_class_power": 0.9999741660629023,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 3,
+          "k_h_per_Mpc": 0.002997190907721391,
+          "class_d_m": -77.28098169413629,
+          "camb_synchronous_in_class_normalization": -77.2805400510215,
+          "camb_comoving_in_class_normalization": -77.28055235979072,
+          "gauge_correction_in_class_normalization": -1.2308769214541826e-05,
+          "sync_over_class_minus_1": -5.714771022624632e-06,
+          "comoving_over_class_minus_1": -5.555498081899479e-06,
+          "sync_power_over_class_power": 0.9999885704906134,
+          "comoving_power_over_class_power": 0.9999888890346997,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 4,
+          "k_h_per_Mpc": 0.009999558821498016,
+          "class_d_m": -710.5356728159877,
+          "camb_synchronous_in_class_normalization": -710.5301677878209,
+          "camb_comoving_in_class_normalization": -710.5301793173558,
+          "gauge_correction_in_class_normalization": -1.1529534845067246e-05,
+          "sync_over_class_minus_1": -7.74771538913921e-06,
+          "comoving_over_class_minus_1": -7.731488850026835e-06,
+          "sync_power_over_class_power": 0.9999845046292488,
+          "comoving_power_over_class_power": 0.9999845370820759,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 5,
+          "k_h_per_Mpc": 0.030036646415654063,
+          "class_d_m": -3571.8432729163846,
+          "camb_synchronous_in_class_normalization": -3571.822626674267,
+          "camb_comoving_in_class_normalization": -3571.8223618246375,
+          "gauge_correction_in_class_normalization": 0.00026484962972972426,
+          "sync_over_class_minus_1": -5.7802766079140255e-06,
+          "comoving_over_class_minus_1": -5.854425894291637e-06,
+          "sync_power_over_class_power": 0.9999884394801958,
+          "comoving_power_over_class_power": 0.9999882911824857,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 6,
+          "k_h_per_Mpc": 0.09951420190755407,
+          "class_d_m": -11680.037810221167,
+          "camb_synchronous_in_class_normalization": -11678.715074587122,
+          "camb_comoving_in_class_normalization": -11678.714970597539,
+          "gauge_correction_in_class_normalization": 0.00010398958329460584,
+          "sync_over_class_minus_1": -0.00011324754727137787,
+          "comoving_over_class_minus_1": -0.00011325645046034172,
+          "sync_power_over_class_power": 0.9997735177304642,
+          "comoving_power_over_class_power": 0.9997734999261029,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 7,
+          "k_h_per_Mpc": 0.2993229224001488,
+          "class_d_m": -24918.442228592492,
+          "camb_synchronous_in_class_normalization": -24904.63712695263,
+          "camb_comoving_in_class_normalization": -24904.63782347516,
+          "gauge_correction_in_class_normalization": -0.0006965225293242838,
+          "sync_over_class_minus_1": -0.0005540114230744297,
+          "comoving_over_class_minus_1": -0.0005539834709848979,
+          "sync_power_over_class_power": 0.9988922840825081,
+          "comoving_power_over_class_power": 0.9988923399557164,
+          "class_and_comoving_same_sign": true
+        },
+        {
+          "index": 8,
+          "k_h_per_Mpc": 0.9993330656225043,
+          "class_d_m": -42956.53473864998,
+          "camb_synchronous_in_class_normalization": -42957.99945110816,
+          "camb_comoving_in_class_normalization": -42958.00019236775,
+          "gauge_correction_in_class_normalization": -0.0007412595878122374,
+          "sync_over_class_minus_1": 3.4097546906197707e-05,
+          "comoving_over_class_minus_1": 3.411480294412961e-05,
+          "sync_power_over_class_power": 1.000068196256455,
+          "comoving_power_over_class_power": 1.000068230769708,
+          "class_and_comoving_same_sign": true
+        }
+      ],
+      "sync_over_class": {
+        "points": 9,
+        "reference_zero_points": 0,
+        "max_abs_difference": 13.805101639860368,
+        "max_abs_fraction": 0.0005540114230744297,
+        "max_abs_fraction_location": {
+          "index": 7,
+          "reference": -24918.442228592492,
+          "candidate": -24904.63712695263,
+          "candidate_over_reference_minus_1": -0.0005540114230744297
+        }
+      },
+      "comoving_over_class": {
+        "points": 9,
+        "reference_zero_points": 0,
+        "max_abs_difference": 13.804405117331044,
+        "max_abs_fraction": 0.0005539834709848979,
+        "max_abs_fraction_location": {
+          "index": 7,
+          "reference": -24918.442228592492,
+          "candidate": -24904.63782347516,
+          "candidate_over_reference_minus_1": -0.0005539834709848979
+        }
+      },
+      "comoving_recovered_over_direct_full": {
+        "points": 6307,
+        "reference_zero_points": 0,
+        "max_abs_difference": 3.987051731563912e-08,
+        "max_abs_fraction": 0.0003133660715870512,
+        "max_abs_fraction_location": {
+          "index": 39,
+          "reference": 7.506042004783156e-05,
+          "candidate": 7.508394143679363e-05,
+          "candidate_over_reference_minus_1": 0.0003133660715870512
+        }
+      },
+      "range_diagnostics": {
+        "below_0.0001": {
+          "points": 1459,
+          "k_range_actual": [
+            2.608349023751492e-06,
+            9.981421211794084e-05
+          ],
+          "recovered_v_b_over_direct": {
+            "points": 1459,
+            "reference_zero_points": 0,
+            "max_abs_difference": 2.2172388464357517e-08,
+            "max_abs_fraction": 78.81460971093048,
+            "max_abs_fraction_location": {
+              "index": 39,
+              "reference": 5.5013031682508256e-12,
+              "candidate": 4.3908436527544494e-10,
+              "candidate_over_reference_minus_1": 78.81460971093048
+            }
+          },
+          "comoving_recovered_over_direct": {
+            "points": 1459,
+            "reference_zero_points": 0,
+            "max_abs_difference": 3.987051731563912e-08,
+            "max_abs_fraction": 0.0003133660715870512,
+            "max_abs_fraction_location": {
+              "index": 39,
+              "reference": 7.506042004783156e-05,
+              "candidate": 7.508394143679363e-05,
+              "candidate_over_reference_minus_1": 0.0003133660715870512
+            }
+          }
+        },
+        "0.0001_to_0.001": {
+          "points": 921,
+          "k_range_actual": [
+            0.00010006403190287029,
+            0.0009978006987291178
+          ],
+          "recovered_v_b_over_direct": {
+            "points": 921,
+            "reference_zero_points": 0,
+            "max_abs_difference": 1.7140792400072602e-07,
+            "max_abs_fraction": 0.07617109290280566,
+            "max_abs_fraction_location": {
+              "index": 11,
+              "reference": 2.4810221763969193e-07,
+              "candidate": 2.67000434708917e-07,
+              "candidate_over_reference_minus_1": 0.07617109290280566
+            }
+          },
+          "comoving_recovered_over_direct": {
+            "points": 921,
+            "reference_zero_points": 0,
+            "max_abs_difference": 3.690009187096166e-08,
+            "max_abs_fraction": 2.9847825899764757e-07,
+            "max_abs_fraction_location": {
+              "index": 11,
+              "reference": 0.09602486650088708,
+              "candidate": 0.09602489516222205,
+              "candidate_over_reference_minus_1": 2.9847825899764757e-07
+            }
+          }
+        },
+        "0.001_to_0.01": {
+          "points": 922,
+          "k_range_actual": [
+            0.0010002980420499717,
+            0.009999558821498016
+          ],
+          "recovered_v_b_over_direct": {
+            "points": 922,
+            "reference_zero_points": 0,
+            "max_abs_difference": 1.8933137566332948e-06,
+            "max_abs_fraction": 0.0030594617705872462,
+            "max_abs_fraction_location": {
+              "index": 839,
+              "reference": 0.0006188388346064785,
+              "candidate": 0.0006207321483631118,
+              "candidate_over_reference_minus_1": 0.0030594617705872462
+            }
+          },
+          "comoving_recovered_over_direct": {
+            "points": 922,
+            "reference_zero_points": 0,
+            "max_abs_difference": 3.6254164115234744e-08,
+            "max_abs_fraction": 2.7830602267187032e-09,
+            "max_abs_fraction_location": {
+              "index": 15,
+              "reference": 9.686318772473934,
+              "candidate": 9.686318799431541,
+              "candidate_over_reference_minus_1": 2.7830602267187032e-09
+            }
+          }
+        },
+        "0.01_and_above": {
+          "points": 3005,
+          "k_range_actual": [
+            0.010024586195668189,
+            15.024090376808592
+          ],
+          "recovered_v_b_over_direct": {
+            "points": 3005,
+            "reference_zero_points": 0,
+            "max_abs_difference": 3.091032599165759e-06,
+            "max_abs_fraction": 0.0017136426028070417,
+            "max_abs_fraction_location": {
+              "index": 783,
+              "reference": 0.001787903884047231,
+              "candidate": 0.0017909677123126586,
+              "candidate_over_reference_minus_1": 0.0017136426028070417
+            }
+          },
+          "comoving_recovered_over_direct": {
+            "points": 3005,
+            "reference_zero_points": 0,
+            "max_abs_difference": 2.0422703528311104e-08,
+            "max_abs_fraction": 2.1171397968089423e-11,
+            "max_abs_fraction_location": {
+              "index": 54,
+              "reference": 897.18267304096,
+              "candidate": 897.1826730219655,
+              "candidate_over_reference_minus_1": -2.1171397968089423e-11
+            }
+          }
+        }
+      },
+      "symbolic_check": {
+        "generic_frame_minus_class": "3*(rho_b(t)*v_b(t) + rho_c(t)*v_c(t))*H(t)*p_b(t)/(k*(rho_b(t)**2 + 2*rho_b(t)*rho_c(t) + rho_c(t)**2))",
+        "pressureless_substitution": "p_b=0, matching CLASS stable-pressureless-matter transformation and CAMB camb_sub",
+        "pressureless_frame_minus_class": "0"
+      },
+      "class_interpolation": "signed d_m linearly interpolated in ln(k), without log-abs, smoothing, or extrapolation",
+      "normalization": "CAMB signed transfers multiplied by -1 to match CLASS initial curvature +1; power unchanged"
+    }
+  },
+  "raw_output_sha256": {
+    "zero": {
+      "camb_gauge_transform_refined": "5b25cf2833eaa46f4ade8f2f4cbcb2d160f7425cce618095a9ef60452e9677a1",
+      "camb_gauge_refined_run_summary": "28910dba49dc2cb14bdc715fe3d7be27aa4659d208abbfec6179a27186d17a17",
+      "class_native_transfer": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a"
+    },
+    "baseline": {
+      "camb_gauge_transform_refined": "7524cbf09a3ab1c0726c392132a2c36541e922f7cda9929db4e32a2e0bf56e23",
+      "camb_gauge_refined_run_summary": "9f44eb0f65d4dc3322554203fb235cee67a433d5147d0b728ea5099ea5a4f62e",
+      "class_native_transfer": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8"
+    }
+  },
+  "analysis_runner_sha256": "d2e9210762f1f27ab126553c752ded29f15766fde4ae04058344de4f4651654f",
+  "validation": {
+    "models": [
+      "zero",
+      "baseline"
+    ],
+    "sparse_points_per_model": 9,
+    "all_values_finite": true,
+    "class_sign_applied": true,
+    "direct_native_velocity_used": true,
+    "whole_spectrum_convergence_claimed": false,
+    "observational_likelihood_or_covariance_included": false
+  },
+  "boundaries": [
+    "The sign mapping fixes initial-curvature normalization, not a physical phase or an implementation residual.",
+    "The direct native velocity avoids Newtonian-output cancellation; recovered-velocity diagnostics remain visible by k range.",
+    "Sparse CLASS comparison and full-grid transformation do not establish full-spectrum convergence or model viability.",
+    "No joint BBN, nonlinear calculation, parameter search, or model-family exclusion."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "status": "frozen_before_compiler_free_native_gauge_transformation",
+  "frozen_at_local": "2026-11-08T01:56:13.800767+08:00",
+  "supersedes_execution_route_not_physics": "gauge-transform-protocol.json symbolic time-evolution route failed because WSL gfortran is unavailable; preserve that log and use existing native outputs",
+  "models": [
+    "zero",
+    "baseline"
+  ],
+  "level": "ultra",
+  "new_solver_execution": false,
+  "native_grid_transformation": {
+    "input": "unchanged transfer-same-run.npz, including transfer_data",
+    "scaling": "multiply all CAMB transfer-data variables by q^2 to undo their documented 1/k^2 output scaling",
+    "velocity_recovery": "v_b=-conformal_H*(V_Nb-V_Nc)/q from V_Nc=-q sigma/H and V_Nb=-q(v_b+sigma)/H",
+    "independent_velocity_check": "compare recovered v_b with direct v_baryon_cdm output; synchronous v_c=0",
+    "class_density": "D_m=(rho_c Delta_c+rho_b Delta_b)/(rho_c+rho_b)+3 conformal_H v_m/q",
+    "symbolic_check": "simplify(make_frame_invariant(delta_m, frame=v_m)-class_expression) must be exactly zero; no compilation",
+    "conformal_H_today": "H0*1000/c in 1/Mpc, with a=1"
+  },
+  "internal_acceptance": {
+    "weighted_delta_m_vs_native_delta_tot_max_abs_fraction": 2e-05,
+    "recovered_v_b_vs_direct_v_baryon_cdm_max_abs_fraction": 2e-05,
+    "symbolic_frame_minus_class": 0,
+    "meaning": "These tests check output scaling, velocity recovery and gauge algebra, not physical agreement between codes."
+  },
+  "sparse_crosscode": {
+    "target_k_h_per_Mpc": [
+      0.0001,
+      0.0003,
+      0.001,
+      0.003,
+      0.01,
+      0.03,
+      0.1,
+      0.3,
+      1.0
+    ],
+    "selection": "nearest native q for each target with nine unique indices",
+    "class_variable": "native d_m column; signed linear interpolation in ln(k), no smoothing or extrapolation",
+    "acceptance": "none; report the actual signed values and do not infer whole-spectrum convergence"
+  },
+  "output_rule": "Write new gauge-transform-native artifacts and preserve all previous outputs and the failed symbolic-run log.",
+  "input_sha256": {
+    "research/physical-intuition/zero-cdm/freeze_gauge_native.py": "c5f308ef1b1d280e57085a56543ec1cc97bd20d7e3fb83f08ea1d872420a89e2",
+    "research/physical-intuition/zero-cdm/camb_gauge_native.py": "6b1364c27cf372b1d83a79a7c7b69d408a6222ff9aa3b040adeb7a80886ac838",
+    "research/physical-intuition/zero-cdm/analyze_gauge_native.py": "5b2f791b8bb3c490419c1eaaf6ba3a3df02149d850d6ddd209425df72cb09e8b",
+    "research/physical-intuition/zero-cdm/verify_gauge_native.py": "4ffc542e6198a472c1d5a1fe8e4e32f805417e6167a2b96f538b156325a5a27e",
+    "research/physical-intuition/zero-cdm/gauge_transform.py": "06ee7ef1b29ab9882d76e2ccbcc9dc50bc1662175039c153d753ce31464b98ba",
+    "research/physical-intuition/zero-cdm/tests/test_gauge_transform.py": "2aef8fd0d9d9211ced472de557855aeaf78bcba5acf1c0a040175758396c6a85",
+    "research/physical-intuition/zero-cdm/tests/test_signed_gauge_diagnostics.py": "72de2b7f72a162afe08b82e588a0d35d67d3a74e8674d2a2fb45e5c1756658e7",
+    "research/physical-intuition/zero-cdm/tests/test_native_gauge_velocities.py": "de505ae55ed1e24bf328d866878d4252d7b69e7d7e1c1e2d63fa70c1d3f1f306",
+    "research/physical-intuition/zero-cdm/camb_crosscode.py": "894582eeba01532ef5d0217be226ad4660c4711c8a96ff91575a28b5dfe949f5",
+    ".tmp/camb-wsl-site/camb/symbolic.py": "3d97362836e727efaebf755b59611dc66e1ce97daf291ae969cd958cec357642",
+    ".tmp/camb-wsl-site/camb/model.py": "d7d689d56b4832df965d81c85a31bb43c38e4708bcf9d6bd1a58d58d27da2aab",
+    ".tmp/camb-wsl-site/camb/constants.py": "df76eb664b788093b9f92490ac7db1b04699796fd30a34545c43a1b2a580e35a",
+    ".tmp/CAMB/docs/source/transfer_variables.rst": "15848e08cfafc24bc48a7cdf4e010ce8df3354113131b912fd3051e89d45ad32",
+    ".tmp/CAMB/fortran/equations.f90": "faaf4e3884c42847493e67dbe53eb881e910af338397c6e16e4b119abe2b70f1",
+    ".tmp/class_public/source/perturbations.c": "19b4f436feb4bbfb3f9480a1510bd8f061b6ea5caa871698b6515caf1acf9f12",
+    ".tmp/class_public/source/fourier.c": "17b152c02796bc7d53012c23ff011faeae1c408b4e81f5202183714fbfb7ba4f",
+    ".tmp/class_public/convergence/transfer/zero-cdm-transfer-dense00_00_tk.dat": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+    ".tmp/class_public/convergence/transfer/baseline-lcdm-transfer-dense00_00_tk.dat": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+    ".tmp/camb-runs/ultra/zero/transfer-same-run.npz": "376691b72632e83455db9a1067b3e958472222e705f5ca2de931c98c415ca606",
+    ".tmp/camb-runs/ultra/baseline/transfer-same-run.npz": "1cdc9ae1d4ba99384238de2fc1897fcba0d2ce120e9304f5f5b27f8ef3ae807b",
+    ".tmp/camb-runs/ultra/zero/parameters.ini": "1254abd04b0ca4acf303649038a937be17155ca7a7dbfbce4b4920d047173400",
+    ".tmp/camb-runs/ultra/baseline/parameters.ini": "911f9bd1312cb7282f6bed71d78b31bcbdad5efbc791679c091de1ef6fc61def"
+  },
+  "boundaries": [
+    "No new solver run, compiler installation, physical parameter change, or nonzero CDM placeholder.",
+    "Full native-grid transformation does not itself close cross-code implementation differences or band-power convergence.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion."
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "status": "symbolic_time_evolution_route_failed_no_numerical_result",
+  "amended_on": "2026-11-08",
+  "protocol_sha256": "7b49ee6b7202a73789d15b2c76198335482ccd7c39e65bb96266b01853722364",
+  "failed_log_sha256": "40764e95c8b78c254bb9538cb89dc947ddc737114a80b16207d899b9f0d85cb3",
+  "model": "zero",
+  "level": "ultra",
+  "exit_code": 1,
+  "root_cause": "camb.symbolic.compile_sympy_to_camb_source_func invoked gfortran, but the WSL environment returned '/bin/sh: 1: gfortran: not found' with exit status 127.",
+  "generated_source_observation": "The logged generated expressions for the explicit CLASS formula and the independent frame transformation are algebraically identical; neither was executed.",
+  "outputs": {
+    "gauge-transform.npz": false,
+    "gauge-transform-summary.json": false,
+    "numerical_result_used": false
+  },
+  "resolution_route": "gauge-transform-native-protocol.json",
+  "resolution": "Use the already frozen native Newtonian velocities to recover synchronous v_b, check it against direct v_baryon_cdm, and apply the explicit CLASS transformation on the full native grid. The generic frame identity is checked algebraically without compilation.",
+  "boundaries": [
+    "No compiler was installed and no system configuration was changed.",
+    "The failed run is not counted as validation or as a physics result.",
+    "All previous raw data and the failed log remain unchanged."
+  ]
+}
