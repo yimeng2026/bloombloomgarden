@@ -1,12 +1,12 @@
 # 数学—物理观与数学层级观：证据、边界和 AI 时代的制度设计
 
-**版本**：2.2（2026-11-07；初稿 2026-10-26）
+**版本**：2.3（2026-11-07；初稿 2026-10-26）
 **性质**：批判性综述、方法论框架与仓库整改依据；不是新的物理统一理论
 **配套文档**：`TOE_RESEARCH_ATLAS_2026.md`、`CNF_RESTRUCTURING_2026.md`、`62_mathematical_hierarchy_emergence.md`
 
 > 本文把“内部数学真理”“物理模型的适用性”“研究组织的资源分配”分开。文中使用“已核实”只表示已读取所指来源的相关部分，不表示独立证明了来源中的全部定理，更不表示独立复现了其实验。
 
-## 摘要与二十四项结论
+## 摘要与二十五项结论
 
 1. 知乎文章《唱唱反调……解决了一个寂寞》对王虹—Zahl 定理的转述有误：满 Hausdorff/Minkowski 维数不是正 Lebesgue 测度，也不是覆盖整个空间；单个零测度对象的并集不必仍为零测度。文章没有据此推翻挂谷定理。
 2. “数学规则不再全域有效”必须拆成两句：定理可以在公理系统内全域有效；物理映射只在声明的对象、尺度、近似和测量协议内有效。越界失败首先否定映射，不是否定定理。
@@ -32,6 +32,7 @@
 22. 原约 2.9% 的 TT“残差”已定位为分析口径错误：CLASS `cl.dat` 是非透镜谱，CAMB `lensed_scalar` 是透镜谱，不能直接比较。CLASS RECFAST 与晚期辐射截断检验不再支持旧的物理解释；关闭晚期截断的最大影响低于 0.0001%，主要物质谱区间差异则降至 0.195% 以内，极端谷值依旧不稳健。
 23. 谱比较必须先登记是否透镜化、归一化和规范。CLASS `cl.dat` 只能对应 CAMB `unlensed_scalar`，CLASS 显式 `cl_lensed.dat` 才能对应 CAMB `lensed_scalar`。精度收敛和复合模型对照不能替代输出语义审查；本次修正保留旧哈希与错误历史，不用事后改写掩盖。
 24. 固定对数带功率显示，CLASS `pk_ref` 与 integral 的原始全带最大比值差约 0.0929%，但 CAMB 与 CLASS 在 0.64–1.28 带的 0.05 dex 平滑对数差仍为 −2.33594。平滑还可把低波数带最大跨代码差从约 0.6211% 增至 8.5603%，因此平滑不是收敛证明；现有 \(P(k)\) 也不能恢复密度扰动正负号。
+25. 原生输出进一步确认：CLASS `mPk` 使用默认共动规范不变的 `delta_m`，不是简单的 Newtonian 输出密度；CAMB `delta_tot` 是同步规范。零模型在 CLASS 和 CAMB 中都有真实零交叉，前几个位置接近，但 CAMB 零模型共同网格零交叉数随档位由 27、31 变为 107，完整相位序列并未收敛。
 
 ---
 
@@ -994,7 +995,7 @@ CMB、BAO 和结构形成在原则上都可以计算：Boltzmann 程序本来就
 
 本研究核查并实际运行了 CAMB 2.0.5，源码提交为 `72b5a4ca5df1335674e2eacad9b9a887194f9677`。官方参数校验只拒绝 `omch2<0`，并不拒绝零值；更重要的是，零模型已在 `omch2=0`、`omnuh2=0`、\(N_{\rm eff}=3.044\) 下完成全部谱输出，结果均为有限值，没有加入微量 CDM 作为数值替代品。[R33]
 
-Windows 没有匹配的 CAMB 安装包，因此研究将官方 Linux 二进制 wheel 及其依赖解压到工作区的 WSL 本地目录，未修改系统 Python。运行版本、wheel 哈希、源码提交和实际参数均已登记。CAMBparams 没有暴露与 CLASS `gauge=newtonian` 对应的规范选择；其物质密度传输变量采用内建同步规范。CMB 观测量可以进行物理比较，但 CLASS 的 Newtonian 物质密度与 CAMB 的同步规范密度不能在所有波数上简单视为同一个规范无关量。因此 \(k=0.001\) 仅列为次级诊断，主要物质谱比较从 \(k=0.01\) 开始。[R33]
+Windows 没有匹配的 CAMB 安装包，因此研究将官方 Linux 二进制 wheel 及其依赖解压到工作区的 WSL 本地目录，未修改系统 Python。运行版本、wheel 哈希、源码提交和实际参数均已登记。CAMBparams 没有暴露与 CLASS `gauge=newtonian` 对应的规范选择；其物质密度传输变量采用内建同步规范。更准确的输出映射是：CLASS `mPk` 使用 `delta_m`，默认 `matter_source_in_current_gauge=false` 会加上 \(3aH\theta_m/k^2\)，形成规范不变的共动物质密度；**Newtonian 是积分规范，不是默认 `mPk` 输出规范**。因此 CLASS 的共动规范不变 `delta_m` 与 CAMB 的同步规范 `delta_tot` 不能在低波数简单视为同一个量。\(k=0.001\) 仅列为次级诊断，主要物质谱比较从 \(k=0.01\) 开始。[R32][R33] 本次文字修正见[第五次跨代码修订](zero-cdm/camb-crosscode-amendment-05.json)，未改变原始数值。
 
 PyPI 二进制没有编译可选 HyRec 模块，本机也没有 gfortran 和 HYREC-2 源码，故本轮不能构建相同的 HyRec 路径。实际 CAMB 计算改用已注册的 Recfast，而 CLASS 使用 HyRec 2020。**这意味着复合历史是尚未消除的系统误差，不能把全部跨代码差异都归因于微分方程求解器。** 原 HyRec 方案、失败日志和 Recfast 回退理由保存在[第一次跨代码修订](zero-cdm/camb-crosscode-amendment-01.json)，后续摘要序列化修正和第三精度档分别保存在[第二次](zero-cdm/camb-crosscode-amendment-02.json)与[第三次修订](zero-cdm/camb-crosscode-amendment-03.json)。
 
@@ -1009,7 +1010,7 @@ PyPI 二进制没有编译可选 HyRec 模块，本机也没有 gfortran 和 HYR
 | 初始条件与暗能量 | \(A_s=2.1\times10^{-9}\)、\(n_s=0.9665\)、pivot 0.05/Mpc；\(w=-1\)、\(w_a=0\)、平坦闭合 |
 | TT | CLASS `cl.dat` 对应 CAMB `unlensed_scalar`；CLASS 显式 `cl_lensed.dat` 对应 CAMB `lensed_scalar`。两者均为无量纲、`raw_cl=False`，不得交叉混比 |
 | 透镜势 | CAMB PP 为 \([\ell(\ell+1)]^2C_\ell^{\phi\phi}/2\pi\)，须除以 \(\ell(\ell+1)\) 才对应 CLASS 的 `phiphi` 列 |
-| 物质谱 | \(z=0\)、线性 `delta_tot`、\(k\) 单位为 \(h/\mathrm{Mpc}\)、\(P(k)\) 单位为 \((\mathrm{Mpc}/h)^3\)；低波数另保留规范边界 |
+| 物质谱 | \(z=0\)、线性谱；CLASS 使用默认共动规范不变 `delta_m`，CAMB 使用同步规范 `delta_tot`（当前无质量中微子设置下对应 CDM＋重子总量）；\(k\) 单位为 \(h/\mathrm{Mpc}\)、\(P(k)\) 单位为 \((\mathrm{Mpc}/h)^3\)；低波数保留输出规范边界 |
 | 非线性 | 物质谱与 CMB 透镜均关闭非线性修正，不用拟合器掩盖零模型差异 |
 
 | CAMB 档位 | Accuracy／lSample／lAccuracy | `k_per_logint` | 线性透镜势精度 |
@@ -1211,6 +1212,72 @@ CLASS 的 `source/output.c` 分开写出 `cl.dat` 与 `cl_lensed.dat`，`source/
 
 ---
 
+## 24. 原生带符号传输函数：输出规范、零交叉与相位边界
+
+### 24.1 必须修正的变量映射
+
+原生输出进一步证明，“积分规范”“功率谱变量”和“传输文件中的总量”必须分开登记。[原生传输协议](zero-cdm/native-transfer-protocol.json)在运行前固定了变量映射、归一化、共同网格和零交叉定义。
+
+- CLASS 的 `mPk` 在 `source/fourier.c` 中选择 `index_tp_delta_m`，不是 `delta_tot`。默认 `matter_source_in_current_gauge=false` 时，`source/perturbations.c` 对 `delta_m` 加上 \(3aH\theta_m/k^2\)，得到规范不变的共动物质密度；Newtonian 只是本零模型使用的积分规范。[R32]
+- CLASS 的 `d_tot` 还包括辐射等总量，分母不含 \(\Lambda\)，不能拿它替代 `mPk` 的 `d_m`。[R32]
+- CAMB `get_matter_transfer_data()` 返回同步规范 `delta_tot/k^2`；乘以 \(q^2\) 可恢复带符号 `delta_tot`。当前没有质量中微子，故它对应 CDM＋重子密度。默认 `transfer_power_var=7` 也已实际查询确认。[R33]
+- 因此，CLASS 的共动规范不变 `d_m` 与 CAMB 的同步规范 `delta_tot` 仍不是低波数下可直接等同的输出变量。此前把它们简称为“Newtonian 对同步”是不完整的，现已用[第五次跨代码修订](zero-cdm/camb-crosscode-amendment-05.json)和[带功率第三次修订](zero-cdm/pk-bandpower-amendment-03.json)纠正元数据，数值字段逐项比较保持不变。
+
+### 24.2 真实原生运行与功率重建
+
+CLASS 使用相同物理输入和 `convergence-integral.pre`，新增 `mPk,mTk` 与每十倍频程 400 个波数点；零模型和基线分别得到 2578、2458 个原生点。CAMB 在 fiducial、high、ultra 六组既有物理配置上重新提取原生 `transfer_data`，没有引入非零 CDM 或修改复合、初始条件和非线性设置。
+
+功率使用
+\[
+P(k)=\frac{2\pi^2A_s(k/k_{\rm pivot})^{n_s-1}T(k)^2}{k^3}
+\]
+重建，再转换为 \(k[h/\mathrm{Mpc}]\) 与 \(P[(\mathrm{Mpc}/h)^3]\)。下表列出中位数、95% 分位和最大绝对相对差。CLASS 对照是同次运行、同一文本舍入容差网格的 `pk.dat`；CAMB 对照是此前冻结的插值 `spectra.npz`，**不是同次运行重新取得的功率**，所以 CAMB 差异不能被单独归因于 float32、插值或微分方程中的任何一个因素。
+
+| 来源 | 中位绝对相对差 | 95% 分位 | 最大绝对相对差 |
+|---|---:|---:|---:|
+| CLASS 零模型 | \(3.01\times10^{-13}\) | \(1.07\times10^{-12}\) | \(1.87\times10^{-12}\) |
+| CLASS 基线 | \(2.89\times10^{-13}\) | \(1.08\times10^{-12}\) | \(2.08\times10^{-12}\) |
+| CAMB fiducial 零模型 | \(9.75\times10^{-4}\) | 0.1029 | 0.6562 |
+| CAMB high 零模型 | 0.001645 | 0.4685 | 1.6980 |
+| CAMB ultra 零模型 | 0.007638 | 2.8680 | 507.127 |
+| CAMB ultra 基线 | \(9.32\times10^{-7}\) | \(8.69\times10^{-6}\) | \(2.25\times10^{-5}\) |
+
+CLASS 的单位曲率归一化和 `delta_m` 选择因此得到同次功率的强数值验证。CAMB 零模型在深谷附近的重建差异则再次说明：不能把保存的传输精度、既往插值功率和新一轮求解之间的差别压成一个“最佳谷值”。后续需要同次运行的功率输出和更高精度传输保存来分离原因。
+
+### 24.3 零交叉：早期位置接近，完整序列不收敛
+
+共同网格固定为 \(0.01\leq k\leq1.28\) 的 4096 个均匀 \(\log_{10}k\) 点，带符号数值线性插值，不做平滑或外推。零交叉由精确零值和符号变化确定，位置在 \(\ln k\) 上线性插值；不计算 Hilbert 相位，也不把最近邻匹配当作唯一振荡编号。
+
+| 零模型来源 | 原生范围零交叉数 | 共同网格零交叉数 | 基线共同网格零交叉数 |
+|---|---:|---:|---:|
+| CLASS dense | 41 | 41 | 0 |
+| CAMB fiducial | 27 | 27 | 0 |
+| CAMB high | 33 | 31 | 0 |
+| CAMB ultra | 111 | 107 | 0 |
+
+前四个共同网格零交叉的位置却很接近：
+
+| 序号 | CLASS | CAMB fiducial | CAMB high | CAMB ultra |
+|---:|---:|---:|---:|---:|
+| 1 | 0.02252495 | 0.02252743 | 0.02253005 | 0.02253021 |
+| 2 | 0.04356325 | 0.04357676 | 0.04357561 | 0.04357545 |
+| 3 | 0.06552042 | 0.06553246 | 0.06553609 | 0.06553696 |
+| 4 | 0.08818077 | 0.08820329 | 0.08819812 | 0.08819717 |
+
+这意味着两件事可以同时成立：**固定输入下，零模型确有不同于基线的振荡符号结构，且早期零交叉位置具有实现间一致性；但高波数额外零交叉的数量和完整相位序列并未收敛。** CAMB ultra→CLASS 的最近零交叉对数距离中位数为 0.006043，反向为 0.0006727；两个方向的最大值分别为 0.15137 和 0.010844。CAMB ultra→high 的中位数为 0.04115，反向仅为 \(7.79\times10^{-5}\)。方向不对称正是额外零交叉不能被隐藏的原因，不能挑一个方向宣称“相位误差很小”。
+
+![原生传输函数与零交叉对照](zero-cdm/native-transfer-comparison.svg)
+
+### 24.4 证据、失败记录与下一步
+
+完整数值见[原生传输摘要](zero-cdm/native-transfer-summary.json)，分析程序为[analyze_native_transfer.py](zero-cdm/analyze_native_transfer.py)，独立重算程序为[verify_native_transfer_summary.py](zero-cdm/verify_native_transfer_summary.py)。独立校验覆盖 8 个来源、5 组比较、所有共同网格零交叉和双向最近距离；零模型现有 11 项 Python 测试全部通过，临时 PNG 也已实际检查。
+
+首次 CLASS 输出只有 135／132 点，因欠采样而没有用于最终零交叉表；加密方案见[第一次修订](zero-cdm/native-transfer-amendment-01.json)。最近距离函数、分析脚本冻结和文本舍入网格检查分别见[第二次](zero-cdm/native-transfer-amendment-02.json)、[第三次](zero-cdm/native-transfer-amendment-03.json)和[第四次修订](zero-cdm/native-transfer-amendment-04.json)。初次分析在网格逐位比较处停止，没有生成结果被掩盖；改为 \(10^{-10}\) 相对容差后才完成分析。
+
+下一步应保存同次 CAMB 功率与高精度原生传输，分离传输量化、求解器变化和插值的影响；若要做规范无关的低波数比较，还需显式规范变换。当前结果依然不是观测拟合、参数空间搜索、联合 BBN、非线性研究或对整个无 CDM 模型族的排除判决。
+
+---
+
 ## 参考来源
 
 - **[R1]** Hong Wang & Joshua Zahl, *Volume estimates for unions of convex sets, and the Kakeya set conjecture in three dimensions*, arXiv:2502.17655，重点为摘要、定理 1.1、定理 1.2 及其后限定说明。<https://arxiv.org/abs/2502.17655>
@@ -1244,5 +1311,5 @@ CLASS 的 `source/output.c` 分开写出 `cl.dat` 与 `cl_lensed.dat`，`source/
 - **[R29]** Nils Schöneberg, *The 2024 BBN baryon abundance update*，轻元素丰度、重子密度及氘燃烧反应率不确定性。<https://arxiv.org/abs/2401.15054>
 - **[R30]** R. H. Cyburt et al.，BBN 轻元素丰度、核反应和 Planck／天文观测联合约束。<https://arxiv.org/abs/1505.01076>
 - **[R31]** Julien Lesgourgues，CLASS Boltzmann 计算框架及其 CMB 和大尺度结构参数约束方法。<https://arxiv.org/abs/1104.2933>
-- **[R32]** CLASS 官方仓库 `lesgourg/class_public`，提交 `2d88c3f650b691d2b13165e826697f43ef2530c4`。重点核查 `source/background.c:991` 的 `has_cdm`、`source/perturbations.c:772-774` 的无 CDM 规范拒绝、`source/input.c:2569-2588` 的 CDM 输入和 `3297-3333` 的预算闭合。<https://github.com/lesgourg/class_public/tree/2d88c3f650b691d2b13165e826697f43ef2530c4>
+- **[R32]** CLASS 官方仓库 `lesgourg/class_public`，提交 `2d88c3f650b691d2b13165e826697f43ef2530c4`。重点核查 `source/background.c:991` 的 `has_cdm`、`source/perturbations.c:772-774` 的无 CDM 规范拒绝、`source/input.c:2569-2588` 的 CDM 输入和 `3297-3333` 的预算闭合；另核查 `source/fourier.c:2358-2360` 的 `mPk→delta_m` 选择及 `source/perturbations.c:7364-7366` 的默认共动密度转换。<https://github.com/lesgourg/class_public/tree/2d88c3f650b691d2b13165e826697f43ef2530c4>
 - **[R33]** CAMB 官方仓库 `cmbant/CAMB` v2.0.5，提交 `72b5a4ca5df1335674e2eacad9b9a887194f9677`。重点核查 `fortran/model.f90:454` 的零 CDM 校验、`camb/recombination.py` 的可选 HyRec 编译要求、`camb/results.py:1298-1315` 的透镜势单位，以及 `docs/source/transfer_variables.rst` 的同步规范密度定义。<https://github.com/cmbant/CAMB/tree/72b5a4ca5df1335674e2eacad9b9a887194f9677>

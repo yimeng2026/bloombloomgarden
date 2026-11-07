@@ -1,6 +1,7 @@
 {
   "status": "computed_crosscode_fixed_inputs_corrected_tt_not_observational_fit",
   "tt_convention": "CAMB unlensed_scalar compared with CLASS cl.dat；CAMB lensed_scalar 只能与 CLASS cl_lensed.dat 比较。旧混合口径由 amendment-04 修正。",
+  "matter_density_convention": "CLASS mPk uses delta_m; with default matter_source_in_current_gauge=false it is the gauge-invariant comoving matter density even when integration is Newtonian. CAMB delta_tot is synchronous gauge. See amendment-05.",
   "camb_version": "2.0.5",
   "camb_source_commit": "72b5a4ca5df1335674e2eacad9b9a887194f9677",
   "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
@@ -782,9 +783,9 @@
       }
     }
   },
-  "analysis_runner_sha256": "919a851b3f2d1b9c3f54fba056c3b942c061f1370531e8b312a3755400343d1e",
+  "analysis_runner_sha256": "81d1024372000a787911f88616af6abd43d92c634b6596f9b0bd70fc487777ba",
   "boundaries": [
-    "k=0.001 is secondary because CLASS Newtonian and CAMB synchronous density variables are not naively gauge identical.",
+    "k=0.001 is secondary because CLASS delta_m is gauge-invariant comoving by default while CAMB delta_tot is synchronous; Newtonian is the CLASS integration gauge, not the default mPk output gauge.",
     "Extreme P(k) point ratios near deep oscillation minima are not robust across codes or CAMB accuracy levels.",
     "High-ell lensing agreement at ultra does not erase the large high-to-ultra internal change.",
     "TT differences may include recombination systematics; the current comparison does not prove their origin.",

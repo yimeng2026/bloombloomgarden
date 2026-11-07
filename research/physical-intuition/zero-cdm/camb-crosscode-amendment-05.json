@@ -1,0 +1,14 @@
+{
+  "status": "matter_output_gauge_semantics_correction_no_numeric_change",
+  "amended_on": "2026-11-07",
+  "previous_summary_sha256": "d78536bc7c4fbd4450736b6d01d56cce20e1b3189f1a3eebf7d2159d1f7f829d",
+  "updated_analysis_runner_sha256": "81d1024372000a787911f88616af6abd43d92c634b6596f9b0bd70fc487777ba",
+  "reason": "The earlier text treated CLASS Newtonian integration gauge as the default mPk output gauge. That shorthand is incorrect.",
+  "source_evidence": [
+    "CLASS source/fourier.c lines 2358-2360 select index_tp_delta_m for index_pk_m.",
+    "CLASS source/perturbations.c lines 7364-7366 apply 3 a H theta_m/k^2 when matter_source_in_current_gauge=false; explanatory.ini identifies this as the gauge-invariant comoving density.",
+    "CAMB transfer_variables.html defines delta_tot and states that all density variables there are synchronous gauge."
+  ],
+  "correction": "CLASS mPk uses delta_m, which is gauge-invariant comoving by default even with Newtonian integration. CAMB delta_tot is synchronous. Their low-k spectra are not naively gauge identical.",
+  "unchanged": "All raw spectra, physical inputs, numerical ratios, TT mappings, band powers, and observational boundaries. This is a metadata/interpretation correction, not a new physical run."
+}

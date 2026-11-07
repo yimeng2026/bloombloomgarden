@@ -1,0 +1,8 @@
+{
+  "status": "matter_output_gauge_semantics_correction_no_numeric_change",
+  "amended_on": "2026-11-07",
+  "protocol_sha256": "2b87bbabc6af3c90f5b4310a8cece4fa56504ece429a05f81ed6d5b5629ea30d",
+  "reason": "The frozen protocol's shorthand 'CLASS Newtonian density' referred to integration gauge and omitted the default output transformation.",
+  "correction": "CLASS mPk uses delta_m, converted by default to the gauge-invariant comoving matter density. CAMB delta_tot is synchronous. The native-transfer protocol and camb-crosscode-amendment-05 provide source-level evidence.",
+  "unchanged": "The frozen protocol and its hashes remain historical inputs. No grid, band, smoothing, statistic, raw spectrum, or numerical result changes."
+}

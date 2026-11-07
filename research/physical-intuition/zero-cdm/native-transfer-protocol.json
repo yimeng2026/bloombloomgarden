@@ -1,0 +1,59 @@
+{
+  "status": "frozen_before_native_transfer_run",
+  "frozen_on": "2026-11-07",
+  "purpose": "Recover signed density-transfer and zero-crossing diagnostics without confusing integration gauge, output gauge, or total-variable definitions.",
+  "class_source_commit": "2d88c3f650b691d2b13165e826697f43ef2530c4",
+  "camb_source_commit": "72b5a4ca5df1335674e2eacad9b9a887194f9677",
+  "variable_mapping": {
+    "class_integration_gauge": "newtonian because synchronous initialization rejects zero CDM",
+    "class_mPk_variable": "delta_m selected by fourier.c index_pk_m; default matter_source_in_current_gauge=false adds 3 a H theta_m/k^2, giving the documented gauge-invariant comoving density",
+    "class_transfer_column": "d_m, not d_tot; d_tot also contains non-matter radiation and has a different normalization denominator",
+    "camb_density_variable": "delta_tot, the synchronous-gauge CDM+baryon+massive-neutrino density; massive neutrinos are zero here",
+    "camb_native_scaling": "get_matter_transfer_data returns delta_tot/k^2; multiply by q^2 with q in 1/Mpc to recover signed delta_tot",
+    "crosscode_boundary": "CLASS comoving-gauge-invariant d_m and CAMB synchronous delta_tot are not directly identical; compare sign/zero crossings and each code's own normalization before any amplitude comparison"
+  },
+  "normalization": {
+    "transfer": "unit initial curvature for adiabatic perturbations",
+    "power": "P(k)=2 pi^2 As (k/k_pivot)^(ns-1) T(k)^2/k^3 in Mpc^3; multiply by h^3 and divide k by h for h units",
+    "As": 2.1e-9,
+    "n_s": 0.9665,
+    "pivot_Mpc_inv": 0.05,
+    "H0": 67.66
+  },
+  "analysis": {
+    "common_grid_min_k_h_per_Mpc": 0.01,
+    "common_grid_max_k_h_per_Mpc": 1.28,
+    "common_grid_points": 4096,
+    "signed_interpolation": "linear values on log10(k), never log(abs(T)) and never extrapolation",
+    "zero_crossing": "exact zeros and sign changes, linearly interpolated in natural log(k); no amplitude threshold or smoothing",
+    "phase_boundary": "zero crossings are phase diagnostics only; no Hilbert transform, unwrapped phase, or unique cross-code oscillation identification",
+    "crossing_comparison": "directed nearest-neighbor distances in ln(k), reporting median and maximum; unequal crossing counts remain explicit",
+    "power_reconstruction": "compare reconstructed native-transfer power with existing saved/interpolated P(k), reporting median, p95 and maximum absolute fractional differences"
+  },
+  "amendments": [
+    "native-transfer-amendment-01.json",
+    "native-transfer-amendment-02.json",
+    "native-transfer-amendment-03.json",
+    "native-transfer-amendment-04.json"
+  ],
+  "input_sha256": {
+    "zero-cdm-transfer.ini": "3e8e66438f15608061498c050889af8e222a7895704399346c8edfbdc01560bd",
+    "baseline-lcdm-transfer.ini": "ed07a005c915d548381ce1552e8e3c758e69fa01391f867981ec80d02b8c3b73",
+    "convergence-integral.pre": "670f9e9425508a498cd126436eecdb4197977ce8e84489944cf366ba22f96565",
+    "camb_transfer.py": "e533a72e618ca0c80b276d25d3e913720cda6ed4a1fa67b1fe42f2391c8f69a7",
+    "signed_transfer_statistics.py": "16886b26f7f5deb4a84a53f49afd42ce7eb4a1ca288c1b2b3c1b7b269b4aefdd",
+    "camb_crosscode.py": "894582eeba01532ef5d0217be226ad4660c4711c8a96ff91575a28b5dfe949f5",
+    "analyze_native_transfer.py": "611c26a345c580575aa63ec8d5b5ac9c4ab08f31701fd6cacd05ef475f15f36e"
+  },
+  "class_run_plan": [
+    "./class zero-cdm-transfer.ini convergence-integral.pre",
+    "./class baseline-lcdm-transfer.ini convergence-integral.pre"
+  ],
+  "camb_run_plan": "Run zero and baseline at fiducial, high and ultra using unchanged build_params; save native transfer_data and reconstructed power.",
+  "boundaries": [
+    "No change to physical densities, recombination, initial power, dark energy, or nonlinear settings.",
+    "P_k_max_h/Mpc=2.0 only makes the transfer output cover the existing bands.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "The earlier shorthand equating CLASS Newtonian integration gauge with its output matter-density gauge is to be corrected, not propagated."
+  ]
+}

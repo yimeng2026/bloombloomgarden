@@ -1,0 +1,16 @@
+{
+  "status": "class_k_sampling_increased_before_signed_analysis",
+  "amended_on": "2026-11-07",
+  "previous_protocol_sha256": "7fc2f92aff293aae98058f96ec8024eeb6796d79d95eff99e40dabaf849ccd4c",
+  "reason": "The first CLASS transfer outputs contained only 135 zero-model and 132 baseline k samples. This is insufficient for reliable high-frequency zero-crossing diagnostics.",
+  "change": "Set k_per_decade_for_pk=400 in both CLASS transfer inputs and use new dense00 roots. Preserve the sparse outputs and do not use them for the final crossing table.",
+  "unchanged": "All physical and recombination parameters, the integral precision file, CAMB inputs, and all statistical definitions.",
+  "old_input_sha256": {
+    "zero-cdm-transfer.ini": "68d55a0744474fe517f244b6e717146bd4f5bfa70b45f2fc74d18506b3789d4d",
+    "baseline-lcdm-transfer.ini": "46f3fe7813e4adf038554217c375e6685bf1e9119e528632baf018d0f7a03985"
+  },
+  "updated_input_sha256": {
+    "zero-cdm-transfer.ini": "3e8e66438f15608061498c050889af8e222a7895704399346c8edfbdc01560bd",
+    "baseline-lcdm-transfer.ini": "ed07a005c915d548381ce1552e8e3c758e69fa01391f867981ec80d02b8c3b73"
+  }
+}

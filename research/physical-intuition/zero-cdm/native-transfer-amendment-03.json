@@ -1,0 +1,9 @@
+{
+  "status": "analysis_runner_frozen_before_native_summary",
+  "amended_on": "2026-11-07",
+  "previous_protocol_sha256": "dd2156f78e44b02c50f848cf61ac08253c53b9626c655894cfdf90b98d33f84f",
+  "analysis_runner": "analyze_native_transfer.py",
+  "analysis_runner_sha256": "107afaebf6500889862edb304ccce408b5a8fb73d833b3dca8f130a60c2a9311",
+  "purpose": "Freeze the analysis implementation before reading native crossing counts, nearest-distance statistics, or reconstruction summaries.",
+  "unchanged": "All physical inputs, native outputs, variable mapping, grid, crossing definitions, and signed-transfer helper hash."
+}

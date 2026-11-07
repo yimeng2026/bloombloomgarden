@@ -1,0 +1,11 @@
+{
+  "status": "class_grid_text_rounding_validation_fix",
+  "amended_on": "2026-11-07",
+  "previous_protocol_sha256": "38a4b928481889dac5c7f99185e12e679372e7b268f70bc6a12a7feed49fbdf7",
+  "failure": "The first native analysis stopped before summary generation because np.array_equal rejected CLASS transfer and power k columns after text formatting.",
+  "evidence": "Both arrays contain 2578 points with the same endpoints, and all 2578 transfer k values match a power-grid value within rounding tolerance.",
+  "fix": "Require np.allclose with rtol=1e-10 and atol=1e-12; label the validation as close grids rather than bit-identical grids.",
+  "old_analysis_runner_sha256": "107afaebf6500889862edb304ccce408b5a8fb73d833b3dca8f130a60c2a9311",
+  "updated_analysis_runner_sha256": "611c26a345c580575aa63ec8d5b5ac9c4ab08f31701fd6cacd05ef475f15f36e",
+  "unchanged": "All physical outputs, interpolation, crossing definitions, reconstruction formula, and scientific conclusions."
+}

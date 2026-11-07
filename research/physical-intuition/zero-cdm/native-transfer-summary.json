@@ -1,0 +1,591 @@
+{
+  "status": "computed_native_signed_transfer_and_zero_crossings_not_observational_fit",
+  "protocol": "native-transfer-protocol.json",
+  "protocol_sha256": "59c63bf2a1f9801a238ea9e9ca73b59180f317dc5a94ea322aedd1b9c81b4c7f",
+  "analysis_runner_sha256": "611c26a345c580575aa63ec8d5b5ac9c4ab08f31701fd6cacd05ef475f15f36e",
+  "variable_mapping": {
+    "class_integration_gauge": "newtonian because synchronous initialization rejects zero CDM",
+    "class_mPk_variable": "delta_m selected by fourier.c index_pk_m; default matter_source_in_current_gauge=false adds 3 a H theta_m/k^2, giving the documented gauge-invariant comoving density",
+    "class_transfer_column": "d_m, not d_tot; d_tot also contains non-matter radiation and has a different normalization denominator",
+    "camb_density_variable": "delta_tot, the synchronous-gauge CDM+baryon+massive-neutrino density; massive neutrinos are zero here",
+    "camb_native_scaling": "get_matter_transfer_data returns delta_tot/k^2; multiply by q^2 with q in 1/Mpc to recover signed delta_tot",
+    "crosscode_boundary": "CLASS comoving-gauge-invariant d_m and CAMB synchronous delta_tot are not directly identical; compare sign/zero crossings and each code's own normalization before any amplitude comparison"
+  },
+  "common_grid": {
+    "min_k_h_per_Mpc": 0.01,
+    "max_k_h_per_Mpc": 1.28,
+    "points": 4096,
+    "interpolation": "signed values linear in log10(k), no smoothing and no extrapolation"
+  },
+  "sources": {
+    "class_dense_zero": {
+      "kind": "CLASS d_m; Newtonian integration, default gauge-invariant comoving matter density",
+      "native_points": 2578,
+      "native_range_h_per_Mpc": [
+        1.049051076943e-07,
+        2.009019677867
+      ],
+      "power_reconstruction": {
+        "points": 2578,
+        "median_abs_fraction": 3.010369731271112e-13,
+        "p95_abs_fraction": 1.0731859845236615e-12,
+        "max_abs_fraction": 1.871391930308164e-12
+      },
+      "signed_min_in_common_range": -1578.194834479,
+      "signed_max_in_common_range": 1643.476567418,
+      "has_positive_and_negative_in_common_range": true,
+      "native_zero_crossing_count": 41,
+      "common_grid_zero_crossing_count": 41,
+      "common_grid_zero_crossings_h_per_Mpc": [
+        0.0225249473996941,
+        0.04356325336041148,
+        0.06552042269463161,
+        0.08818077431055885,
+        0.11141694094208122,
+        0.13504531336949877,
+        0.15892176708126854,
+        0.18296358473142438,
+        0.20723763706598494,
+        0.23138202928253201,
+        0.2560828554933141,
+        0.2806185159188321,
+        0.30512730101997937,
+        0.330126969661988,
+        0.35504054873451285,
+        0.3800502644045403,
+        0.4049868647428476,
+        0.4303512313239379,
+        0.45527164374127793,
+        0.4809619990380065,
+        0.5055960185598717,
+        0.5323963990991206,
+        0.5556284086762017,
+        0.5868539452036661,
+        0.6045167118886616,
+        0.6424793412947071,
+        0.6447643576423303,
+        0.6507685896753637,
+        0.6520966451315663,
+        0.9018068736143676,
+        0.9028241603161581,
+        1.055160312800644,
+        1.0552034669696249,
+        1.0737268579361408,
+        1.0848948038628843,
+        1.0950111972376113,
+        1.1132916069005292,
+        1.1209070335425049,
+        1.1397305477617259,
+        1.155030745452791,
+        1.1666248268796717
+      ],
+      "first_common_grid_zero_crossings_h_per_Mpc": [
+        0.0225249473996941,
+        0.04356325336041148,
+        0.06552042269463161,
+        0.08818077431055885,
+        0.11141694094208122,
+        0.13504531336949877,
+        0.15892176708126854,
+        0.18296358473142438,
+        0.20723763706598494,
+        0.23138202928253201,
+        0.2560828554933141,
+        0.2806185159188321
+      ]
+    },
+    "class_dense_baseline": {
+      "kind": "CLASS d_m; Newtonian integration, default gauge-invariant comoving matter density",
+      "native_points": 2458,
+      "native_range_h_per_Mpc": [
+        2.086679250481e-07,
+        2.002826144231
+      ],
+      "power_reconstruction": {
+        "points": 2458,
+        "median_abs_fraction": 2.88935542158697e-13,
+        "p95_abs_fraction": 1.076339017913597e-12,
+        "max_abs_fraction": 2.0797807920303057e-12
+      },
+      "signed_min_in_common_range": -46875.69098382,
+      "signed_max_in_common_range": -716.1003604799,
+      "has_positive_and_negative_in_common_range": false,
+      "native_zero_crossing_count": 0,
+      "common_grid_zero_crossing_count": 0,
+      "common_grid_zero_crossings_h_per_Mpc": [],
+      "first_common_grid_zero_crossings_h_per_Mpc": []
+    },
+    "camb_fiducial_zero": {
+      "kind": "CAMB native synchronous-gauge delta_tot; q^2 times delta_tot/k^2",
+      "native_points": 1224,
+      "native_range_h_per_Mpc": [
+        5.245255145089064e-06,
+        2.979672300198923
+      ],
+      "power_reconstruction": {
+        "points": 383,
+        "median_abs_fraction": 0.0009752430028562298,
+        "p95_abs_fraction": 0.10292694111164344,
+        "max_abs_fraction": 0.656185001146413
+      },
+      "signed_min_in_common_range": -1613.9138115853602,
+      "signed_max_in_common_range": 1555.9243682332585,
+      "has_positive_and_negative_in_common_range": true,
+      "native_zero_crossing_count": 27,
+      "common_grid_zero_crossing_count": 27,
+      "common_grid_zero_crossings_h_per_Mpc": [
+        0.022527428934143532,
+        0.0435767594341774,
+        0.06553246220277695,
+        0.08820328960333829,
+        0.1114593753931097,
+        0.13508168186009123,
+        0.15892422218596797,
+        0.1829648573854296,
+        0.20712003829964754,
+        0.23145824556902173,
+        0.255928673747248,
+        0.2806055071959173,
+        0.3052864171295604,
+        0.32883407507860435,
+        0.35498921703262387,
+        0.37978066877393246,
+        0.40467502753241624,
+        0.43013387805784004,
+        0.4548011363677808,
+        0.4805811677064186,
+        0.5051408833409643,
+        0.5316021891103918,
+        0.5551493641552904,
+        0.5870083795996787,
+        0.6008648748359702,
+        1.1394977378060496,
+        1.149087687990017
+      ],
+      "first_common_grid_zero_crossings_h_per_Mpc": [
+        0.022527428934143532,
+        0.0435767594341774,
+        0.06553246220277695,
+        0.08820328960333829,
+        0.1114593753931097,
+        0.13508168186009123,
+        0.15892422218596797,
+        0.1829648573854296,
+        0.20712003829964754,
+        0.23145824556902173,
+        0.255928673747248,
+        0.2806055071959173
+      ]
+    },
+    "camb_fiducial_baseline": {
+      "kind": "CAMB native synchronous-gauge delta_tot; q^2 times delta_tot/k^2",
+      "native_points": 1154,
+      "native_range_h_per_Mpc": [
+        1.0433396093750135e-05,
+        2.9727910716059576
+      ],
+      "power_reconstruction": {
+        "points": 382,
+        "median_abs_fraction": 1.250368772964805e-06,
+        "p95_abs_fraction": 9.913100728420332e-06,
+        "max_abs_fraction": 2.064888294417422e-05
+      },
+      "signed_min_in_common_range": 715.6030937332283,
+      "signed_max_in_common_range": 46784.1822600608,
+      "has_positive_and_negative_in_common_range": false,
+      "native_zero_crossing_count": 0,
+      "common_grid_zero_crossing_count": 0,
+      "common_grid_zero_crossings_h_per_Mpc": [],
+      "first_common_grid_zero_crossings_h_per_Mpc": []
+    },
+    "camb_high_zero": {
+      "kind": "CAMB native synchronous-gauge delta_tot; q^2 times delta_tot/k^2",
+      "native_points": 2601,
+      "native_range_h_per_Mpc": [
+        2.622627572544532e-06,
+        2.9703094744403673
+      ],
+      "power_reconstruction": {
+        "points": 782,
+        "median_abs_fraction": 0.0016452409264129386,
+        "p95_abs_fraction": 0.4684933482815402,
+        "max_abs_fraction": 1.6980059315823266
+      },
+      "signed_min_in_common_range": -1654.672533329234,
+      "signed_max_in_common_range": 1566.8132239621555,
+      "has_positive_and_negative_in_common_range": true,
+      "native_zero_crossing_count": 33,
+      "common_grid_zero_crossing_count": 31,
+      "common_grid_zero_crossings_h_per_Mpc": [
+        0.02253005342973678,
+        0.043575614635751415,
+        0.06553609338897382,
+        0.08819811521269157,
+        0.11143379391650021,
+        0.13504088362570277,
+        0.15889055265468033,
+        0.1829266893175374,
+        0.2071059721833172,
+        0.23144079585954438,
+        0.25591836584820654,
+        0.280509415600805,
+        0.30522067918770124,
+        0.3300412499468954,
+        0.35493668541512674,
+        0.38001692630631245,
+        0.40501208281954565,
+        0.43037412720370477,
+        0.45534875168132877,
+        0.4807521169181527,
+        0.5057358420228204,
+        0.5323636141411325,
+        0.5559219656987126,
+        0.5862463032140528,
+        0.6065306056254676,
+        0.6398710422852475,
+        0.6448332207877282,
+        0.6481767882820544,
+        0.6516471747901921,
+        1.0983655452163852,
+        1.098679161299275
+      ],
+      "first_common_grid_zero_crossings_h_per_Mpc": [
+        0.02253005342973678,
+        0.043575614635751415,
+        0.06553609338897382,
+        0.08819811521269157,
+        0.11143379391650021,
+        0.13504088362570277,
+        0.15889055265468033,
+        0.1829266893175374,
+        0.2071059721833172,
+        0.23144079585954438,
+        0.25591836584820654,
+        0.280509415600805
+      ]
+    },
+    "camb_high_baseline": {
+      "kind": "CAMB native synchronous-gauge delta_tot; q^2 times delta_tot/k^2",
+      "native_points": 2470,
+      "native_range_h_per_Mpc": [
+        5.2166980468750675e-06,
+        2.9634498682735715
+      ],
+      "power_reconstruction": {
+        "points": 789,
+        "median_abs_fraction": 1.180285018831384e-06,
+        "p95_abs_fraction": 9.21306062622305e-06,
+        "max_abs_fraction": 2.020388146539709e-05
+      },
+      "signed_min_in_common_range": 715.1425684902123,
+      "signed_max_in_common_range": 46891.89336448017,
+      "has_positive_and_negative_in_common_range": false,
+      "native_zero_crossing_count": 0,
+      "common_grid_zero_crossing_count": 0,
+      "common_grid_zero_crossings_h_per_Mpc": [],
+      "first_common_grid_zero_crossings_h_per_Mpc": []
+    },
+    "camb_ultra_zero": {
+      "kind": "CAMB native synchronous-gauge delta_tot; q^2 times delta_tot/k^2",
+      "native_points": 5878,
+      "native_range_h_per_Mpc": [
+        1.311313786272266e-06,
+        7.5531674089282514
+      ],
+      "power_reconstruction": {
+        "points": 1960,
+        "median_abs_fraction": 0.007637748083274665,
+        "p95_abs_fraction": 2.86797098635638,
+        "max_abs_fraction": 507.1273025597917
+      },
+      "signed_min_in_common_range": -1653.9950741014263,
+      "signed_max_in_common_range": 1577.6244467227004,
+      "has_positive_and_negative_in_common_range": true,
+      "native_zero_crossing_count": 111,
+      "common_grid_zero_crossing_count": 107,
+      "common_grid_zero_crossings_h_per_Mpc": [
+        0.02253021053637364,
+        0.04357545024131455,
+        0.06553696045142819,
+        0.08819717233327931,
+        0.11142980916042251,
+        0.13503036619008996,
+        0.1588805524568794,
+        0.18291701542203875,
+        0.20710364834603343,
+        0.23143382738189788,
+        0.25590725904949263,
+        0.2805040668549702,
+        0.3052107606881241,
+        0.33003008820289415,
+        0.35495995864656793,
+        0.37998872212481244,
+        0.40505897840530375,
+        0.4302942320931978,
+        0.4555125038054862,
+        0.4805351367230872,
+        0.5061900268657187,
+        0.5319006213626215,
+        0.5566614037051347,
+        0.5851462303435763,
+        0.6081808828999482,
+        0.631987542558022,
+        0.6353953099505315,
+        0.6378103481904424,
+        0.6543063129496889,
+        0.6569214273400625,
+        0.6611515733398463,
+        0.6765551073795674,
+        0.6790210043395648,
+        0.6839160401827087,
+        0.6902629478857953,
+        0.6912745770939832,
+        0.7072273406841135,
+        0.7109803868225237,
+        0.7150006873706799,
+        0.721188688054914,
+        0.7230836897947954,
+        0.7305653686291691,
+        0.7318618068151198,
+        0.7390643200219228,
+        0.741355412580226,
+        0.7478280806236577,
+        0.7502751751894533,
+        0.7571128121669285,
+        0.7586699833135795,
+        0.8288795204020648,
+        0.8303365892419566,
+        0.8372200832300517,
+        0.8398861579474541,
+        0.8457926901517057,
+        0.8491842147676109,
+        0.8544540965127134,
+        0.85835244686341,
+        0.8632265097760353,
+        0.8674731080782379,
+        0.8720201149571083,
+        0.8766256202113203,
+        0.8807649873174674,
+        0.8857692835313571,
+        0.8895161196567668,
+        0.8948465085996503,
+        0.898359214290881,
+        0.9038727052275644,
+        0.9072896545495878,
+        0.9127215000380171,
+        0.9164090016893758,
+        0.9214159155026044,
+        0.9256523974977994,
+        0.9300235328505995,
+        0.9349719643023643,
+        0.9385990427596869,
+        0.944419932243827,
+        0.947076466565096,
+        0.9538864082746136,
+        0.9554889820936278,
+        1.052314674916979,
+        1.0541310462396858,
+        1.060735244747743,
+        1.0635323898101474,
+        1.069280959150785,
+        1.072933283842541,
+        1.0778874098517326,
+        1.0821835492252467,
+        1.0865661150390011,
+        1.0913652703985834,
+        1.0953155677412654,
+        1.1004611615406992,
+        1.1041582527695504,
+        1.1094701860199787,
+        1.1131112179881544,
+        1.1183307691470092,
+        1.1221451150442996,
+        1.127150991216556,
+        1.1312765479715585,
+        1.1358636353519247,
+        1.1404974635016731,
+        1.1444480961711305,
+        1.1498819489561924,
+        1.1530558319886177,
+        1.159310638584106,
+        1.1615721867644415,
+        1.169596648494875,
+        1.1698193361689047
+      ],
+      "first_common_grid_zero_crossings_h_per_Mpc": [
+        0.02253021053637364,
+        0.04357545024131455,
+        0.06553696045142819,
+        0.08819717233327931,
+        0.11142980916042251,
+        0.13503036619008996,
+        0.1588805524568794,
+        0.18291701542203875,
+        0.20710364834603343,
+        0.23143382738189788,
+        0.25590725904949263,
+        0.2805040668549702
+      ]
+    },
+    "camb_ultra_baseline": {
+      "kind": "CAMB native synchronous-gauge delta_tot; q^2 times delta_tot/k^2",
+      "native_points": 6307,
+      "native_range_h_per_Mpc": [
+        2.608349023751492e-06,
+        15.024090376808592
+      ],
+      "power_reconstruction": {
+        "points": 1759,
+        "median_abs_fraction": 9.321909778536863e-07,
+        "p95_abs_fraction": 8.685773410688209e-06,
+        "max_abs_fraction": 2.247538638977531e-05
+      },
+      "signed_min_in_common_range": 713.587203169878,
+      "signed_max_in_common_range": 46891.66805532165,
+      "has_positive_and_negative_in_common_range": false,
+      "native_zero_crossing_count": 0,
+      "common_grid_zero_crossing_count": 0,
+      "common_grid_zero_crossings_h_per_Mpc": [],
+      "first_common_grid_zero_crossings_h_per_Mpc": []
+    }
+  },
+  "crossing_comparisons": {
+    "class_zero_to_class_baseline": {
+      "first": "class_dense_zero",
+      "second": "class_dense_baseline",
+      "first_count": 41,
+      "second_count": 0,
+      "note": "Directed nearest-neighbor distances, not a one-to-one oscillation identification or a gauge-invariant phase difference.",
+      "first_to_second": {
+        "count": 0,
+        "median_abs_ln_k_distance": null,
+        "max_abs_ln_k_distance": null
+      },
+      "second_to_first": {
+        "count": 0,
+        "median_abs_ln_k_distance": null,
+        "max_abs_ln_k_distance": null
+      }
+    },
+    "camb_ultra_zero_to_camb_ultra_baseline": {
+      "first": "camb_ultra_zero",
+      "second": "camb_ultra_baseline",
+      "first_count": 107,
+      "second_count": 0,
+      "note": "Directed nearest-neighbor distances, not a one-to-one oscillation identification or a gauge-invariant phase difference.",
+      "first_to_second": {
+        "count": 0,
+        "median_abs_ln_k_distance": null,
+        "max_abs_ln_k_distance": null
+      },
+      "second_to_first": {
+        "count": 0,
+        "median_abs_ln_k_distance": null,
+        "max_abs_ln_k_distance": null
+      }
+    },
+    "camb_ultra_zero_to_class_zero": {
+      "first": "camb_ultra_zero",
+      "second": "class_dense_zero",
+      "first_count": 107,
+      "second_count": 41,
+      "note": "Directed nearest-neighbor distances, not a one-to-one oscillation identification or a gauge-invariant phase difference.",
+      "first_to_second": {
+        "count": 107,
+        "median_abs_ln_k_distance": 0.006043027013103275,
+        "max_abs_ln_k_distance": 0.1513740985760072
+      },
+      "second_to_first": {
+        "count": 41,
+        "median_abs_ln_k_distance": 0.0006726658606742708,
+        "max_abs_ln_k_distance": 0.01084393379059867
+      }
+    },
+    "camb_ultra_zero_to_camb_high_zero": {
+      "first": "camb_ultra_zero",
+      "second": "camb_high_zero",
+      "first_count": 107,
+      "second_count": 31,
+      "note": "Directed nearest-neighbor distances, not a one-to-one oscillation identification or a gauge-invariant phase difference.",
+      "first_to_second": {
+        "count": 107,
+        "median_abs_ln_k_distance": 0.041148788810276116,
+        "max_abs_ln_k_distance": 0.2607710099791437
+      },
+      "second_to_first": {
+        "count": 31,
+        "median_abs_ln_k_distance": 7.788637720818059e-05,
+        "max_abs_ln_k_distance": 0.010950731673310565
+      }
+    },
+    "camb_high_zero_to_camb_fiducial_zero": {
+      "first": "camb_high_zero",
+      "second": "camb_fiducial_zero",
+      "first_count": 31,
+      "second_count": 27,
+      "note": "Directed nearest-neighbor distances, not a one-to-one oscillation identification or a gauge-invariant phase difference.",
+      "first_to_second": {
+        "count": 31,
+        "median_abs_ln_k_distance": 0.0005583891158204013,
+        "max_abs_ln_k_distance": 0.08113319712342615
+      },
+      "second_to_first": {
+        "count": 27,
+        "median_abs_ln_k_distance": 0.0003425023721441711,
+        "max_abs_ln_k_distance": 0.0448596168869026
+      }
+    }
+  },
+  "raw_output_sha256": {
+    "class_dense_zero": {
+      "transfer": "b4153db775159e39d749a8a64b6e88c30c7b76b5b3f7d636804ab4124b309a4a",
+      "power": "feba396ce65bf8800655d8fad4be622a338ce2650e54dc4fed4c76a33dc19774"
+    },
+    "class_dense_baseline": {
+      "transfer": "d43b0ff509c0f39719f251db730f7b93ceafb14eb18f3c5d3d4febba3d24fce8",
+      "power": "c5f47b23d6f23ec4d03b0a69e6ecee73ff982105384623406beca22bf97115ac"
+    },
+    "camb_fiducial_zero": {
+      "transfer": "aa2a0dc78e6c05af6781b2a5e820f9c213a2355bbb3ac0c4b70042fad5afdf6e",
+      "power": "0610b33340ead0a3b2b59ef86b31103be44d996f58b1aa996791743607c971ef"
+    },
+    "camb_fiducial_baseline": {
+      "transfer": "f7d6b86d1a20757ec16f56b398ab52c3a63f2e136ad7bf9cfa986b1aa9df6828",
+      "power": "84f25417b3ab667082ac1d2443b5fdf031b6c3d1daf50e62f6eac9604325781f"
+    },
+    "camb_high_zero": {
+      "transfer": "dad8eed6aa4095a3941691c7eb6eb9baf09e70aecbb579e1a48d6918bf231da9",
+      "power": "6cdbaa4dd0e4b6bf5dce4334ceae17f7d090a393fa2f9870f932b03da63146fe"
+    },
+    "camb_high_baseline": {
+      "transfer": "19574d95432cea925bdbee3b8270a2d5734024b83e71d099a94bd562ff636902",
+      "power": "7e8e5f67dbbcd81e1ed2a5456e753147992eda9b5317128d1227a98a97f9e72f"
+    },
+    "camb_ultra_zero": {
+      "transfer": "36ad4566557c473e9afb86b2fddc6b4822988af5b65c80a6e414388496e6da95",
+      "power": "c7b08a3478a2e9c14b633d2f115fc67938a14f22c4dd7a9c91f8883ec660e91d"
+    },
+    "camb_ultra_baseline": {
+      "transfer": "a85d54636b1ac48fe80145dc5efb0939177cefb87b660ea0cff485b098e01395",
+      "power": "fc480c5b2efa95833858d96a37f5f7c0ba789d8e681b7c9ea91ba4a76bec450a"
+    }
+  },
+  "validation": {
+    "all_native_values_finite": true,
+    "all_common_grid_values_finite": true,
+    "class_transfer_and_power_grids_close_rtol_1e-10": true,
+    "frozen_input_hashes_match": true,
+    "zero_cdm_not_replaced_by_nonzero_component": true,
+    "full_hilbert_phase_computed": false,
+    "observational_likelihood_or_covariance_included": false
+  },
+  "boundaries": [
+    "No change to physical densities, recombination, initial power, dark energy, or nonlinear settings.",
+    "P_k_max_h/Mpc=2.0 only makes the transfer output cover the existing bands.",
+    "No observational likelihood, covariance, joint BBN, nonlinear calculation, or model-family exclusion.",
+    "The earlier shorthand equating CLASS Newtonian integration gauge with its output matter-density gauge is to be corrected, not propagated.",
+    "Cross-code signed curves use different output gauges and are diagnostics, not a direct gauge-invariant amplitude comparison.",
+    "Zero crossings can depend on sampling and implementation; unequal counts are reported rather than suppressed.",
+    "CAMB transfer_data is float32 and the saved reference P(k) is interpolated, especially near deep minima."
+  ]
+}
