@@ -308,3 +308,20 @@
 - 陈数完整复现脚本退出码为 0；原曲率、模型、零曲率实例、原文件补丁及各自公理审计全部通过，补丁同步与实际应用一致性均为 `true`。
 - 根平台 113 项、后端 12 项、零模型 33 项测试全部通过；两端 lint 均为 0 错误、0 警告，Next standalone 与 Express 构建通过。
 - 常见密钥模式扫描无命中。外部源树未修改；一般陈数拓扑整数性、其他拓扑占位和全库 Lake 仍开放。
+
+
+
+## 25. 陈数连续整数值的区间端点不变性
+
+- 新增 `FirstChernNumberInvariance.lean`：在 `C : ℝ → FirstChernNumberModel` 的整数值随参数连续这一明确前提下，以整数离散拓扑、局部常数性和 `[0,1]` 的预连通性证明 `(C 0).value = (C 1).value`。没有比较整个模型结构，也没有从能隙条件免费推出连续性。
+- 新增 236 行组合补丁，在保留 174 行结构补丁的基础上，将原 `FirstChernNumber_TopologicalInvariance` 的 `True := by trivial` 替换为上述受限命题。原文件 564 行，组合修补后 463 行。
+- 新增确定性生成器、1 项补丁回归测试，并扩展一键复现脚本。候选证明先出现连续性证据类型不匹配和端点推断失败，再以显式 `Set.Icc (0 : ℝ) 1` 完成证明；未使用 `sorry`、新公理或空占位。
+- 最终完整复现退出码为 0，11 个 Lean 编译／审计阶段均为 0。独立模型、零曲率实例、模型不变性、补丁整数性和补丁不变性五条公理输出均只有 `propext、Classical.choice、Quot.sound`。两份补丁同步及实际应用一致性均为 `true`。
+- 证据见 `research/formalization/FIRST_CHERN_NUMBER_INVARIANCE_LEAN_AUDIT_2026-11-08.md` 与更新后的 `first-chern-number-lean-audit.json`。外部源树未修改。一般陈数拓扑整数性、从能隙保持到曲率连续的微扰理论、其他占位及全库 Lake 构建仍开放。
+
+## 26. 陈数不变性提交前回归
+
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；操作目录核对为 457 个操作、38 个后端路由。后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 执行 `python -m unittest discover -s research/physical-intuition/zero-cdm/tests -v && python -m unittest scripts/test_prepare_first_chern_invariance_patch.py -v`，实际退出码为 0；零模型 33 项及新增补丁 1 项测试全部通过。
+- Lean 完整复现命令、退出码和五条公理原文已记录在上述专门审计中。此处通过仅表示本轮相关软件回归和受限数学命题验证，不表示全仓所有研究问题或外部项目全部完成。
