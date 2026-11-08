@@ -325,3 +325,19 @@
 - 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；操作目录核对为 457 个操作、38 个后端路由。后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
 - 执行 `python -m unittest discover -s research/physical-intuition/zero-cdm/tests -v && python -m unittest scripts/test_prepare_first_chern_invariance_patch.py -v`，实际退出码为 0；零模型 33 项及新增补丁 1 项测试全部通过。
 - Lean 完整复现命令、退出码和五条公理原文已记录在上述专门审计中。此处通过仅表示本轮相关软件回归和受限数学命题验证，不表示全仓所有研究问题或外部项目全部完成。
+
+
+## 27. 总陈数求和结构与条件零和代数结论
+
+- 新增 `TotalChernNumberModel`，以 `definition : totalValue = ∑ i, (individualChern i).value` 替代无约束 `Prop`。`numOccupied=N` 仅保留为数量字段，不被解释为 Bloch 完备性或物理满带证据。
+- 在显式 `hfull : ∑ i, (total.individualChern i).value = 0` 下，以 `total.definition` 和 `hfull` 的两步等式链证明 `total.totalValue=0`。候选证明先因只有求和等式、缺少零和证据而按预期失败，再补全证明，没有引入新公理或 `sorry`。
+- 新增 113 行增量补丁、确定性生成器和 1 项回归测试。应用顺序为原文件→陈数结构→连续整数不变性→总陈数；第二份组合补丁应用后 463 行，总陈数增量应用后 424 行。有限和作用域已显式加入补丁。
+- 统一复现脚本退出码为 0，两项补丁测试及 12 个 Lean 阶段全部通过。三份补丁同步与顺序应用一致性均为 `true`；四个模型目标和三个补丁目标的公理输出均只有 `propext、Classical.choice、Quot.sound`。
+- 证据见 `research/formalization/TOTAL_CHERN_NUMBER_LEAN_AUDIT_2026-11-08.md` 和 schemaVersion 3 的 `first-chern-number-lean-audit.json`。`conditionalZeroSumVanishingProved=true`，但 `completenessToFullBandVanishingProved=false`。外部参考文件的 `admit` 未被复用，外部源树未修改。
+
+## 28. 总陈数提交前回归
+
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 执行 `python -m unittest discover -s research/physical-intuition/zero-cdm/tests -v && python -m unittest scripts/test_prepare_first_chern_invariance_patch.py scripts/test_prepare_total_chern_number_patch.py -v`，实际退出码为 0；零模型 33 项和补丁生成器 2 项测试全部通过。
+- Lean 完整命令、12 个阶段及七条公理原文见总陈数专门审计。本轮只完成条件零和代数清偿，物理满带完备性、投影几何、其他占位和全库 Lake 构建仍开放。

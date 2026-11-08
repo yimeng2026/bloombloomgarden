@@ -6,6 +6,8 @@
 
 **范围**：连续整数值函数在闭区间两端的不变性，不是完整能隙微扰理论
 
+> 本文记录连续整数不变性批次的实际验证。后续总陈数工作已把统一复现入口扩展为十二阶段、schemaVersion 3；当前结果见 `TOTAL_CHERN_NUMBER_LEAN_AUDIT_2026-11-08.md`，下文的十一阶段和 schemaVersion 2 是该批次的历史证据。
+
 ## 1. 实际证明的命题
 
 设 `C : ℝ → FirstChernNumberModel (L := L)`，并假设

@@ -1,7 +1,7 @@
 ﻿{
-    "schemaVersion":  2,
+    "schemaVersion":  3,
     "status":  "success",
-    "scope":  "Integral-to-integer First Chern model, zero-curvature instance and continuous-integer endpoint invariance; not general topological integrality or gap-preserving perturbation theory",
+    "scope":  "Integral-to-integer First Chern model, continuous-integer endpoint invariance and conditional total-Chern zero-sum algebra; not completeness-based full-band physics",
     "source":  {
                    "repository":  "TOE-SYLVA-pull",
                    "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
@@ -12,10 +12,14 @@
                    "proofSha256":  "945b0b5705077712b7c54b20e18e51e71b74a27ee6bdeb887368c6b2e05e2af1",
                    "invarianceProofFile":  "research/formalization/FirstChernNumberInvariance.lean",
                    "invarianceProofSha256":  "7712ef725035ea942cb7c49ccf9eaf07193f1c302d6fe85ea68d7ae82a0e86bc",
+                   "totalProofFile":  "research/formalization/TotalChernNumberModel.lean",
+                   "totalProofSha256":  "c0eda75d8e38f6c2e8a32082f7ca5cdad5a6a526f8eab5771fa5348b19445374",
                    "patchFile":  "research/formalization/first-chern-number.patch",
                    "patchSha256":  "d5fa7194fa49e5e0ab680578867b23f6d667e11777448294152de63e9b2deaa7",
                    "invariancePatchFile":  "research/formalization/first-chern-invariance.patch",
                    "invariancePatchSha256":  "c8d5e00fae5bc6e47d646f8e457e1bcc91f5064960f393d3258387e8d6369499",
+                   "totalPatchFile":  "research/formalization/total-chern-number.patch",
+                   "totalPatchSha256":  "5714f8da7a83419933fbc32c9a8839dbfd32297c0d45316620524bfe05a2e20f",
                    "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
                },
     "build":  {
@@ -28,30 +32,38 @@
                                  "originalCurvature":  0,
                                  "model":  0,
                                  "invariance":  0,
+                                 "total":  0,
                                  "standaloneAudit":  0,
                                  "patched":  0,
                                  "patchedAudit":  0
                              },
                   "modelOutputSha256":  "c967947c3f69405481137bf2b2cf9a71d61d9501efa26272242a7cbef80573e3",
                   "invarianceOutputSha256":  "acffa584503b99ed73956ef463a89648d88e790a52e858f3e2a077e1efb62a03",
-                  "patchedOutputSha256":  "db6f055477c558f1e9d811135bfd4fe7364a05e22beaf1229457d2f7cc7e0d4a",
+                  "totalOutputSha256":  "af0b1a75ba05a8955477e77db8bc55334a0be4878570f31cd51c104764c749e9",
+                  "patchedOutputSha256":  "dc9d3ad2bd74cde116133bdb9f34119d3adf841aa6381d3220e6d8539c656738",
                   "warningsPreserved":  true
               },
     "axiomAudit":  {
-                       "model":  "\u0027BerryCurvature.FirstChernNumber_Integrality_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.zeroFirstChernNumberModel\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.FirstChernNumber_TopologicalInvariance_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
-                       "patched":  "\u0027BerryCurvature.FirstChernNumber_Integrality\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.FirstChernNumber_TopologicalInvariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]"
+                       "model":  "\u0027BerryCurvature.FirstChernNumber_Integrality_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.zeroFirstChernNumberModel\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.FirstChernNumber_TopologicalInvariance_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.TotalChernNumber_FullBandVanishing_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "patched":  "\u0027BerryCurvature.FirstChernNumber_Integrality\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.FirstChernNumber_TopologicalInvariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.TotalChernNumber_FullBandVanishing\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]"
                    },
     "validation":  {
                        "patchGeneratorUnitTestPassed":  true,
+                       "totalPatchGeneratorUnitTestPassed":  true,
                        "patchSynchronized":  true,
                        "patchApplicationMatchesGenerated":  true,
                        "invariancePatchSynchronized":  true,
                        "invariancePatchApplicationMatchesGenerated":  true,
+                       "totalPatchSynchronized":  true,
+                       "totalPatchApplicationMatchesGenerated":  true,
                        "integralToIntegerDefinitionPresent":  true,
                        "zeroCurvatureInstanceConstructed":  true,
                        "continuousIntegerEndpointInvarianceProved":  true,
+                       "totalSumDefinitionPresent":  true,
+                       "conditionalZeroSumVanishingProved":  true,
                        "generalTopologicalIntegralityProved":  false,
                        "gapPreservingPerturbationTheoryProved":  false,
+                       "completenessToFullBandVanishingProved":  false,
                        "forbiddenPlaceholderOrNewAxiom":  false,
                        "externalSourceModified":  false,
                        "fullProjectBuilt":  false
@@ -60,7 +72,8 @@
                        "The model makes the measure and integral-to-integer equation explicit; it does not derive general Chern integrality from arbitrary curvature data.",
                        "The zero-curvature instance is a computable example, not a proof of the general topological theorem.",
                        "Invariance assumes continuity of the integer-valued family and proves equality at t=0 and t=1 using discreteness and preconnectedness.",
-                       "The theorem does not derive curvature continuity from a spectral gap, equality of whole model structures, or a general gap-preserving perturbation theorem.",
+                       "The total-Chern theorem rewrites totalValue by its finite-sum definition and then uses an explicit zero-sum hypothesis.",
+                       "numOccupied=N is not a completeness proof; Bloch-state completeness, projector geometry and the physical full-band vanishing theorem remain open.",
                        "Other placeholders and the full Lake project build remain open; the external TOE-SYLVA source tree is only read."
                    ]
 }
