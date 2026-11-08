@@ -420,3 +420,19 @@
 - 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
 - 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
 - 零模型 33 项及形式化工具 5 项测试全部通过，相关 Python 命令实际退出码为 0。完整 Lean 命令、阶段结果和新增公理原文见 BerryPhase 结构专门审计。
+
+
+## 39. 复值外微分定义与规范不变性公理清偿
+
+- 原 `exteriorDerivativeOfBerryConnection` 公理已改为可计算复值定义 `∂xAy−∂yAx`，并新增一形式规范变换及 `C²` 规范不变性证明。两个原分量可微和相位 `ContDiff ℝ 2 θ` 均为显式前提。
+- 最初“只交换分量就变号”的错误命题已弃用。正确证明由 `fderiv_add` 和混合偏导对称完成，没有新增公理或空定理。独立模型与补丁版均只依赖 `propext、Classical.choice、Quot.sound`。
+- 新增 142 行增量补丁，输入 642 行，最终 689 行。统一入口两次因重复编译超过 300 秒，不能声称该模式完成；随后将验证拆为六目标独立模型和十八目标下游集成，分别实际退出码为 0，耗时 169.762 秒和 160.416 秒。
+- 新增 `verify-berry-independent-models-lean.ps1`，全链入口增加 `-IntegrationOnly`。仅下游报告明确 `integrationOnly=true`、独立字段为 `null`、`independentModelsAudited=false`，并链接独立报告，未隐藏跳过行为。
+- 证据见 `research/formalization/BERRY_EXTERIOR_DERIVATIVE_LEAN_AUDIT_2026-11-08.md`、`berry-independent-models-lean-audit.json` 和 schemaVersion 6 的集成报告。完整微分形式、de Rham 上同调、多值绕数和全库 Lake 仍开放，外部源树未修改。
+
+## 40. 外微分与分离验证提交前回归
+
+- 独立模型入口十二阶段和下游集成入口十一阶段均实际退出码为 0；六个独立目标及十八个下游目标全部只有标准三公理，四项补丁测试通过。
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 零模型 33 项及形式化工具 6 项测试全部通过，相关 Python 命令实际退出码为 0。两条 Lean 命令、阶段结果和公理原文见外微分专门审计。

@@ -1,0 +1,62 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "Six independent interval, refined-phase and exterior-derivative targets on the base patched BerryConnection; downstream integration is verified separately",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "baseConnectionSha256":  "1f8f1db13fe48008e2c573f59978a2bff8abe8236210a7897cfc436f9ebf9667",
+                   "phaseProofSha256":  "fd05ee211439b4c9da42185c29b09d246cf3b81591d2f9005ced34b4e811a5fd",
+                   "phaseStructureProofSha256":  "8a9fa4fdca1fe2bd840baf68c3fd71af18122744c73797f537d6fb9e97590fa7",
+                   "exteriorProofSha256":  "49dc2aac87d7b054167606708dd90efeccebf08287406f51ada53d0182bf81a5",
+                   "phasePatchSha256":  "857c343b8e08d10379c289e1bd2f5649f9e35df35cc5cfca18f3bb8964c9ec5f",
+                   "phaseStructurePatchSha256":  "f26cc049e12a205b6a5228e0df4c22da94afacbe742e3a761c699ad2ac20e7cc",
+                   "exteriorPatchSha256":  "6bca91cfaf365de76558471e142401b3e4b099e7c59000596aeb9e21533d6c36",
+                   "preparedMainSha256":  "718222984706149232a79d89a0314d204c9718755c0c62524f7f5afad450b8ac",
+                   "prepared3DSha256":  "ac521197cdf7e618d0fb6c11f8dff7d6635218b355b252830acb788717273531",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "stages":  {
+                                 "integrationPreparation":  0,
+                                 "phasePatchSynchronized":  0,
+                                 "phaseStructurePatchSynchronized":  0,
+                                 "exteriorPatchSynchronized":  0,
+                                 "bloch":  0,
+                                 "baseConnection":  0,
+                                 "phaseModel":  0,
+                                 "phaseModelAudit":  0,
+                                 "phaseStructureModel":  0,
+                                 "phaseStructureModelAudit":  0,
+                                 "exteriorModel":  0,
+                                 "exteriorModelAudit":  0
+                             },
+                  "phaseModelOutputSha256":  "4d77ef2b2dba57291072539c79d739771ea0a81369be53c41c6a5d577c977d8b",
+                  "phaseStructureOutputSha256":  "5a8aa903ea45b823c510825c9b6c46d659ac174993b45182b33d94085d8adba7",
+                  "exteriorModelOutputSha256":  "7ff6134e103dc13bbb87a0b7d7f1b3029ca721a3cf72a4365ec450e066c14527",
+                  "warningsPreserved":  true
+              },
+    "axiomAudit":  {
+                       "phase":  "\u0027BerryConnection.berryPhaseIntegral\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.BerryPhase_GaugeInvariance_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "phaseStructure":  "\u0027BerryConnection.BerryPhase_GaugeInvariance_refined_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "exterior":  "\u0027BerryConnection.exteriorDerivativeOfBerryConnection_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.gaugeTransform1Form_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.exteriorDerivativeOfBerryConnection_gauge_invariant_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]"
+                   },
+    "validation":  {
+                       "fourPatchGeneratorTestsPassed":  true,
+                       "phasePatchSynchronized":  true,
+                       "phaseStructurePatchSynchronized":  true,
+                       "exteriorPatchSynchronized":  true,
+                       "independentPhaseModelProved":  true,
+                       "independentPhaseStructureProved":  true,
+                       "independentExteriorGaugeInvarianceProved":  true,
+                       "standardAxiomsOnlyForSixTargets":  true,
+                       "externalSourceModified":  false,
+                       "downstreamIntegrationRun":  false
+                   },
+    "boundaries":  [
+                       "This script audits independent models only; the patched-connection downstream integration has a separate entry point.",
+                       "Splitting verification avoids repeated compilation and does not weaken any target or allow new axioms.",
+                       "General differential forms, multivalued phase winding and the full Lake project remain outside this claim."
+                   ]
+}

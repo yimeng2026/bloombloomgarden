@@ -6,6 +6,8 @@
 
 **范围**：旧 BerryPhase 结构与实际区间积分的连接，不是一般二维线积分或多值相位绕数理论
 
+> 本文记录十六目标、schemaVersion 5 批次的历史证据。后续外微分公理已清偿；当前采用六目标独立审计与十八目标下游集成两条入口，报告为 schemaVersion 6，见 `BERRY_EXTERIOR_DERIVATIVE_LEAN_AUDIT_2026-11-08.md`。
+
 ## 1. 结构修复
 
 旧 `BerryPhase` 只有 `definition : Prop`，没有说明 `phase` 与路径积分的关系。精炼结构现包含：
