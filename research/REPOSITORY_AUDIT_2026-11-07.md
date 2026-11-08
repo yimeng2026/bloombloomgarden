@@ -341,3 +341,18 @@
 - 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
 - 执行 `python -m unittest discover -s research/physical-intuition/zero-cdm/tests -v && python -m unittest scripts/test_prepare_first_chern_invariance_patch.py scripts/test_prepare_total_chern_number_patch.py -v`，实际退出码为 0；零模型 33 项和补丁生成器 2 项测试全部通过。
 - Lean 完整命令、12 个阶段及七条公理原文见总陈数专门审计。本轮只完成条件零和代数清偿，物理满带完备性、投影几何、其他占位和全库 Lake 构建仍开放。
+
+
+## 29. Berry 曲率与陈数补丁链集成回归
+
+- 实际按二维规范不变性→三维规范不变性→陈数结构与连续整数不变性→总陈数的顺序，从两份原始源文件应用四份既有补丁。初次失败仅是临时目录漏放三维源文件；补齐后无文本冲突，联合编译也无实例或命名冲突。
+- 新增 `prepare_berry_curvature_integration.py` 与真实源码回归测试，固定补丁顺序、记录逐补丁哈希并拒绝输出到外部 SYLVA 源树。Windows 文本换行导致的哈希测试问题已改为直接读取字节计算。
+- 新增 `verify-berry-curvature-integration-lean.ps1`，重新编译 BlochTheorem、BerryConnection、二维／陈数合并文件和三维文件，再审计七个目标。完整复现退出码为 0，六个阶段全部为 0，七条公理输出均只有 `propext、Classical.choice、Quot.sound`。
+- 没有发现需要改写的重叠补丁，因此未制造新的重复组合补丁。证据见 `research/formalization/BERRY_CURVATURE_INTEGRATION_LEAN_AUDIT_2026-11-08.md` 和 `berry-curvature-integration-lean-audit.json`。外部源树未修改，其他占位和物理开放项不由集成通过自动清偿。
+
+## 30. 曲率集成提交前回归
+
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 执行 `python -m unittest discover -s research/physical-intuition/zero-cdm/tests -v` 以及三项形式化工具测试，实际退出码均为 0；零模型 33 项、陈数补丁生成器 2 项和真实源码集成 1 项全部通过。
+- Lean 集成完整命令、六阶段结果和七条公理原文见专门审计。本轮完成的是既有证明的组合回归，不宣称全库 Lake、物理满带或一般能隙微扰已经完成。
