@@ -356,3 +356,19 @@
 - 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
 - 执行 `python -m unittest discover -s research/physical-intuition/zero-cdm/tests -v` 以及三项形式化工具测试，实际退出码均为 0；零模型 33 项、陈数补丁生成器 2 项和真实源码集成 1 项全部通过。
 - Lean 集成完整命令、六阶段结果和七条公理原文见专门审计。本轮完成的是既有证明的组合回归，不宣称全库 Lake、物理满带或一般能隙微扰已经完成。
+
+
+## 31. BerryConnection 与 BerryCurvature 全链集成
+
+- 集成准备器扩展为三份原始源文件和七份补丁：联络恒等、复合、一般规范律，再接二维、三维、陈数不变性和总陈数。测试先因旧准备器只有四份曲率补丁而失败，扩展后转绿。
+- 七份补丁均通过顺序 `git apply --check` 和实际应用。`BerryConnection.olean` 现由修补后的联络源码生成，`BerryCurvature` 在同一环境下链接该版本；不再把原始联络依赖误当成全链集成。
+- 一键复现退出码为 0，六阶段全部通过。十条公理输出均只有 `propext、Classical.choice、Quot.sound`，无 `sorryAx` 或目标上的新增公理。
+- 结构化报告升级为 schemaVersion 2，记录三份原始源文件、三份修补后源文件、七份补丁和三个编译输出的哈希。旧四补丁审计已标注为历史版本，当前证据见 `research/formalization/BERRY_CONNECTION_CURVATURE_INTEGRATION_LEAN_AUDIT_2026-11-08.md`。
+- 未创建重复全链补丁，外部源树未修改。全链通过不增加物理结论，其他占位、一般 Bloch 映射、完整外微分、能隙微扰、物理满带和全库 Lake 仍开放。
+
+## 32. 全链集成提交前回归
+
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 零模型 33 项测试通过；陈数补丁生成器 2 项及真实源码全链集成 1 项测试通过，相关 Python 命令实际退出码均为 0。
+- Lean 全链完整命令、六阶段结果和十条公理原文见全链专门审计。本轮完成联络层到曲率层的组合复验，不宣称其他形式化或物理开放项已经完成。

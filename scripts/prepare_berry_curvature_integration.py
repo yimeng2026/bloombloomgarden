@@ -1,4 +1,4 @@
-"""Prepare one read-only-source integration of the existing Berry-curvature patches."""
+"""Prepare one read-only-source integration of the Berry connection and curvature patches."""
 
 import argparse
 import hashlib
@@ -9,6 +9,9 @@ import subprocess
 
 
 PATCHES = [
+    "berry-connection-gauge-identity.patch",
+    "berry-connection-gauge-composition.patch",
+    "berry-connection-gauge-law.patch",
     "berry-curvature-gauge-invariance.patch",
     "berry-curvature-gauge-invariance-3d.patch",
     "first-chern-invariance.patch",
@@ -35,6 +38,7 @@ def run_all_tests():
         raise ValueError("The integration output cannot modify the external SYLVA source tree")
 
     originals = {
+        "BerryConnection.lean": source_root / "BerryConnection.lean",
         "BerryCurvature.lean": source_root / "BerryCurvature.lean",
         "TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean": source_root / "TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean",
     }
@@ -67,6 +71,7 @@ def run_all_tests():
         "patches": PATCHES,
         "stages": stages,
         "originalSha256": original_hashes,
+        "connectionSha256": sha256(output / "BerryConnection.lean"),
         "mainSha256": sha256(output / "BerryCurvature.lean"),
         "threeDSha256": sha256(output / "TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean"),
         "externalSourceModified": False,

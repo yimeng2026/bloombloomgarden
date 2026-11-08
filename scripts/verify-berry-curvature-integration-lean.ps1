@@ -43,7 +43,6 @@ function run_all_tests {
   $prepareReport = $prepareText | ConvertFrom-Json
 
   Copy-Item -Force -Path (Join-Path $SylvaRoot 'BlochTheorem.lean') -Destination (Join-Path $OutputDirectory 'BlochTheorem.lean')
-  Copy-Item -Force -Path (Join-Path $SylvaRoot 'BerryConnection.lean') -Destination (Join-Path $OutputDirectory 'BerryConnection.lean')
   $paths = @($OutputDirectory, (Join-Path $SylvaRoot '.lake/build/lib/lean'))
   foreach ($package in @('mathlib', 'plausible', 'LeanSearchClient', 'importGraph', 'proofwidgets', 'aesop', 'Qq', 'batteries', 'Cli')) {
     $directory = Join-Path $SylvaRoot ".lake/packages/$package/.lake/build/lib/lean"
@@ -56,8 +55,8 @@ function run_all_tests {
   $stages.bloch = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BlochTheorem.olean'), (Join-Path $OutputDirectory 'BlochTheorem.lean')) -LogPath $blochLog
   Assert-LeanSuccess $stages.bloch $blochLog 'integration BlochTheorem'
   $connectionLog = Join-Path $OutputDirectory 'integration-connection.log'
-  $stages.connection = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryConnection.olean'), (Join-Path $OutputDirectory 'BerryConnection.lean')) -LogPath $connectionLog
-  Assert-LeanSuccess $stages.connection $connectionLog 'integration BerryConnection'
+  $stages.connection = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryConnection.olean'), (Join-Path $applyRoot 'BerryConnection.lean')) -LogPath $connectionLog
+  Assert-LeanSuccess $stages.connection $connectionLog 'patched BerryConnection'
   $mainLog = Join-Path $OutputDirectory 'integration-main.log'
   $stages.main = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryCurvature.olean'), (Join-Path $applyRoot 'BerryCurvature.lean')) -LogPath $mainLog
   Assert-LeanSuccess $stages.main $mainLog 'integrated 2D and Chern BerryCurvature'
@@ -71,6 +70,9 @@ function run_all_tests {
     'import BerryCurvature',
     'import BerryCurvatureGaugeInvariance3D',
     '',
+    '#print axioms BerryConnection.BerryConnection_GaugeTransformationIdentity',
+    '#print axioms BerryConnection.BerryConnection_GaugeTransformComposition',
+    '#print axioms BerryConnection.BerryConnection_GaugeTransformationLaw',
     '#print axioms BerryCurvature.BerryCurvature_GaugeInvariance',
     '#print axioms BerryCurvature.FirstChernNumber_Integrality',
     '#print axioms BerryCurvature.FirstChernNumber_TopologicalInvariance',
@@ -80,9 +82,9 @@ function run_all_tests {
     '#print axioms BerryCurvature_gauge_invariance'
   )
   $stages.axiomAudit = Invoke-NativeLean -Executable $lean -Arguments @($auditSource) -LogPath $auditLog
-  Assert-LeanSuccess $stages.axiomAudit $auditLog 'integrated seven-target axiom audit'
+  Assert-LeanSuccess $stages.axiomAudit $auditLog 'integrated ten-target axiom audit'
   $auditText = [regex]::Replace((Get-Content -Raw -Path $auditLog).Trim(), '\s+', ' ')
-  foreach ($name in @('BerryCurvature.BerryCurvature_GaugeInvariance', 'BerryCurvature.FirstChernNumber_Integrality', 'BerryCurvature.FirstChernNumber_TopologicalInvariance', 'BerryCurvature.TotalChernNumber_FullBandVanishing', 'curl_linear_subtraction', 'curl_of_gradient_zero', 'BerryCurvature_gauge_invariance')) {
+  foreach ($name in @('BerryConnection.BerryConnection_GaugeTransformationIdentity', 'BerryConnection.BerryConnection_GaugeTransformComposition', 'BerryConnection.BerryConnection_GaugeTransformationLaw', 'BerryCurvature.BerryCurvature_GaugeInvariance', 'BerryCurvature.FirstChernNumber_Integrality', 'BerryCurvature.FirstChernNumber_TopologicalInvariance', 'BerryCurvature.TotalChernNumber_FullBandVanishing', 'curl_linear_subtraction', 'curl_of_gradient_zero', 'BerryCurvature_gauge_invariance')) {
     if (-not $auditText.Contains("'${name}' depends on axioms: [propext, Classical.choice, Quot.sound]")) {
       throw "Unexpected integrated axiom dependencies for ${name}: $auditText"
     }
@@ -90,14 +92,15 @@ function run_all_tests {
   if ($auditText.Contains('sorryAx')) { throw "sorryAx in integrated audit: $auditText" }
 
   $report = [ordered]@{
-    schemaVersion = 1
+    schemaVersion = 2
     status = 'success'
-    scope = 'Sequential application and joint compilation of the existing 2D, 3D, Chern-invariance and total-Chern patches; no new physics claim'
+    scope = 'Sequential application and joint compilation of seven connection, 2D, 3D, Chern-invariance and total-Chern patches; no new physics claim'
     source = [ordered]@{
       repository = 'TOE-SYLVA-pull'
       root = $SylvaRoot
       commit = (git -C (Split-Path -Parent $SylvaRoot) rev-parse HEAD).Trim()
       originalSha256 = $prepareReport.originalSha256
+      preparedConnectionSha256 = $prepareReport.connectionSha256
       preparedMainSha256 = $prepareReport.mainSha256
       prepared3DSha256 = $prepareReport.threeDSha256
       patches = $prepareReport.stages
@@ -105,6 +108,7 @@ function run_all_tests {
     }
     build = [ordered]@{
       stages = $stages
+      connectionOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BerryConnection.olean')).Hash.ToLowerInvariant()
       mainOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BerryCurvature.olean')).Hash.ToLowerInvariant()
       threeDOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BerryCurvatureGaugeInvariance3D.olean')).Hash.ToLowerInvariant()
       warningsPreserved = $true
@@ -114,7 +118,8 @@ function run_all_tests {
       integrationUnitTestPassed = $true
       sequentialPatchApplication = $true
       combinedBuildSucceeded = $true
-      standardAxiomsOnlyForSevenTargets = $true
+      patchedConnectionUsedByCurvature = $true
+      standardAxiomsOnlyForTenTargets = $true
       newCombinedPatchCreated = $false
       forbiddenPlaceholderOrNewAxiomInTargets = $false
       externalSourceModified = $false
@@ -122,7 +127,8 @@ function run_all_tests {
     }
     boundaries = @(
       'This verifies integration of existing patches; it does not add another duplicate combined patch.',
-      'The seven audited targets use only the standard axioms; unrelated placeholders in the original files remain outside this claim.',
+      'BerryCurvature is compiled against the patched BerryConnection, not the original dependency.',
+      'The ten audited targets use only the standard axioms; unrelated placeholders in the original files remain outside this claim.',
       'Conditional Chern invariance and zero-sum hypotheses are not gap-preserving perturbation or completeness-based full-band proofs.',
       'The external TOE-SYLVA source tree is only read; the full Lake project is not built by this script.'
     )

@@ -1,18 +1,35 @@
 ﻿{
-    "schemaVersion":  1,
+    "schemaVersion":  2,
     "status":  "success",
-    "scope":  "Sequential application and joint compilation of the existing 2D, 3D, Chern-invariance and total-Chern patches; no new physics claim",
+    "scope":  "Sequential application and joint compilation of seven connection, 2D, 3D, Chern-invariance and total-Chern patches; no new physics claim",
     "source":  {
                    "repository":  "TOE-SYLVA-pull",
                    "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
                    "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
                    "originalSha256":  {
+                                          "BerryConnection.lean":  "2e0066e9063e3639ba16ce6105aaf965685e54a7a7c12f6ebef55ae6c5fc0ee8",
                                           "BerryCurvature.lean":  "de9bcbd15cecc346b2a9135b8b44cb21cc3db4422775506d08928b94a8f5958d",
                                           "TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean":  "902c7e400e061bbac6d9c2955b463ba6adca4b3e12bd98e3b117524432df62c8"
                                       },
+                   "preparedConnectionSha256":  "1f8f1db13fe48008e2c573f59978a2bff8abe8236210a7897cfc436f9ebf9667",
                    "preparedMainSha256":  "718222984706149232a79d89a0314d204c9718755c0c62524f7f5afad450b8ac",
                    "prepared3DSha256":  "ac521197cdf7e618d0fb6c11f8dff7d6635218b355b252830acb788717273531",
                    "patches":  [
+                                   {
+                                       "patch":  "berry-connection-gauge-identity.patch",
+                                       "exitCode":  0,
+                                       "sha256":  "db48059861fe07bfa0f1e39f93f475969a0056463e80db99cb243e0a639ccaea"
+                                   },
+                                   {
+                                       "patch":  "berry-connection-gauge-composition.patch",
+                                       "exitCode":  0,
+                                       "sha256":  "ad26ae3efbf610a93651dcaff2e5b2453120ac687d9886b5c299dcd30ea0b64f"
+                                   },
+                                   {
+                                       "patch":  "berry-connection-gauge-law.patch",
+                                       "exitCode":  0,
+                                       "sha256":  "f399c3c7b2fb2fc9c033fde66b107012453a13975d1fa7ed9f8ebf604f9042c0"
+                                   },
                                    {
                                        "patch":  "berry-curvature-gauge-invariance.patch",
                                        "exitCode":  0,
@@ -45,16 +62,18 @@
                                  "threeD":  0,
                                  "axiomAudit":  0
                              },
-                  "mainOutputSha256":  "4d7cdfa35fac84a22f781ff271e6bd8bcc81d1aebe5aafe2532468ab08ff6c27",
-                  "threeDOutputSha256":  "45a45689878c02964d71a9dfdfa3a7bbc972b4f80405045a34c09a6f3751d0a6",
+                  "connectionOutputSha256":  "af3e53ed502400581f7a1b020fe33835787e493e674efd382593cb190c7b26dd",
+                  "mainOutputSha256":  "11a02239788b0ab4eaf36b3e5ff52cf478819a21aa5c43f9fff51e851875f644",
+                  "threeDOutputSha256":  "73a6ec848ca0b123fc8f8210d845d17661ef1d1eadd509480bdfb02a463ae682",
                   "warningsPreserved":  true
               },
-    "axiomAudit":  "\u0027BerryCurvature.BerryCurvature_GaugeInvariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.FirstChernNumber_Integrality\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.FirstChernNumber_TopologicalInvariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.TotalChernNumber_FullBandVanishing\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027curl_linear_subtraction\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027curl_of_gradient_zero\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature_gauge_invariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+    "axiomAudit":  "\u0027BerryConnection.BerryConnection_GaugeTransformationIdentity\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.BerryConnection_GaugeTransformComposition\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.BerryConnection_GaugeTransformationLaw\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.BerryCurvature_GaugeInvariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.FirstChernNumber_Integrality\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.FirstChernNumber_TopologicalInvariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.TotalChernNumber_FullBandVanishing\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027curl_linear_subtraction\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027curl_of_gradient_zero\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature_gauge_invariance\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
     "validation":  {
                        "integrationUnitTestPassed":  true,
                        "sequentialPatchApplication":  true,
                        "combinedBuildSucceeded":  true,
-                       "standardAxiomsOnlyForSevenTargets":  true,
+                       "patchedConnectionUsedByCurvature":  true,
+                       "standardAxiomsOnlyForTenTargets":  true,
                        "newCombinedPatchCreated":  false,
                        "forbiddenPlaceholderOrNewAxiomInTargets":  false,
                        "externalSourceModified":  false,
@@ -62,7 +81,8 @@
                    },
     "boundaries":  [
                        "This verifies integration of existing patches; it does not add another duplicate combined patch.",
-                       "The seven audited targets use only the standard axioms; unrelated placeholders in the original files remain outside this claim.",
+                       "BerryCurvature is compiled against the patched BerryConnection, not the original dependency.",
+                       "The ten audited targets use only the standard axioms; unrelated placeholders in the original files remain outside this claim.",
                        "Conditional Chern invariance and zero-sum hypotheses are not gap-preserving perturbation or completeness-based full-band proofs.",
                        "The external TOE-SYLVA source tree is only read; the full Lake project is not built by this script."
                    ]
