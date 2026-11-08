@@ -1,0 +1,99 @@
+--- a/BerryCurvature.lean
++++ b/BerryCurvature.lean
+@@ -41,46 +41,60 @@
+ -- Section 1: Berry 曲率的定义
+ -- ============================================
+ 
+-/-- Berry 曲率（Abel 版本）：
+-    Ω_{μν}(k) = ∂_μ A_ν(k) - ∂_ν A_μ(k)
+-    
+-    在 2D 动量空间中，独立的曲率分量只有一个：
+-    Ω_{xy}(k) = ∂_x A_y(k) - ∂_y A_x(k)
+-    
+-    物理意义：
+-    - Ω_{xy}(k) 是 k 空间中的 "磁场"（类比电磁学）
+-    - A_μ(k) 是 "矢势"，Ω_{xy}(k) 是 "磁场强度"
+-    - 在 k 空间中，"磁通"就是 Berry 曲率在 BZ 上的积分
+-    
+-    数学上，Berry 曲率是联络 1-形式 A = A_μ dk^μ 的外微分：
+-    Ω = dA = (∂_μ A_ν) dk^μ ∧ dk^ν = (1/2)(∂_μ A_ν - ∂_ν A_μ) dk^μ ∧ dk^ν
+-    
+-    在 2D 中：Ω = Ω_{xy} dk_x ∧ dk_y。
+-    
+-    关键性质：规范不变性。
+-    在规范变换 A → A + dθ 下：
+-    Ω' = d(A + dθ) = dA + d²θ = dA = Ω（因为 d² = 0）。
+-    
+-    因此 Berry 曲率是物理可观测量！
+-    
+-    开放问题：需要形式化外微分 d 和楔积 ∧。
+-    在 Mathlib 中，`ExteriorAlgebra` 和微分几何工具有相关定义。 -/
++/-- **定义**：由旧 Berry 联络的复值分量计算实际曲率。
++
++**证明思路**：对索引 1 的分量沿 x、索引 0 的分量沿 y 取 Fréchet 导数并相减。
++
++**物理意义**：给出二维 Berry 曲率的实际计算对象。 -/
++noncomputable def curvatureXYFromBerryConnection
++    (A : BerryConnection.BerryConnection L) (k : BlochTheorem.CrystalMomentum2D) : ℂ :=
++  fderiv ℝ (fun k' => A.connection k' 1) k BerryConnection.realDirectionX
++    - fderiv ℝ (fun k' => A.connection k' 0) k BerryConnection.realDirectionY
++
++/-- **定义**：带实际曲率定义等式的 Berry 曲率模型。
++
++**证明思路**：以 `definition` 约束曲率字段等于联络分量的方向导数反对称差。
++
++**物理意义**：消除曲率函数与联络导数之间无约束的 Prop。 -/
+ structure BerryCurvature (L : BlochTheorem.Lattice2D) where
+-  /-- 能带指标 -/
++  /-- 能带指标。 -/
+   n : BlochTheorem.BandIndex
+-  /-- Berry 联络（前置层 L2）-/
++  /-- 产生曲率的旧 Berry 联络。 -/
+   berryConnection : BerryConnection.BerryConnection L
+-  /-- Berry 曲率分量：Ω_{xy}(k)。
+-      在 2D 中，这是唯一的独立分量。 -/
++  /-- 曲率的复值二维分量。 -/
+   curvatureXY : BlochTheorem.CrystalMomentum2D → ℂ
+-  /-- 定义：Ω_{xy}(k) = ∂_x A_y(k) - ∂_y A_x(k)
+-      
+-      这里 ∂_x A_y 表示 A_y 对 k_x 的偏导数。
+-      在 Lean 中，使用 `fderiv` 或 `deriv` 定义偏导。
+-      
+-      开放问题：需要确认 `fderiv` 在复值函数上的适用性。
+-      或者使用实部和虚部分别求导。 -/
+-  definition : Prop
++  /-- 曲率字段等于联络分量的实际方向导数反对称差。 -/
++  definition : curvatureXY = fun k => curvatureXYFromBerryConnection berryConnection k
++
++/-- **定义**：用于零曲率实例的零联络记录。
++
++**证明思路**：波函数和联络分量显式置零，旧 Prop 仅保留为记录字段。
++
++**物理意义**：提供可计算的零联络输入。 -/
++noncomputable def zeroBerryConnectionRecord : BerryConnection.BerryConnection L where
++  n := (0 : ℕ)
++  state := {
++    n := (0 : ℕ)
++    wavefunction := fun _ _ => 0
++    periodicity := True
++    normalization := True
++  }
++  connection := fun _ _ => 0
++  definition := True
++
++/-- **定义**：零联络产生的零曲率模型实例。
++
++**证明思路**：展开实际曲率和零联络，以零函数导数证明定义等式。
++
++**物理意义**：验证精炼结构可以实际实例化。 -/
++noncomputable def zeroBerryCurvatureModel : BerryCurvature (L := L) where
++  n := (0 : ℕ)
++  berryConnection := zeroBerryConnectionRecord (L := L)
++  curvatureXY := fun _ => 0
++  definition := by
++    funext k
++    simp [curvatureXYFromBerryConnection, zeroBerryConnectionRecord]
++
+ 
+ -- ============================================
+ -- Section 2: Berry 曲率的规范不变性

@@ -6,6 +6,8 @@
 
 **范围**：二维复值外微分分量与 `C²` 规范不变性，不是完整微分形式或 de Rham 上同调
 
+> 本文记录外微分、schemaVersion 6 批次的历史证据。后续 `BerryCurvature.definition : Prop` 已精炼为实际导数等式；当前为八目标独立审计和二十目标下游集成，报告为 schemaVersion 7，见 `BERRY_CURVATURE_MODEL_LEAN_AUDIT_2026-11-08.md`。
+
 ## 1. 定义与真实定理
 
 `exteriorDerivativeOfBerryConnection` 现为可计算定义：

@@ -436,3 +436,19 @@
 - 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
 - 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
 - 零模型 33 项及形式化工具 6 项测试全部通过，相关 Python 命令实际退出码为 0。两条 Lean 命令、阶段结果和公理原文见外微分专门审计。
+
+
+## 41. BerryCurvature 实际定义与零实例
+
+- 旧 `BerryCurvature.definition : Prop` 已精炼为曲率字段与联络复值分量方向导数反对称差的等式，统一联络外微分和曲率记录。索引 0、1 分量分别对应 x、y。
+- 新增零联络和 `zeroBerryCurvatureModel`，候选 `rfl` 先失败后由零函数导数化简完成，验证精炼结构可实际实例化。独立模型、补丁定义和零实例均只依赖 `propext、Classical.choice、Quot.sound`，陈数整数性保持兼容。
+- 新增 99 行增量补丁，输入 492 行，最终 506 行。生成器限制结构名替换范围，避免误改 `zeroBerryCurvatureModel`。
+- 独立入口扩展为八目标、十六阶段，实际退出码为 0，耗时 229.776 秒；下游扩展为二十目标、十二阶段，实际退出码为 0，耗时 161.338 秒。两项报告分别为 schemaVersion 2 和 7。
+- 证据见 `research/formalization/BERRY_CURVATURE_MODEL_LEAN_AUDIT_2026-11-08.md`、`berry-independent-models-lean-audit.json` 和 `berry-curvature-integration-lean-audit.json`。完整微分形式、陈类、一般规范微扰、物理满带和全库 Lake 仍开放，外部源树未修改。
+
+## 42. 曲率定义提交前回归
+
+- 五项补丁测试通过；独立八目标和下游二十目标均只有标准三公理。曲率补丁同步、实际应用一致性及零实例审计均通过。
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 零模型 33 项及形式化工具 7 项测试全部通过，相关 Python 命令实际退出码为 0。两条 Lean 命令、阶段结果和公理原文见曲率定义专门审计。
