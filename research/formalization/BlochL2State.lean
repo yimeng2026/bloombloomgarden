@@ -36,7 +36,7 @@ open Real Complex Set MeasureTheory intervalIntegral
 **证明思路**：由定义相等直接委托积实空间的 Borel 可测结构。
 
 **物理意义**：允许对 Bloch 波函数使用测度、积分和 L2 空间。 -/
-local instance : MeasurableSpace BlochTheorem.Position2D :=
+instance : MeasurableSpace BlochTheorem.Position2D :=
   inferInstanceAs (MeasurableSpace (ℝ × ℝ))
 
 variable {L : BlochTheorem.Lattice2D}

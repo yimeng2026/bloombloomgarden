@@ -57,3 +57,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-bloch-l2-stat
 ## 5. 交付与边界
 
 交付 `BlochL2State.lean`、可复现脚本和 `bloch-l2-state-lean-audit.json`。旧 Bloch 态的归一化构造、具体测度选择、周期性、其他占位和全库 Lake 构建仍未宣称完成。外部 TOE-SYLVA 项目只读，未回写。
+
+
+## 6. 具体实例补充
+
+后续 `BLOCH_L2_INSTANCE_LEAN_AUDIT_2026-11-08.md` 已用 Dirac 测度和常值波函数实际构造 `constantBlochL2State`。归一化由 `L2.inner_def` 和实际积分计算给出，旧态一致性与实例规范律均通过公理审计，证明 L2 精炼结构可实际实例化并可进入规范理论。

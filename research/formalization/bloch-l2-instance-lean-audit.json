@@ -1,0 +1,48 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "Concrete normalized Bloch L2 state with Dirac measure, coherence and gauge law; not a general Brillouin-zone measure model",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "proofFile":  "research/formalization/BlochL2ConstantInstance.lean",
+                   "proofSha256":  "bf250e7beaf40c472fdaadc91c164ce99c1c544ffc326398a838e6e60f668a60",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "stages":  {
+                                 "bloch":  0,
+                                 "connection":  0,
+                                 "identity":  0,
+                                 "law":  0,
+                                 "l2":  0,
+                                 "instance":  0,
+                                 "audit":  0
+                             },
+                  "outputSha256":  "d1b72bdbf8d83f31ab2a5611344cfdbf5f350f152cd134b67f861097fbba27a9",
+                  "warningsPreserved":  true
+              },
+    "axiomAudit":  {
+                       "exitCode":  0,
+                       "output":  "\u0027BerryConnection.constantBlochL2State\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.constantBlochL2State_gauge_law\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\bloch-l2-instance-verification\\constant-instance-axioms.log"
+                   },
+    "validation":  {
+                       "concreteInstanceConstructed":  true,
+                       "coherentMappingProved":  true,
+                       "normalizationIntegralComputed":  true,
+                       "oldPropUsedAsProof":  false,
+                       "fullOldStateNormalizationFromProp":  false,
+                       "diracIsGeneralBrillouinZoneMeasure":  false,
+                       "forbiddenPlaceholderOrNewAxiom":  false,
+                       "externalSourceModified":  false
+                   },
+    "boundaries":  [
+                       "The instance uses a constant wavefunction and Dirac measure so normalization is computed directly.",
+                       "The old normalization Prop is not used as the proof; L2.inner_def and the actual Dirac integral provide normalization.",
+                       "The result does not construct a physical Brillouin-zone measure or a general Bloch L2 state from old sources.",
+                       "Other placeholders and the full old-source Bloch L2 construction remain open.",
+                       "The external TOE-SYLVA source tree is only read; all build products stay in OutputDirectory."
+                   ]
+}

@@ -278,3 +278,18 @@
 - L2 精炼复现脚本退出码为 0；旧依赖、共享恒等、一般规范律、L2 结构、积分归一化和两条公理审计全部通过。
 - 根平台 113 项、后端 12 项、零模型 33 项测试全部通过；两端 lint 均为 0 错误、0 警告，Next standalone 与 Express 构建通过。
 - 常见密钥模式扫描无命中。外部源树未修改；从旧源码完整构造 Bloch L2 态、具体测度和其他占位仍开放。
+
+
+## 21. 具体归一化 Bloch L2 实例
+
+- 新增 `constantBlochL2State`：Dirac 测度下的常值旧态与 L2 向量，几乎处处一致性由 `MemLp.coeFn_toLp` 证明，归一化由 `L2.inner_def` 和实际积分计算为 1，旧 `normalization : Prop` 未被当作证明。
+- `constantBlochL2State_gauge_law` 以命名测度参数把实例代入 L2 规范律，验证旧态→L2 向量→归一化→规范律的完整链路。
+- 实例与规范律均编译成功，公理输出均只有 `propext、Classical.choice、Quot.sound`。最终复现脚本退出码 0，结构化证据为 `bloch-l2-instance-lean-audit.json`。
+- 外部源树未修改。Dirac 测度仅作可计算验证用例，不是一般布里渊区测度；从旧源码构造一般 Bloch L2 态和其他占位仍开放。
+
+
+## 22. 具体 L2 实例提交前回归
+
+- 具体实例复现脚本退出码为 0；旧依赖、共享恒等、一般规范律、L2 精炼、Dirac 实例和两条公理审计全部通过。
+- 根平台 113 项、后端 12 项、零模型 33 项测试全部通过；两端 lint 均为 0 错误、0 警告，Next standalone 与 Express 构建通过。
+- 常见密钥模式扫描无命中。外部源树未修改；一般布里渊区测度、从旧源码构造一般 Bloch L2 态和其他占位仍开放。
