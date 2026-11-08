@@ -1,0 +1,54 @@
+﻿{
+    "schemaVersion":  1,
+    "status":  "success",
+    "scope":  "Integral-to-integer First Chern model, zero-curvature instance and a narrow structural patch; not a general topological integrality proof",
+    "source":  {
+                   "repository":  "TOE-SYLVA-pull",
+                   "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
+                   "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "originalFile":  "BerryCurvature.lean",
+                   "originalSha256":  "de9bcbd15cecc346b2a9135b8b44cb21cc3db4422775506d08928b94a8f5958d",
+                   "proofFile":  "research/formalization/FirstChernNumberModel.lean",
+                   "proofSha256":  "945b0b5705077712b7c54b20e18e51e71b74a27ee6bdeb887368c6b2e05e2af1",
+                   "patchFile":  "research/formalization/first-chern-number.patch",
+                   "patchSha256":  "d5fa7194fa49e5e0ab680578867b23f6d667e11777448294152de63e9b2deaa7",
+                   "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
+               },
+    "build":  {
+                  "stages":  {
+                                 "bloch":  0,
+                                 "connection":  0,
+                                 "identity":  0,
+                                 "law":  0,
+                                 "l2":  0,
+                                 "originalCurvature":  0,
+                                 "model":  0,
+                                 "standaloneAudit":  0,
+                                 "patched":  0,
+                                 "patchedAudit":  0
+                             },
+                  "modelOutputSha256":  "c967947c3f69405481137bf2b2cf9a71d61d9501efa26272242a7cbef80573e3",
+                  "patchedOutputSha256":  "9f1b1eb26931cdbd30f64ab3e8d7efaa7ca448f18dad96cc37a1bd7bdedc1700",
+                  "warningsPreserved":  true
+              },
+    "axiomAudit":  {
+                       "model":  "\u0027BerryCurvature.FirstChernNumber_Integrality_model\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryCurvature.zeroFirstChernNumberModel\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
+                       "patched":  "\u0027BerryCurvature.FirstChernNumber_Integrality\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]"
+                   },
+    "validation":  {
+                       "patchSynchronized":  true,
+                       "patchApplicationMatchesGenerated":  true,
+                       "integralToIntegerDefinitionPresent":  true,
+                       "zeroCurvatureInstanceConstructed":  true,
+                       "generalTopologicalIntegralityProved":  false,
+                       "forbiddenPlaceholderOrNewAxiom":  false,
+                       "externalSourceModified":  false,
+                       "fullProjectBuilt":  false
+                   },
+    "boundaries":  [
+                       "The model makes the measure and integral-to-integer equation explicit; it does not derive general Chern integrality from arbitrary curvature data.",
+                       "The zero-curvature instance is a computable example, not a proof of the general topological theorem.",
+                       "curvatureIntegral is declared before FirstChernNumber to avoid forward references.",
+                       "Other placeholders and general topological invariance remain open; the external TOE-SYLVA source tree is only read."
+                   ]
+}

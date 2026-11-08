@@ -1,0 +1,174 @@
+--- a/BerryCurvature.lean
++++ b/BerryCurvature.lean
+@@ -30,6 +30,9 @@
+ import BerryConnection
+ 
+ namespace BerryCurvature
++
++instance : MeasurableSpace BlochTheorem.Position2D :=
++  inferInstanceAs (MeasurableSpace (ℝ × ℝ))
+ 
+ open Real Complex Set MeasureTheory intervalIntegral
+ 
+@@ -193,124 +196,53 @@
+ -- Section 4: 第一陈数的定义
+ -- ============================================
+ 
+-/-- 第一陈数（First Chern Number）：
+-    C_n = (1/2π) ∫_{BZ} Ω_{xy}(k) d²k
+-    
+-    其中 BZ 是布里渊区（第一布里渊区），在拓扑上等价于环面 T²。
+-    
+-    物理意义：
+-    - C_n 是 Berry 曲率在 BZ 上的 "总磁通量"
+-    - 类比：如果 Ω_{xy} 是 k 空间的磁场，C_n 就是通过 T² 的磁通
+-    - 由于 T² 是闭合曲面（无边界），根据 Gauss-Bonnet 定理的推广，
+-      总磁通量必须是 2π 的整数倍：C_n ∈ ℤ
+-    
+-    数学证明思路（de Rham 上同调）：
+-    1. Ω_{xy} 是 T² 上的闭 2-形式：dΩ = 0（由定义 dΩ = d(dA) = d²A = 0）
+-    2. T² 的第二 de Rham 上同调群 H²_{dR}(T²) ≅ ℝ
+-    3. 积分映射 ∫ : H²_{dR}(T²) → ℝ 是一个同构
+-    4. 但 T² 不是单连通的，其基本群 π₁(T²) = ℤ × ℤ
+-    5. 由于 A 在 T² 上可能不是全局定义的（可能有 Dirac 弦），
+-       C_n 的量子化需要更精细的分析
+-    6. 实际上，由主丛的拓扑分类，U(1) 丛在 T² 上的分类是 H²(T², ℤ) = ℤ
+-    7. 第一陈数就是这个整数分类！
+-    
+-    开放问题：需要形式化：
+-    1. T² 上的积分理论（使用 `MeasureTheory`）
+-    2. de Rham 上同调与整系数的同调关系
+-    3. 陈类的公理化定义（c₁(E) ∈ H²(M, ℤ)）
+-    
+-    在 Mathlib 中，`MeasureTheory` 提供了 Lebesgue 积分，
+-    `IntervalIntegral` 提供了一维参数化积分。 -/
++-- First Chern number with an explicit integral-to-integer definition.
++
++/-- **定义**：测度 `μ` 下 Berry 曲率实部的积分。
++
++**证明思路**：直接对 `Ω.curvatureXY` 的实部使用 Bochner 积分。
++
++**物理意义**：提供陈数公式中曲率通量的实际计算对象，而不是脱离积分的整数字段。 -/
++noncomputable def curvatureIntegral
++    (μ : Measure BlochTheorem.Position2D) (Ω : BerryCurvature L) : ℝ :=
++  ∫ k, (Ω.curvatureXY k).re ∂μ
++
++/-- **定义**：带积分—整数定义关系的第一陈数模型。
++
++**证明思路**：除曲率和布里渊区外，显式提供测度 `measure`、整数值 `value`，
++以及 `(1/2π)∫Ω = value` 的等式。该等式是证据要求，不是拓扑定理的自动推论。
++
++**物理意义**：把陈数的整数值与其曲率通量联系起来，同时保留一般拓扑证明所需的其他输入。 -/
+ structure FirstChernNumber (L : BlochTheorem.Lattice2D) where
+-  /-- 能带指标 -/
++  /-- 能带指标。 -/
+   n : BlochTheorem.BandIndex
+-  /-- Berry 曲率（前置层 L3）-/
++  /-- Berry 曲率。 -/
+   berryCurvature : BerryCurvature L
+-  /-- 布里渊区（用于定义积分域）-/
++  /-- 布里渊区。 -/
+   brillouinZone : BlochTheorem.BrillouinZone2D L
+-  /-- 第一陈数：C_n ∈ ℤ
+-      
+-      定义：C_n = (1/2π) ∫_{BZ} Ω_{xy}(k) d²k
+-      
+-      在 Lean 中，这个积分使用 `MeasureTheory` 的积分定义：
+-      ∫_BZ f dμ，其中 μ 是 BZ 上的 Lebesgue 测度。
+-      
+-      对于矩形 BZ：[-π/a, π/a] × [-π/a, π/a]，
+-      积分是 ∫_{-π/a}^{π/a} ∫_{-π/a}^{π/a} Ω_{xy}(k_x, k_y) dk_x dk_y。 -/
++  /-- 曲率通量所用测度。 -/
++  measure : Measure BlochTheorem.Position2D
++  /-- 陈数的整数值。 -/
+   value : ℤ
+-  /-- 定义公式：C_n = (1/2π) ∫_{BZ} Ω_{xy} d²k
+-      暂以命题形式标注，因为积分的严格形式化需要测度论框架。 -/
+-  definition : Prop
++  /-- 曲率通量除以 `2π` 等于该整数值。 -/
++  definition : (1 / (2 * Real.pi)) * curvatureIntegral measure berryCurvature = (value : ℝ)
++
++
+ 
+ -- ============================================
+ -- Section 5: 陈数的整数性定理
+ -- ============================================
+ 
+-/-- **First Chern Number Integrality Theorem (Topological Quantization of Hall Conductance).**
+-
+-    **Standard name:** TKNN integer Chern number: C_n = (1/2π) ∫_{BZ} Ω_{xy} d²k ∈ ℤ.
+-
+-    **Physical statement:** The first Chern number C_n = (1/2π) ∫_{BZ} Ω_{xy} d²k is always an integer.
+-    This is the topological root of the integer quantum Hall effect (IQHE):
+-    σ_xy = (e²/h) C_n, where C_n ∈ ℤ implies σ_xy = n e²/h (n = integer).
+-
+-    **Proof path (multiple approaches):**
+-
+-    **Approach 1: Stokes' theorem + Dirac quantization.**
+-    1. Cover the Brillouin zone BZ (T²) with two overlapping patches U_α and U_β.
+-    2. In each patch, choose a gauge where the Berry connection A is smooth.
+-    3. On the overlap U_α ∩ U_β, the connections differ by a gauge transformation: A_α - A_β = dθ.
+-    4. C_n = (1/2π) (∫_{U_α} dA_α + ∫_{U_β} dA_β) = (1/2π) (∮_{∂U_α} A_α + ∮_{∂U_β} A_β).
+-    5. The boundary terms differ by ∮ dθ = 2πn (winding number of the gauge transformation).
+-    6. Therefore C_n = n ∈ ℤ.
+-
+-    **Approach 2: U(1) principal bundle classification.**
+-    1. For band n, the Bloch states |u_nk⟩ define a U(1) principal bundle P_n over BZ ≅ T².
+-    2. U(1) bundles over T² are classified by the first Chern class c_1(P_n) ∈ H²(T², ℤ) = ℤ.
+-    3. C_n = ⟨c_1(P_n), [T²]⟩ (pairing of Chern class with fundamental class) is an integer.
+-
+-    **Approach 3: Nakahara's discrete lattice argument.**
+-    1. Discretize the Brillouin zone into a lattice of k-points.
+-    2. Approximate the Berry connection by discrete parallel transport.
+-    3. The curvature is the holonomy around plaquettes (discrete Berry phase).
+-    4. The total Chern number is the sum of plaquette holonomies, which is 2π × integer.
+-    See TKNN (1982); Kohmoto (1985); Nakahara (2003) Ch. 10; Thouless (1984).
+-
+-    **Mathlib status:** Not formalized. The Chern number integrality is a deep theorem from
+-    algebraic topology (characteristic classes). The proof requires:
+-    - U(1) principal bundle classification over T² (H²(T², ℤ) = ℤ)
+-    - de Rham cohomology and integration on manifolds
+-    - Chern-Weil theory (characteristic classes from curvature)
+-    - Stokes' theorem for manifolds with boundary
+-    - Gauge patching and transition functions (Čech cohomology)
+-    None of these are in Mathlib.
+-
+-    **Why axiom is reasonable:** The Chern number integrality is a deep theorem from algebraic
+-    topology. It is the mathematical foundation of the integer quantum Hall effect. The proof
+-    requires characteristic class theory (Chern classes) which is not in Mathlib. The formal
+-    statement is `True` (placeholder), indicating that the proof is deferred.
+-
+-    **References:**
+-    - Thouless, D. J., Kohmoto, M., Nightingale, M. P., & den Nijs, M. (1982).
+-      "Quantized Hall conductance in a two-dimensional periodic potential." *PRL* 49(6), 405.
+-    - Kohmoto, M. (1985). "Topological invariant and the quantization of the Hall conductance."
+-      *Ann. Phys.* 160(2), 343–354.
+-    - Nakahara, M. (2003). *Geometry, Topology and Physics*, 2nd ed., Ch. 10.
+-    - Thouless, D. J. (1984). "Quantization of particle transport." *PRB* 27(10), 6083.
+-    - Niu, Q. & Thouless, D. J. (1984). "Quantized adiabatic charge transport in the presence of
+-      disorder." *J. Phys. A* 17(12), 2453.
+-
+-    **Difficulty to theorem:** Hard (requires characteristic class theory in Mathlib, ~500h).
+-    
+-    -- 保留为 axiom 原因：陈数整数性是第一陈类 c₁(E) ∈ H²(T², ℤ) = ℤ 的拓扑定理。
+-    -- 证明需要 U(1) 主丛分类、de Rham 上同调、Stokes 定理、Čech 上同调等完整
+-    -- 代数拓扑工具链。Mathlib 目前缺乏特征类理论（Chern-Weil 理论）。
+-    -- 预计工作量：~500h（需要建立微分几何和代数拓扑的完整框架）。
+-    -/
+-axiom FirstChernNumber_Integrality
+-    (L : BlochTheorem.Lattice2D) (C : FirstChernNumber L) :
+-    -- C_n ∈ ℤ。这是定义的一部分，但需要证明它对任意能带成立。
+-    True
++/-- **定理**：第一陈数模型的曲率通量除以 `2π` 等于某个整数。
++
++**证明思路**：直接选取结构中的 `value` 作为整数，并使用其 `definition` 等式。
++
++**物理意义**：给出积分到整数值的明确证据关系；不额外声称该等式可由一般曲率数据无条件证明。 -/
++theorem FirstChernNumber_Integrality
++    (C : FirstChernNumber (L := L)) :
++    ∃ z : ℤ, (1 / (2 * Real.pi)) * curvatureIntegral C.measure C.berryCurvature = (z : ℝ) := by
++  exact ⟨C.value, C.definition⟩
++
+ 
+ /-- **First Chern Number Topological Invariance (Gap-Preserving Deformation).**
+ 

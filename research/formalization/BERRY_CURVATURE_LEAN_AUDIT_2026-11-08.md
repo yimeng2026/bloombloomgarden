@@ -73,3 +73,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-berry-curvatu
 ## 6. 补充：三维旋度线性公理已另行清偿
 
 后续 `BERRY_CURVATURE_3D_LEAN_AUDIT_2026-11-08.md` 已将 `curl_linear_subtraction` 从自定义公理清偿为具有可微性前提的真实定理。三维 `BerryCurvature_gauge_invariance` 同步补齐联络可微性前提，三项公理审计均只依赖 Lean 标准三公理。二维与三维交付使用各自独立补丁，不相互借用“已清偿”结论。
+
+
+## 7. 陈数结构补充
+
+后续 `FIRST_CHERN_NUMBER_LEAN_AUDIT_2026-11-08.md` 已把 `value : ℤ` 与实际测度、曲率积分及整数等式连接起来，并给出零曲率实例。该结果修复定义关系，但不宣称一般陈数拓扑整数性已经证明；其他拓扑占位仍开放。
