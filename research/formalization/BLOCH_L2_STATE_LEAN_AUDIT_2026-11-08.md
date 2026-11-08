@@ -4,6 +4,8 @@
 **状态**：L2 精炼结构、积分归一化与规范律均编译、公理审计通过；外部 TOE-SYLVA 源树未修改
 **范围**：带显式一致性和归一化证据的 L2 精炼，不是从旧 `Prop` 自动构造 Bloch 态
 
+> 后续集成更新：本模块现直接依赖修补后的 `BerryConnection`，删除了与早期独立规范律的重复导入。当前复现为 schemaVersion 2、五阶段，证据见 `BLOCH_L2_FULL_INTEGRATION_LEAN_AUDIT_2026-11-08.md`；本文其余内容记录原批次的证明结构。
+
 ## 1. 映射结构
 
 `BlochL2State` 同时保存：

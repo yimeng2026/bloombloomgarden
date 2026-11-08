@@ -6,6 +6,8 @@
 
 **范围**：现有联络、曲率与陈数证明的全链集成回归，不新增物理定理或全库完成声明
 
+> 本文记录七补丁、十目标批次的历史证据。后续已修复 L² 与修补联络的重复定义冲突，当前全链为八阶段、十四目标和 schemaVersion 3；最新结果见 `BLOCH_L2_FULL_INTEGRATION_LEAN_AUDIT_2026-11-08.md`。
+
 ## 1. 七份补丁与三份原始源文件
 
 准备器读取外部 `BerryConnection.lean`、`BerryCurvature.lean` 和 `TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean`，在当前仓库的输出目录中依次应用：

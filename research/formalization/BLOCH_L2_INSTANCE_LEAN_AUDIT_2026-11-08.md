@@ -4,6 +4,8 @@
 **状态**：具体实例、旧态映射、归一化和实例规范律均编译、公理审计通过；外部 TOE-SYLVA 源树未修改
 **范围**：Dirac 测度下的可计算验证用例，不是一般布里渊区测度模型
 
+> 后续集成更新：实例现与 L² 模块一起使用修补后的 `BerryConnection`。当前复现为 schemaVersion 2、六阶段，证据见 `BLOCH_L2_FULL_INTEGRATION_LEAN_AUDIT_2026-11-08.md`；本文其余内容记录原批次的实例构造。
+
 ## 1. 实际实例
 
 `constantBlochL2State` 使用：

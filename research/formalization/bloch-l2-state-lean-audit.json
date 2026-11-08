@@ -1,34 +1,36 @@
 ﻿{
-    "schemaVersion":  1,
+    "schemaVersion":  2,
     "status":  "success",
-    "scope":  "L2 refinement with old-state coherence and normalization, plus the Hilbert gauge law; no normalization from old Props",
+    "scope":  "L2 refinement on the patched BerryConnection with old-state coherence, normalization and the Hilbert gauge law; no normalization from old Props",
     "source":  {
                    "repository":  "TOE-SYLVA-pull",
                    "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
                    "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "preparedConnectionSha256":  "1f8f1db13fe48008e2c573f59978a2bff8abe8236210a7897cfc436f9ebf9667",
                    "oldStateType":  "BerryConnection.NormalizedBlochState",
                    "proofFile":  "research/formalization/BlochL2State.lean",
-                   "proofSha256":  "94a25ce38b427254e8b3c31031260ba498d16c920f50d5dd8961a38c681237a9",
+                   "proofSha256":  "ffae590e93595c2c3426670cfb55715ca395f87bc9f18f6e7e6a503371ba0cd3",
                    "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
                },
     "build":  {
                   "stages":  {
+                                 "integrationPreparation":  0,
                                  "bloch":  0,
                                  "connection":  0,
-                                 "identity":  0,
-                                 "law":  0,
                                  "proof":  0,
                                  "audit":  0
                              },
-                  "outputSha256":  "fa9a3d515493871a931d95cc6036a885327c72a70d4b296f5841625ca4df92f4",
+                  "outputSha256":  "a5c2dfe07bfc8d25ec8fb955f5e4cf7a85d99bc726e5e8419fa6738944e5c6f7",
                   "warningsPreserved":  true
               },
     "axiomAudit":  {
                        "exitCode":  0,
                        "output":  "\u0027BerryConnection.BlochL2State_normalization_integral\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.BlochL2State_gauge_transformation_law\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
-                       "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\bloch-l2-verification-v3\\bloch-l2-axioms.log"
+                       "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\bloch-l2-state-patched-verification\\bloch-l2-axioms.log"
                    },
     "validation":  {
+                       "patchedConnectionUsed":  true,
+                       "duplicateStandaloneGaugeLawImportsRemoved":  true,
                        "coherentFieldPresent":  true,
                        "normalizationIntegralProved":  true,
                        "oldPropUsedAsProof":  false,

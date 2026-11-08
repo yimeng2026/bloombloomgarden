@@ -24,18 +24,20 @@ function Assert-LeanSuccess {
 function run_all_tests {
   $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
   $lean = Join-Path $LeanHome 'bin/lean.exe'
-  $identityProof = Join-Path $repoRoot 'research/formalization/BerryConnectionGaugeIdentity.lean'
-  $lawProof = Join-Path $repoRoot 'research/formalization/BerryConnectionGaugeLaw.lean'
   $proof = Join-Path $repoRoot 'research/formalization/BlochL2State.lean'
+  $prepare = Join-Path $repoRoot 'scripts/prepare_berry_curvature_integration.py'
   $blochSource = Join-Path $SylvaRoot 'BlochTheorem.lean'
   $connectionSource = Join-Path $SylvaRoot 'BerryConnection.lean'
-  foreach ($required in @($lean, $identityProof, $lawProof, $proof, $blochSource, $connectionSource)) {
+  foreach ($required in @($lean, $proof, $prepare, $blochSource, $connectionSource)) {
     if (-not (Test-Path $required)) { throw "Required input is missing: $required" }
   }
   $null = New-Item -ItemType Directory -Force -Path $OutputDirectory
   $null = New-Item -ItemType Directory -Force -Path (Split-Path -Parent $ReportPath)
+  $applyRoot = Join-Path $OutputDirectory 'patch-application'
+  $prepareText = (& python $prepare --sylva-root $SylvaRoot --output-directory $applyRoot | Out-String).Trim()
+  if ($LASTEXITCODE -ne 0) { throw "L2 integration preparation failed: $prepareText" }
+  $prepareReport = $prepareText | ConvertFrom-Json
   Copy-Item -Force -Path $blochSource -Destination (Join-Path $OutputDirectory 'BlochTheorem.lean')
-  Copy-Item -Force -Path $connectionSource -Destination (Join-Path $OutputDirectory 'BerryConnection.lean')
 
   $paths = @($OutputDirectory, (Join-Path $SylvaRoot '.lake/build/lib/lean'))
   foreach ($package in @('mathlib', 'plausible', 'LeanSearchClient', 'importGraph', 'proofwidgets', 'aesop', 'Qq', 'batteries', 'Cli')) {
@@ -44,19 +46,13 @@ function run_all_tests {
   }
   $env:LEAN_PATH = $paths -join [IO.Path]::PathSeparator
 
-  $stages = [ordered]@{}
+  $stages = [ordered]@{ integrationPreparation = 0 }
   $blochLog = Join-Path $OutputDirectory 'bloch-build.log'
   $stages.bloch = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BlochTheorem.olean'), (Join-Path $OutputDirectory 'BlochTheorem.lean')) -LogPath $blochLog
   Assert-LeanSuccess $stages.bloch $blochLog 'BlochTheorem'
-  $connectionLog = Join-Path $OutputDirectory 'connection-original-build.log'
-  $stages.connection = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryConnection.olean'), (Join-Path $OutputDirectory 'BerryConnection.lean')) -LogPath $connectionLog
-  Assert-LeanSuccess $stages.connection $connectionLog 'original BerryConnection'
-  $identityLog = Join-Path $OutputDirectory 'identity-build.log'
-  $stages.identity = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryConnectionGaugeIdentity.olean'), $identityProof) -LogPath $identityLog
-  Assert-LeanSuccess $stages.identity $identityLog 'BerryConnectionGaugeIdentity'
-  $lawLog = Join-Path $OutputDirectory 'law-build.log'
-  $stages.law = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryConnectionGaugeLaw.olean'), $lawProof) -LogPath $lawLog
-  Assert-LeanSuccess $stages.law $lawLog 'BerryConnectionGaugeLaw'
+  $connectionLog = Join-Path $OutputDirectory 'connection-patched-build.log'
+  $stages.connection = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryConnection.olean'), (Join-Path $applyRoot 'BerryConnection.lean')) -LogPath $connectionLog
+  Assert-LeanSuccess $stages.connection $connectionLog 'patched BerryConnection'
   $proofLog = Join-Path $OutputDirectory 'bloch-l2-build.log'
   $stages.proof = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BlochL2State.olean'), $proof) -LogPath $proofLog
   Assert-LeanSuccess $stages.proof $proofLog 'BlochL2State'
@@ -86,13 +82,14 @@ function run_all_tests {
     if (-not $proofText.Contains($required)) { throw "Missing L2 refinement ingredient: $required" }
   }
   $report = [ordered]@{
-    schemaVersion = 1
+    schemaVersion = 2
     status = 'success'
-    scope = 'L2 refinement with old-state coherence and normalization, plus the Hilbert gauge law; no normalization from old Props'
+    scope = 'L2 refinement on the patched BerryConnection with old-state coherence, normalization and the Hilbert gauge law; no normalization from old Props'
     source = [ordered]@{
       repository = 'TOE-SYLVA-pull'
       root = $SylvaRoot
       commit = (git -C (Split-Path -Parent $SylvaRoot) rev-parse HEAD).Trim()
+      preparedConnectionSha256 = $prepareReport.connectionSha256
       oldStateType = 'BerryConnection.NormalizedBlochState'
       proofFile = 'research/formalization/BlochL2State.lean'
       proofSha256 = (Get-FileHash -Algorithm SHA256 $proof).Hash.ToLowerInvariant()
@@ -105,6 +102,8 @@ function run_all_tests {
     }
     axiomAudit = [ordered]@{ exitCode = $stages.audit; output = $auditText; log = $auditLog }
     validation = [ordered]@{
+      patchedConnectionUsed = $true
+      duplicateStandaloneGaugeLawImportsRemoved = $true
       coherentFieldPresent = $true
       normalizationIntegralProved = $true
       oldPropUsedAsProof = $false

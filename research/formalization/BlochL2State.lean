@@ -1,5 +1,3 @@
-import BerryConnectionGaugeLaw
-import BerryConnectionGaugeIdentity
 import BerryConnection
 
 /-!
@@ -23,8 +21,9 @@ import BerryConnection
 
 ## 依赖关系
 
-依赖 `BerryConnectionGaugeLaw`、`BerryConnectionGaugeIdentity` 和旧 `BerryConnection` 类型。
-旧 `NormalizedBlochState` 的 `Prop` 不被当成证明；向量、一致性和归一化仍是显式输入。
+依赖修补后的 `BerryConnection` 及其中的共享实例、相位定义和一般 Hilbert 规范律。
+不再导入与修补模块含有重复定义的独立规范律文件；旧 `NormalizedBlochState` 的 `Prop`
+不被当成证明，向量、一致性和归一化仍是显式输入。
 -/
 
 namespace BerryConnection
@@ -85,6 +84,6 @@ theorem BlochL2State_gauge_transformation_law
     ⟨fun x y z => by
       apply Subtype.ext
       exact smul_assoc x y z.1⟩
-  exact BerryConnection_GaugeTransformationLaw_physical s.vector θ k v hθ hu (s.normalization k)
+  exact BerryConnection_GaugeTransformationLaw s.vector θ k v hθ hu (s.normalization k)
 
 end BerryConnection

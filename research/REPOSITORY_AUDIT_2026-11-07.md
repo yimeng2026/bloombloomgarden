@@ -372,3 +372,19 @@
 - 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
 - 零模型 33 项测试通过；陈数补丁生成器 2 项及真实源码全链集成 1 项测试通过，相关 Python 命令实际退出码均为 0。
 - Lean 全链完整命令、六阶段结果和十条公理原文见全链专门审计。本轮完成联络层到曲率层的组合复验，不宣称其他形式化或物理开放项已经完成。
+
+
+## 33. Bloch L² 与联络—曲率全链集成
+
+- 联合编译实际发现旧 L² 同时导入早期独立规范律和修补联络时，`phaseFactor` 重复定义。`BlochL2State.lean` 现只导入修补后的 `BerryConnection`，并复用其中的一般 Hilbert 规范律；L² 向量、相干性、归一化和标量塔证明保持不变。
+- 全链脚本新增 L² 与 Dirac 常值实例编译阶段，形成八阶段、十四目标审计。完整复现退出码为 0，十四条公理输出均只有 `propext、Classical.choice、Quot.sound`，报告升级为 schemaVersion 3。
+- 原 L² 状态和实例入口同步改用修补联络环境，分别通过五阶段和六阶段复现，报告均升级为 schemaVersion 2；不再同时导入重复的早期规范律模块。
+- 证据见 `research/formalization/BLOCH_L2_FULL_INTEGRATION_LEAN_AUDIT_2026-11-08.md`、`berry-curvature-integration-lean-audit.json` 和两份 L² 结构化报告。旧审计均添加版本指引，报告内中文路径已核对为正常 UTF-8。
+- Dirac 仍只是可计算用例，不是一般布里渊区测度；旧 `Prop` 不会自动产生 L² 证据。一般 Bloch 映射、其他占位、物理满带和全库 Lake 仍开放，外部源树未修改。
+
+## 34. L² 全链提交前回归
+
+- 全链八阶段、L² 状态五阶段和 L² 实例六阶段分别实际退出码为 0；十四目标及两个独立 L² 审计均通过。
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 零模型 33 项和形式化工具 3 项测试全部通过，相关 Python 命令实际退出码为 0。完整 Lean 命令、阶段结果和十四条公理原文见 L² 全链专门审计。

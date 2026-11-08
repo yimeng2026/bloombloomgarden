@@ -1,34 +1,36 @@
 ﻿{
-    "schemaVersion":  1,
+    "schemaVersion":  2,
     "status":  "success",
-    "scope":  "Concrete normalized Bloch L2 state with Dirac measure, coherence and gauge law; not a general Brillouin-zone measure model",
+    "scope":  "Concrete normalized Bloch L2 state on the patched BerryConnection with Dirac measure, coherence and gauge law; not a general Brillouin-zone measure model",
     "source":  {
                    "repository":  "TOE-SYLVA-pull",
                    "root":  "D:\\kimi-workspace\\TOE-SYLVA-pull\\sylva_formalization\\SylvaFormalization",
                    "commit":  "06cb70e503f60bd0c4a5bcadd4e9a0e837fcd01b",
+                   "preparedConnectionSha256":  "1f8f1db13fe48008e2c573f59978a2bff8abe8236210a7897cfc436f9ebf9667",
                    "proofFile":  "research/formalization/BlochL2ConstantInstance.lean",
                    "proofSha256":  "bf250e7beaf40c472fdaadc91c164ce99c1c544ffc326398a838e6e60f668a60",
                    "leanVersion":  "4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740"
                },
     "build":  {
                   "stages":  {
+                                 "integrationPreparation":  0,
                                  "bloch":  0,
                                  "connection":  0,
-                                 "identity":  0,
-                                 "law":  0,
                                  "l2":  0,
                                  "instance":  0,
                                  "audit":  0
                              },
-                  "outputSha256":  "d1b72bdbf8d83f31ab2a5611344cfdbf5f350f152cd134b67f861097fbba27a9",
+                  "outputSha256":  "09bb8a9166420573a8e2cf7db220d138390eaa98a2e699a28dc3981c475ed0f5",
                   "warningsPreserved":  true
               },
     "axiomAudit":  {
                        "exitCode":  0,
                        "output":  "\u0027BerryConnection.constantBlochL2State\u0027 depends on axioms: [propext, Classical.choice, Quot.sound] \u0027BerryConnection.constantBlochL2State_gauge_law\u0027 depends on axioms: [propext, Classical.choice, Quot.sound]",
-                       "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\bloch-l2-instance-verification\\constant-instance-axioms.log"
+                       "log":  "C:\\Users\\一梦\\Documents\\kimi\\workspace\\.worktrees\\provider-main-integration\\.tmp\\bloch-l2-instance-patched-verification\\constant-instance-axioms.log"
                    },
     "validation":  {
+                       "patchedConnectionUsed":  true,
+                       "duplicateStandaloneGaugeLawImportsRemoved":  true,
                        "concreteInstanceConstructed":  true,
                        "coherentMappingProved":  true,
                        "normalizationIntegralComputed":  true,
