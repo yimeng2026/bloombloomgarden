@@ -1,0 +1,90 @@
+--- a/BerryConnection.lean
++++ b/BerryConnection.lean
+@@ -434,50 +434,43 @@
+   /-- 定义：γ_n = ∮_C ⟨u|i∇|u⟩ · dk -/
+   definition : Prop
+ 
+-/-- **Berry Phase Gauge Invariance (Single-Valued Gauge Transformations).**
+-
+-    **Standard name:** Berry phase γ_n(C) = ∮_C A · dk is gauge invariant (mod 2π).
+-
+-    **Physical statement:** Under a single-valued gauge transformation |u'_nk⟩ = e^{iθ(k)} |u_nk⟩
+-    where θ is globally defined on the Brillouin zone (no branch cuts), the Berry phase is invariant:
+-    γ'_n(C) = γ_n(C). If θ has branch cuts, γ_n(C) may change by 2πm (integer multiple of 2π).
+-
+-    **Proof path:**
+-    1. γ_n(C) = ∮_C A · dk = ∮_C ⟨u_nk| i∇_k |u_nk⟩ · dk (definition of Berry phase).
+-    2. Under gauge transformation A' = A + ∇_k θ (BerryConnection_GaugeTransformationLaw).
+-    3. γ'_n(C) = ∮_C (A + ∇_k θ) · dk = ∮_C A · dk + ∮_C ∇_k θ · dk.
+-    4. By Stokes' theorem: ∮_C ∇_k θ · dk = θ(C(1)) - θ(C(0)) = 0 (since C is closed and θ is single-valued).
+-    5. Therefore γ'_n(C) = γ_n(C).
+-    If θ has a branch cut, θ(C(1)) - θ(C(0)) = 2πm (m = winding number around the branch cut).
+-    See Berry (1984); Xiao et al. (2010) §II.A; Nakahara (2003) Ch. 10.
+-
+-    **Mathlib status:** Not formalized. The proof requires:
+-    - Line integrals of 1-forms on closed curves (Stokes' theorem in 1D, i.e., fundamental theorem of calculus for line integrals)
+-    - Single-valuedness of gauge transformation function θ
+-    - The fundamental theorem for line integrals: ∮_C ∇θ · dr = 0 for single-valued θ
+-    Mathlib has `intervalIntegral` and `MeasureTheory` but not the general line integral formalism.
+-
+-    **Why axiom is reasonable:** The gauge invariance of the Berry phase is a direct consequence of
+-    the fundamental theorem of calculus for line integrals. The proof is elementary but requires
+-    line integral formalism (integration of 1-forms along curves) which is not fully in Mathlib.
+-    The formal statement is `True` (placeholder).
+-
+-    **References:**
+-    - Berry, M. V. (1984). "Quantal phase factors accompanying adiabatic changes."
+-      *Proc. R. Soc. Lond. A* 392(1802), 45–57.
+-    - Xiao, D., Chang, M.-C., & Niu, Q. (2010). "Berry phase effects on electronic properties."
+-      *Rev. Mod. Phys.* 82(3), 1959.
+-    - Nakahara, M. (2003). *Geometry, Topology and Physics*, 2nd ed., Ch. 10.
+-
+-    **Difficulty to theorem:** Easy (~20–30h, line integral + fundamental theorem).
+-    
+-    -- 待证明：需要线积分形式化（1-形式沿曲线的积分）与 Stokes 定理一维版本。
+-    -- 当前 Mathlib 有 `intervalIntegral` 和 `MeasureTheory` 但缺少一般线积分框架，预计工作量 20-30 小时。
+-    -/
+-axiom BerryPhase_GaugeInvariance
+-    (L : BlochTheorem.Lattice2D) (γ : BerryPhase L) :
+-    -- 在单值规范变换下，Berry 相位不变
+-    True
++/-- **定义**：态曲线在参数区间 `[0,1]` 上的 Berry 相位积分。
++
++**证明思路**：对实际 Hilbert Berry 联络在方向 `1` 上取区间积分。
++
++**物理意义**：给出几何相位的可计算对象，而不是无约束复数字段。 -/
++noncomputable def berryPhaseIntegral (u : ℝ → H) : ℂ :=
++  ∫ t in 0..1, berryConnection u t 1
++
++/-- **定理**：若规范相位在闭合参数区间两端相等，则 Berry 相位积分不变。
++
++**证明思路**：规范律把相位态联络分解为原联络减去规范导数，再以微积分基本定理求导数积分。
++
++**物理意义**：单值规范选择不改变闭合几何相位；不包含多值相位绕数。 -/
++theorem BerryPhase_GaugeInvariance
++    (u : ℝ → H) (θ : ℝ → ℝ)
++    (hu : ∀ t, DifferentiableAt ℝ u t)
++    (hθ : ∀ t, DifferentiableAt ℝ θ t)
++    (hnorm : ∀ t, inner ℂ (u t) (u t) = 1)
++    (hconn : IntervalIntegrable (fun t => berryConnection u t 1) volume 0 1)
++    (hderiv : IntervalIntegrable (deriv (fun t => (θ t : ℂ))) volume 0 1)
++    (hclosed : θ 1 = θ 0) :
++    berryPhaseIntegral (fun t => phaseFactor θ t • u t) = berryPhaseIntegral u := by
++  have hpoint (t : ℝ) :
++      berryConnection (fun t' => phaseFactor θ t' • u t') t 1
++        = berryConnection u t 1 - deriv (fun t' => (θ t' : ℂ)) t := by
++    simpa only [fderiv_eq_smul_deriv, one_smul] using
++      BerryConnection_GaugeTransformationLaw u θ t 1 (hθ t) (hu t) (hnorm t)
++  unfold berryPhaseIntegral
++  simp_rw [hpoint]
++  rw [intervalIntegral.integral_sub hconn hderiv]
++  have hθC : ∀ x ∈ Set.uIcc (0 : ℝ) 1, DifferentiableAt ℝ (fun t => (θ t : ℂ)) x := by
++    intro x _
++    exact Complex.ofRealCLM.differentiableAt.comp x (hθ x)
++  rw [intervalIntegral.integral_deriv_eq_sub hθC hderiv]
++  rw [hclosed]
++  simp
++
+ 
+ -- ============================================
+ -- Section 6: Berry 联络的数学抽象

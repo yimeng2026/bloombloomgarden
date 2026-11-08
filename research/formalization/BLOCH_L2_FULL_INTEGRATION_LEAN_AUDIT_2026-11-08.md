@@ -6,6 +6,8 @@
 
 **范围**：L² 精炼、积分归一化、L² 规范律和 Dirac 实例与既有七补丁链的集成；不是一般 Bloch 映射或物理满带证明
 
+> 本文记录十四目标、schemaVersion 3 批次的历史证据。后续 Berry 相位公理已由区间积分定理清偿，当前全链为十二阶段、十五个集成目标加两个独立相位目标、schemaVersion 4；最新结果见 `BERRY_PHASE_GAUGE_INVARIANCE_LEAN_AUDIT_2026-11-08.md`。
+
 ## 1. 实际冲突与最小修复
 
 旧 `BlochL2State.lean` 同时依赖早期独立 `BerryConnectionGaugeLaw`、`BerryConnectionGaugeIdentity` 和 `BerryConnection`。在修补联络环境中实际编译失败：

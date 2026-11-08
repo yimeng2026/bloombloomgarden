@@ -388,3 +388,19 @@
 - 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
 - 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
 - 零模型 33 项和形式化工具 3 项测试全部通过，相关 Python 命令实际退出码为 0。完整 Lean 命令、阶段结果和十四条公理原文见 L² 全链专门审计。
+
+
+## 35. 闭合区间 Berry 相位规范不变性公理清偿
+
+- 新增 `berryPhaseIntegral`，以实际 Hilbert Berry 联络在实参数区间上的积分替代脱离积分的相位叙述。逐点可微、归一化、联络与规范导数可积以及 `θ 1 = θ 0` 均为显式前提。
+- 新增 `BerryPhase_GaugeInvariance_model`：由一般规范律分解联络，以区间积分减法和微积分基本定理把规范贡献化为 `θ(1)-θ(0)` 并证明为零。候选证明先留下端点未求值目标，再以显式复值相位类型完成证明。
+- 新增 90 行增量补丁，将原 `BerryPhase_GaugeInvariance` 公理替换为同一受限定理。独立模型和补丁目标分环境编译、审计，均只有 `propext、Classical.choice、Quot.sound`。
+- 全链复现升级为十二阶段、十五个集成目标和两个独立相位目标，实际退出码为 0；两项补丁测试、补丁同步和实际应用一致性均通过。报告为 schemaVersion 4。
+- 证据见 `research/formalization/BERRY_PHASE_GAUGE_INVARIANCE_LEAN_AUDIT_2026-11-08.md`。一般二维线积分、多值相位绕数和旧 `BerryPhase.definition : Prop` 未升格，其他占位及全库 Lake 仍开放，外部源树未修改。
+
+## 36. Berry 相位提交前回归
+
+- 全链十二阶段实际退出码为 0，十五个集成目标和两个独立相位目标均只有标准三公理；没有 `sorryAx` 或目标上的新增公理。
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 零模型 33 项及形式化工具 4 项测试全部通过，相关 Python 命令实际退出码为 0。完整 Lean 命令、阶段结果和公理原文见 Berry 相位专门审计。
