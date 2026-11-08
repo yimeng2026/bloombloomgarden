@@ -404,3 +404,19 @@
 - 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
 - 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
 - 零模型 33 项及形式化工具 4 项测试全部通过，相关 Python 命令实际退出码为 0。完整 Lean 命令、阶段结果和公理原文见 Berry 相位专门审计。
+
+
+## 37. BerryPhase 结构精炼与结构级规范不变性
+
+- 旧 `BerryPhase.definition : Prop` 已替换为 `phase = berryPhaseIntegral (fun t => state (path t))`，并新增实际 Hilbert `state` 字段。旧联络仅作来源记录，路径闭合性用于给出端点规范相位相等。
+- 新增 `BerryPhase_GaugeInvariance_refined_model` 和补丁版 `BerryPhase_GaugeInvariance_refined`，通过展开结构相位定义并复用区间定理，证明规范相位积分等于结构记录相位。
+- 联合编译最初发现积分定义前向引用。生成器现将定义移动到结构之前，并保留移动前完整原文作为 diff 基准；测试同时覆盖定义顺序、原始行数、`git apply --check`、实际应用和逐字一致性。
+- 第二份 97 行增量补丁使联络文件由 618 行变为 642 行。全链十六阶段实际退出码为 0，十六个集成目标及三个独立区间／结构目标均只有 `propext、Classical.choice、Quot.sound`，报告为 schemaVersion 5。
+- 证据见 `research/formalization/BERRY_PHASE_MODEL_LEAN_AUDIT_2026-11-08.md`。一般二维线积分、多值相位绕数、其他占位和全库 Lake 仍开放，外部源树未修改。
+
+## 38. BerryPhase 结构提交前回归
+
+- 三项相位相关补丁测试和十六阶段全链复现全部通过；`legacyBerryPhasePropRemoved=true`、`integralDefinitionPrecedesStructure=true`，两份相位补丁同步及应用一致性均为 `true`。
+- 执行 `npm run lint:all && npm --prefix backend run lint && npm test && npm --prefix backend run test:unit && npm --prefix backend run build && npm run build`，实际退出码为 0；两端 lint 均为 0 错误、0 警告。
+- 根平台 113 项测试、440 个断言全部通过，覆盖 39 个文件；后端 12 项测试通过，Express TypeScript 构建和 Next 16.2.9 构建通过，42 个静态页面生成成功。
+- 零模型 33 项及形式化工具 5 项测试全部通过，相关 Python 命令实际退出码为 0。完整 Lean 命令、阶段结果和新增公理原文见 BerryPhase 结构专门审计。

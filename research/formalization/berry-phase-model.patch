@@ -1,0 +1,97 @@
+--- a/BerryConnection.lean
++++ b/BerryConnection.lean
+@@ -409,31 +409,6 @@
+ -- Section 5: 平行移动与 Berry 相位
+ -- ============================================
+ 
+-/-- Berry 相位：当 k 沿闭合路径 C 在 BZ 中运动时，
+-    波函数 |u_nk⟩ 获得一个几何相位：
+-    γ_n(C) = ∮_C A_n · dk = ∮_C ⟨u_nk| i ∇_k |u_nk⟩ · dk
+-    
+-    物理意义：即使哈密顿量 H(k) 是绝热地缓慢变化，
+-    本征态在参数空间中也会积累相位。这个相位不是动力学相位
+-    （∫ E dt），而是纯粹的几何相位，只依赖于路径 C 的几何形状。
+-    
+-    在规范变换下：γ_n(C) → γ_n(C) + ∮_C dθ = γ_n(C) + 2πm
+-    （如果 θ 是单值的，则 m = 0，Berry 相位不变）。
+-    
+-    但如果 θ 有分支切割（在 BZ 上不可全局定义），
+-    γ_n(C) 可能只定义模 2π。这就是 Berry 相位的 
+-    "规范不变性" 的微妙之处。 -/
+-structure BerryPhase (L : BlochTheorem.Lattice2D) where
+-  /-- Berry 联络 -/
+-  connection : BerryConnection L
+-  /-- 闭合路径 C : [0,1] → BZ，满足 C(0) = C(1) -/
+-  path : ℝ → BlochTheorem.CrystalMomentum2D
+-  closedPath : path 0 = path 1
+-  /-- Berry 相位：γ_n = ∮_C A · dk -/
+-  phase : ℂ
+-  /-- 定义：γ_n = ∮_C ⟨u|i∇|u⟩ · dk -/
+-  definition : Prop
+-
+ /-- **定义**：态曲线在参数区间 `[0,1]` 上的 Berry 相位积分。
+ 
+ **证明思路**：对实际 Hilbert Berry 联络在方向 `1` 上取区间积分。
+@@ -441,6 +416,29 @@
+ **物理意义**：给出几何相位的可计算对象，而不是无约束复数字段。 -/
+ noncomputable def berryPhaseIntegral (u : ℝ → H) : ℂ :=
+   ∫ t in 0..1, berryConnection u t 1
++
++/-- **定义**：带实际态曲线和相位积分等式的 Berry 相位模型。
++
++**证明思路**：以 `definition` 约束 `phase` 等于态沿路径的区间积分。
++
++**物理意义**：把旧闭合路径记录与实际 Hilbert 几何连接起来。 -/
++structure BerryPhase (L : BlochTheorem.Lattice2D) (H : Type*)
++    [NormedAddCommGroup H] [InnerProductSpace ℂ H]
++    [NormedSpace ℝ H] [IsScalarTower ℝ ℂ H] where
++  /-- 旧联络记录；不用于替代实际 Hilbert 联络。 -/
++  connection : BerryConnection L
++  /-- 参数化闭合路径。 -/
++  path : ℝ → BlochTheorem.CrystalMomentum2D
++  /-- 路径两端相等。 -/
++  closedPath : path 0 = path 1
++  /-- 定义在动量空间中的实际 Hilbert 态曲线。 -/
++  state : BlochTheorem.CrystalMomentum2D → H
++  /-- 结构记录的 Berry 相位。 -/
++  phase : ℂ
++  /-- 记录相位等于态沿路径的实际区间积分。 -/
++  definition : phase = berryPhaseIntegral (fun t => state (path t))
++
++
+ 
+ /-- **定理**：若规范相位在闭合参数区间两端相等，则 Berry 相位积分不变。
+ 
+@@ -472,6 +470,32 @@
+   simp
+ 
+ 
++/-- **定理**：结构模型的规范相位积分等于其记录的闭合 Berry 相位。
++
++**证明思路**：先用 `definition` 展开记录相位，再复用区间规范不变性和路径闭合性。
++
++**物理意义**：单值规范选择不改变结构记录的闭合相位。 -/
++theorem BerryPhase_GaugeInvariance_refined
++    {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
++    [NormedSpace ℝ H] [IsScalarTower ℝ ℂ H]
++    (γ : BerryPhase L H) (θ : BlochTheorem.CrystalMomentum2D → ℝ)
++    (hu : ∀ t, DifferentiableAt ℝ (fun t' => γ.state (γ.path t')) t)
++    (hθ : ∀ t, DifferentiableAt ℝ (fun t' => θ (γ.path t')) t)
++    (hnorm : ∀ t, inner ℂ (γ.state (γ.path t)) (γ.state (γ.path t)) = 1)
++    (hconn : IntervalIntegrable (fun t => berryConnection (fun t' => γ.state (γ.path t')) t 1) volume 0 1)
++    (hderiv : IntervalIntegrable (deriv (fun t => (θ (γ.path t) : ℂ))) volume 0 1) :
++    berryPhaseIntegral (fun t => phaseFactor (fun x => θ (γ.path x)) t • γ.state (γ.path t)) = γ.phase := by
++  rw [γ.definition]
++  apply BerryPhase_GaugeInvariance
++  · exact hu
++  · exact hθ
++  · exact hnorm
++  · exact hconn
++  · exact hderiv
++  · dsimp
++    rw [γ.closedPath]
++
++
+ -- ============================================
+ -- Section 6: Berry 联络的数学抽象
+ -- ============================================

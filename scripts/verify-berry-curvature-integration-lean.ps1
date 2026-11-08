@@ -32,9 +32,13 @@ function run_all_tests {
   $registeredPhasePatch = Join-Path $repoRoot 'research/formalization/berry-phase-gauge-invariance.patch'
   $preparePhase = Join-Path $repoRoot 'scripts/prepare_berry_phase_gauge_invariance_patch.py'
   $phaseUnitTest = Join-Path $repoRoot 'scripts/test_prepare_berry_phase_gauge_invariance_patch.py'
+  $phaseStructureProof = Join-Path $repoRoot 'research/formalization/BerryPhaseModel.lean'
+  $registeredPhaseStructurePatch = Join-Path $repoRoot 'research/formalization/berry-phase-model.patch'
+  $preparePhaseStructure = Join-Path $repoRoot 'scripts/prepare_berry_phase_model_patch.py'
+  $phaseStructureUnitTest = Join-Path $repoRoot 'scripts/test_prepare_berry_phase_model_patch.py'
   $original = Join-Path $SylvaRoot 'BerryCurvature.lean'
   $original3D = Join-Path $SylvaRoot 'TOE_SYLVA_Solutions/BerryCurvature_GaugeInvariance.lean'
-  foreach ($required in @($lean, $prepare, $integrationTest, $l2Proof, $instanceProof, $phaseProof, $registeredPhasePatch, $preparePhase, $phaseUnitTest, $original, $original3D, (Join-Path $SylvaRoot 'BlochTheorem.lean'), (Join-Path $SylvaRoot 'BerryConnection.lean'))) {
+  foreach ($required in @($lean, $prepare, $integrationTest, $l2Proof, $instanceProof, $phaseProof, $registeredPhasePatch, $preparePhase, $phaseUnitTest, $phaseStructureProof, $registeredPhaseStructurePatch, $preparePhaseStructure, $phaseStructureUnitTest, $original, $original3D, (Join-Path $SylvaRoot 'BlochTheorem.lean'), (Join-Path $SylvaRoot 'BerryConnection.lean'))) {
     if (-not (Test-Path $required)) { throw "Required input is missing: $required" }
   }
   $null = New-Item -ItemType Directory -Force -Path $OutputDirectory
@@ -45,6 +49,8 @@ function run_all_tests {
   if ($LASTEXITCODE -ne 0) { throw "Berry integration unit test failed: $LASTEXITCODE" }
   & python $phaseUnitTest
   if ($LASTEXITCODE -ne 0) { throw "Berry phase patch unit test failed: $LASTEXITCODE" }
+  & python $phaseStructureUnitTest
+  if ($LASTEXITCODE -ne 0) { throw "Berry phase structure patch unit test failed: $LASTEXITCODE" }
   $applyRoot = Join-Path $OutputDirectory 'patch-application'
   $prepareText = (& python $prepare --sylva-root $SylvaRoot --output-directory $applyRoot | Out-String).Trim()
   if ($LASTEXITCODE -ne 0) { throw "Berry integration preparation failed: $prepareText" }
@@ -70,6 +76,24 @@ function run_all_tests {
   $phaseApplicationMatches = (Get-FileHash -Algorithm SHA256 (Join-Path $applyRoot 'BerryConnection.lean')).Hash -eq (Get-FileHash -Algorithm SHA256 $phasePatched).Hash
   if (-not $phaseApplicationMatches) { throw 'The applied Berry phase patch differs from the generated source' }
 
+  $phaseStructurePatched = Join-Path $OutputDirectory 'BerryConnectionPhaseStructurePatched.lean'
+  $generatedPhaseStructurePatch = Join-Path $OutputDirectory 'berry-phase-model.patch'
+  & python $preparePhaseStructure --structured (Join-Path $applyRoot 'BerryConnection.lean') --proof $phaseStructureProof --patched-output $phaseStructurePatched --patch-output $generatedPhaseStructurePatch
+  if ($LASTEXITCODE -ne 0) { throw "Berry phase structure patch preparation failed: $LASTEXITCODE" }
+  $phaseStructurePatchMatches = (Get-FileHash -Algorithm SHA256 $generatedPhaseStructurePatch).Hash -eq (Get-FileHash -Algorithm SHA256 $registeredPhaseStructurePatch).Hash
+  if (-not $phaseStructurePatchMatches) { throw 'The registered Berry phase structure patch is not synchronized' }
+  Push-Location $applyRoot
+  try {
+    & git apply --check $registeredPhaseStructurePatch
+    if ($LASTEXITCODE -ne 0) { throw 'git apply --check failed for the Berry phase structure patch' }
+    & git apply $registeredPhaseStructurePatch
+    if ($LASTEXITCODE -ne 0) { throw 'git apply failed for the Berry phase structure patch' }
+  } finally {
+    Pop-Location
+  }
+  $phaseStructureApplicationMatches = (Get-FileHash -Algorithm SHA256 (Join-Path $applyRoot 'BerryConnection.lean')).Hash -eq (Get-FileHash -Algorithm SHA256 $phaseStructurePatched).Hash
+  if (-not $phaseStructureApplicationMatches) { throw 'The applied Berry phase structure patch differs from the generated source' }
+
   Copy-Item -Force -Path (Join-Path $SylvaRoot 'BlochTheorem.lean') -Destination (Join-Path $OutputDirectory 'BlochTheorem.lean')
   $paths = @($OutputDirectory, (Join-Path $SylvaRoot '.lake/build/lib/lean'))
   foreach ($package in @('mathlib', 'plausible', 'LeanSearchClient', 'importGraph', 'proofwidgets', 'aesop', 'Qq', 'batteries', 'Cli')) {
@@ -78,7 +102,7 @@ function run_all_tests {
   }
   $env:LEAN_PATH = $paths -join [IO.Path]::PathSeparator
 
-  $stages = [ordered]@{ integrationPreparation = 0; phasePatchApplication = 0 }
+  $stages = [ordered]@{ integrationPreparation = 0; phasePatchApplication = 0; phaseStructurePatchApplication = 0 }
   $blochLog = Join-Path $OutputDirectory 'integration-bloch.log'
   $stages.bloch = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BlochTheorem.olean'), (Join-Path $OutputDirectory 'BlochTheorem.lean')) -LogPath $blochLog
   Assert-LeanSuccess $stages.bloch $blochLog 'integration BlochTheorem'
@@ -103,6 +127,22 @@ function run_all_tests {
     if (-not $phaseModelText.Contains("'BerryConnection.${name}' depends on axioms: [propext, Classical.choice, Quot.sound]")) {
       throw "Unexpected independent phase axioms for ${name}: $phaseModelText"
     }
+  }
+  $phaseStructureLog = Join-Path $OutputDirectory 'integration-phase-structure.log'
+  $stages.phaseStructureModel = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryPhaseModel.olean'), $phaseStructureProof) -LogPath $phaseStructureLog
+  Assert-LeanSuccess $stages.phaseStructureModel $phaseStructureLog 'independent refined BerryPhase model'
+  $phaseStructureSource = Join-Path $OutputDirectory 'integration-phase-structure-axioms.lean'
+  $phaseStructureAxiomLog = Join-Path $OutputDirectory 'integration-phase-structure-axioms.log'
+  Set-Content -Path $phaseStructureSource -Encoding ASCII -Value @(
+    'import BerryPhaseModel',
+    '',
+    '#print axioms BerryConnection.BerryPhase_GaugeInvariance_refined_model'
+  )
+  $stages.phaseStructureModelAudit = Invoke-NativeLean -Executable $lean -Arguments @($phaseStructureSource) -LogPath $phaseStructureAxiomLog
+  Assert-LeanSuccess $stages.phaseStructureModelAudit $phaseStructureAxiomLog 'independent refined BerryPhase axiom audit'
+  $phaseStructureText = [regex]::Replace((Get-Content -Raw -Path $phaseStructureAxiomLog).Trim(), '\s+', ' ')
+  if (-not $phaseStructureText.Contains("'BerryConnection.BerryPhase_GaugeInvariance_refined_model' depends on axioms: [propext, Classical.choice, Quot.sound]")) {
+    throw "Unexpected independent refined phase axioms: $phaseStructureText"
   }
   $connectionLog = Join-Path $OutputDirectory 'integration-connection.log'
   $stages.connection = Invoke-NativeLean -Executable $lean -Arguments @('-o', (Join-Path $OutputDirectory 'BerryConnection.olean'), (Join-Path $applyRoot 'BerryConnection.lean')) -LogPath $connectionLog
@@ -141,12 +181,13 @@ function run_all_tests {
     '#print axioms BerryConnection.BlochL2State_gauge_transformation_law',
     '#print axioms BerryConnection.constantBlochL2State',
     '#print axioms BerryConnection.constantBlochL2State_gauge_law',
-    '#print axioms BerryConnection.BerryPhase_GaugeInvariance'
+    '#print axioms BerryConnection.BerryPhase_GaugeInvariance',
+    '#print axioms BerryConnection.BerryPhase_GaugeInvariance_refined'
   )
   $stages.axiomAudit = Invoke-NativeLean -Executable $lean -Arguments @($auditSource) -LogPath $auditLog
-  Assert-LeanSuccess $stages.axiomAudit $auditLog 'integrated fifteen-target axiom audit'
+  Assert-LeanSuccess $stages.axiomAudit $auditLog 'integrated sixteen-target axiom audit'
   $auditText = [regex]::Replace((Get-Content -Raw -Path $auditLog).Trim(), '\s+', ' ')
-  foreach ($name in @('BerryConnection.BerryConnection_GaugeTransformationIdentity', 'BerryConnection.BerryConnection_GaugeTransformComposition', 'BerryConnection.BerryConnection_GaugeTransformationLaw', 'BerryCurvature.BerryCurvature_GaugeInvariance', 'BerryCurvature.FirstChernNumber_Integrality', 'BerryCurvature.FirstChernNumber_TopologicalInvariance', 'BerryCurvature.TotalChernNumber_FullBandVanishing', 'curl_linear_subtraction', 'curl_of_gradient_zero', 'BerryCurvature_gauge_invariance', 'BerryConnection.BlochL2State_normalization_integral', 'BerryConnection.BlochL2State_gauge_transformation_law', 'BerryConnection.constantBlochL2State', 'BerryConnection.constantBlochL2State_gauge_law', 'BerryConnection.BerryPhase_GaugeInvariance')) {
+  foreach ($name in @('BerryConnection.BerryConnection_GaugeTransformationIdentity', 'BerryConnection.BerryConnection_GaugeTransformComposition', 'BerryConnection.BerryConnection_GaugeTransformationLaw', 'BerryCurvature.BerryCurvature_GaugeInvariance', 'BerryCurvature.FirstChernNumber_Integrality', 'BerryCurvature.FirstChernNumber_TopologicalInvariance', 'BerryCurvature.TotalChernNumber_FullBandVanishing', 'curl_linear_subtraction', 'curl_of_gradient_zero', 'BerryCurvature_gauge_invariance', 'BerryConnection.BlochL2State_normalization_integral', 'BerryConnection.BlochL2State_gauge_transformation_law', 'BerryConnection.constantBlochL2State', 'BerryConnection.constantBlochL2State_gauge_law', 'BerryConnection.BerryPhase_GaugeInvariance', 'BerryConnection.BerryPhase_GaugeInvariance_refined')) {
     if (-not $auditText.Contains("'${name}' depends on axioms: [propext, Classical.choice, Quot.sound]")) {
       throw "Unexpected integrated axiom dependencies for ${name}: $auditText"
     }
@@ -154,9 +195,9 @@ function run_all_tests {
   if ($auditText.Contains('sorryAx')) { throw "sorryAx in integrated audit: $auditText" }
 
   $report = [ordered]@{
-    schemaVersion = 4
+    schemaVersion = 5
     status = 'success'
-    scope = 'Eight sequential patches plus independent and patched closed-interval Berry-phase invariance, Bloch L2 and fourteen prior targets'
+    scope = 'Nine sequential patches plus refined BerryPhase structure, independent interval and structure models, Bloch L2 and sixteen integrated targets'
     source = [ordered]@{
       repository = 'TOE-SYLVA-pull'
       root = $SylvaRoot
@@ -164,18 +205,22 @@ function run_all_tests {
       originalSha256 = $prepareReport.originalSha256
       preparedConnectionSha256 = $prepareReport.connectionSha256
       phasePatchedConnectionSha256 = (Get-FileHash -Algorithm SHA256 $phasePatched).Hash.ToLowerInvariant()
+      refinedConnectionSha256 = (Get-FileHash -Algorithm SHA256 $phaseStructurePatched).Hash.ToLowerInvariant()
       preparedMainSha256 = $prepareReport.mainSha256
       prepared3DSha256 = $prepareReport.threeDSha256
       l2ProofSha256 = (Get-FileHash -Algorithm SHA256 $l2Proof).Hash.ToLowerInvariant()
       instanceProofSha256 = (Get-FileHash -Algorithm SHA256 $instanceProof).Hash.ToLowerInvariant()
       phaseProofSha256 = (Get-FileHash -Algorithm SHA256 $phaseProof).Hash.ToLowerInvariant()
+      phaseStructureProofSha256 = (Get-FileHash -Algorithm SHA256 $phaseStructureProof).Hash.ToLowerInvariant()
       phasePatchSha256 = (Get-FileHash -Algorithm SHA256 $registeredPhasePatch).Hash.ToLowerInvariant()
+      phaseStructurePatchSha256 = (Get-FileHash -Algorithm SHA256 $registeredPhaseStructurePatch).Hash.ToLowerInvariant()
       patches = $prepareReport.stages
       leanVersion = '4.29.0 / 98dc76e3c0a9b856c9b98726b713fb04fab16740'
     }
     build = [ordered]@{
       stages = $stages
       phaseModelOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BerryPhaseGaugeInvariance.olean')).Hash.ToLowerInvariant()
+      phaseStructureOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BerryPhaseModel.olean')).Hash.ToLowerInvariant()
       connectionOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BerryConnection.olean')).Hash.ToLowerInvariant()
       mainOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BerryCurvature.olean')).Hash.ToLowerInvariant()
       threeDOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BerryCurvatureGaugeInvariance3D.olean')).Hash.ToLowerInvariant()
@@ -183,20 +228,27 @@ function run_all_tests {
       instanceOutputSha256 = (Get-FileHash -Algorithm SHA256 (Join-Path $OutputDirectory 'BlochL2ConstantInstance.olean')).Hash.ToLowerInvariant()
       warningsPreserved = $true
     }
-    axiomAudit = [ordered]@{ integrated = $auditText; independentPhaseModel = $phaseModelText }
+    axiomAudit = [ordered]@{ integrated = $auditText; independentPhaseModel = $phaseModelText; independentPhaseStructure = $phaseStructureText }
     validation = [ordered]@{
       integrationUnitTestPassed = $true
       phasePatchUnitTestPassed = $true
       phasePatchSynchronized = $phasePatchMatches
       phasePatchApplicationMatchesGenerated = $phaseApplicationMatches
+      phaseStructurePatchUnitTestPassed = $true
+      phaseStructurePatchSynchronized = $phaseStructurePatchMatches
+      phaseStructurePatchApplicationMatchesGenerated = $phaseStructureApplicationMatches
       independentPhaseModelProved = $true
+      independentPhaseStructureProved = $true
+      refinedBerryPhaseDefinitionPresent = $true
+      legacyBerryPhasePropRemoved = $true
+      integralDefinitionPrecedesStructure = $true
       sequentialPatchApplication = $true
       combinedBuildSucceeded = $true
       patchedConnectionUsedByCurvature = $true
       l2UsesPatchedConnection = $true
       duplicateStandaloneGaugeLawImportsRemoved = $true
-      standardAxiomsOnlyForFifteenTargets = $true
-      newIncrementalPhasePatchCreated = $true
+      standardAxiomsOnlyForSixteenTargets = $true
+      newIncrementalPhasePatchesCreated = $true
       newDuplicateCombinedPatchCreated = $false
       generalTwoDimensionalLineIntegralProved = $false
       multiValuedPhaseWindingProved = $false
@@ -205,11 +257,12 @@ function run_all_tests {
       fullProjectBuilt = $false
     }
     boundaries = @(
-      'The independent phase model is audited before the phase-patched BerryConnection replaces the base connection build.',
-      'BerryCurvature and BlochL2State are compiled against the phase-patched BerryConnection, not the original dependency.',
-      'The fifteen integrated targets and two independent phase targets use only the standard axioms.',
+      'The independent interval and structure models are audited before the fully patched BerryConnection replaces the base connection build.',
+      'berryPhaseIntegral precedes the refined BerryPhase structure; its definition field is an actual integral equation, not Prop.',
+      'BerryCurvature and BlochL2State are compiled against the fully patched BerryConnection, not the original dependency.',
+      'The sixteen integrated targets and three independent interval or structure targets use only the standard axioms.',
       'Berry-phase invariance is proved for a real parameter interval with differentiable states, integrable terms and equal endpoint gauge phases.',
-      'General two-dimensional line integrals, multivalued phase winding and the old BerryPhase definition Prop are not promoted by this proof.',
+      'General two-dimensional line integrals and multivalued phase winding remain open.',
       'The Dirac instance is a computable test case, not a general Brillouin-zone measure or a construction from old Props.',
       'Conditional Chern invariance and zero-sum hypotheses are not gap-preserving perturbation or completeness-based full-band proofs.',
       'The external TOE-SYLVA source tree is only read; the full Lake project is not built by this script.'

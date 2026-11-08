@@ -6,6 +6,8 @@
 
 **范围**：实参数区间上的 Berry 相位积分，不是一般二维线积分或多值相位绕数定理
 
+> 本文记录区间定理、schemaVersion 4 批次的历史证据。后续旧 `BerryPhase.definition : Prop` 已精炼为实际积分等式，当前全链为十六阶段、十六个集成目标和 schemaVersion 5；最新结果见 `BERRY_PHASE_MODEL_LEAN_AUDIT_2026-11-08.md`。
+
 ## 1. 实际定义与定理
 
 `berryPhaseIntegral` 定义为：
