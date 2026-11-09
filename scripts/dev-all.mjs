@@ -29,7 +29,8 @@ function launch(command, args, env = {}) {
     env: { ...process.env, NODE_PATH: runtimeNodePath(root), ...env },
     stdio: "inherit",
     windowsHide: true,
-    shell: process.platform === "win32",
+    // Executable paths may contain spaces; only .cmd wrappers need a shell.
+    shell: process.platform === "win32" && command === "npm.cmd",
   });
   children.push(child);
   child.on("error", (error) => {

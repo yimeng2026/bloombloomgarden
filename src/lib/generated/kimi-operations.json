@@ -3142,6 +3142,14 @@
       "source": "src/app/api/frontier/arxiv/route.ts"
     },
     {
+      "id": "research:POST:/api/garden-ecosystem",
+      "service": "research",
+      "method": "POST",
+      "path": "/api/garden-ecosystem",
+      "risk": "write",
+      "source": "src/app/api/garden-ecosystem/route.ts"
+    },
+    {
       "id": "research:POST:/api/graphrag/documents",
       "service": "research",
       "method": "POST",
