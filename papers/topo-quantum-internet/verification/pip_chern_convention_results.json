@@ -1,0 +1,187 @@
+{
+  "schema": "pip-chern-convention-v1",
+  "convention": {
+    "bdg": "H=Re(Delta)tau_x-Im(Delta)tau_y+epsilon*tau_z",
+    "e_vector": "(Re Delta, -Im Delta, epsilon)",
+    "berry_connection": "A=+i<u|partial_k u>",
+    "fhs_sign": "C=-sum(arg(plaquette))/(2*pi)",
+    "lattice_epsilon": "-mu-2t(cos kx+cos ky)",
+    "lattice_pairing": "Delta(sin kx+i sin ky)",
+    "continuum_epsilon": "k^2-mu",
+    "continuum_pairing": "kx+i ky"
+  },
+  "lattice": [
+    {
+      "mu": -5.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 41,
+      "analytic_phase": "0",
+      "minimum_sampled_gap": 1.0131837133255168,
+      "degree": 4.083835463316794e-14,
+      "fhs": -4.307001131148512e-17,
+      "rounded_degree": 0,
+      "rounded_fhs": 0,
+      "absolute_method_difference": 4.0881424644479424e-14
+    },
+    {
+      "mu": -5.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 81,
+      "analytic_phase": "0",
+      "minimum_sampled_gap": 1.0033828750188962,
+      "degree": 2.1264249340092253e-19,
+      "fhs": -2.578678882367122e-16,
+      "rounded_degree": 0,
+      "rounded_fhs": 0,
+      "absolute_method_difference": 2.580805307301131e-16
+    },
+    {
+      "mu": -5.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 161,
+      "analytic_phase": "0",
+      "minimum_sampled_gap": 1.0008565902583308,
+      "degree": -4.305844370829683e-19,
+      "fhs": 1.987846675914698e-17,
+      "rounded_degree": 0,
+      "rounded_fhs": 0,
+      "absolute_method_difference": 2.0309051196229948e-17
+    },
+    {
+      "mu": -1.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 41,
+      "analytic_phase": "+1",
+      "minimum_sampled_gap": 0.4426149104579617,
+      "degree": 1.0000175224141623,
+      "fhs": 1.0,
+      "rounded_degree": 1,
+      "rounded_fhs": 1,
+      "absolute_method_difference": 1.7522414162307598e-05
+    },
+    {
+      "mu": -1.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 81,
+      "analytic_phase": "+1",
+      "minimum_sampled_gap": 0.4288488204262082,
+      "degree": 0.9999999988090225,
+      "fhs": 0.9999999999999999,
+      "rounded_degree": 1,
+      "rounded_fhs": 1,
+      "absolute_method_difference": 1.190977427789619e-09
+    },
+    {
+      "mu": -1.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 161,
+      "analytic_phase": "+1",
+      "minimum_sampled_gap": 0.42846474531219847,
+      "degree": 1.0,
+      "fhs": 1.0,
+      "rounded_degree": 1,
+      "rounded_fhs": 1,
+      "absolute_method_difference": 0.0
+    },
+    {
+      "mu": 1.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 41,
+      "analytic_phase": "-1",
+      "minimum_sampled_gap": 0.42863283273549296,
+      "degree": -0.9999833460181914,
+      "fhs": -1.0,
+      "rounded_degree": -1,
+      "rounded_fhs": -1,
+      "absolute_method_difference": 1.6653981808611995e-05
+    },
+    {
+      "mu": 1.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 81,
+      "analytic_phase": "-1",
+      "minimum_sampled_gap": 0.4327115252047413,
+      "degree": -1.0000000011906314,
+      "fhs": -1.0,
+      "rounded_degree": -1,
+      "rounded_fhs": -1,
+      "absolute_method_difference": 1.1906313712728434e-09
+    },
+    {
+      "mu": 1.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 161,
+      "analytic_phase": "-1",
+      "minimum_sampled_gap": 0.4287071302972678,
+      "degree": -0.9999999999999999,
+      "fhs": -1.0000000000000002,
+      "rounded_degree": -1,
+      "rounded_fhs": -1,
+      "absolute_method_difference": 3.3306690738754696e-16
+    },
+    {
+      "mu": 5.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 41,
+      "analytic_phase": "0",
+      "minimum_sampled_gap": 1.0,
+      "degree": 4.0839599559461096e-14,
+      "fhs": 5.521796321985272e-19,
+      "rounded_degree": 0,
+      "rounded_fhs": 0,
+      "absolute_method_difference": 4.0839047379828897e-14
+    },
+    {
+      "mu": 5.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 81,
+      "analytic_phase": "0",
+      "minimum_sampled_gap": 1.0,
+      "degree": -7.442487269032288e-18,
+      "fhs": 9.663143563474227e-19,
+      "rounded_degree": 0,
+      "rounded_fhs": 0,
+      "absolute_method_difference": 8.40880162537971e-18
+    },
+    {
+      "mu": 5.0,
+      "t": 1.0,
+      "delta": 0.5,
+      "grid": 161,
+      "analytic_phase": "0",
+      "minimum_sampled_gap": 1.0,
+      "degree": -5.16701324499562e-18,
+      "fhs": -4.141347241488954e-19,
+      "rounded_degree": 0,
+      "rounded_fhs": 0,
+      "absolute_method_difference": 4.752878520846725e-18
+    }
+  ],
+  "continuum": {
+    "mu=-1": -1e-09,
+    "mu=1": 1.0
+  },
+  "scope": "模型与约定核验，不是材料实验验证；不覆盖 CdGM、无序、相互作用或实验数字。",
+  "references": [
+    "https://arxiv.org/abs/cond-mat/9906453",
+    "https://arxiv.org/abs/cond-mat/0503172"
+  ],
+  "validation": {
+    "maximum_absolute_method_difference": 1.7522414162307598e-05,
+    "lattice_expected_signs_pass": true,
+    "continuum_expected_signs_pass": true,
+    "tolerance": 0.03,
+    "status": "pass"
+  }
+}
