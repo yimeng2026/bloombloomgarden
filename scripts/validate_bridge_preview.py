@@ -16,8 +16,8 @@ URL = "http://127.0.0.1:7100/api/garden-ecosystem"
 TOKEN = secrets.token_urlsafe(32)
 
 
-def post(action: str) -> tuple[int, dict]:
-    request = urllib.request.Request(URL, data=json.dumps({"action": action, "params": {}}).encode(),
+def post(action: str, params: dict | None = None) -> tuple[int, dict]:
+    request = urllib.request.Request(URL, data=json.dumps({"action": action, "params": params or {}}).encode(),
                                      headers={"Content-Type": "application/json",
                                               "Authorization": f"Bearer {TOKEN}"}, method="POST")
     try:
@@ -58,14 +58,21 @@ def main() -> None:
         else:
             raise TimeoutError("Next dev server did not become ready")
         lean_status, lean = post("lean_health")
+        proof_status, proof = post("lean_check", {
+            "path": "examples/LeanSmoke.lean", "declaration": "one_add_one_eq_two",
+        })
         invalid_status, _ = post("shell")
         result = {
             "capabilities_ok": capabilities["ok"],
             "lean_status_http": lean_status,
             "lean": lean.get("result"),
+            "proof_http": proof_status,
+            "proof_level": proof.get("result", {}).get("receipt", {}).get("level"),
+            "depends_on_axioms": proof.get("result", {}).get("depends_on_axioms"),
             "invalid_action_http": invalid_status,
         }
-        if lean_status != 200 or invalid_status != 400:
+        if (lean_status != 200 or invalid_status != 400 or proof_status != 200
+                or result["proof_level"] != "machine_checked"):
             raise AssertionError(result)
     except Exception as error:
         failure = error
