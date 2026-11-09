@@ -105,7 +105,7 @@ git commit -m "Verify p+ip Chern signs with two methods"
 - Consumes: Task 1 的 `pip_chern_convention_results.json`。
 - Produces: 三稿共用 `E=(ReΔ,−ImΔ,ε)`；晶格相区为 `0<μ<4t: −1`、`-4t<μ<0: +1`、外部为 0；连续弱配对为 +1、强配对为 0。
 
-- [ ] **Step 1: 先写文稿约束测试**
+- [x] **Step 1: 先写文稿约束测试**
 
 ```python
 self.assertNotIn("Ch = -sgn(μ)", first.read_text(encoding="utf-8"))
@@ -118,26 +118,26 @@ self.assertIn("pip_chern_convention_results.json", second.read_text(encoding="ut
 
 同时禁止三稿继续把晶格 `μ<0` 全部写成平庸强配对，禁止无脚本时保留“200×200 FHS 已计算”的实证语气。
 
-- [ ] **Step 2: 运行约束测试并记录原稿失败行**
+- [x] **Step 2: 运行约束测试并记录原稿失败行**
 
-Run: `python -m unittest papers/topo-quantum-internet/verification/test_manuscript_conventions.py -v`（若包导入方式不支持，则使用 discover。）
+Run: `python -m unittest discover -s papers/topo-quantum-internet/verification -p "test_manuscript_*.py" -v`
 
-Expected: 在原相图、Δ 依赖边界或证据链接处 FAIL，输出原句与期望句。
+Observed: 4 项约束均 FAIL，分别命中旧 `-sgn(μ)`、首次表述、缺失统一向量和缺失原始结果链接。
 
-- [ ] **Step 3: 做定点文字修复**
+- [x] **Step 3: 做定点文字修复**
 
-第一稿修复第 112、128–134、212–217、225–235 行附近；第二稿修复第 9–14、115–129、153–184、327–339 行附近；第三稿只同步重复的 p+ip 相图和陈数段。第二稿的 Kitaev 相区恢复 `|μ|<2t`，不得保留 `μ²<4(t²+Δ²)`。连续模型与晶格模型分表，不互相拼接。
+第一稿修复模型、Read–Green 向量、两个拓扑窗口、结论与证据链接；第二稿修复首次表述、连续／晶格分表、Kitaev 的 `|μ|<2t` 相界和实测网格；第三稿只同步 p+ip 向量、相图和证据链接。未重写无关章节。
 
-- [ ] **Step 4: 运行全部验证**
+- [x] **Step 4: 运行全部验证**
 
 Run: `python -m unittest discover -s papers/topo-quantum-internet/verification -p "test_*.py" -v`
 
-Expected: 全部 PASS，退出码 0；额外用 Grep 检查旧符号和旧边界只剩在勘误说明中，不得仍在当前结论中。
+Observed: 11 项测试全部 PASS，退出码 0。Grep 对旧符号、错误 Δ 相界、200×200 和首次措辞无命中；原始结果生成脚本再次退出码 0。
 
-- [ ] **Step 5: 提交文稿修复**
+- [x] **Step 5: 提交文稿修复**
 
 ```bash
-git add papers/topo-quantum-internet/Kitaev链与p_ip拓扑超导体_Majorana零能模数值研究.md papers/topo-quantum-internet/拓扑超导马约拉纳零能模_能谱分析与拓扑保护_投稿物理学报.md papers/topo-quantum-internet/拓扑量子物态与量子计算研究综述_投稿物理学报.md papers/topo-quantum-internet/verification/test_manuscript_conventions.py
+git add papers/topo-quantum-internet/Kitaev链与p_ip拓扑超导体_Majorana零能模数值研究.md papers/topo-quantum-internet/拓扑超导马约拉纳零能模_能谱分析与拓扑保护_投稿物理学报.md papers/topo-quantum-internet/拓扑量子物态与量子计算研究综述_投稿物理学报.md papers/topo-quantum-internet/verification/test_manuscript_conventions.py docs/superpowers/plans/2026-11-10-pip-chern-convention.md
 git commit -m "Unify p+ip phase diagrams and Chern conventions"
 ```
 

@@ -109,7 +109,7 @@ $$
 E_\mathbf{k} = \sqrt{\epsilon_\mathbf{k}^2 + |\Delta_\mathbf{k}|^2}
 $$
 
-相变发生在 μ = 0（或 μ = -4t，取决于能量零点选择）。当 μ > 0（弱配对相）时，陈数 Ch = -1，系统为拓扑非平庸；当 μ < 0（强配对相）时，Ch = 0，系统为平庸。
+对上述**晶格模型**，隙闭合点为 $\mu=-4t,0,4t$。采用下节统一的 Read–Green 向量与符号约定，$0<\mu<4t$ 时 Ch = -1，$-4t<\mu<0$ 时 Ch = +1，$|\mu|>4t$ 时 Ch = 0。负 $\mu$ 区间不能整体称为“强配对相”；连续模型的强配对 $\mu<0$ 对应 Ch = 0，与这里的晶格第二拓扑窗口是两个不同陈述。
 
 ### 2.3 拓扑不变量
 
@@ -125,13 +125,20 @@ $$
 W = \begin{cases} 1 & |\mu| < 2t \text{ (topological)} \\ 0 & |\mu| > 2t \text{ (trivial)} \end{cases}
 $$
 
-对于二维 p+ip 超导体，拓扑不变量为陈数：
+对于二维 p+ip 超导体，先由所写 BdG 矩阵确定 Read–Green 向量，而不是把 +ImΔ 错配到 τ_y：
 
 $$
-\text{Ch} = \frac{1}{4\pi} \int_{\text{BZ}} d^2k \, \hat{\mathbf{d}} \cdot \left( \frac{\partial \hat{\mathbf{d}}}{\partial k_x} \times \frac{\partial \hat{\mathbf{d}}}{\partial k_y} \right)
+E=(\operatorname{Re}\Delta_k, -\operatorname{Im}\Delta_k, \epsilon_k),\qquad
+H_{\mathrm{BdG}}=\operatorname{Re}\Delta_k\,\tau_x-\operatorname{Im}\Delta_k\,\tau_y+\epsilon_k\tau_z.
 $$
 
-其中 **d**(k) = (Re Δ_k, Im Δ_k, ε_k)。对于 p+ip 模型，Ch = -sgn(μ)（当 Δ ≠ 0 时）。
+本文采用 Berry 联络 $A_\mu=+i\langle u|\partial_{k_\mu}u\rangle$。相应陈数可写为
+
+$$
+\text{Ch} = \frac{1}{4\pi} \int_{\text{BZ}} d^2k \, \hat{\mathbf{E}} \cdot \left( \frac{\partial \hat{\mathbf{E}}}{\partial k_x} \times \frac{\partial \hat{\mathbf{E}}}{\partial k_y} \right).
+$$
+
+若使用 FHS 链接变量，按此 Berry 联络应取 $\text{Ch}=-\sum\arg[U_x(k)U_y(k+x)U_x(k+y)^{-1}U_y(k)^{-1}]/(2\pi)$，与上式同号。相变点能隙闭合，不计算 Ch。
 
 ---
 
@@ -211,10 +218,10 @@ $$
 
 ### 4.4 二维 p+ip 超导体
 
-图 3(a) 展示了二维 p+ip 超导体沿高对称路径 Γ–X–M–Γ 的 BdG 能带结构。在拓扑相（μ = 0.5t，蓝色实线）中，能带在 Γ 点处具有有限能隙；在平庸相（μ = -2t，红色虚线）中，能隙结构明显不同。两者的关键区别在于：
+图 3(a) 展示了二维 p+ip 超导体沿高对称路径 Γ–X–M–Γ 的 BdG 能带结构。$\mu=0.5t$ 与 $\mu=-2t$ 都位于晶格拓扑区，不能分别标成“拓扑”与“平庸”：
 
-- 拓扑相（弱配对相，μ > 0）：系统具有非零陈数 Ch = -1，支持手性 Majorana 边缘态
-- 平庸相（强配对相，μ < 0）：陈数 Ch = 0，无能隙边缘态
+- $\mu=0.5t$ 位于 $0<\mu<4t$ 窗口，Ch = -1；
+- $\mu=-2t$ 位于 $-4t<\mu<0$ 窗口，Ch = +1，手性与前一窗口相反。
 
 图 3(b) 展示了涡旋核中的束缚态能谱。我们采用简化的 Caroli-de Gennes-Matricon (CdGM) 模型来描述涡旋中的低能激发。在 p+ip 超导体中，角动量 m = 0 的通道中存在一个精确零能的模式——这就是涡旋中的 Majorana 束缚态。其他 m ≠ 0 的态具有有限能量，形成一系列离散的 CdGM 能级。图中清晰地显示了 m = 0 处的红色点（Majorana 零能模）与 m ≠ 0 处的蓝色点（普通 CdGM 态）之间的能量分离。
 
@@ -226,13 +233,15 @@ $$
 
 本文通过精确的数值对角化，系统地研究了 Kitaev 链和二维 p+ip 拓扑超导体的 Majorana 零能模。主要结论如下：
 
-1. **拓扑相变**：一维 Kitaev 链在 |μ| = 2t 处发生拓扑相变，绕数从 W = 1（拓扑相）跃变到 W = 0（平庸相）。二维 p+ip 超导体在 μ = 0 处发生相变，陈数从 Ch = -1 变到 Ch = 0。
+1. **拓扑相变**：一维 Kitaev 链在 $|\mu|=2t$ 处发生拓扑相变，绕数从 W = 1（拓扑相）跃变到 W = 0（平庸相）。上述二维晶格 p+ip 模型在 $\mu=-4t,0,4t$ 处发生隙闭合；$0<\mu<4t$ 时 Ch = -1，$-4t<\mu<0$ 时 Ch = +1，$|\mu|>4t$ 时 Ch = 0。
 
 2. **Majorana 零能模**：在拓扑相中，一维链的两端各出现一个 Majorana 零能模，能量精确为零（在数值精度内），波函数呈指数局域化。两个零能模之间的空间交叠随链长指数衰减。
 
 3. **涡旋束缚态**：在二维 p+ip 超导体的涡旋核中，角动量 m = 0 的通道中存在 Majorana 零能束缚态，其他通道则为普通的有限能 CdGM 态。
 
-4. **数值验证**：所有数值结果与解析理论完全吻合，验证了 BdG 形式主义和拓扑不变量计算方法的可靠性。
+4. **数值验证**：相图与符号部分已由 Read–Green 向量积分和占据带 FHS 两种方法交叉核验，不将这一局部核验扩大为对全部实验陈述的证明。
+
+> **2026-11-10 复核记录**：41、81、161 三种网格下，两种晶格方法的最大绝对差为 $1.7523\times10^{-5}$；连续模型给出弱配对 Ch = +1、强配对 Ch = 0。原始结果见 `verification/pip_chern_convention_results.json`，可执行脚本与测试位于同一目录。
 
 ### 5.2 未来研究方向
 
