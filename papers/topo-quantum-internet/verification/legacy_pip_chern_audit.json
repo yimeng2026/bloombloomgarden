@@ -1,0 +1,21 @@
+{
+  "schema": "legacy-pip-readonly-audit-v1",
+  "source": "C:\\Users\\一梦\\Documents\\kimi\\workspace\\toe-sylva-audit\\papers\\topo_quantum_internet\\verify_topo_qinternet.py",
+  "source_sha256_before": "c98debd85ea509fe683d60a8d0d3d380cf92bacbd66ba30c0aae2c3d30f95556",
+  "source_sha256_after": "c98debd85ea509fe683d60a8d0d3d380cf92bacbd66ba30c0aae2c3d30f95556",
+  "source_unchanged": true,
+  "actual": {
+    "mu=-1": -1,
+    "mu=1": 1
+  },
+  "docstring": {
+    "mu=-1": 1,
+    "mu=1": -1
+  },
+  "docstring_matches_actual": false,
+  "vector_in_source": "d=(Re Delta, +Im Delta, epsilon)",
+  "vector_required_by_bdg": "E=(Re Delta, -Im Delta, epsilon)",
+  "command": "python papers/topo-quantum-internet/verification/audit_legacy_pip.py",
+  "scope": "只读运行旧函数，不修改旧仓库；新裁决以双方法结果为准。",
+  "status": "docstring_mismatch_confirmed"
+}

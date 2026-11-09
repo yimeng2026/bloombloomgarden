@@ -153,23 +153,23 @@ git commit -m "Unify p+ip phase diagrams and Chern conventions"
 - Consumes: Tasks 1–2 的测试结果、三稿 diff 和外部原文。
 - Produces: 可复现勘误报告；`resolution_2026_11_10` 记录仅覆盖相图／符号，不宣称 CdGM、实验数字或整篇 P0 全部解除。
 
-- [ ] **Step 1: 生成相图与报告**
+- [x] **Step 1: 生成相图与报告**
 
-相图横轴为 μ/t，标出 −4、0、4 三条隙闭合线及 +1、−1、0 相区。报告逐项列出“原句—问题—裁决—证据—未竟工作”，附 Read–Green 与 FHS 原始来源；说明符号约定改变不代表物理边界模式可以随意改名。
+已生成 241 点晶格扫描、60 点连续对照和 `P_IP_CHERN_CONVENTION_AUDIT.md`。旧 TOE 脚本只读审计确认实际输出与 docstring 反号，运行前后源文件哈希一致。
 
-- [ ] **Step 2: 制作原生 Word**
+- [x] **Step 2: 制作原生 Word**
 
-使用已有 Pandoc／kimi-word 流程，嵌入 `pip_chern_phase_diagram.png`，生成页眉页码、目录域和原生公式。运行 `docx.py validate`，再渲染 contact-sheet，逐页检查图表、公式和表格，不用结构校验代替视觉验收。
+已生成 6 页 `P_IP_CHERN_CONVENTION_AUDIT.docx`，含真实相图、原生公式、表格、页眉页码与目录域。`docx.py validate` 通过 17 个部件；contact-sheet 和重点表格页已检查，无空白页、裁切或代码重叠，仅目录编号级别覆盖的低风险预览器提示。
 
-- [ ] **Step 3: 最终复验与回写**
+- [x] **Step 3: 最终复验与回写**
 
 Run: `python -m unittest discover -s papers/topo-quantum-internet/verification -p "test_*.py" -v`
 
-Expected: 全部 PASS。`provider-review.json` 原风险保留，新增解决报告路径、命令、通过数与剩余范围。
+Observed: 15 项测试全部 PASS，退出码 0。`provider-review.json` 中三篇原风险均保留，新增 `resolution_2026_11_10` 和 `pip-resolution-summary.json`，明确 `full_p0_resolved=false`。
 
-- [ ] **Step 4: 分别提交两个仓库**
+- [x] **Step 4: 分别提交两个仓库**
 
-主工作区提交报告、图、Word 和计划完成状态；花园仓库单独提交总账回写。只有实际退出码为 0 后才 `git push`，不合并或重置其他分支。
+主工作区提交报告、图、Word 和计划完成状态；花园仓库单独提交总账回写。推送使用具名研究分支，不强推、不合并或重置其他分支。
 
 ## Self-Review
 

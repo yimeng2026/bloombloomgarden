@@ -1,0 +1,15 @@
+{
+  "schema": "pip-phase-figure-v1",
+  "lattice_sweep_points": 241,
+  "lattice_grid": 81,
+  "gapless_boundaries": [
+    -4.0,
+    0.0,
+    4.0
+  ],
+  "continuum_points": 60,
+  "source_results": "pip_chern_convention_results.json",
+  "raw_sweep": "pip_phase_sweep.json",
+  "figure": "figures\\pip_chern_phase_diagram.png",
+  "validation": "gapless boundaries and source artifact existence pass"
+}
