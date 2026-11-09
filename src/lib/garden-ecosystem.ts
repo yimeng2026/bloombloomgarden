@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 
-export const BRIDGE_ACTIONS = new Set(["capabilities", "health", "lean_health", "lean_receipt"]);
+export const BRIDGE_ACTIONS = new Set(["capabilities", "health", "lean_health", "lean_receipt", "lean_check"]);
 const MAX_INPUT = 16_384;
 const MAX_OUTPUT = 65_536;
 const MAX_STDERR = 16_384;

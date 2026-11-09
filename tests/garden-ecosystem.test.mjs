@@ -125,6 +125,23 @@ test("nonzero exit is rejected without exposing stderr", async () => {
   });
 });
 
+test("lean_check forwards only the declaration and relative path", async () => {
+  const captured = [];
+  const result = await invokeBridge("lean_check", {
+    path: "Smoke.lean", declaration: "one_add_one_eq_two",
+  }, optionsFor((child) => {
+    child.stdout.emit("data", JSON.stringify({
+      id: "fixed-id", ok: true, result: { receipt: { level: "machine_checked" } },
+    }));
+    child.emit("close", 0);
+  }, captured));
+  assert.equal(result.result.receipt.level, "machine_checked");
+  assert.equal(captured.request.action, "lean_check");
+  assert.equal(captured.request.params.path, "Smoke.lean");
+  assert.equal(captured.request.params.declaration, "one_add_one_eq_two");
+  assert.equal(Object.keys(captured.request.params).length, 2);
+});
+
 test("route maps valid, invalid and unavailable responses", async () => {
   const valid = await handleBridgeRequest(new Request("http://localhost/api/garden-ecosystem", {
     method: "POST", body: JSON.stringify({ action: "lean_health", params: {} }),
